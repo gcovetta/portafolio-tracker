@@ -395,7 +395,8 @@ function renderPortfolio(){
     totalCost+=p.costUSD;
     var pnlClass=pnlPct!=null?(pnlPct>=0?'pos':'neg'):'';
     var inversionARS=(p.costUSD*CCL_HOY).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
-    var mercadoARS=price!=null?(price*CCL_HOY).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}):null;
+    var ratio=getRatio(p.ticker);
+    var mercadoARS=price!=null?((price/ratio)*CCL_HOY).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}):null;
     var ppcARS=(avgCost*CCL_HOY).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
     return '<tr>'+
       '<td style="font-weight:700">'+p.ticker+'</td>'+
