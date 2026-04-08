@@ -386,18 +386,26 @@ function renderPortfolio(){
 
   body.innerHTML=open.map(function(p){
     var q=quotes[p.ticker];
-    var price=q?q.price:null;
-    var valueUSD=price!=null?price*p.qty:null;
-    var avgCost=p.qty>0?p.costUSD/p.qty:0;
-    var pnl=valueUSD!=null?valueUSD-p.costUSD:null;
-    var pnlPct=pnl!=null&&p.costUSD>0?pnl/p.costUSD*100:null;
+    var price=q?q.price:null;           // precio NYSE en USD
+    var ratio=getRatio(p.ticker);
+    var avgCost=p.qty>0?p.costUSD/p.qty:0;  // PPC por acción NYSE en USD
+
+    // Todo en ARS para ser consistente con lo que el usuario ve
+    var ppcCedearARS=avgCost*CCL_HOY;                     // PPC del CEDEAR en ARS
+    var mercadoCedearARS=price!=null?(price/ratio)*CCL_HOY:null; // precio actual CEDEAR en ARS
+
+    // Δ% = (mercado - PPC) / PPC — calculado sobre el CEDEAR en ARS
+    var pnlPct=mercadoCedearARS!=null&&ppcCedearARS>0?(mercadoCedearARS-ppcCedearARS)/ppcCedearARS*100:null;
+
+    // Valor total de mercado en USD (para las métricas del header)
+    var valueUSD=price!=null?(price/ratio)*p.qty:null;  // qty CEDEARs × precio_CEDEAR_USD
     if(valueUSD!=null)totalVal+=valueUSD;
     totalCost+=p.costUSD;
+
     var pnlClass=pnlPct!=null?(pnlPct>=0?'pos':'neg'):'';
     var inversionARS=(p.costUSD*CCL_HOY).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
-    var ratio=getRatio(p.ticker);
-    var mercadoARS=price!=null?((price/ratio)*CCL_HOY).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}):null;
-    var ppcARS=(avgCost*CCL_HOY).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
+    var mercadoARS=mercadoCedearARS!=null?mercadoCedearARS.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}):null;
+    var ppcARS=ppcCedearARS.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
     return '<tr>'+
       '<td style="font-weight:700">'+p.ticker+'</td>'+
       '<td class="mono '+pnlClass+'">'+(pnlPct!=null?(pnlPct>=0?'+':'')+pnlPct.toFixed(2)+'%':'—')+'</td>'+
