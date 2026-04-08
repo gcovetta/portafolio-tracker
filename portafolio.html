@@ -357,9 +357,9 @@ tr:hover td{background:var(--surface2)}
               Descargá el reporte <b>Movimientos Dividendos y Rentas Cobradas</b> desde tu broker en formato XLS y subilo acá. Se importan los tipos <b>DIV</b> y <b>RTA</b>; los rescates (RESC) se omiten. Los registros ya existentes no se duplican.
             </div>
             <div class="gap-row">
-              <label style="cursor:pointer">
+              <label style="cursor:pointer;display:inline-flex;align-items:center">
                 <input type="file" id="trk-imp-file" accept=".xls,.xlsx,.htm,.html" style="display:none">
-                <span class="btn btn-a" onclick="document.getElementById('trk-imp-file').click()">↑ Subir archivo XLS</span>
+                <span class="btn btn-a">↑ Subir archivo XLS</span>
               </label>
               <span id="trk-imp-status" class="smsg"></span>
             </div>
@@ -1107,62 +1107,80 @@ function trkImpParse(html, fname){
     // Quitar BOM si existe
     if(html.charCodeAt(0)===0xFEFF) html=html.slice(1);
 
-    // Extraer todas las filas <tr> con sus <td>
-    var trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-    var tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+    // Estrategia: en vez de capturar <tr>...</tr> con multilinea (que falla en JS),
+    // extraemos todos los <td> del documento en orden y los agrupamos por <tr>
+    // Para eso detectamos los límites de <tr> y reconstruimos los grupos.
+
+    // 1. Limpiar el HTML dejando solo la estructura de tabla
+    // Reemplazar saltos de línea y tabs para aplanar
+    var flat = html.replace(/[\r\n\t]+/g, ' ');
+
+    // 2. Extraer grupos de celdas por fila: partir por <tr
+    var trBlocks = flat.split(/<tr[\s>]/i);
     var tagRe = /<[^>]+>/g;
+    var tdRe  = /<td[^>]*>(.*?)<\/td>/gi;
 
     var rows = [];
-    var trMatch;
-    while((trMatch = trRe.exec(html)) !== null){
-      var tdMatch;
+
+    for(var b=0; b<trBlocks.length; b++){
+      var block = trBlocks[b];
+      // Extraer todas las <td> de este bloque
       var cells = [];
-      var inner = trMatch[1];
+      var m;
       tdRe.lastIndex = 0;
-      while((tdMatch = tdRe.exec(inner)) !== null){
-        cells.push(tdMatch[1].replace(tagRe,'').replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').trim());
+      while((m = tdRe.exec(block)) !== null){
+        var raw = m[1].replace(tagRe,'').replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').trim();
+        cells.push(raw);
       }
-      // Fila de datos: debe tener al menos 7 celdas y empezar con una fecha
-      if(cells.length >= 7 && /^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(cells[0])){
-        // Estructura: [0]Fecha [1]Cpbt [2]Número [3]Especie [4]Moneda|Portafolio [5]Portafolio|Divi [6]Divi [7]%Divi...
-        // Detección flexible de moneda: si cells[4] == 'PESOS' o es nombre de especie (no número) → ARS
-        var fecha = trkImpParseDate(cells[0]);
-        var cpbt  = cells[1];  // DIV, RTA, RESC...
-        var especie = cells[3];
 
-        // Determinar si la columna 4 es la moneda o ya es portafolio
-        var moneda, portafolio, diviRenta;
-        if(cells[4].toUpperCase() === 'PESOS'){
-          moneda     = 'ARS';
-          portafolio = trkImpParseNum(cells[5]);
-          diviRenta  = trkImpParseNum(cells[6]);
-        } else if(/^\d/.test(cells[4]) || cells[4]==='' || cells[4]==='0,00'){
-          // Es un número → no hay columna moneda → USD
-          moneda     = 'USD';
-          portafolio = trkImpParseNum(cells[4]);
-          diviRenta  = trkImpParseNum(cells[5]);
-        } else {
-          // Texto que no es PESOS: puede ser nombre de especie BRA → tratar como USD sin portafolio claro
-          moneda     = 'USD';
-          portafolio = trkImpParseNum(cells[5]);
-          diviRenta  = trkImpParseNum(cells[6]);
-        }
+      // Estructura real del broker:
+      // [0]=vacío(checkbox) [1]=fecha [2]=tipo [3]=nro [4]=especie [5]=moneda|portafolio [6]=portafolio|divi [7]=divi|%divi
+      // Si hay columna moneda (PESOS): [5]=PESOS [6]=portafolio [7]=divi/renta
+      // Si no hay columna moneda (USD): [5]=portafolio [6]=divi/renta
 
-        if(!fecha || !especie) continue;
-        if(['RESC','RES'].includes(cpbt.toUpperCase())) continue; // excluir rescates
-        if(diviRenta === 0) continue; // excluir filas sin monto
+      if(cells.length < 7) continue;
 
-        rows.push({ fecha:fecha, ticker:especie.toUpperCase(), tipo:cpbt.toUpperCase(), moneda:moneda, monto:diviRenta, acciones:portafolio||null });
-      }
+      // La fecha está en cells[1] (cells[0] es el td vacío)
+      var fecha = trkImpParseDate(cells[1]);
+      if(!fecha) continue;
+
+      var cpbt    = (cells[2]||'').trim().toUpperCase();
+      var especie = (cells[4]||'').trim().toUpperCase();
+
+      if(!especie) continue;
+      if(cpbt === 'RESC' || cpbt === 'RES') continue;
+
+      // Estructura fija del broker:
+      // [0]=vacío [1]=fecha [2]=tipo [3]=nro.cpbt [4]=especie
+      // [5]=moneda (vacío=USD, 'PESOS'=ARS, o nombre especie en casos raros)
+      // [6]=portafolio (acciones) [7]=Divi/Renta ← monto real [8]=%divi ...
+      var c5 = (cells[5]||'').trim();
+      var moneda = (c5.toUpperCase() === 'PESOS') ? 'ARS' : 'USD';
+      var portafolio = trkImpParseNum(cells[6]);
+      var diviRenta  = trkImpParseNum(cells[7]);
+
+      if(diviRenta === 0) continue;
+
+      rows.push({
+        fecha:    fecha,
+        ticker:   especie,
+        tipo:     cpbt,
+        moneda:   moneda,
+        monto:    diviRenta,
+        acciones: portafolio || null
+      });
     }
 
-    if(!rows.length){ status.className='emsg'; status.textContent='No se encontraron filas de dividendos en el archivo.'; return; }
+    if(!rows.length){
+      status.className='emsg';
+      status.textContent='No se encontraron filas de dividendos en el archivo.';
+      return;
+    }
 
     // Detectar duplicados contra TRK.divs ya guardados
     var existKeys = {};
     TRK.divs.forEach(function(d){
-      var k = (d.fecha||'')+'|'+(d.ticker||'')+'|'+(d.moneda||'')+'|'+(d.monto||0);
-      existKeys[k]=true;
+      existKeys[trkImpBuildKey(d)] = true;
     });
 
     rows.forEach(function(r){
@@ -1175,11 +1193,21 @@ function trkImpParse(html, fname){
     // Render preview
     var tbody = document.getElementById('trk-imp-tbody');
     tbody.innerHTML = rows.map(function(r){
-      var monLabel = r.moneda==='ARS'?'<span class="badge badge-aporte">ARS</span>':'<span class="badge badge-usd">USD</span>';
+      var monLabel = r.moneda==='ARS'
+        ? '<span class="badge badge-aporte">ARS</span>'
+        : '<span class="badge badge-usd">USD</span>';
       var estado = r._dup
         ? '<span style="color:var(--text3);font-family:var(--mono);font-size:.62rem">ya existe</span>'
         : '<span style="color:var(--accent);font-family:var(--mono);font-size:.62rem">nuevo</span>';
-      return '<tr style="'+(r._dup?'opacity:.45':'')+'"><td style="font-weight:700">'+r.ticker+'</td><td class="mono">'+r.fecha+'</td><td><span class="badge badge-dividendo" style="font-size:.55rem">'+r.tipo+'</span></td><td>'+monLabel+'</td><td class="mono" style="text-align:right">'+r.monto.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td><td class="mono muted" style="text-align:right">'+(r.acciones||'—')+'</td><td style="text-align:center">'+estado+'</td></tr>';
+      return '<tr style="'+(r._dup?'opacity:.45':'')+'">'+
+        '<td style="font-weight:700">'+r.ticker+'</td>'+
+        '<td class="mono">'+r.fecha+'</td>'+
+        '<td><span class="badge badge-dividendo" style="font-size:.55rem">'+r.tipo+'</span></td>'+
+        '<td>'+monLabel+'</td>'+
+        '<td class="mono" style="text-align:right">'+r.monto.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})+'</td>'+
+        '<td class="mono muted" style="text-align:right">'+(r.acciones?r.acciones.toLocaleString('es-AR'):'—')+'</td>'+
+        '<td style="text-align:center">'+estado+'</td>'+
+      '</tr>';
     }).join('');
 
     var newCount = rows.filter(function(r){return !r._dup;}).length;
@@ -1192,7 +1220,8 @@ function trkImpParse(html, fname){
 
   } catch(err){
     status.className='emsg';
-    status.textContent = 'Error al procesar: '+err.message;
+    status.textContent = 'Error al procesar: ' + err.message;
+    console.error('trkImpParse error:', err);
   }
 }
 
