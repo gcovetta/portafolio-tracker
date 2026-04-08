@@ -515,6 +515,15 @@ function renderPortfolio(){
     var targetUSD=getTarget(p.ticker);
     var targetARS=targetUSD!=null?(targetUSD/ratio)*CCL_HOY:null;
     var targetPct=targetARS!=null&&ppcCedearARS>0?(targetARS-ppcCedearARS)/ppcCedearARS*100:null;
+
+    // ΔUP = upside desde precio actual hasta precio objetivo
+    var upside=targetARS!=null&&mercadoCedearARS!=null&&mercadoCedearARS>0
+      ?(targetARS-mercadoCedearARS)/mercadoCedearARS*100
+      :null;
+    var upsideCell=upside!=null
+      ?'<span class="'+(upside>=0?'pos':'neg')+'">'+(upside>=0?'+':'')+upside.toFixed(1)+'%</span>'
+      :'<span style="color:var(--text3)">—</span>';
+
     var targetCell=targetARS!=null?
       '$'+targetARS.toLocaleString('es-AR',{maximumFractionDigits:0})+
       (targetPct!=null?' <span style="font-size:.6rem;color:var(--text3)">('+( targetPct>=0?'+':'')+targetPct.toFixed(0)+'%)</span>':''):
@@ -523,7 +532,7 @@ function renderPortfolio(){
     var row='<tr>'+
       '<td style="font-weight:700">'+p.ticker+'</td>'+
       '<td class="mono '+pnlClass+'">'+(pnlPct!=null?(pnlPct>=0?'+':'')+pnlPct.toFixed(2)+'%':'—')+'</td>'+
-      '<td class="muted" style="font-size:.65rem;text-align:center">—</td>'+
+      '<td class="mono">'+upsideCell+'</td>'+
       '<td class="mono">$'+invARS+'</td>'+
       '<td class="mono">'+(mktARS!=null?'$'+mktARS:'<span style="color:var(--text3)">—</span>')+'</td>'+
       '<td class="mono muted">$'+ppcARS+'</td>'+
