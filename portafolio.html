@@ -1722,6 +1722,18 @@ function trkCalcCCL(){
   try{var sr=localStorage.getItem('ptNYSE_ratios');if(sr){Object.assign(RATIOS_TABLE,JSON.parse(sr));}}catch(e){}
   try{var sd=localStorage.getItem('ptNYSE_divs');if(sd)dividendos=JSON.parse(sd);}catch(e){}
   try{var st=localStorage.getItem('ptNYSE_targets');if(st){Object.assign(TARGET_TABLE,JSON.parse(st));}}catch(e){}
+  // Recalcular precioUSD si el ratio guardado en localStorage difiere del PRELOADED
+  var _recalcDone=false;
+  movimientos.forEach(function(m){
+    if(m.tipo==='aporte'||!m.ccl||!m.ticker)return;
+    var rActual=getRatio(m.ticker);
+    if(m.ratio!==rActual){
+      m.ratio=rActual;
+      m.precioUSD=Math.round(m.precioARS*rActual/m.ccl*1000000)/1000000;
+      _recalcDone=true;
+    }
+  });
+  if(_recalcDone){try{localStorage.setItem('ptNYSE_mov2',JSON.stringify(movimientos));}catch(e){}}
   renderMovimientos();renderPortfolio();renderRatios();renderTargets();renderDividendos();renderDivsCard();
   document.getElementById('lupd').textContent='Datos cargados';
 
