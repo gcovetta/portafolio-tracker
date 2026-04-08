@@ -897,26 +897,16 @@ function renderDivsCard(){
 
   var svg='<svg viewBox="0 0 '+SW+' '+SH+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+SW+'px;height:auto;display:block;overflow:visible">'+guides+bars+'</svg>';
 
-  // Tabla ordenada fecha desc
-  var sorted=all.slice().sort(function(a,b){
-    function ts(f){var p=f.split('/');return p.length===3?p[2]+p[1]+p[0]:f.replace(/-/g,'');}
-    return ts(b.fecha).localeCompare(ts(a.fecha));
-  });
-  var rows=sorted.map(function(d){
-    return '<tr><td class="mono">'+(d.fecha||'')+'</td><td style="font-weight:600">'+(d.ticker||'')+'</td><td class="mono pos">+USD '+d.usd.toFixed(2)+'</td><td class="muted">'+(d.notas||'')+'</td></tr>';
-  }).join('');
-
   divsEl.className='';
   divsEl.innerHTML=
-    '<div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;padding:.9rem 1rem;border-bottom:1px solid var(--border)">'+
+    '<div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;padding:.9rem 1rem">'+
       '<div style="min-width:120px">'+
         '<div style="font-size:.58rem;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Total cobrado</div>'+
         '<div style="font-size:1.5rem;font-weight:700;font-family:var(--mono);color:var(--accent);letter-spacing:-.02em">USD '+totUSD.toFixed(2)+'</div>'+
         '<div style="font-size:.62rem;font-family:var(--mono);color:var(--text3);margin-top:3px">'+all.length+' cobros · '+months.length+' mes'+(months.length!==1?'es':'')+'</div>'+
       '</div>'+
       '<div style="flex:1;min-width:200px">'+svg+'</div>'+
-    '</div>'+
-    '<div class="tw"><table><thead><tr><th>Fecha</th><th>Ticker</th><th>USD</th><th>Notas</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    '</div>';
 }
 
 
