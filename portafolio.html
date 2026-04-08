@@ -388,22 +388,24 @@ function renderPortfolio(){
     var q=quotes[p.ticker];
     var price=q?q.price:null;           // precio NYSE en USD
     var ratio=getRatio(p.ticker);
-    var avgCost=p.qty>0?p.costUSD/p.qty:0;  // PPC por acción NYSE en USD
 
-    // Todo en ARS para ser consistente con lo que el usuario ve
-    var ppcCedearARS=avgCost*CCL_HOY;                     // PPC del CEDEAR en ARS
+    // costUSD está calculado como precioARS * ratio / CCL → contiene el ratio
+    // Para expresar en términos de CEDEAR hay que dividir por ratio
+    var avgCost=p.qty>0?p.costUSD/p.qty:0;  // PPC en USD acción NYSE (con ratio)
+    var ppcCedearARS=(avgCost/ratio)*CCL_HOY;              // PPC CEDEAR en ARS
+    var inversionCedearARS=(p.costUSD/ratio)*CCL_HOY;      // Inversión total CEDEAR en ARS
     var mercadoCedearARS=price!=null?(price/ratio)*CCL_HOY:null; // precio actual CEDEAR en ARS
 
-    // Δ% = (mercado - PPC) / PPC — calculado sobre el CEDEAR en ARS
+    // Δ% comparando precio CEDEAR actual vs PPC CEDEAR
     var pnlPct=mercadoCedearARS!=null&&ppcCedearARS>0?(mercadoCedearARS-ppcCedearARS)/ppcCedearARS*100:null;
 
-    // Valor total de mercado en USD (para las métricas del header)
-    var valueUSD=price!=null?(price/ratio)*p.qty:null;  // qty CEDEARs × precio_CEDEAR_USD
+    // Valor de mercado total en USD equivalente
+    var valueUSD=price!=null?(price/ratio)*p.qty:null;
     if(valueUSD!=null)totalVal+=valueUSD;
-    totalCost+=p.costUSD;
+    totalCost+=p.costUSD/ratio;
 
     var pnlClass=pnlPct!=null?(pnlPct>=0?'pos':'neg'):'';
-    var inversionARS=(p.costUSD*CCL_HOY).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
+    var inversionARS=inversionCedearARS.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
     var mercadoARS=mercadoCedearARS!=null?mercadoCedearARS.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}):null;
     var ppcARS=ppcCedearARS.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
     return '<tr>'+
