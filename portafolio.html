@@ -97,6 +97,7 @@ tr:hover td{background:var(--surface2)}
     <div class="nav-sec">Vistas</div>
     <button class="nav-item active" onclick="showPage('portafolio',this)"><span>◈</span>Portafolio</button>
     <button class="nav-item" onclick="showPage('movimientos',this)"><span>↕</span>Movimientos</button>
+    <button class="nav-item" onclick="showPage('dividendos',this)"><span>$</span>Dividendos</button>
     <div class="nav-sec">Herramientas</div>
     <button class="nav-item" onclick="showPage('cotizador',this)"><span>◎</span>Cotizador</button>
     <button class="nav-item" onclick="showPage('ratios',this)"><span>⚙</span>Ratios CEDEAR</button>
@@ -229,6 +230,43 @@ tr:hover td{background:var(--surface2)}
           <table>
             <thead><tr><th>Fecha</th><th>Tipo</th><th>Mkt</th><th>Ticker</th><th>Cant.</th><th>ARS</th><th>CCL</th><th>USD unit.</th><th>Comis.</th><th>Notas</th><th></th></tr></thead>
             <tbody id="mov-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DIVIDENDOS -->
+    <div class="page" id="page-dividendos">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Registrar dividendo</span></div>
+        <div class="card-body">
+          <div class="fg">
+            <div class="fgrp"><label>Ticker</label><input id="d-ticker" type="text" placeholder="MSFT, AVGO..." style="text-transform:uppercase"></div>
+            <div class="fgrp"><label>Fecha cobro</label><input id="d-fecha" type="date"></div>
+            <div class="fgrp"><label>Monto ARS</label><input id="d-ars" type="number" min="0" step="any" placeholder="0"></div>
+            <div class="fgrp"><label>CCL del día</label><input id="d-ccl" type="number" min="0" step="any" placeholder="auto"></div>
+            <div class="fgrp"><label>Monto USD (calc.)</label><input id="d-usd" type="text" readonly placeholder="—" style="color:var(--accent)"></div>
+          </div>
+          <div class="fgrp" style="margin-top:4px"><label>Notas</label><input id="d-notas" type="text" placeholder="ej: Q1 2026"></div>
+          <div class="gap-row" style="margin-top:10px">
+            <button class="btn btn-a" onclick="addDividendo()">+ Registrar</button>
+            <span id="d-status"></span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Historial de dividendos</span>
+          <div class="gap-row">
+            <span id="d-total" class="smsg"></span>
+            <button class="btn btn-d" onclick="clearDividendos()">✕ Limpiar</button>
+          </div>
+        </div>
+        <div id="d-empty" class="empty-state">Sin dividendos registrados</div>
+        <div class="tw" id="d-wrap" style="display:none">
+          <table>
+            <thead><tr><th>Fecha</th><th>Ticker</th><th>ARS</th><th>CCL</th><th>USD</th><th>Notas</th><th></th></tr></thead>
+            <tbody id="d-body"></tbody>
           </table>
         </div>
       </div>
@@ -486,8 +524,9 @@ function renderPortfolio(){
   var open=all.filter(function(p){return p.qty>0.000001;}).sort(function(a,b){return a.ticker.localeCompare(b.ticker);});
   var empty=document.getElementById('pos-empty');
 
-  var totalVal=0,totalCost=0,totalRpnl=0,totalDivs=0;
-  all.forEach(function(p){totalRpnl+=p.realizedPnl;totalDivs+=p.dividendsUSD;});
+  var totalVal=0,totalCost=0;
+  var totalRpnl=all.reduce(function(a,p){return a+p.realizedPnl;},0);
+  var totalDivs=dividendos.reduce(function(a,d){return a+(d.usd||0);},0);
 
   if(!open.length){
     empty.style.display='';
@@ -535,7 +574,7 @@ function renderPortfolio(){
       ?(targetARS-mercadoCedearARS)/mercadoCedearARS*100
       :null;
     var upsideCell=upside!=null
-      ?'<span class="'+(upside>=0?'pos':'neg')+'">'+(upside>=0?'+':'')+upside.toFixed(1)+'%</span>'
+      ?'<span class="'+(upside>=0?'pos':'neg')+'">'+(upside>=0?'+':'')+upside.toFixed(0)+'%</span>'
       :'<span style="color:var(--text3)">—</span>';
 
     var targetCell=targetARS!=null?
@@ -545,7 +584,7 @@ function renderPortfolio(){
 
     var row='<tr>'+
       '<td style="font-weight:700">'+p.ticker+'</td>'+
-      '<td class="mono '+pnlClass+'">'+(pnlPct!=null?(pnlPct>=0?'+':'')+pnlPct.toFixed(2)+'%':'—')+'</td>'+
+      '<td class="mono '+pnlClass+'">'+(pnlPct!=null?(pnlPct>=0?'+':'')+pnlPct.toFixed(0)+'%':'—')+'</td>'+
       '<td class="mono">'+upsideCell+'</td>'+
       '<td class="mono">$'+invARS+'</td>'+
       '<td class="mono">'+(mktARS!=null?'$'+mktARS:'<span style="color:var(--text3)">—</span>')+'</td>'+
@@ -574,23 +613,23 @@ function renderPortfolio(){
     body.innerHTML=rows.join('');
     var inv=sectorCost[def.key]*CCL_HOY;
     var val=sectorVal[def.key];
-    meta.textContent=rows.length+' posiciones'+(val>0?' · $'+val.toFixed(0)+' USD':'');
+    meta.textContent=rows.length+' posiciones'+(val>0?' · $'+Math.round(val).toLocaleString('es-AR')+' USD':'');
   });
 
   // Header metrics
-  document.getElementById('m-val').textContent=totalVal>0?'$'+totalVal.toFixed(2):'—';
-  document.getElementById('m-cost').textContent='$'+totalCost.toFixed(2);
+  document.getElementById('m-val').textContent=totalVal>0?'$'+Math.round(totalVal).toLocaleString('es-AR'):'—';
+  document.getElementById('m-cost').textContent='$'+Math.round(totalCost).toLocaleString('es-AR');
   document.getElementById('m-count').textContent=open.length;
-  document.getElementById('m-divs').textContent=totalDivs>0?'$'+totalDivs.toFixed(2):'—';
-  document.getElementById('m-rpnl').textContent=totalRpnl!==0?(totalRpnl>=0?'+$':'-$')+Math.abs(totalRpnl).toFixed(2):'—';
+  document.getElementById('m-divs').textContent=totalDivs>0?'$'+Math.round(totalDivs).toLocaleString('es-AR'):'—';
+  document.getElementById('m-rpnl').textContent=totalRpnl!==0?(totalRpnl>=0?'+$':'-$')+Math.round(Math.abs(totalRpnl)).toLocaleString('es-AR'):'—';
   document.getElementById('m-rpnl').className='metric-value '+(totalRpnl>=0?'pos':'neg');
 
   var pnlTotal=totalVal-totalCost;
   var pnlEl=document.getElementById('m-pnl');
   if(totalVal>0){
-    pnlEl.textContent=(pnlTotal>=0?'+$':'-$')+Math.abs(pnlTotal).toFixed(2);
+    pnlEl.textContent=(pnlTotal>=0?'+$':'-$')+Math.round(Math.abs(pnlTotal)).toLocaleString('es-AR');
     pnlEl.className='metric-value '+(pnlTotal>=0?'pos':'neg');
-    document.getElementById('m-pnl-pct').textContent=totalCost>0?(pnlTotal>=0?'+':''+(pnlTotal/totalCost*100).toFixed(2)+'%'):'';
+    document.getElementById('m-pnl-pct').textContent=totalCost>0?(pnlTotal>=0?'+':''+Math.round(pnlTotal/totalCost*100)+'%'):'';
   } else {pnlEl.textContent='—';pnlEl.className='metric-value';}
 
   var allDivs=movimientos.filter(function(m){return m.tipo==='dividendo';});
@@ -600,8 +639,8 @@ function renderPortfolio(){
     var tot=allDivs.reduce(function(a,d){return a+(d.precioUSD||0);},0);
     divsEl.className='';
     divsEl.innerHTML='<div class="tw"><table><thead><tr><th>Fecha</th><th>Ticker</th><th>USD</th><th>Notas</th></tr></thead><tbody>'+
-      allDivs.map(function(d){return '<tr><td class="mono">'+d.fecha+'</td><td style="font-weight:600">'+d.ticker+'</td><td class="mono pos">+$'+(d.precioUSD||0).toFixed(2)+'</td><td class="muted">'+(d.notas||'')+'</td></tr>';}).join('')+
-      '</tbody></table></div><div style="padding:8px .9rem;font-size:.72rem;font-family:var(--mono);color:var(--accent);border-top:1px solid var(--border)">Total: $'+tot.toFixed(2)+' USD</div>';
+      allDivs.map(function(d){return '<tr><td class="mono">'+d.fecha+'</td><td style="font-weight:600">'+d.ticker+'</td><td class="mono pos">+$'+Math.round(d.precioUSD||0).toLocaleString('es-AR')+'</td><td class="muted">'+(d.notas||'')+'</td></tr>';}).join('')+
+      '</tbody></table></div><div style="padding:8px .9rem;font-size:.72rem;font-family:var(--mono);color:var(--accent);border-top:1px solid var(--border)">Total: $'+Math.round(tot).toLocaleString('es-AR')+' USD</div>';
   }
 }
 
@@ -744,6 +783,94 @@ function deleteRatio(ticker){
 
 
 // ── Targets management ────────────────────────────────────────────────────
+// ── Dividendos ────────────────────────────────────────────────────────────
+var dividendos = [];
+
+// Auto-fill CCL on date change
+document.addEventListener('DOMContentLoaded',function(){
+  var df=document.getElementById('d-fecha');
+  if(df){
+    df.value=new Date().toISOString().split('T')[0];
+    df.addEventListener('change',function(){
+      var f=this.value.split('-').reverse().join('/');
+      var c=getCCL(f);
+      if(c){document.getElementById('d-ccl').value=c;calcDivUSD();}
+    });
+  }
+  document.getElementById('d-ars').addEventListener('input',calcDivUSD);
+  document.getElementById('d-ccl').addEventListener('input',calcDivUSD);
+});
+
+function calcDivUSD(){
+  var ars=parseFloat(document.getElementById('d-ars').value);
+  var ccl=parseFloat(document.getElementById('d-ccl').value);
+  document.getElementById('d-usd').value=(ars&&ccl)?(ars/ccl).toFixed(2):'—';
+}
+
+function addDividendo(){
+  var ticker=document.getElementById('d-ticker').value.trim().toUpperCase();
+  var fechaInput=document.getElementById('d-fecha').value;
+  var fecha=fechaInput.split('-').reverse().join('/');
+  var ars=parseFloat(document.getElementById('d-ars').value);
+  var ccl=parseFloat(document.getElementById('d-ccl').value)||getCCL(fecha);
+  var notas=document.getElementById('d-notas').value;
+  var sel=document.getElementById('d-status');
+  if(!ticker){flash(sel,'Ingresa un ticker',true);return;}
+  if(!ars||ars<=0){flash(sel,'Ingresa el monto',true);return;}
+  var usd=ccl?ars/ccl:null;
+  dividendos.push({id:Date.now(),fecha:fecha,ticker:ticker,ars:ars,ccl:ccl||null,usd:usd,notas:notas});
+  try{localStorage.setItem('ptNYSE_divs',JSON.stringify(dividendos));}catch(e){}
+  renderDividendos();
+  renderPortfolio();
+  document.getElementById('d-ars').value='';
+  document.getElementById('d-ccl').value='';
+  document.getElementById('d-usd').value='';
+  document.getElementById('d-notas').value='';
+  flash(sel,'Dividendo registrado',false);
+}
+
+function deleteDividendo(id){
+  dividendos=dividendos.filter(function(d){return d.id!==id;});
+  try{localStorage.setItem('ptNYSE_divs',JSON.stringify(dividendos));}catch(e){}
+  renderDividendos();
+  renderPortfolio();
+}
+
+function clearDividendos(){
+  if(!confirm('Borrar todos los dividendos?'))return;
+  dividendos=[];
+  try{localStorage.removeItem('ptNYSE_divs');}catch(e){}
+  renderDividendos();
+  renderPortfolio();
+}
+
+function renderDividendos(){
+  var empty=document.getElementById('d-empty');
+  var wrap=document.getElementById('d-wrap');
+  var body=document.getElementById('d-body');
+  var totalEl=document.getElementById('d-total');
+  if(!dividendos.length){
+    empty.style.display='';wrap.style.display='none';
+    totalEl.textContent='';return;
+  }
+  empty.style.display='none';wrap.style.display='';
+  var totalUSD=dividendos.reduce(function(a,d){return a+(d.usd||0);},0);
+  totalEl.textContent='Total: $'+Math.round(totalUSD).toLocaleString('es-AR')+' USD';
+  body.innerHTML=dividendos.slice().sort(function(a,b){
+    return b.fecha.split('/').reverse().join('').localeCompare(a.fecha.split('/').reverse().join(''));
+  }).map(function(d){
+    return '<tr>'+
+      '<td class="mono">'+d.fecha+'</td>'+
+      '<td style="font-weight:700">'+d.ticker+'</td>'+
+      '<td class="mono">$'+(d.ars||0).toLocaleString('es-AR')+'</td>'+
+      '<td class="mono muted">'+(d.ccl||'—')+'</td>'+
+      '<td class="mono pos">$'+Math.round(d.usd||0).toLocaleString('es-AR')+'</td>'+
+      '<td class="muted">'+(d.notas||'')+'</td>'+
+      '<td><button class="btn btn-d btn-sm" onclick="deleteDividendo('+d.id+')">x</button></td>'+
+    '</tr>';
+  }).join('');
+}
+
 var SECTOR_LABELS={nyse:'🇺🇸 NYSE',europa:'🇪🇺 Europa',china:'🇨🇳 China',cripto:'₿ Cripto',brasil:'🇧🇷 Brasil'};
 
 function renderTargets(){
@@ -796,8 +923,9 @@ function saveTarget(ticker){
   }
   try{var sq=localStorage.getItem('ptNYSE_q2');if(sq)quotes=JSON.parse(sq);}catch(e){}
   try{var sr=localStorage.getItem('ptNYSE_ratios');if(sr){Object.assign(RATIOS_TABLE,JSON.parse(sr));}}catch(e){}
+  try{var sd=localStorage.getItem('ptNYSE_divs');if(sd)dividendos=JSON.parse(sd);}catch(e){}
   try{var st=localStorage.getItem('ptNYSE_targets');if(st){Object.assign(TARGET_TABLE,JSON.parse(st));}}catch(e){}
-  renderMovimientos();renderPortfolio();renderRatios();renderTargets();
+  renderMovimientos();renderPortfolio();renderRatios();renderTargets();renderDividendos();
   document.getElementById('lupd').textContent='Datos cargados';
 })();
 </script>
