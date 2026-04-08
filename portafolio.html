@@ -242,13 +242,29 @@ tr:hover td{background:var(--surface2)}
         <div class="card-header">
           <span class="card-title">Historial (<span id="mov-count">0</span> movimientos)</span>
           <div class="gap-row">
+            <input id="mov-filter" type="text" placeholder="Filtrar ticker..." style="text-transform:uppercase;background:var(--bg);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:4px 8px;height:28px;width:130px;outline:none" oninput="renderMovimientos()">
             <button class="btn" onclick="exportCSV()">↓ CSV</button>
             <button class="btn btn-d" onclick="clearAll()">✕ Limpiar todo</button>
           </div>
         </div>
         <div id="mov-empty" class="empty-state">No hay movimientos</div>
         <div class="tw" id="mov-wrap" style="display:none">
-          <table><thead><tr><th>Fecha</th><th>Tipo</th><th>Mkt</th><th>Ticker</th><th>Cant.</th><th>ARS</th><th>CCL</th><th>USD unit.</th><th>Comis.</th><th>Notas</th><th></th></tr></thead><tbody id="mov-body"></tbody></table>
+          <table><thead><tr><th>Fecha</th><th>Tipo</th><th>Mkt</th><th>Ticker</th><th>Cant.</th><th>ARS</th><th>CCL</th><th>USD unit.</th><th>Comis.</th><th>Notas</th><th style="min-width:80px"></th></tr></thead><tbody id="mov-body"></tbody></table>
+        </div>
+      </div>
+
+      <!-- Modal edicion -->
+      <div id="mov-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center">
+        <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:1.2rem;width:min(520px,95vw);max-height:90vh;overflow-y:auto">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+            <span style="font-weight:600;font-size:.9rem">Editar movimiento</span>
+            <button class="btn btn-sm" onclick="movModalClose()">✕ Cerrar</button>
+          </div>
+          <div class="fg" id="mov-edit-fields"></div>
+          <div class="gap-row" style="margin-top:12px">
+            <button class="btn btn-a" onclick="movModalSave()">✓ Guardar cambios</button>
+            <span id="mov-edit-status" class="smsg"></span>
+          </div>
         </div>
       </div>
     </div>
@@ -564,7 +580,25 @@ function addMov(){
 }
 
 function flash(el,msg,isErr){el.className=isErr?'emsg':'smsg';el.textContent=msg;setTimeout(function(){el.textContent='';},3000);}
-function deleteMov(id){movimientos=movimientos.filter(function(m){return m.id!==id;});saveAndRender();}
+
+function deleteMov(id){
+  var m=movimientos.find(function(x){return x.id==id;});
+  if(!m)return;
+  var label=m.ticker+(m.qty?' ('+m.qty+' u.)':'');
+  if(!confirm('Borrar movimiento: '+m.tipo.toUpperCase()+' '+label+'?'))return;
+  movimientos=movimientos.filter(function(x){return x.id!=id;});
+  saveAndRender();
+}
+
+function reduceMov(id){
+  var m=movimientos.find(function(x){return x.id==id;});
+  if(!m||!m.qty)return;
+  var input=document.getElementById('red-qty-'+id);
+  var val=parseFloat(input?input.value:0);
+  if(!val||val<=0||val>=m.qty){flash(document.getElementById('m-status'),'Cantidad inválida (debe ser menor a '+m.qty+')',true);return;}
+  m.qty=Math.round((m.qty-val)*1e8)/1e8;
+  saveAndRender();
+}
 
 function saveAndRender(){
   try{localStorage.setItem('ptNYSE_mov2',JSON.stringify(movimientos));}catch(e){}
@@ -572,16 +606,130 @@ function saveAndRender(){
   document.getElementById('lupd').textContent=new Date().toLocaleTimeString('es-AR');
 }
 
+// Estado del modal de edición
+var MOV_EDIT_ID = null;
+
+function movModalOpen(id){
+  var m=movimientos.find(function(x){return x.id==id;});
+  if(!m)return;
+  MOV_EDIT_ID=id;
+  var fields=document.getElementById('mov-edit-fields');
+  var fechaISO=m.fecha?m.fecha.split('/').reverse().join('-'):'';
+  fields.innerHTML=
+    '<div class="fgrp"><label>Fecha</label><input type="date" id="me-fecha" value="'+fechaISO+'"></div>'+
+    '<div class="fgrp"><label>Tipo</label><select id="me-tipo">'+
+      ['compra','venta','dividendo','aporte'].map(function(t){return '<option value="'+t+'"'+(m.tipo===t?' selected':'')+'>'+t+'</option>';}).join('')+
+    '</select></div>'+
+    '<div class="fgrp"><label>Ticker</label><input type="text" id="me-ticker" value="'+(m.ticker||'')+'" style="text-transform:uppercase"></div>'+
+    '<div class="fgrp"><label>Cantidad</label><input type="number" id="me-qty" value="'+(m.qty||'')+'" min="0" step="any"></div>'+
+    '<div class="fgrp"><label>Precio ARS</label><input type="number" id="me-ars" value="'+(m.precioARS||'')+'" min="0" step="any"></div>'+
+    '<div class="fgrp"><label>CCL</label><input type="number" id="me-ccl" value="'+(m.ccl||'')+'" min="0" step="any"></div>'+
+    '<div class="fgrp"><label>Comisión USD</label><input type="number" id="me-com" value="'+(m.comision||0)+'" min="0" step="any"></div>'+
+    '<div class="fgrp" style="grid-column:1/-1"><label>Notas</label><input type="text" id="me-notas" value="'+(m.notas||'')+'"></div>';
+  // Evento para recalcular USD al cambiar ARS/CCL/ticker
+  ['me-ars','me-ccl','me-ticker'].forEach(function(eid){
+    var el=document.getElementById(eid);
+    if(el)el.addEventListener('input',movModalCalcUSD);
+  });
+  movModalCalcUSD();
+  var overlay=document.getElementById('mov-modal-overlay');
+  overlay.style.display='flex';
+}
+
+function movModalCalcUSD(){
+  var ars=parseFloat(document.getElementById('me-ars').value);
+  var ccl=parseFloat(document.getElementById('me-ccl').value);
+  var ticker=(document.getElementById('me-ticker').value||'').trim().toUpperCase();
+  var rt=getRatio(ticker)||1;
+  // Mostrar en el campo de notas (read-only hint)
+  var hint=document.getElementById('me-usd-hint');
+  if(hint){hint.textContent=(ars&&ccl)?'≈ USD '+(ars*rt/ccl).toFixed(4):'';}
+}
+
+function movModalSave(){
+  var m=movimientos.find(function(x){return x.id==MOV_EDIT_ID;});
+  var sel=document.getElementById('mov-edit-status');
+  if(!m){flash(sel,'Movimiento no encontrado',true);return;}
+  var fechaVal=document.getElementById('me-fecha').value;
+  var ticker=(document.getElementById('me-ticker').value||'').trim().toUpperCase();
+  var qty=parseFloat(document.getElementById('me-qty').value);
+  var ars=parseFloat(document.getElementById('me-ars').value);
+  var ccl=parseFloat(document.getElementById('me-ccl').value);
+  var com=parseFloat(document.getElementById('me-com').value)||0;
+  var notas=document.getElementById('me-notas').value||'';
+  var tipo=document.getElementById('me-tipo').value;
+  if(!fechaVal){flash(sel,'Ingresá la fecha',true);return;}
+  m.fecha=fechaVal.split('-').reverse().join('/');
+  m.tipo=tipo;
+  if(ticker)m.ticker=ticker;
+  if(!isNaN(qty)&&qty>=0)m.qty=qty;
+  if(!isNaN(ars)&&ars>=0)m.precioARS=ars;
+  if(!isNaN(ccl)&&ccl>0){m.ccl=ccl;}
+  if(m.ccl&&m.precioARS){
+    var rt=getRatio(m.ticker)||1;
+    m.precioUSD=m.precioARS*rt/m.ccl;
+    m.ratio=rt;
+  }
+  m.comision=com;
+  m.notas=notas;
+  saveAndRender();
+  flash(sel,'Guardado',false);
+  setTimeout(movModalClose,800);
+}
+
+function movModalClose(){
+  document.getElementById('mov-modal-overlay').style.display='none';
+  MOV_EDIT_ID=null;
+}
+
+// Cerrar modal al click fuera
+document.addEventListener('click',function(e){
+  var overlay=document.getElementById('mov-modal-overlay');
+  if(overlay&&e.target===overlay)movModalClose();
+});
+
 function renderMovimientos(){
   var body=document.getElementById('mov-body');
   var empty=document.getElementById('mov-empty');
   var wrap=document.getElementById('mov-wrap');
-  document.getElementById('mov-count').textContent=movimientos.length;
-  if(!movimientos.length){empty.style.display='';wrap.style.display='none';return;}
+  var filterEl=document.getElementById('mov-filter');
+  var filterVal=filterEl?(filterEl.value||'').trim().toUpperCase():'';
+
+  var lista=movimientos.slice().reverse();
+  if(filterVal) lista=lista.filter(function(m){return (m.ticker||'').toUpperCase().indexOf(filterVal)>=0;});
+
+  document.getElementById('mov-count').textContent=movimientos.length+(filterVal?' ('+lista.length+' filtrados)':'');
+  if(!lista.length){empty.style.display='';wrap.style.display='none';return;}
   empty.style.display='none';wrap.style.display='';
-  body.innerHTML=movimientos.slice().reverse().map(function(m){
-    var mLabel=m.mercado==='USA'?'NYSE':m.mercado==='ETF'?'ETF':m.mercado;
-    return '<tr><td class="mono">'+m.fecha+'</td><td><span class="badge badge-'+m.tipo+'">'+m.tipo+'</span></td><td><span class="mkt">'+mLabel+'</span></td><td style="font-weight:600">'+m.ticker+'</td><td class="mono">'+(m.qty||'')+'</td><td class="mono">'+(m.precioARS?'$'+m.precioARS.toLocaleString('es-AR'):'')+'</td><td class="mono muted">'+(m.ccl?m.ccl:'—')+'</td><td class="mono">'+(m.precioUSD?'$'+m.precioUSD.toFixed(4):'—')+'</td><td class="mono muted">'+(m.comision||0)+'</td><td class="muted" style="max-width:120px;overflow:hidden;text-overflow:ellipsis">'+(m.notas||'')+'</td><td><button class="btn btn-d btn-sm" onclick="deleteMov('+m.id+')">x</button></td></tr>';
+
+  body.innerHTML=lista.map(function(m){
+    var mLabel=m.mercado==='USA'?'NYSE':m.mercado==='ETF'?'ETF':(m.mercado||'—');
+    var canReduce=m.tipo==='compra'&&m.qty>0;
+    var reduceHtml=canReduce
+      ? '<span style="display:inline-flex;align-items:center;gap:3px">'+
+          '<input id="red-qty-'+m.id+'" type="number" min="0.001" step="any" placeholder="-qty" style="width:54px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.65rem;padding:2px 4px;height:22px">'+
+          '<button class="btn btn-sm" style="color:var(--amber);border-color:#3e2c10" onclick="reduceMov('+m.id+')">−</button>'+
+        '</span>'
+      : '';
+    return '<tr>'+
+      '<td class="mono">'+m.fecha+'</td>'+
+      '<td><span class="badge badge-'+m.tipo+'">'+m.tipo+'</span></td>'+
+      '<td><span class="mkt">'+mLabel+'</span></td>'+
+      '<td style="font-weight:600">'+m.ticker+'</td>'+
+      '<td class="mono">'+(m.qty||'')+'</td>'+
+      '<td class="mono">'+(m.precioARS?'$'+m.precioARS.toLocaleString('es-AR'):'')+'</td>'+
+      '<td class="mono muted">'+(m.ccl?m.ccl:'—')+'</td>'+
+      '<td class="mono">'+(m.precioUSD?'$'+m.precioUSD.toFixed(4):'—')+'</td>'+
+      '<td class="mono muted">'+(m.comision||0)+'</td>'+
+      '<td class="muted" style="max-width:100px;overflow:hidden;text-overflow:ellipsis">'+(m.notas||'')+'</td>'+
+      '<td style="white-space:nowrap">'+
+        '<div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap">'+
+          reduceHtml+
+          '<button class="btn btn-sm" onclick="movModalOpen('+m.id+')" title="Editar">✎</button>'+
+          '<button class="btn btn-d btn-sm" onclick="deleteMov('+m.id+')" title="Borrar">✕</button>'+
+        '</div>'+
+      '</td>'+
+    '</tr>';
   }).join('');
 }
 
@@ -662,10 +810,132 @@ function renderPortfolio(){
   var pnlTotal=totalVal-totalCost;
   var pnlEl=document.getElementById('m-pnl');
   if(totalVal>0){pnlEl.textContent=(pnlTotal>=0?'+$':'-$')+Math.round(Math.abs(pnlTotal)).toLocaleString('es-AR');pnlEl.className='metric-value '+(pnlTotal>=0?'pos':'neg');document.getElementById('m-pnl-pct').textContent=totalCost>0?(pnlTotal>=0?'+':''+Math.round(pnlTotal/totalCost*100)+'%'):'';} else {pnlEl.textContent='—';pnlEl.className='metric-value';}
-  var allDivs=movimientos.filter(function(m){return m.tipo==='dividendo';});
+  // ── Dividendos cobrados: combinar movimientos tipo dividendo + array dividendos ──
   var divsEl=document.getElementById('divs-content');
-  if(!allDivs.length){divsEl.className='empty-state';divsEl.textContent='Sin dividendos registrados';}
-  else{var tot=allDivs.reduce(function(a,d){return a+(d.precioUSD||0);},0);divsEl.className='';divsEl.innerHTML='<div class="tw"><table><thead><tr><th>Fecha</th><th>Ticker</th><th>USD</th><th>Notas</th></tr></thead><tbody>'+allDivs.map(function(d){return '<tr><td class="mono">'+d.fecha+'</td><td style="font-weight:600">'+d.ticker+'</td><td class="mono pos">+$'+Math.round(d.precioUSD||0).toLocaleString('es-AR')+'</td><td class="muted">'+(d.notas||'')+'</td></tr>';}).join('')+'</tbody></table></div><div style="padding:8px .9rem;font-size:.72rem;font-family:var(--mono);color:var(--accent);border-top:1px solid var(--border)">Total: $'+Math.round(tot).toLocaleString('es-AR')+' USD</div>';}
+
+  // Fuente 1: movimientos tipo 'dividendo' (ya tienen precioUSD calculado con CCL del día)
+  var movDivs=movimientos.filter(function(m){return m.tipo==='dividendo';}).map(function(m){
+    return {fecha:m.fecha, ticker:m.ticker, usd:m.precioUSD||0, notas:m.notas||''};
+  });
+
+  // Fuente 2: array dividendos (sección Dividendos) — ya tienen .usd calculado
+  var regDivs=dividendos.map(function(d){
+    return {fecha:d.fecha, ticker:d.ticker, usd:d.usd||0, notas:d.notas||''};
+  });
+
+  // Fuente 3: TRK.divs (Tracker) — en USD ya; los ARS se convierten con CCL del día de cobro
+  var trkDivs=(typeof TRK!=='undefined'&&TRK.divs?TRK.divs:[]).map(function(d){
+    var usd=0;
+    if(d.moneda==='USD'){
+      usd=d.montoUSD||d.monto||0;
+    } else {
+      // ARS: convertir con CCL del día de cobro usando la tabla embebida
+      var fechaKey='';
+      if(d.fecha){
+        var fp=d.fecha.split('-'); // formato YYYY-MM-DD
+        if(fp.length===3) fechaKey=fp[2]+'/'+fp[1]+'/'+fp[0]; // DD/MM/YYYY
+      }
+      var cclDia=CCL_TABLE[fechaKey]||TRK.ccl||CCL_HOY;
+      usd=cclDia>0?(d.monto||0)/cclDia:0;
+    }
+    // Normalizar fecha a DD/MM/YYYY para consistencia
+    var fechaDisp=d.fecha||'';
+    if(fechaDisp.indexOf('-')>0){var fp=fechaDisp.split('-');fechaDisp=fp[2]+'/'+fp[1]+'/'+fp[0];}
+    return {fecha:fechaDisp, ticker:d.ticker||'', usd:usd, notas:(d.tipo||'')};
+  });
+
+  var allDivsCombined=[].concat(movDivs,regDivs,trkDivs);
+
+  if(!allDivsCombined.length){
+    divsEl.className='empty-state';divsEl.textContent='Sin dividendos registrados';
+  } else {
+    var totUSD=allDivsCombined.reduce(function(a,d){return a+(d.usd||0);},0);
+
+    // Agrupar por mes (YYYY-MM) para la gráfica
+    var byMonth={};
+    allDivsCombined.forEach(function(d){
+      if(!d.fecha)return;
+      // Soportar DD/MM/YYYY y DD/MM/YY y YYYY-MM-DD
+      var yr,mo;
+      var fp=d.fecha.split('/');
+      if(fp.length===3){
+        yr=fp[2].length===2?'20'+fp[2]:fp[2];
+        mo=fp[1].padStart(2,'0');
+      } else {
+        var fd=d.fecha.split('-');
+        yr=fd[0];mo=(fd[1]||'').padStart(2,'0');
+      }
+      var key=yr+'-'+mo;
+      byMonth[key]=(byMonth[key]||0)+(d.usd||0);
+    });
+
+    var months=Object.keys(byMonth).sort();
+    var maxVal=Math.max.apply(null,months.map(function(k){return byMonth[k];}));
+    var MNAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+    // Construir SVG de barras inline
+    var BAR_W=28, BAR_GAP=6, CHART_H=70, LABEL_H=16, PAD_L=40, PAD_R=10;
+    var svgW=PAD_L+(BAR_W+BAR_GAP)*months.length+PAD_R;
+    var svgH=CHART_H+LABEL_H+4;
+
+    var bars=months.map(function(k,i){
+      var val=byMonth[k];
+      var barH=maxVal>0?Math.max(2,Math.round(val/maxVal*CHART_H)):2;
+      var x=PAD_L+i*(BAR_W+BAR_GAP);
+      var y=CHART_H-barH;
+      var parts=k.split('-');
+      var moIdx=parseInt(parts[1],10)-1;
+      var label=(MNAMES[moIdx]||parts[1])+'\''+parts[0].slice(2);
+      var valLabel='$'+val.toFixed(0);
+      return '<g>'+
+        '<rect x="'+x+'" y="'+y+'" width="'+BAR_W+'" height="'+barH+'" rx="3" fill="var(--accent)" opacity="0.85"/>'+
+        '<text x="'+(x+BAR_W/2)+'" y="'+(y-3)+'" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--accent)">'+valLabel+'</text>'+
+        '<text x="'+(x+BAR_W/2)+'" y="'+(CHART_H+LABEL_H)+'" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--text3)">'+label+'</text>'+
+      '</g>';
+    }).join('');
+
+    // Líneas guía Y
+    var guides=[0.25,0.5,0.75,1].map(function(pct){
+      var y=CHART_H-Math.round(pct*CHART_H);
+      var v=(pct*maxVal).toFixed(0);
+      return '<line x1="'+PAD_L+'" y1="'+y+'" x2="'+(svgW-PAD_R)+'" y2="'+y+'" stroke="var(--border)" stroke-width="1"/>'+
+             '<text x="'+(PAD_L-3)+'" y="'+(y+3)+'" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--text3)">'+v+'</text>';
+    }).join('');
+
+    var svgChart='<svg viewBox="0 0 '+svgW+' '+svgH+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+svgW+'px;height:'+svgH+'px;display:block">'+guides+bars+'</svg>';
+
+    // Tabla detalle (ordenada por fecha desc)
+    var sorted=allDivsCombined.slice().sort(function(a,b){
+      var ka=(a.fecha||'').split('/').reverse().join('');
+      var kb=(b.fecha||'').split('/').reverse().join('');
+      return kb.localeCompare(ka);
+    });
+    var tableRows=sorted.map(function(d){
+      return '<tr>'+
+        '<td class="mono">'+(d.fecha||'')+'</td>'+
+        '<td style="font-weight:600">'+(d.ticker||'')+'</td>'+
+        '<td class="mono pos">+USD '+d.usd.toFixed(2)+'</td>'+
+        '<td class="muted">'+(d.notas||'')+'</td>'+
+      '</tr>';
+    }).join('');
+
+    divsEl.className='';
+    divsEl.innerHTML=
+      // Total + gráfica
+      '<div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;padding:.85rem 1rem;border-bottom:1px solid var(--border)">'+
+        '<div>'+
+          '<div style="font-size:.6rem;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Total dividendos</div>'+
+          '<div style="font-size:1.4rem;font-weight:600;font-family:var(--mono);color:var(--accent)">USD '+totUSD.toFixed(2)+'</div>'+
+          '<div style="font-size:.65rem;font-family:var(--mono);color:var(--text3);margin-top:2px">'+allDivsCombined.length+' cobros · '+months.length+' meses</div>'+
+        '</div>'+
+        '<div style="flex:1;min-width:180px;padding-top:4px">'+svgChart+'</div>'+
+      '</div>'+
+      // Tabla
+      '<div class="tw"><table>'+
+        '<thead><tr><th>Fecha</th><th>Ticker</th><th>USD</th><th>Notas</th></tr></thead>'+
+        '<tbody>'+tableRows+'</tbody>'+
+      '</table></div>';
+  }
 }
 
 async function fetchFinnhub(ticker){
