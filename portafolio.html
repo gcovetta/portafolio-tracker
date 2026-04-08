@@ -896,11 +896,12 @@ function renderMovimientos(){
 
   body.innerHTML=lista.map(function(m){
     var mLabel=m.mercado==='USA'?'NYSE':m.mercado==='ETF'?'ETF':(m.mercado||'—');
+    var sid=JSON.stringify(String(m.id));
     var canReduce=m.tipo==='compra'&&m.qty>0;
     var reduceHtml=canReduce
       ? '<span style="display:inline-flex;align-items:center;gap:3px">'+
           '<input id="red-qty-'+m.id+'" type="number" min="0.001" step="any" placeholder="-qty" style="width:54px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.65rem;padding:2px 4px;height:22px">'+
-          '<button class="btn btn-sm" style="color:var(--amber);border-color:#3e2c10" onclick="reduceMov('+m.id+')">−</button>'+
+          '<button class="btn btn-sm" style="color:var(--amber);border-color:#3e2c10" onclick="reduceMov('+sid+')">−</button>'+
         '</span>'
       : '';
     return '<tr>'+
@@ -917,8 +918,8 @@ function renderMovimientos(){
       '<td style="white-space:nowrap">'+
         '<div style="display:flex;align-items:center;gap:4px;flex-wrap:nowrap">'+
           reduceHtml+
-          '<button class="btn btn-sm" onclick="movModalOpen('+m.id+')" title="Editar">✎</button>'+
-          '<button class="btn btn-d btn-sm" onclick="deleteMov('+m.id+')" title="Borrar">✕</button>'+
+          '<button class="btn btn-sm" onclick="movModalOpen('+sid+')" title="Editar">✎</button>'+
+          '<button class="btn btn-d btn-sm" onclick="deleteMov('+sid+')" title="Borrar">✕</button>'+
         '</div>'+
       '</td>'+
     '</tr>';
