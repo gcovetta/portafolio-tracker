@@ -3,191 +3,125 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portafolio Tracker</title>
+<title>Portafolio Tracker — NYSE</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #0e0f11;
-  --surface: #16181c;
-  --surface2: #1e2026;
-  --border: #2a2d35;
-  --border2: #363a45;
-  --text: #e8eaf0;
-  --text2: #8b8fa8;
-  --text3: #555870;
-  --accent: #7ee8a2;
-  --accent2: #4ade80;
-  --red: #f87171;
-  --amber: #fbbf24;
-  --blue: #60a5fa;
-  --mono: 'DM Mono', monospace;
-  --sans: 'Syne', sans-serif;
-  --radius: 10px;
-  --radius-sm: 6px;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 14px; }
-body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.5; }
-
-.app { display: grid; grid-template-rows: auto 1fr; min-height: 100vh; }
-header {
-  padding: 0.85rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  background: var(--surface);
-}
-.logo { font-weight: 700; font-size: 1.05rem; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
-.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink:0; }
-.header-right { display:flex; align-items:center; gap:12px; }
-.last-updated { font-family: var(--mono); font-size: 0.7rem; color: var(--text3); }
-.tc-pill { font-family:var(--mono); font-size:0.7rem; background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:3px 10px; color:var(--accent); cursor:pointer; }
-
-.main { display: grid; grid-template-columns: 210px 1fr; height: calc(100vh - 49px); }
-.sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 1rem 0; display: flex; flex-direction: column; gap: 1px; overflow-y:auto; }
-.nav-item { padding: 0.55rem 1.2rem; cursor: pointer; display: flex; align-items: center; gap: 9px; font-size: 0.85rem; color: var(--text2); border: none; background: none; width: 100%; text-align: left; transition: background 0.12s, color 0.12s; font-family: var(--sans); }
-.nav-item:hover { background: var(--surface2); color: var(--text); }
-.nav-item.active { background: var(--surface2); color: var(--accent); }
-.nav-icon { width: 15px; text-align: center; font-size: 13px; flex-shrink:0; }
-.nav-section { font-size: 0.62rem; font-family: var(--mono); color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; padding: 0.9rem 1.2rem 0.35rem; }
-
-.content { overflow-y: auto; }
-.page { display: none; padding: 1.25rem; }
-.page.active { display: block; }
-
-.metrics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 1.25rem; }
-.metric { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.9rem 1.1rem; }
-.metric-label { font-size: 0.65rem; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
-.metric-value { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; font-family:var(--mono); }
-.metric-sub { font-size: 0.65rem; font-family: var(--mono); color: var(--text3); margin-top: 2px; }
-
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 1rem; overflow: hidden; }
-.card-header { padding: 0.8rem 1.1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.card-title { font-weight: 600; font-size: 0.85rem; }
-.card-body { padding: 1.1rem; }
-
-.table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
-th { text-align: left; padding: 0.55rem 0.9rem; color: var(--text3); font-weight: 400; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid var(--border); white-space: nowrap; }
-td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); color: var(--text); white-space: nowrap; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: var(--surface2); }
-
-.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 8px; }
-.form-group { display: flex; flex-direction: column; gap: 4px; }
-.form-group label { font-size: 0.65rem; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
-.form-group input, .form-group select {
-  background: var(--bg); border: 1px solid var(--border2); border-radius: var(--radius-sm);
-  color: var(--text); font-family: var(--mono); font-size: 0.78rem;
-  padding: 6px 9px; height: 32px; outline: none; transition: border-color 0.12s; width: 100%;
-}
-.form-group input:focus, .form-group select:focus { border-color: var(--accent); }
-.form-group select option { background: var(--surface2); }
-.form-group input::placeholder { color: var(--text3); }
-
-.btn { padding: 5px 12px; height: 30px; font-size: 0.72rem; border: 1px solid var(--border2); border-radius: var(--radius-sm); cursor: pointer; background: var(--surface2); color: var(--text2); font-family: var(--sans); font-weight: 500; white-space: nowrap; transition: all 0.12s; display: inline-flex; align-items: center; gap: 5px; }
-.btn:hover { color: var(--text); border-color: var(--border2); }
-.btn-accent { background: var(--accent); color: #072010; border-color: var(--accent); font-weight: 600; }
-.btn-accent:hover { background: var(--accent2); border-color: var(--accent2); color: #072010; }
-.btn-danger { color: var(--red); border-color: #3a1818; }
-.btn-danger:hover { background: #221010; }
-.btn-sm { height: 24px; padding: 0 8px; font-size: 0.68rem; }
-
-.badge { display: inline-block; padding: 2px 7px; border-radius: 20px; font-size: 0.62rem; font-family: var(--mono); font-weight: 500; }
-.badge-compra { background: #0a2218; color: var(--accent); border: 1px solid #143a24; }
-.badge-venta { background: #2a0e0e; color: var(--red); border: 1px solid #451818; }
-.badge-dividendo { background: #0d1a30; color: var(--blue); border: 1px solid #162a50; }
-.badge-aporte { background: #261a08; color: var(--amber); border: 1px solid #3e2c10; }
-
-.mkt-badge { display:inline-block; padding:1px 6px; border-radius:4px; font-size:0.6rem; font-family:var(--mono); background:var(--surface2); color:var(--text3); border:1px solid var(--border); }
-
-.pos { color: var(--accent); }
-.neg { color: var(--red); }
-.muted { color: var(--text2); }
-.mono { font-family: var(--mono); }
-
-.gap-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.status-msg { font-size: 0.72rem; font-family: var(--mono); color: var(--accent); }
-.err-msg { font-size: 0.72rem; font-family: var(--mono); color: var(--red); }
-
-.empty-state { text-align: center; padding: 2.5rem; color: var(--text3); font-size: 0.78rem; font-family: var(--mono); }
-
-.spinner { display: inline-block; width: 11px; height: 11px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.progress-bar { height: 3px; background: var(--border); border-radius: 2px; margin: 0 1.1rem 0; overflow:hidden; }
-.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
-
-.info-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.7rem 1rem; font-size: 0.72rem; font-family: var(--mono); color: var(--text2); }
-.info-box b { color: var(--text); }
-
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-
-@media (max-width: 680px) {
-  .main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: auto; }
-  .sidebar { flex-direction: row; overflow-x: auto; padding: 0; border-right: none; border-bottom: 1px solid var(--border); }
-  .nav-section { display: none; }
-  .nav-item { padding: 0.7rem 0.9rem; flex-direction: column; gap: 3px; font-size: 0.62rem; }
-  .content { height: auto; }
-}
+:root{--bg:#0e0f11;--surface:#16181c;--surface2:#1e2026;--border:#2a2d35;--border2:#363a45;--text:#e8eaf0;--text2:#8b8fa8;--text3:#555870;--accent:#7ee8a2;--accent2:#4ade80;--red:#f87171;--amber:#fbbf24;--blue:#60a5fa;--mono:'DM Mono',monospace;--sans:'Syne',sans-serif;--radius:10px;--rsm:6px}
+*{box-sizing:border-box;margin:0;padding:0}html{font-size:14px}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.5}
+.app{display:grid;grid-template-rows:auto 1fr;min-height:100vh}
+header{padding:.85rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--surface);flex-wrap:wrap}
+.logo{font-weight:700;font-size:1.05rem;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.hright{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:.65rem;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;color:var(--text3)}
+.lupd{font-family:var(--mono);font-size:.68rem;color:var(--text3)}
+.main{display:grid;grid-template-columns:200px 1fr;height:calc(100vh - 49px)}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:1rem 0;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
+.nav-item{padding:.52rem 1.1rem;cursor:pointer;display:flex;align-items:center;gap:9px;font-size:.83rem;color:var(--text2);border:none;background:none;width:100%;text-align:left;transition:background .12s,color .12s;font-family:var(--sans)}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--surface2);color:var(--accent)}
+.nav-sec{font-size:.6rem;font-family:var(--mono);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;padding:.85rem 1.1rem .3rem}
+.content{overflow-y:auto}
+.page{display:none;padding:1.2rem}
+.page.active{display:block}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px;margin-bottom:1.2rem}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.85rem 1rem}
+.metric-label{font-size:.62rem;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.metric-value{font-size:1.2rem;font-weight:600;letter-spacing:-.02em;font-family:var(--mono)}
+.metric-sub{font-size:.62rem;font-family:var(--mono);color:var(--text3);margin-top:2px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1rem;overflow:hidden}
+.card-header{padding:.75rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.card-title{font-weight:600;font-size:.83rem}
+.card-body{padding:1rem}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.75rem}
+th{text-align:left;padding:.5rem .85rem;color:var(--text3);font-weight:400;font-family:var(--mono);font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:.55rem .85rem;border-bottom:1px solid var(--border);color:var(--text);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:8px;margin-bottom:8px}
+.fgrp{display:flex;flex-direction:column;gap:4px}
+.fgrp label{font-size:.62rem;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+.fgrp input,.fgrp select{background:var(--bg);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.75rem;padding:5px 8px;height:30px;outline:none;transition:border-color .12s;width:100%}
+.fgrp input:focus,.fgrp select:focus{border-color:var(--accent)}
+.fgrp select option{background:var(--surface2)}
+.fgrp input::placeholder{color:var(--text3)}
+.btn{padding:4px 11px;height:28px;font-size:.7rem;border:1px solid var(--border2);border-radius:var(--rsm);cursor:pointer;background:var(--surface2);color:var(--text2);font-family:var(--sans);font-weight:500;white-space:nowrap;transition:all .12s;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{color:var(--text)}
+.btn-a{background:var(--accent);color:#072010;border-color:var(--accent);font-weight:600}
+.btn-a:hover{background:var(--accent2);border-color:var(--accent2);color:#072010}
+.btn-d{color:var(--red);border-color:#3a1818}
+.btn-d:hover{background:#221010}
+.btn-sm{height:22px;padding:0 7px;font-size:.65rem}
+.badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:.6rem;font-family:var(--mono);font-weight:500}
+.badge-compra{background:#0a2218;color:var(--accent);border:1px solid #143a24}
+.badge-venta{background:#2a0e0e;color:var(--red);border:1px solid #451818}
+.badge-dividendo{background:#0d1a30;color:var(--blue);border:1px solid #162a50}
+.badge-aporte{background:#261a08;color:var(--amber);border:1px solid #3e2c10}
+.mkt{display:inline-block;padding:1px 5px;border-radius:4px;font-size:.58rem;font-family:var(--mono);background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+.pos{color:var(--accent)}.neg{color:var(--red)}.muted{color:var(--text2)}.mono{font-family:var(--mono)}
+.gap-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.smsg{font-size:.7rem;font-family:var(--mono);color:var(--accent)}
+.emsg{font-size:.7rem;font-family:var(--mono);color:var(--red)}
+.empty-state{text-align:center;padding:2.5rem;color:var(--text3);font-size:.75rem;font-family:var(--mono)}
+.spinner{display:inline-block;width:10px;height:10px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pbar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.pfill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+.ibox{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:.65rem .9rem;font-size:.7rem;font-family:var(--mono);color:var(--text2)}
+.ibox b{color:var(--text)}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@media(max-width:680px){.main{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto}.sidebar{flex-direction:row;overflow-x:auto;padding:0;border-right:none;border-bottom:1px solid var(--border)}.nav-sec{display:none}.nav-item{padding:.65rem .85rem;flex-direction:column;gap:3px;font-size:.6rem}.content{height:auto}}
 </style>
 </head>
 <body>
 <div class="app">
-
 <header>
-  <div class="logo"><div class="logo-dot"></div>Portafolio Tracker</div>
-  <div class="header-right">
-    <div class="tc-pill" id="tc-pill">USD/ARS —</div>
-    <div class="last-updated" id="last-updated">—</div>
+  <div class="logo"><div class="logo-dot"></div>Portafolio Tracker<span style="font-size:.68rem;font-weight:400;color:var(--text3);margin-left:6px">NYSE / ETF</span></div>
+  <div class="hright">
+    <div class="tag">Finnhub API</div>
+    <div class="tag">CCL embebido</div>
+    <div class="lupd" id="lupd">—</div>
   </div>
 </header>
-
 <div class="main">
   <nav class="sidebar">
-    <div class="nav-section">Vistas</div>
-    <button class="nav-item active" onclick="showPage('portafolio',this)"><span class="nav-icon">◈</span>Portafolio</button>
-    <button class="nav-item" onclick="showPage('movimientos',this)"><span class="nav-icon">↕</span>Movimientos</button>
-    <div class="nav-section">Mercado</div>
-    <button class="nav-item" onclick="showPage('tipocambio',this)"><span class="nav-icon">$</span>Tipo de cambio</button>
+    <div class="nav-sec">Vistas</div>
+    <button class="nav-item active" onclick="showPage('portafolio',this)"><span>◈</span>Portafolio</button>
+    <button class="nav-item" onclick="showPage('movimientos',this)"><span>↕</span>Movimientos</button>
+    <div class="nav-sec">Herramientas</div>
+    <button class="nav-item" onclick="showPage('cotizador',this)"><span>◎</span>Cotizador</button>
   </nav>
-
   <div class="content">
 
     <!-- PORTAFOLIO -->
     <div class="page active" id="page-portafolio">
-      <div class="metrics-grid">
-        <div class="metric"><div class="metric-label">Valor total USD</div><div class="metric-value" id="m-total-usd">—</div></div>
-        <div class="metric"><div class="metric-label">Valor total ARS</div><div class="metric-value" id="m-total-ars">—</div></div>
+      <div class="mgrid">
+        <div class="metric"><div class="metric-label">Valor total USD</div><div class="metric-value" id="m-val">—</div></div>
+        <div class="metric"><div class="metric-label">Costo total USD</div><div class="metric-value" id="m-cost">—</div></div>
         <div class="metric"><div class="metric-label">G/P no realizada</div><div class="metric-value" id="m-pnl">—</div><div class="metric-sub" id="m-pnl-pct"></div></div>
-        <div class="metric"><div class="metric-label">Costo total USD</div><div class="metric-value" id="m-costo">—</div></div>
+        <div class="metric"><div class="metric-label">G/P realizada</div><div class="metric-value" id="m-rpnl">—</div></div>
         <div class="metric"><div class="metric-label">Dividendos USD</div><div class="metric-value" id="m-divs">—</div></div>
-        <div class="metric"><div class="metric-label">Dólar blue</div><div class="metric-value" id="m-tc">—</div><div class="metric-sub" id="m-tc-sub"></div></div>
+        <div class="metric"><div class="metric-label">Posiciones</div><div class="metric-value" id="m-count">—</div></div>
       </div>
-
       <div class="card">
         <div class="card-header">
           <span class="card-title">Posiciones abiertas</span>
           <div class="gap-row">
-            <span id="refresh-status" class="status-msg"></span>
-            <button class="btn btn-accent" onclick="fetchAllQuotes()"><span id="refresh-icon">⟳</span> Actualizar precios</button>
+            <span id="ref-status" class="smsg"></span>
+            <button class="btn btn-a" onclick="fetchAllQuotes()"><span id="ref-icon">⟳</span> Actualizar precios</button>
           </div>
         </div>
-        <div id="pos-progress" style="display:none;padding:6px 0"><div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div></div>
-        <div id="pos-empty" class="empty-state">Cargá movimientos para ver tus posiciones</div>
-        <div class="table-wrap" id="pos-wrap" style="display:none">
+        <div id="pos-prog" style="display:none;padding:4px 0"><div class="pbar"><div class="pfill" id="pfill" style="width:0%"></div></div></div>
+        <div id="pos-empty" class="empty-state">Cargando posiciones...</div>
+        <div class="tw" id="pos-wrap" style="display:none">
           <table>
-            <thead><tr>
-              <th>Ticker</th><th>Mercado</th><th>Cantidad</th>
-              <th>Costo prom.</th><th>Precio actual</th><th>Valor USD</th>
-              <th>G/P USD</th><th>G/P %</th>
-            </tr></thead>
+            <thead><tr><th>Ticker</th><th>Tipo</th><th>Cant.</th><th>Costo prom. USD</th><th>Precio actual</th><th>Valor USD</th><th>G/P USD</th><th>G/P %</th><th>Chg hoy</th></tr></thead>
             <tbody id="pos-body"></tbody>
           </table>
         </div>
       </div>
-
       <div class="card">
         <div class="card-header"><span class="card-title">Dividendos cobrados</span></div>
         <div id="divs-content" class="empty-state">Sin dividendos registrados</div>
@@ -199,124 +133,65 @@ tr:hover td { background: var(--surface2); }
       <div class="card">
         <div class="card-header"><span class="card-title">Registrar movimiento</span></div>
         <div class="card-body">
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Tipo</label>
-              <select id="m-tipo" onchange="onTipoChange()">
-                <option value="compra">Compra</option>
-                <option value="venta">Venta</option>
-                <option value="dividendo">Dividendo</option>
-                <option value="aporte">Aporte de capital</option>
-              </select>
-            </div>
-            <div class="form-group" id="g-mercado">
-              <label>Mercado</label>
-              <select id="m-mercado" onchange="onMercadoChange()">
-                <option value="USA">NYSE / NASDAQ</option>
-                <option value="ETF">ETF (USA)</option>
-                <option value="ARG">Acciones ARG (BYMA)</option>
-                <option value="BONO">Bono Argentino</option>
-                <option value="ON">Obligacion Negociable</option>
-                <option value="CEDEAR">Cedear</option>
-                <option value="CRYPTO">Cripto</option>
-              </select>
-            </div>
-            <div class="form-group" id="g-ticker">
-              <label>Ticker</label>
-              <input id="m-ticker" type="text" placeholder="AAPL, GGAL, AL30..." style="text-transform:uppercase">
-            </div>
-            <div class="form-group">
-              <label>Fecha</label>
-              <input id="m-fecha" type="date">
-            </div>
+          <div class="fg">
+            <div class="fgrp"><label>Tipo</label><select id="m-tipo" onchange="onTipo()"><option value="compra">Compra</option><option value="venta">Venta</option><option value="dividendo">Dividendo</option><option value="aporte">Aporte capital</option></select></div>
+            <div class="fgrp" id="g-mkt"><label>Mercado</label><select id="m-mkt"><option value="USA">NYSE / NASDAQ</option><option value="ETF">ETF (USA)</option></select></div>
+            <div class="fgrp" id="g-ticker"><label>Ticker</label><input id="m-ticker" type="text" placeholder="AAPL, IBIT..." style="text-transform:uppercase"></div>
+            <div class="fgrp"><label>Fecha</label><input id="m-fecha" type="date"></div>
           </div>
-
           <div id="row-normal">
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Cantidad</label>
-                <input id="m-qty" type="number" min="0" step="any" placeholder="0">
-              </div>
-              <div class="form-group">
-                <label id="lbl-precio">Precio unitario</label>
-                <input id="m-precio" type="number" min="0" step="any" placeholder="0.00">
-              </div>
-              <div class="form-group" style="max-width:90px">
-                <label>Moneda</label>
-                <select id="m-moneda"><option value="USD">USD</option><option value="ARS">ARS</option></select>
-              </div>
-              <div class="form-group">
-                <label>Comision</label>
-                <input id="m-comision" type="number" min="0" step="any" placeholder="0.00">
-              </div>
+            <div class="fg">
+              <div class="fgrp"><label>Cantidad</label><input id="m-qty" type="number" min="0" step="any" placeholder="0"></div>
+              <div class="fgrp"><label id="lbl-precio">Precio ARS</label><input id="m-precio-ars" type="number" min="0" step="any" placeholder="0"></div>
+              <div class="fgrp"><label>CCL del día</label><input id="m-ccl" type="number" min="0" step="any" placeholder="auto"></div>
+              <div class="fgrp"><label>Precio USD (calc.)</label><input id="m-precio-usd" type="text" placeholder="—" readonly style="color:var(--accent)"></div>
+              <div class="fgrp"><label>Comisión USD</label><input id="m-comision" type="number" min="0" step="any" placeholder="0"></div>
             </div>
           </div>
-
           <div id="row-aporte" style="display:none">
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Monto</label>
-                <input id="m-monto" type="number" min="0" step="any" placeholder="0.00">
-              </div>
-              <div class="form-group" style="max-width:90px">
-                <label>Moneda</label>
-                <select id="m-moneda2"><option value="USD">USD</option><option value="ARS">ARS</option></select>
-              </div>
+            <div class="fg">
+              <div class="fgrp"><label>Monto USD</label><input id="m-monto" type="number" min="0" step="any" placeholder="0"></div>
             </div>
           </div>
-
-          <div class="form-grid" style="margin-top:4px">
-            <div class="form-group" style="grid-column:1/-1">
-              <label>Notas (opcional)</label>
-              <input id="m-notas" type="text" placeholder="">
-            </div>
+          <div class="fg" style="margin-top:4px">
+            <div class="fgrp" style="grid-column:1/-1"><label>Notas</label><input id="m-notas" type="text" placeholder=""></div>
           </div>
-
-          <div class="gap-row" style="margin-top:12px">
-            <button class="btn btn-accent" onclick="addMovimiento()">+ Agregar</button>
+          <div class="gap-row" style="margin-top:10px">
+            <button class="btn btn-a" onclick="addMov()">+ Agregar</button>
             <span id="m-status"></span>
           </div>
-
-          <div class="info-box" style="margin-top:14px">
-            <b>Tip:</b> Para activos argentinos ingresa solo el ticker base: <b>GGAL</b>, <b>AL30</b>, <b>YCA6O</b> — se agrega .BA automaticamente segun el mercado.
-            Para cripto usa el simbolo base: <b>BTC</b>, <b>ETH</b> (se consulta como BTC-USD).
-          </div>
+          <div class="ibox" style="margin-top:12px"><b>Tip:</b> El CCL se auto-completa con la tabla embebida. Si la fecha no tiene CCL, ingresalo manualmente.</div>
         </div>
       </div>
-
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Historial de movimientos</span>
+          <span class="card-title">Historial (<span id="mov-count">0</span> movimientos)</span>
           <div class="gap-row">
-            <button class="btn" onclick="exportCSV()">Exportar CSV</button>
-            <button class="btn btn-danger" onclick="clearAll()">Limpiar todo</button>
+            <button class="btn" onclick="exportCSV()">↓ CSV</button>
+            <button class="btn btn-d" onclick="clearAll()">✕ Limpiar todo</button>
           </div>
         </div>
-        <div id="mov-empty" class="empty-state">No hay movimientos registrados</div>
-        <div class="table-wrap" id="mov-wrap" style="display:none">
+        <div id="mov-empty" class="empty-state">No hay movimientos</div>
+        <div class="tw" id="mov-wrap" style="display:none">
           <table>
-            <thead><tr>
-              <th>Fecha</th><th>Tipo</th><th>Mercado</th><th>Ticker</th>
-              <th>Cantidad</th><th>Precio</th><th>Moneda</th><th>Comision</th><th>Notas</th><th></th>
-            </tr></thead>
+            <thead><tr><th>Fecha</th><th>Tipo</th><th>Mkt</th><th>Ticker</th><th>Cant.</th><th>ARS</th><th>CCL</th><th>USD unit.</th><th>Comis.</th><th>Notas</th><th></th></tr></thead>
             <tbody id="mov-body"></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- TIPO DE CAMBIO -->
-    <div class="page" id="page-tipocambio">
+    <!-- COTIZADOR -->
+    <div class="page" id="page-cotizador">
       <div class="card">
-        <div class="card-header">
-          <span class="card-title">Tipo de cambio USD / ARS</span>
-          <button class="btn btn-accent" onclick="fetchTC()">Actualizar</button>
-        </div>
+        <div class="card-header"><span class="card-title">Cotizador NYSE / ETF</span></div>
         <div class="card-body">
-          <div id="tc-result" class="empty-state" style="padding:1rem 0">Presiona Actualizar para consultar</div>
-          <div class="info-box" style="margin-top:14px">
-            Fuente: <b>dolarapi.com</b> — gratuito, sin registro. Se usa el dolar blue (venta) para convertir ARS a USD.
+          <div class="fg">
+            <div class="fgrp"><label>Ticker</label><input id="q-ticker" type="text" placeholder="AAPL, NVDA..." style="text-transform:uppercase"></div>
+            <div style="align-self:flex-end"><button class="btn btn-a" onclick="fetchSingle()">Consultar</button></div>
           </div>
+          <div id="q-result" style="margin-top:12px"></div>
+          <div class="ibox" style="margin-top:14px">Fuente: <b>Finnhub.io</b> — tiempo real NYSE/NASDAQ. Gratis, sin límite para uso personal (60 req/min).</div>
         </div>
       </div>
     </div>
@@ -324,379 +199,301 @@ tr:hover td { background: var(--surface2); }
   </div>
 </div>
 </div>
-
 <script>
+var FKEY = 'd7ar4v9r01qtpbh9hs60d7ar4v9r01qtpbh9hs6g';
+var FBASE = 'https://finnhub.io/api/v1';
+
+// ── CCL table (embedded) ──────────────────────────────────────────────────
+var CCL_TABLE = {"06/04/2026": 1483.0, "05/04/2026": 1495.0, "04/04/2026": 1495.0, "03/04/2026": 1495.0, "02/04/2026": 1495.0, "01/04/2026": 1486.0, "31/03/2026": 1473.0, "30/03/2026": 1483.0, "29/03/2026": 1476.0, "28/03/2026": 1476.0, "27/03/2026": 1476.0, "26/03/2026": 1448.0, "25/03/2026": 1449.0, "24/03/2026": 1463.0, "23/03/2026": 1465.0, "22/03/2026": 1473.0, "21/03/2026": 1473.0, "20/03/2026": 1473.0, "19/03/2026": 1469.0, "18/03/2026": 1469.0, "17/03/2026": 1469.0, "16/03/2026": 1469.0, "15/03/2026": 1467.0, "14/03/2026": 1467.0, "13/03/2026": 1467.0, "12/03/2026": 1460.0, "11/03/2026": 1453.0, "10/03/2026": 1464.0, "09/03/2026": 1474.0, "08/03/2026": 1482.0, "07/03/2026": 1482.0, "06/03/2026": 1482.0, "05/03/2026": 1462.0, "04/03/2026": 1464.0, "03/03/2026": 1484.0, "02/03/2026": 1456.0, "01/03/2026": 1455.0, "28/02/2026": 1455.0, "27/02/2026": 1455.0, "26/02/2026": 1478.0, "25/02/2026": 1464.0, "24/02/2026": 1444.0, "23/02/2026": 1436.0, "22/02/2026": 1442.0, "21/02/2026": 1442.0, "20/02/2026": 1442.0, "19/02/2026": 1451.0, "18/02/2026": 1449.0, "12/02/2026": 1486.0, "11/02/2026": 1478.0, "30/01/2026": 1502.0, "29/01/2026": 1505.0, "28/01/2026": 1513.0, "27/01/2026": 1511.0, "26/01/2026": 1516.0, "22/01/2026": 1508.0, "21/01/2026": 1516.0, "20/01/2026": 1523.0, "16/01/2026": 1519.0, "15/01/2026": 1523.0, "14/01/2026": 1522.0, "13/01/2026": 1528.0, "12/01/2026": 1534.0, "09/01/2026": 1527.0, "08/01/2026": 1526.0, "06/01/2026": 1536.0, "05/01/2026": 1536.0, "02/01/2026": 1550.0, "30/12/2025": 1522.0, "26/12/2025": 1520.0, "24/12/2025": 1528.0, "23/12/2025": 1529.0, "22/12/2025": 1548.0, "19/12/2025": 1545.0, "18/12/2025": 1550.0, "17/12/2025": 1564.0, "16/12/2025": 1549.0, "15/12/2025": 1523.0, "12/12/2025": 1515.0, "11/12/2025": 1508.0, "10/12/2025": 1496.0, "09/12/2025": 1514.0, "05/12/2025": 1516.0, "04/12/2025": 1510.0, "03/12/2025": 1518.0, "02/12/2025": 1528.0, "01/12/2025": 1516.0, "28/11/2025": 1518.0, "27/11/2025": 1524.0, "26/11/2025": 1534.0, "25/11/2025": 1523.0, "22/11/2025": 1510.0, "21/11/2025": 1510.0, "20/11/2025": 1513.0, "19/11/2025": 1466.0, "18/11/2025": 1485.0, "17/11/2025": 1480.0, "16/11/2025": 1502.0, "15/11/2025": 1502.0, "14/11/2025": 1502.0, "13/11/2025": 1475.0, "12/11/2025": 1477.0, "11/11/2025": 1480.0, "10/11/2025": 1481.0, "09/11/2025": 1473.0, "08/11/2025": 1473.0, "07/11/2025": 1473.0, "06/11/2025": 1506.0, "05/11/2025": 1500.0, "04/11/2025": 1522.0, "03/11/2025": 1518.0, "02/11/2025": 1502.0, "01/11/2025": 1502.0, "31/10/2025": 1502.0, "30/10/2025": 1494.0, "29/10/2025": 1474.0, "28/10/2025": 1474.0, "27/10/2025": 1458.0, "25/10/2025": 1568.0, "24/10/2025": 1568.0, "23/10/2025": 1551.0, "22/10/2025": 1608.0, "21/10/2025": 1608.0, "20/10/2025": 1570.0, "19/10/2025": 1540.0, "18/10/2025": 1540.0, "17/10/2025": 1540.0, "16/10/2025": 1484.0, "15/10/2025": 1455.0, "14/10/2025": 1469.0, "13/10/2025": 1440.0, "12/10/2025": 1497.0, "11/10/2025": 1497.0, "10/10/2025": 1497.0, "09/10/2025": 1451.0, "08/10/2025": 1545.0, "07/10/2025": 1558.0, "06/10/2025": 1516.0, "05/10/2025": 1523.0, "04/10/2025": 1523.0, "03/10/2025": 1523.0, "02/10/2025": 1554.0, "01/10/2025": 1571.0, "30/09/2025": 1538.0, "29/09/2025": 1489.0, "28/09/2025": 1468.0, "27/09/2025": 1468.0, "26/09/2025": 1468.0, "25/09/2025": 1399.0, "24/09/2025": 1394.0, "23/09/2025": 1418.0, "22/09/2025": 1438.0, "21/09/2025": 1557.0, "20/09/2025": 1557.0, "19/09/2025": 1557.0, "18/09/2025": 1552.0, "17/09/2025": 1494.0, "16/09/2025": 1475.0, "15/09/2025": 1495.0, "14/09/2025": 1478.0, "13/09/2025": 1478.0, "12/09/2025": 1478.0, "11/09/2025": 1447.0, "10/09/2025": 1435.0, "09/09/2025": 1438.0, "08/09/2025": 1446.0, "07/09/2025": 1388.0, "06/09/2025": 1388.0, "05/09/2025": 1388.0, "04/09/2025": 1379.0, "03/09/2025": 1373.0, "02/09/2025": 1370.0, "01/09/2025": 1351.0, "31/08/2025": 1354.0, "30/08/2025": 1354.0, "29/08/2025": 1354.0, "28/08/2025": 1346.0, "27/08/2025": 1355.0, "26/08/2025": 1358.0, "25/08/2025": 1362.0, "24/08/2025": 1335.0, "23/08/2025": 1335.0, "22/08/2025": 1335.0, "21/08/2025": 1321.0, "20/08/2025": 1308.0, "19/08/2025": 1302.0, "18/08/2025": 1303.0, "17/08/2025": 1319.0, "16/08/2025": 1319.0, "15/08/2025": 1319.0, "14/08/2025": 1306.0, "13/08/2025": 1319.0, "12/08/2025": 1320.0, "11/08/2025": 1324.0, "10/08/2025": 1331.0, "09/08/2025": 1331.0, "08/08/2025": 1331.0, "07/08/2025": 1327.0, "06/08/2025": 1334.0, "05/08/2025": 1346.0, "04/08/2025": 1356.0, "03/08/2025": 1365.0, "02/08/2025": 1365.0, "01/08/2025": 1365.0, "31/07/2025": 1359.0, "30/07/2025": 1316.0, "29/07/2025": 1293.0, "28/07/2025": 1299.0, "27/07/2025": 1289.0, "26/07/2025": 1289.0, "25/07/2025": 1289.0, "24/07/2025": 1276.0, "23/07/2025": 1266.0, "22/07/2025": 1263.0, "21/07/2025": 1286.0, "20/07/2025": 1295.0, "19/07/2025": 1295.0, "18/07/2025": 1295.0, "17/07/2025": 1283.0, "16/07/2025": 1277.0, "15/07/2025": 1279.0, "14/07/2025": 1295.0, "13/07/2025": 1273.0, "12/07/2025": 1273.0, "11/07/2025": 1273.0, "10/07/2025": 1270.0, "09/07/2025": 1272.0, "08/07/2025": 1260.0, "07/07/2025": 1277.0, "06/07/2025": 1237.0, "05/07/2025": 1237.0, "04/07/2025": 1237.0, "03/07/2025": 1234.0, "02/07/2025": 1237.0, "01/07/2025": 1235.0, "30/06/2025": 1210.0, "29/06/2025": 1202.0, "28/06/2025": 1202.0, "27/06/2025": 1202.0, "26/06/2025": 1201.0, "25/06/2025": 1203.0, "24/06/2025": 1188.0, "23/06/2025": 1189.0, "22/06/2025": 1182.0, "21/06/2025": 1182.0, "20/06/2025": 1182.0, "19/06/2025": 1172.0, "18/06/2025": 1175.0, "17/06/2025": 1183.0, "16/06/2025": 1182.0, "15/06/2025": 1192.0, "14/06/2025": 1192.0, "13/06/2025": 1192.0, "12/06/2025": 1191.0, "11/06/2025": 1196.0, "10/06/2025": 1195.0, "09/06/2025": 1200.0, "08/06/2025": 1199.0, "07/06/2025": 1199.0, "06/06/2025": 1199.0, "05/06/2025": 1195.0, "04/06/2025": 1202.0, "03/06/2025": 1200.0, "02/06/2025": 1194.0, "01/06/2025": 1203.0, "31/05/2025": 1203.0, "30/05/2025": 1203.0, "29/05/2025": 1196.0, "28/05/2025": 1177.0, "27/05/2025": 1175.0, "26/05/2025": 1169.0, "25/05/2025": 1165.0, "24/05/2025": 1165.0, "23/05/2025": 1165.0, "22/05/2025": 1161.0, "21/05/2025": 1166.0, "20/05/2025": 1170.0, "19/05/2025": 1163.0, "18/05/2025": 1175.0, "17/05/2025": 1175.0, "16/05/2025": 1175.0, "15/05/2025": 1165.0, "14/05/2025": 1153.0, "13/05/2025": 1161.0, "12/05/2025": 1161.0, "11/05/2025": 1155.0, "10/05/2025": 1155.0, "09/05/2025": 1155.0, "08/05/2025": 1160.0, "07/05/2025": 1167.0, "06/05/2025": 1212.0, "05/05/2025": 1217.0, "04/05/2025": 1219.0, "03/05/2025": 1219.0, "02/05/2025": 1219.0, "01/05/2025": 1214.0, "30/04/2025": 1194.0, "29/04/2025": 1187.0, "28/04/2025": 1193.0, "27/04/2025": 1198.0, "26/04/2025": 1198.0, "25/04/2025": 1198.0, "24/04/2025": 1200.0, "23/04/2025": 1181.0, "22/04/2025": 1159.0, "21/04/2025": 1132.0, "20/04/2025": 1169.0, "19/04/2025": 1169.0, "18/04/2025": 1169.0, "17/04/2025": 1169.0, "16/04/2025": 1183.0, "15/04/2025": 1248.0, "14/04/2025": 1258.0, "13/04/2025": 1339.0, "12/04/2025": 1339.0, "11/04/2025": 1339.0, "10/04/2025": 1364.0, "09/04/2025": 1343.0, "08/04/2025": 1374.0, "07/04/2025": 1361.0, "06/04/2025": 1338.0, "05/04/2025": 1338.0, "04/04/2025": 1338.0, "03/04/2025": 1322.0, "02/04/2025": 1301.0, "01/04/2025": 1310.0, "31/03/2025": 1316.0, "30/03/2025": 1305.0, "29/03/2025": 1305.0, "28/03/2025": 1305.0, "27/03/2025": 1297.0, "26/03/2025": 1296.0, "25/03/2025": 1297.0, "24/03/2025": 1264.0, "23/03/2025": 1292.0, "22/03/2025": 1292.0, "21/03/2025": 1292.0, "20/03/2025": 1289.0, "19/03/2025": 1293.0, "18/03/2025": 1301.0, "17/03/2025": 1258.0, "16/03/2025": 1241.0, "15/03/2025": 1241.0, "14/03/2025": 1241.0, "13/03/2025": 1235.0, "12/03/2025": 1230.0, "11/03/2025": 1229.0, "10/03/2025": 1228.0, "09/03/2025": 1220.0, "08/03/2025": 1220.0, "07/03/2025": 1220.0, "06/03/2025": 1235.0, "05/03/2025": 1234.0, "04/03/2025": 1250.0, "03/03/2025": 1232.0, "02/03/2025": 1215.0, "01/03/2025": 1215.0, "28/02/2025": 1215.0, "27/02/2025": 1231.0, "26/02/2025": 1211.0, "25/02/2025": 1216.0, "24/02/2025": 1223.0, "23/02/2025": 1217.0, "22/02/2025": 1217.0, "21/02/2025": 1217.0, "20/02/2025": 1211.0, "19/02/2025": 1214.0, "18/02/2025": 1213.0, "17/02/2025": 1184.0, "16/02/2025": 1201.0, "15/02/2025": 1201.0, "14/02/2025": 1201.0, "13/02/2025": 1197.0, "12/02/2025": 1196.0, "11/02/2025": 1197.0, "10/02/2025": 1191.0, "09/02/2025": 1205.0, "08/02/2025": 1205.0, "07/02/2025": 1205.0, "06/02/2025": 1192.0, "05/02/2025": 1205.0, "04/02/2025": 1193.0, "03/02/2025": 1194.0, "02/02/2025": 1191.0, "01/02/2025": 1191.0, "31/01/2025": 1191.0, "30/01/2025": 1186.0, "29/01/2025": 1179.0, "28/01/2025": 1177.0, "27/01/2025": 1166.0, "26/01/2025": 1173.0, "25/01/2025": 1173.0, "24/01/2025": 1173.0, "23/01/2025": 1192.0, "22/01/2025": 1198.0, "21/01/2025": 1181.0, "20/01/2025": 1201.0, "19/01/2025": 1188.0, "18/01/2025": 1188.0, "17/01/2025": 1188.0, "16/01/2025": 1196.0, "15/01/2025": 1189.0, "14/01/2025": 1191.0, "13/01/2025": 1190.0, "12/01/2025": 1195.0, "11/01/2025": 1195.0, "10/01/2025": 1195.0, "09/01/2025": 1208.0, "08/01/2025": 1193.0, "07/01/2025": 1191.0, "06/01/2025": 1190.0, "05/01/2025": 1180.0, "04/01/2025": 1180.0, "03/01/2025": 1180.0, "02/01/2025": 1174.0, "01/01/2025": 1197.0, "31/12/2024": 1197.0, "30/12/2024": 1189.0, "29/12/2024": 1186.0, "28/12/2024": 1186.0, "27/12/2024": 1186.0, "26/12/2024": 1190.0, "25/12/2024": 1173.0, "24/12/2024": 1173.0, "23/12/2024": 1171.0, "22/12/2024": 1172.0, "21/12/2024": 1172.0, "20/12/2024": 1172.0, "19/12/2024": 1157.0, "18/12/2024": 1188.0, "17/12/2024": 1150.0, "16/12/2024": 1115.0, "15/12/2024": 1090.0, "14/12/2024": 1090.0, "13/12/2024": 1090.0, "12/12/2024": 1073.0, "11/12/2024": 1066.0, "10/12/2024": 1077.0, "09/12/2024": 1071.0, "08/12/2024": 1070.0, "07/12/2024": 1070.0, "06/12/2024": 1070.0, "05/12/2024": 1088.0, "04/12/2024": 1102.0, "03/12/2024": 1106.0, "02/12/2024": 1101.0, "01/12/2024": 1111.0, "30/11/2024": 1111.0, "29/11/2024": 1111.0, "28/11/2024": 1112.0, "27/11/2024": 1107.0, "26/11/2024": 1109.0, "25/11/2024": 1113.0, "24/11/2024": 1113.0, "23/11/2024": 1113.0, "22/11/2024": 1113.0, "21/11/2024": 1113.0, "20/11/2024": 1111.0, "19/11/2024": 1113.0, "18/11/2024": 1090.0, "17/11/2024": 1129.0, "16/11/2024": 1129.0, "15/11/2024": 1129.0, "14/11/2024": 1155.0, "13/11/2024": 1157.0, "12/11/2024": 1164.0, "11/11/2024": 1160.0, "10/11/2024": 1157.0, "09/11/2024": 1157.0, "08/11/2024": 1157.0, "07/11/2024": 1167.0, "06/11/2024": 1165.0, "05/11/2024": 1181.0, "04/11/2024": 1185.0, "03/11/2024": 1177.0, "02/11/2024": 1177.0, "01/11/2024": 1177.0, "31/10/2024": 1158.0, "30/10/2024": 1159.0, "29/10/2024": 1155.0, "28/10/2024": 1158.0, "27/10/2024": 1165.0, "26/10/2024": 1165.0, "25/10/2024": 1165.0, "24/10/2024": 1181.0, "23/10/2024": 1188.0, "22/10/2024": 1194.0, "21/10/2024": 1195.0, "20/10/2024": 1197.0, "19/10/2024": 1197.0, "18/10/2024": 1197.0, "17/10/2024": 1194.0, "16/10/2024": 1190.0, "15/10/2024": 1179.0, "14/10/2024": 1181.0, "13/10/2024": 1175.0, "12/10/2024": 1175.0, "11/10/2024": 1175.0, "10/10/2024": 1179.0, "09/10/2024": 1195.0, "08/10/2024": 1213.0, "07/10/2024": 1222.0, "06/10/2024": 1226.0, "05/10/2024": 1226.0, "04/10/2024": 1226.0, "03/10/2024": 1230.0, "02/10/2024": 1239.0, "01/10/2024": 1246.0, "30/09/2024": 1239.0, "28/09/2024": 1229.0, "27/09/2024": 1229.0, "26/09/2024": 1228.0, "25/09/2024": 1228.0, "24/09/2024": 1224.0, "23/09/2024": 1227.0, "22/09/2024": 1224.0, "21/09/2024": 1224.0, "20/09/2024": 1224.0, "19/09/2024": 1219.0, "18/09/2024": 1235.0, "17/09/2024": 1242.0, "16/09/2024": 1244.0, "15/09/2024": 1252.0, "14/09/2024": 1252.0, "13/09/2024": 1252.0, "12/09/2024": 1256.0, "11/09/2024": 1252.0, "10/09/2024": 1251.0, "09/09/2024": 1244.0, "08/09/2024": 1263.0, "07/09/2024": 1263.0, "06/09/2024": 1263.0, "05/09/2024": 1274.0, "04/09/2024": 1295.0, "03/09/2024": 1309.0, "02/09/2024": 1311.0, "01/09/2024": 1296.0, "31/08/2024": 1296.0, "30/08/2024": 1296.0, "29/08/2024": 1288.0, "28/08/2024": 1295.0, "27/08/2024": 1297.0, "26/08/2024": 1291.0, "25/08/2024": 1290.0, "24/08/2024": 1290.0, "23/08/2024": 1290.0, "22/08/2024": 1291.0, "21/08/2024": 1292.0, "20/08/2024": 1295.0, "19/08/2024": 1287.0, "18/08/2024": 1288.0, "17/08/2024": 1288.0, "16/08/2024": 1288.0, "15/08/2024": 1270.0, "14/08/2024": 1269.0, "13/08/2024": 1267.0, "12/08/2024": 1284.0, "11/08/2024": 1287.0, "10/08/2024": 1287.0, "09/08/2024": 1287.0, "08/08/2024": 1295.0, "07/08/2024": 1319.0, "06/08/2024": 1332.0, "05/08/2024": 1337.0, "04/08/2024": 1324.0, "03/08/2024": 1324.0, "02/08/2024": 1324.0, "01/08/2024": 1299.0, "31/07/2024": 1282.0, "30/07/2024": 1258.0, "29/07/2024": 1289.0, "28/07/2024": 1312.0, "27/07/2024": 1312.0, "26/07/2024": 1312.0, "25/07/2024": 1322.0, "24/07/2024": 1333.0, "23/07/2024": 1331.0, "22/07/2024": 1330.0, "21/07/2024": 1326.0, "20/07/2024": 1326.0, "19/07/2024": 1326.0, "18/07/2024": 1322.0, "17/07/2024": 1303.0, "16/07/2024": 1283.0, "15/07/2024": 1306.0, "14/07/2024": 1427.0, "13/07/2024": 1427.0, "12/07/2024": 1427.0, "11/07/2024": 1411.0, "10/07/2024": 1388.0, "09/07/2024": 1376.0, "08/07/2024": 1383.0, "07/07/2024": 1389.0, "06/07/2024": 1398.0, "05/07/2024": 1398.0, "04/07/2024": 1398.0, "03/07/2024": 1382.0, "02/07/2024": 1435.0, "01/07/2024": 1413.0, "30/06/2024": 1359.0, "29/06/2024": 1359.0, "28/06/2024": 1359.0, "27/06/2024": 1355.0, "26/06/2024": 1353.0, "25/06/2024": 1322.0, "24/06/2024": 1310.0, "23/06/2024": 1295.0, "22/06/2024": 1295.0, "21/06/2024": 1295.0, "20/06/2024": 1295.0, "19/06/2024": 1295.0, "18/06/2024": 1269.0, "17/06/2024": 1272.0, "16/06/2024": 1272.0, "15/06/2024": 1272.0, "14/06/2024": 1272.0, "13/06/2024": 1278.0, "12/06/2024": 1309.0, "11/06/2024": 1311.0, "10/06/2024": 1308.0, "09/06/2024": 1307.0, "08/06/2024": 1307.0, "07/06/2024": 1307.0, "06/06/2024": 1301.0, "05/06/2024": 1307.0, "04/06/2024": 1313.0, "03/06/2024": 1291.0, "02/06/2024": 1247.0, "01/06/2024": 1247.0, "31/05/2024": 1247.0, "30/05/2024": 1213.0, "29/05/2024": 1214.0, "28/05/2024": 1239.0, "27/05/2024": 1266.0, "26/05/2024": 1235.0, "25/05/2024": 1235.0, "24/05/2024": 1235.0, "23/05/2024": 1256.0, "22/05/2024": 1253.0, "21/05/2024": 1194.0, "20/05/2024": 1137.0, "19/05/2024": 1104.0, "18/05/2024": 1104.0, "17/05/2024": 1104.0, "16/05/2024": 1100.0, "15/05/2024": 1094.0, "14/05/2024": 1086.0, "13/05/2024": 1076.0, "12/05/2024": 1079.0, "11/05/2024": 1079.0, "10/05/2024": 1079.0, "09/05/2024": 1083.0, "08/05/2024": 1078.0, "07/05/2024": 1096.0, "06/05/2024": 1111.0, "05/05/2024": 1121.0, "04/05/2024": 1121.0, "03/05/2024": 1121.0, "02/05/2024": 1122.0, "01/05/2024": 1104.0, "30/04/2024": 1095.0, "29/04/2024": 1093.0, "28/04/2024": 1086.0, "27/04/2024": 1086.0, "26/04/2024": 1086.0, "25/04/2024": 1082.0, "24/04/2024": 1058.0, "23/04/2024": 1055.0, "22/04/2024": 1060.0, "21/04/2024": 1068.0, "20/04/2024": 1068.0, "19/04/2024": 1068.0, "18/04/2024": 1070.0, "17/04/2024": 1065.0, "16/04/2024": 1076.0, "15/04/2024": 1074.0, "14/04/2024": 1052.0, "13/04/2024": 1052.0, "12/04/2024": 1052.0, "11/04/2024": 1050.0, "10/04/2024": 1047.0, "09/04/2024": 1043.0, "08/04/2024": 1039.0, "07/04/2024": 1050.0, "06/04/2024": 1050.0, "05/04/2024": 1050.0, "04/04/2024": 1057.0, "03/04/2024": 1074.0, "02/04/2024": 1113.0, "01/04/2024": 1095.0, "31/03/2024": 1098.0, "30/03/2024": 1098.0, "29/03/2024": 1098.0, "28/03/2024": 1098.0, "27/03/2024": 1085.0, "26/03/2024": 1101.0, "25/03/2024": 1083.0, "24/03/2024": 1096.0, "23/03/2024": 1096.0, "22/03/2024": 1096.0, "21/03/2024": 1101.0, "20/03/2024": 1098.0, "19/03/2024": 1084.0, "18/03/2024": 1080.0, "17/03/2024": 1074.0, "16/03/2024": 1074.0, "15/03/2024": 1074.0, "14/03/2024": 1059.0, "13/03/2024": 1054.0, "12/03/2024": 1073.0, "11/03/2024": 1025.0, "10/03/2024": 1053.0, "08/03/2024": 1053.0, "07/03/2024": 1030.0, "06/03/2024": 1022.0, "05/03/2024": 1043.0, "04/03/2024": 1070.0, "03/03/2024": 1085.0, "02/03/2024": 1085.0, "01/03/2024": 1085.0, "29/02/2024": 1066.0, "28/02/2024": 1071.0, "27/02/2024": 1090.0, "26/02/2024": 1097.0, "25/02/2024": 1121.0, "24/02/2024": 1121.0, "23/02/2024": 1121.0, "22/02/2024": 1105.0, "21/02/2024": 1108.0, "20/02/2024": 1127.0, "19/02/2024": 1134.0, "18/02/2024": 1118.0, "17/02/2024": 1118.0, "16/02/2024": 1118.0, "15/02/2024": 1161.0, "14/02/2024": 1178.0, "13/02/2024": 1252.0, "12/02/2024": 1240.0, "11/02/2024": 1235.0, "10/02/2024": 1235.0, "09/02/2024": 1235.0, "08/02/2024": 1255.0, "07/02/2024": 1263.0, "06/02/2024": 1253.0, "05/02/2024": 1294.0, "04/02/2024": 1298.0, "03/02/2024": 1298.0, "02/02/2024": 1298.0, "01/02/2024": 1286.0, "31/01/2024": 1267.0, "30/01/2024": 1273.0, "29/01/2024": 1260.0, "28/01/2024": 1235.0, "27/01/2024": 1235.0, "26/01/2024": 1264.0, "25/01/2024": 1323.0, "24/01/2024": 1294.0, "23/01/2024": 1290.0, "22/01/2024": 1314.0, "21/01/2024": 1304.0, "20/01/2024": 1304.0, "19/01/2024": 1304.0, "18/01/2024": 1282.0, "17/01/2024": 1272.0, "16/01/2024": 1212.0, "15/01/2024": 1171.0, "14/01/2024": 1148.0, "13/01/2024": 1148.0, "12/01/2024": 1148.0, "11/01/2024": 1164.0, "10/01/2024": 1190.0, "09/01/2024": 1206.0, "08/01/2024": 1201.0, "07/01/2024": 1144.0, "06/01/2024": 1144.0, "05/01/2024": 1144.0, "04/01/2024": 1099.0, "03/01/2024": 1052.0, "02/01/2024": 997.0, "01/01/2024": 973.0};
+var MEP_TABLE = {"06/04/2026": 1429.0, "05/04/2026": 1434.0, "04/04/2026": 1434.0, "03/04/2026": 1434.0, "02/04/2026": 1434.0, "01/04/2026": 1434.0, "31/03/2026": 1423.0, "30/03/2026": 1432.0, "29/03/2026": 1428.0, "28/03/2026": 1428.0, "27/03/2026": 1428.0, "26/03/2026": 1399.0, "25/03/2026": 1403.0, "24/03/2026": 1415.0, "23/03/2026": 1415.0, "22/03/2026": 1418.0, "21/03/2026": 1418.0, "20/03/2026": 1418.0, "19/03/2026": 1421.0, "18/03/2026": 1419.0, "17/03/2026": 1417.0, "16/03/2026": 1424.0, "15/03/2026": 1422.0, "14/03/2026": 1422.0, "13/03/2026": 1422.0, "12/03/2026": 1410.0, "11/03/2026": 1413.0, "10/03/2026": 1420.0, "09/03/2026": 1430.0, "08/03/2026": 1436.0, "07/03/2026": 1436.0, "06/03/2026": 1436.0, "05/03/2026": 1433.0, "04/03/2026": 1428.0, "03/03/2026": 1434.0, "02/03/2026": 1418.0, "01/03/2026": 1418.0, "28/02/2026": 1418.0, "27/02/2026": 1418.0, "26/02/2026": 1438.0, "25/02/2026": 1425.0, "24/02/2026": 1403.0, "23/02/2026": 1394.0, "22/02/2026": 1402.0, "21/02/2026": 1402.0, "20/02/2026": 1402.0, "19/02/2026": 1408.0, "18/02/2026": 1412.0, "12/02/2026": 1414.0, "11/02/2026": 1430.0, "30/01/2026": 1460.0, "29/01/2026": 1458.0, "28/01/2026": 1463.0, "27/01/2026": 1463.0, "26/01/2026": 1469.0, "22/01/2026": 1459.0, "21/01/2026": 1468.0, "16/01/2026": 1472.0, "15/01/2026": 1472.0, "13/01/2026": 1487.0, "08/01/2026": 1494.0, "06/01/2026": 1497.0, "30/12/2025": 1481.0, "24/12/2025": 1481.0, "22/12/2025": 1493.0, "19/12/2025": 1494.0, "18/12/2025": 1498.0, "17/12/2025": 1514.0, "16/12/2025": 1504.0, "15/12/2025": 1492.0, "03/12/2025": 1470.0, "26/11/2025": 1487.0, "20/11/2025": 1452.0, "19/11/2025": 1441.0, "17/11/2025": 1448.0, "04/11/2025": 1495.0, "31/10/2025": 1477.0, "02/09/2025": 1365.0, "01/09/2025": 1376.0, "29/08/2025": 1357.0, "28/08/2025": 1344.0, "27/08/2025": 1358.0, "13/08/2025": 1310.0, "08/08/2025": 1332.0, "06/08/2025": 1336.0, "18/07/2025": 1292.0, "17/07/2025": 1280.0, "16/07/2025": 1269.0, "15/07/2025": 1276.0, "14/07/2025": 1295.0, "10/07/2025": 1267.0, "09/07/2025": 1259.0, "08/07/2025": 1259.0, "07/07/2025": 1276.0, "04/07/2025": 1246.0, "30/06/2025": 1211.0, "27/06/2025": 1198.0, "26/06/2025": 1199.0, "25/06/2025": 1196.0, "24/06/2025": 1184.0, "18/06/2025": 1167.0, "22/05/2025": 1143.0, "21/05/2025": 1148.0, "19/05/2025": 1148.0, "12/05/2025": 1141.0, "05/05/2025": 1202.0, "30/04/2025": 1183.0, "22/04/2025": 1140.0, "01/04/2025": 1314.0, "20/03/2025": 1287.0, "19/03/2025": 1286.0, "14/03/2025": 1237.0, "13/03/2025": 1233.0, "12/03/2025": 1229.0, "10/03/2025": 1228.0, "07/03/2025": 1221.0, "06/03/2025": 1237.0, "05/03/2025": 1235.0, "10/02/2025": 1184.0, "28/01/2025": 1161.0, "16/01/2025": 1166.0, "02/01/2025": 1162.0, "25/11/2024": 1077.0, "20/11/2024": 1074.0, "14/11/2024": 1105.0, "11/11/2024": 1131.0, "06/11/2024": 1145.0, "28/10/2024": 1134.0, "25/10/2024": 1141.0, "09/10/2024": 1147.0, "08/10/2024": 1169.0, "09/09/2024": 1226.0, "30/08/2024": 1279.0, "29/08/2024": 1271.0, "20/08/2024": 1287.0, "15/08/2024": 1276.0, "06/08/2024": 1336.0, "24/07/2024": 1337.0, "10/07/2024": 1377.0, "30/05/2024": 1182.0, "16/05/2024": 1062.0, "08/05/2024": 1038.0, "11/04/2024": 994.0, "09/04/2024": 1000.0, "26/03/2024": 1027.0};
+
+function fmtKey(fecha){var p=fecha.split('/');return p[0].padStart(2,'0')+'/'+p[1].padStart(2,'0')+'/'+p[2];}
+function getCCL(fecha){return CCL_TABLE[fmtKey(fecha)]||null;}
+function getMEP(fecha){return MEP_TABLE[fmtKey(fecha)]||null;}
+
+// ── State ──────────────────────────────────────────────────────────────────
 var movimientos = [];
 var quotes = {};
-var tcBlue = null;
-var tcOficial = null;
 
-var MKT = {
-  USA:    { label:'NYSE',   yahooSuffix:'',     currency:'USD', isARS:false },
-  ETF:    { label:'ETF',    yahooSuffix:'',     currency:'USD', isARS:false },
-  ARG:    { label:'BYMA',   yahooSuffix:'.BA',  currency:'ARS', isARS:true  },
-  BONO:   { label:'Bono',   yahooSuffix:'.BA',  currency:'ARS', isARS:true  },
-  ON:     { label:'O.N.',   yahooSuffix:'.BA',  currency:'ARS', isARS:true  },
-  CEDEAR: { label:'Cedear', yahooSuffix:'.BA',  currency:'ARS', isARS:true  },
-  CRYPTO: { label:'Cripto', yahooSuffix:'-USD', currency:'USD', isARS:false },
-};
+// ── Load pre-loaded movimientos ────────────────────────────────────────────
+var PRELOADED = [{"id": 1, "fecha": "21/10/2025", "tipo": "compra", "mercado": "ETF", "ticker": "IBIT", "qty": 34, "precioARS": 10210, "ccl": 1608.0, "precioUSD": 6.349502, "comision": 0, "notas": ""}, {"id": 2, "fecha": "24/10/2025", "tipo": "compra", "mercado": "ETF", "ticker": "IBIT", "qty": 3, "precioARS": 9710, "ccl": 1568.0, "precioUSD": 6.192602, "comision": 0, "notas": ""}, {"id": 3, "fecha": "24/10/2025", "tipo": "compra", "mercado": "ETF", "ticker": "IBIT", "qty": 18, "precioARS": 9720, "ccl": 1568.0, "precioUSD": 6.19898, "comision": 0, "notas": ""}, {"id": 4, "fecha": "24/10/2025", "tipo": "compra", "mercado": "ETF", "ticker": "IBIT", "qty": 81, "precioARS": 9745, "ccl": 1568.0, "precioUSD": 6.214923, "comision": 0, "notas": ""}, {"id": 5, "fecha": "24/10/2025", "tipo": "compra", "mercado": "ETF", "ticker": "IBIT", "qty": 49, "precioARS": 9740, "ccl": 1568.0, "precioUSD": 6.211735, "comision": 0, "notas": ""}, {"id": 6, "fecha": "27/10/2025", "tipo": "compra", "mercado": "ETF", "ticker": "IBIT", "qty": 10, "precioARS": 9285, "ccl": 1458.0, "precioUSD": 6.368313, "comision": 0, "notas": ""}, {"id": 7, "fecha": "27/10/2025", "tipo": "compra", "mercado": "ETF", "ticker": "IBIT", "qty": 53, "precioARS": 9300, "ccl": 1458.0, "precioUSD": 6.378601, "comision": 0, "notas": ""}, {"id": 8, "fecha": "29/10/2025", "tipo": "compra", "mercado": "ETF", "ticker": "IBIT", "qty": 17, "precioARS": 9400, "ccl": 1474.0, "precioUSD": 6.377205, "comision": 0, "notas": ""}, {"id": 9, "fecha": "09/04/2024", "tipo": "compra", "mercado": "USA", "ticker": "DEO", "qty": 1, "precioARS": 23910, "ccl": 1043.0, "precioUSD": 22.924257, "comision": 0, "notas": ""}, {"id": 10, "fecha": "09/04/2024", "tipo": "compra", "mercado": "USA", "ticker": "DEO", "qty": 4, "precioARS": 23770, "ccl": 1043.0, "precioUSD": 22.790029, "comision": 0, "notas": ""}, {"id": 11, "fecha": "26/04/2024", "tipo": "compra", "mercado": "USA", "ticker": "DEO", "qty": 4, "precioARS": 24248, "ccl": 1086.0, "precioUSD": 22.327808, "comision": 0, "notas": ""}, {"id": 12, "fecha": "03/05/2024", "tipo": "compra", "mercado": "USA", "ticker": "DEO", "qty": 1, "precioARS": 24785, "ccl": 1121.0, "precioUSD": 22.109723, "comision": 0, "notas": ""}, {"id": 13, "fecha": "19/08/2024", "tipo": "compra", "mercado": "USA", "ticker": "STLA", "qty": 50, "precioARS": 4240, "ccl": 1287.0, "precioUSD": 3.294483, "comision": 0, "notas": ""}, {"id": 14, "fecha": "19/08/2024", "tipo": "compra", "mercado": "USA", "ticker": "STLA", "qty": 26, "precioARS": 4240, "ccl": 1287.0, "precioUSD": 3.294483, "comision": 0, "notas": ""}, {"id": 15, "fecha": "25/10/2024", "tipo": "compra", "mercado": "USA", "ticker": "DEO", "qty": 1, "precioARS": 25045, "ccl": 1165.0, "precioUSD": 21.497854, "comision": 0, "notas": ""}, {"id": 16, "fecha": "25/10/2024", "tipo": "compra", "mercado": "USA", "ticker": "DEO", "qty": 1, "precioARS": 25070, "ccl": 1165.0, "precioUSD": 21.519313, "comision": 0, "notas": ""}, {"id": 17, "fecha": "25/10/2024", "tipo": "compra", "mercado": "USA", "ticker": "DEO", "qty": 10, "precioARS": 25070, "ccl": 1165.0, "precioUSD": 21.519313, "comision": 0, "notas": ""}, {"id": 18, "fecha": "12/09/2024", "tipo": "compra", "mercado": "USA", "ticker": "ADBE", "qty": 20, "precioARS": 15225, "ccl": 1256.0, "precioUSD": 12.121815, "comision": 0, "notas": ""}, {"id": 19, "fecha": "17/09/2024", "tipo": "compra", "mercado": "USA", "ticker": "ADBE", "qty": 10, "precioARS": 14550, "ccl": 1242.0, "precioUSD": 11.714976, "comision": 0, "notas": ""}, {"id": 20, "fecha": "19/01/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 8, "precioARS": 10645, "ccl": 1304.0, "precioUSD": 8.163344, "comision": 0, "notas": ""}, {"id": 21, "fecha": "14/02/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 2, "precioARS": 10268, "ccl": 1178.0, "precioUSD": 8.716469, "comision": 0, "notas": ""}, {"id": 22, "fecha": "16/02/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 5, "precioARS": 9525, "ccl": 1118.0, "precioUSD": 8.519678, "comision": 0, "notas": ""}, {"id": 23, "fecha": "01/03/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 17, "precioARS": 9154, "ccl": 1085.0, "precioUSD": 8.436866, "comision": 0, "notas": ""}, {"id": 24, "fecha": "04/03/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 10, "precioARS": 8702, "ccl": 1070.0, "precioUSD": 8.13271, "comision": 0, "notas": ""}, {"id": 25, "fecha": "04/03/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 10, "precioARS": 8759, "ccl": 1070.0, "precioUSD": 8.185981, "comision": 0, "notas": ""}, {"id": 26, "fecha": "04/03/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 20, "precioARS": 8734, "ccl": 1070.0, "precioUSD": 8.162617, "comision": 0, "notas": ""}, {"id": 27, "fecha": "04/03/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 11, "precioARS": 8699, "ccl": 1070.0, "precioUSD": 8.129907, "comision": 0, "notas": ""}, {"id": 28, "fecha": "04/03/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 15, "precioARS": 8695, "ccl": 1070.0, "precioUSD": 8.126168, "comision": 0, "notas": ""}, {"id": 29, "fecha": "04/03/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 14, "precioARS": 8687, "ccl": 1070.0, "precioUSD": 8.118692, "comision": 0, "notas": ""}, {"id": 30, "fecha": "04/03/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 10, "precioARS": 8494, "ccl": 1070.0, "precioUSD": 7.938318, "comision": 0, "notas": ""}, {"id": 31, "fecha": "25/03/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 14, "precioARS": 8404, "ccl": 1083.0, "precioUSD": 7.759926, "comision": 0, "notas": ""}, {"id": 32, "fecha": "27/12/2023", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 3, "precioARS": 7839, "ccl": 973.0, "precioUSD": 8.056526, "comision": 0, "notas": ""}, {"id": 33, "fecha": "27/12/2023", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 3, "precioARS": 7824, "ccl": 973.0, "precioUSD": 8.04111, "comision": 0, "notas": ""}, {"id": 34, "fecha": "26/09/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 15, "precioARS": 9084, "ccl": 1228.0, "precioUSD": 7.397394, "comision": 0, "notas": ""}, {"id": 35, "fecha": "07/10/2024", "tipo": "compra", "mercado": "USA", "ticker": "ADBE", "qty": 20, "precioARS": 13525, "ccl": 1222.0, "precioUSD": 11.067921, "comision": 0, "notas": ""}, {"id": 36, "fecha": "16/10/2024", "tipo": "compra", "mercado": "USA", "ticker": "ADBE", "qty": 8, "precioARS": 13550, "ccl": 1190.0, "precioUSD": 11.386555, "comision": 0, "notas": ""}, {"id": 37, "fecha": "21/10/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 30, "precioARS": 8144, "ccl": 1195.0, "precioUSD": 6.815063, "comision": 0, "notas": ""}, {"id": 38, "fecha": "21/10/2024", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 20, "precioARS": 8034, "ccl": 1195.0, "precioUSD": 6.723013, "comision": 0, "notas": ""}, {"id": 39, "fecha": "06/11/2024", "tipo": "compra", "mercado": "USA", "ticker": "HOG", "qty": 40, "precioARS": 12735, "ccl": 1165.0, "precioUSD": 10.93133, "comision": 0, "notas": ""}, {"id": 40, "fecha": "11/11/2024", "tipo": "compra", "mercado": "USA", "ticker": "HOG", "qty": 10, "precioARS": 12685, "ccl": 1160.0, "precioUSD": 10.935345, "comision": 0, "notas": ""}, {"id": 41, "fecha": "11/11/2024", "tipo": "compra", "mercado": "USA", "ticker": "HOG", "qty": 2, "precioARS": 12585, "ccl": 1160.0, "precioUSD": 10.849138, "comision": 0, "notas": ""}, {"id": 42, "fecha": "20/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "UPST", "qty": 58, "precioARS": 15300, "ccl": 1570.0, "precioUSD": 9.745223, "comision": 0, "notas": ""}, {"id": 43, "fecha": "24/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "NFLX", "qty": 130, "precioARS": 3540, "ccl": 1568.0, "precioUSD": 2.257653, "comision": 0, "notas": ""}, {"id": 44, "fecha": "24/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "NFLX", "qty": 50, "precioARS": 3539, "ccl": 1568.0, "precioUSD": 2.257015, "comision": 0, "notas": ""}, {"id": 45, "fecha": "24/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "SPOT", "qty": 10, "precioARS": 37020, "ccl": 1568.0, "precioUSD": 23.609694, "comision": 0, "notas": ""}, {"id": 46, "fecha": "24/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "SPOT", "qty": 1, "precioARS": 37000, "ccl": 1568.0, "precioUSD": 23.596939, "comision": 0, "notas": ""}, {"id": 47, "fecha": "27/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "NFLX", "qty": 180, "precioARS": 3220, "ccl": 1458.0, "precioUSD": 2.208505, "comision": 0, "notas": ""}, {"id": 48, "fecha": "27/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "SPOT", "qty": 14, "precioARS": 34340, "ccl": 1458.0, "precioUSD": 23.552812, "comision": 0, "notas": ""}, {"id": 49, "fecha": "27/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "SPOT", "qty": 1, "precioARS": 33260, "ccl": 1458.0, "precioUSD": 22.812071, "comision": 0, "notas": ""}, {"id": 50, "fecha": "28/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "DOCU", "qty": 104, "precioARS": 4795, "ccl": 1474.0, "precioUSD": 3.253053, "comision": 0, "notas": ""}, {"id": 51, "fecha": "28/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "DOCU", "qty": 62, "precioARS": 4800, "ccl": 1474.0, "precioUSD": 3.256445, "comision": 0, "notas": ""}, {"id": 52, "fecha": "28/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "JD", "qty": 63, "precioARS": 12620, "ccl": 1474.0, "precioUSD": 8.561737, "comision": 0, "notas": ""}, {"id": 53, "fecha": "28/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "TEAM", "qty": 136, "precioARS": 5130, "ccl": 1474.0, "precioUSD": 3.480326, "comision": 0, "notas": ""}, {"id": 54, "fecha": "28/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "JD", "qty": 31, "precioARS": 12530, "ccl": 1474.0, "precioUSD": 8.500678, "comision": 0, "notas": ""}, {"id": 55, "fecha": "28/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "TEAM", "qty": 39, "precioARS": 5125, "ccl": 1474.0, "precioUSD": 3.476934, "comision": 0, "notas": ""}, {"id": 56, "fecha": "28/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "STLA", "qty": 90, "precioARS": 3325, "ccl": 1474.0, "precioUSD": 2.255767, "comision": 0, "notas": ""}, {"id": 57, "fecha": "29/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "DOCU", "qty": 64, "precioARS": 4663, "ccl": 1474.0, "precioUSD": 3.163501, "comision": 0, "notas": ""}, {"id": 58, "fecha": "30/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "META", "qty": 19, "precioARS": 40719, "ccl": 1494.0, "precioUSD": 27.25502, "comision": 0, "notas": ""}, {"id": 59, "fecha": "30/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "META", "qty": 4, "precioARS": 40759, "ccl": 1494.0, "precioUSD": 27.281794, "comision": 0, "notas": ""}, {"id": 60, "fecha": "30/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "JD", "qty": 24, "precioARS": 12450, "ccl": 1494.0, "precioUSD": 8.333333, "comision": 0, "notas": ""}, {"id": 61, "fecha": "30/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "UPST", "qty": 14, "precioARS": 13810, "ccl": 1494.0, "precioUSD": 9.243641, "comision": 0, "notas": ""}, {"id": 62, "fecha": "31/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "META", "qty": 24, "precioARS": 40959, "ccl": 1502.0, "precioUSD": 27.26964, "comision": 0, "notas": ""}, {"id": 63, "fecha": "31/10/2025", "tipo": "compra", "mercado": "USA", "ticker": "META", "qty": 25, "precioARS": 40659, "ccl": 1502.0, "precioUSD": 27.069907, "comision": 0, "notas": ""}, {"id": 64, "fecha": "03/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "SPOT", "qty": 4, "precioARS": 34980, "ccl": 1518.0, "precioUSD": 23.043478, "comision": 0, "notas": ""}, {"id": 65, "fecha": "03/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "SPOT", "qty": 22, "precioARS": 34960, "ccl": 1518.0, "precioUSD": 23.030303, "comision": 0, "notas": ""}, {"id": 66, "fecha": "06/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 40, "precioARS": 12240, "ccl": 1506.0, "precioUSD": 8.12749, "comision": 0, "notas": ""}, {"id": 67, "fecha": "06/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 56, "precioARS": 12250, "ccl": 1506.0, "precioUSD": 8.13413, "comision": 0, "notas": ""}, {"id": 68, "fecha": "06/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 33, "precioARS": 12080, "ccl": 1506.0, "precioUSD": 8.021248, "comision": 0, "notas": ""}, {"id": 69, "fecha": "06/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 34, "precioARS": 11740, "ccl": 1506.0, "precioUSD": 7.795485, "comision": 0, "notas": ""}, {"id": 70, "fecha": "06/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 42, "precioARS": 11690, "ccl": 1506.0, "precioUSD": 7.762284, "comision": 0, "notas": ""}, {"id": 71, "fecha": "06/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "JD", "qty": 24, "precioARS": 12030, "ccl": 1506.0, "precioUSD": 7.988048, "comision": 0, "notas": ""}, {"id": 72, "fecha": "06/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "JD", "qty": 24, "precioARS": 12010, "ccl": 1506.0, "precioUSD": 7.974768, "comision": 0, "notas": ""}, {"id": 73, "fecha": "06/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 14, "precioARS": 11800, "ccl": 1506.0, "precioUSD": 7.835325, "comision": 0, "notas": ""}, {"id": 74, "fecha": "06/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "META", "qty": 5, "precioARS": 38939, "ccl": 1506.0, "precioUSD": 25.85591, "comision": 0, "notas": ""}, {"id": 75, "fecha": "12/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "META", "qty": 7, "precioARS": 38579, "ccl": 1477.0, "precioUSD": 26.119838, "comision": 0, "notas": ""}, {"id": 76, "fecha": "14/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "META", "qty": 18, "precioARS": 37199, "ccl": 1502.0, "precioUSD": 24.766312, "comision": 0, "notas": ""}, {"id": 77, "fecha": "14/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "META", "qty": 20, "precioARS": 37859, "ccl": 1502.0, "precioUSD": 25.205726, "comision": 0, "notas": ""}, {"id": 78, "fecha": "17/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 34, "precioARS": 11660, "ccl": 1480.0, "precioUSD": 7.878378, "comision": 0, "notas": ""}, {"id": 79, "fecha": "03/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 20, "precioARS": 24320, "ccl": 1518.0, "precioUSD": 16.02108, "comision": 0, "notas": ""}, {"id": 80, "fecha": "16/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 4, "precioARS": 24400, "ccl": 1549.0, "precioUSD": 15.752098, "comision": 0, "notas": ""}, {"id": 81, "fecha": "21/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 76, "precioARS": 7863, "ccl": 1510.0, "precioUSD": 5.207285, "comision": 0, "notas": ""}, {"id": 82, "fecha": "21/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "AMZN", "qty": 130, "precioARS": 2302, "ccl": 1510.0, "precioUSD": 1.524503, "comision": 0, "notas": ""}, {"id": 83, "fecha": "21/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "AMZN", "qty": 218, "precioARS": 2288, "ccl": 1510.0, "precioUSD": 1.515232, "comision": 0, "notas": ""}, {"id": 84, "fecha": "21/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "NKE", "qty": 30, "precioARS": 7881, "ccl": 1510.0, "precioUSD": 5.219205, "comision": 0, "notas": ""}, {"id": 85, "fecha": "18/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "NFLX", "qty": 326, "precioARS": 3070, "ccl": 1550.0, "precioUSD": 1.980645, "comision": 0, "notas": ""}, {"id": 86, "fecha": "17/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "AVGO", "qty": 15, "precioARS": 12924, "ccl": 1564.0, "precioUSD": 8.263427, "comision": 0, "notas": ""}, {"id": 87, "fecha": "17/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "AVGO", "qty": 15, "precioARS": 12884, "ccl": 1564.0, "precioUSD": 8.237852, "comision": 0, "notas": ""}, {"id": 88, "fecha": "21/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 17, "precioARS": 11280, "ccl": 1510.0, "precioUSD": 7.470199, "comision": 0, "notas": ""}, {"id": 89, "fecha": "21/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 17, "precioARS": 11170, "ccl": 1510.0, "precioUSD": 7.397351, "comision": 0, "notas": ""}, {"id": 90, "fecha": "21/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 20, "precioARS": 11080, "ccl": 1510.0, "precioUSD": 7.337748, "comision": 0, "notas": ""}, {"id": 91, "fecha": "21/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 44, "precioARS": 11200, "ccl": 1510.0, "precioUSD": 7.417219, "comision": 0, "notas": ""}, {"id": 92, "fecha": "21/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "AMZN", "qty": 442, "precioARS": 2264, "ccl": 1510.0, "precioUSD": 1.499338, "comision": 0, "notas": ""}, {"id": 93, "fecha": "21/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "UNH", "qty": 41, "precioARS": 14421, "ccl": 1510.0, "precioUSD": 9.550331, "comision": 0, "notas": ""}, {"id": 94, "fecha": "21/11/2025", "tipo": "compra", "mercado": "USA", "ticker": "AMZN", "qty": 260, "precioARS": 2305, "ccl": 1510.0, "precioUSD": 1.52649, "comision": 0, "notas": ""}, {"id": 95, "fecha": "02/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "ADBE", "qty": 44, "precioARS": 11150, "ccl": 1528.0, "precioUSD": 7.29712, "comision": 0, "notas": ""}, {"id": 96, "fecha": "03/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 32, "precioARS": 24350, "ccl": 1518.0, "precioUSD": 16.040843, "comision": 0, "notas": ""}, {"id": 97, "fecha": "04/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "UNH", "qty": 20, "precioARS": 15381, "ccl": 1510.0, "precioUSD": 10.186093, "comision": 0, "notas": ""}, {"id": 98, "fecha": "12/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 41, "precioARS": 24080, "ccl": 1515.0, "precioUSD": 15.894389, "comision": 0, "notas": ""}, {"id": 99, "fecha": "12/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "NFLX", "qty": 333, "precioARS": 3000, "ccl": 1515.0, "precioUSD": 1.980198, "comision": 0, "notas": ""}, {"id": 100, "fecha": "12/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 45, "precioARS": 11130, "ccl": 1515.0, "precioUSD": 7.346535, "comision": 0, "notas": ""}, {"id": 101, "fecha": "15/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "AVGO", "qty": 71, "precioARS": 14004, "ccl": 1523.0, "precioUSD": 9.19501, "comision": 0, "notas": ""}, {"id": 102, "fecha": "15/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "AVGO", "qty": 74, "precioARS": 13384, "ccl": 1523.0, "precioUSD": 8.787919, "comision": 0, "notas": ""}, {"id": 103, "fecha": "15/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "UBER", "qty": 15, "precioARS": 63000, "ccl": 1523.0, "precioUSD": 41.365726, "comision": 0, "notas": ""}, {"id": 104, "fecha": "16/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "AMZN", "qty": 48, "precioARS": 2387, "ccl": 1549.0, "precioUSD": 1.540994, "comision": 0, "notas": ""}, {"id": 105, "fecha": "16/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "AMZN", "qty": 419, "precioARS": 2385, "ccl": 1549.0, "precioUSD": 1.539703, "comision": 0, "notas": ""}, {"id": 106, "fecha": "17/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "UBER", "qty": 12, "precioARS": 61675, "ccl": 1564.0, "precioUSD": 39.434143, "comision": 0, "notas": ""}, {"id": 107, "fecha": "17/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "NFLX", "qty": 159, "precioARS": 3130, "ccl": 1564.0, "precioUSD": 2.001279, "comision": 0, "notas": ""}, {"id": 108, "fecha": "17/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "NFLX", "qty": 96, "precioARS": 3125, "ccl": 1564.0, "precioUSD": 1.998082, "comision": 0, "notas": ""}, {"id": 109, "fecha": "17/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "AVGO", "qty": 38, "precioARS": 12924, "ccl": 1564.0, "precioUSD": 8.263427, "comision": 0, "notas": ""}, {"id": 110, "fecha": "17/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "AVGO", "qty": 15, "precioARS": 12854, "ccl": 1564.0, "precioUSD": 8.21867, "comision": 0, "notas": ""}, {"id": 111, "fecha": "17/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "AVGO", "qty": 15, "precioARS": 12844, "ccl": 1564.0, "precioUSD": 8.212276, "comision": 0, "notas": ""}, {"id": 112, "fecha": "18/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "NFLX", "qty": 260, "precioARS": 3085, "ccl": 1550.0, "precioUSD": 1.990323, "comision": 0, "notas": ""}, {"id": 113, "fecha": "18/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "UBER", "qty": 6, "precioARS": 61400, "ccl": 1550.0, "precioUSD": 39.612903, "comision": 0, "notas": ""}, {"id": 114, "fecha": "23/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "ADBE", "qty": 40, "precioARS": 12380, "ccl": 1529.0, "precioUSD": 8.096795, "comision": 0, "notas": ""}, {"id": 115, "fecha": "23/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "ADBE", "qty": 17, "precioARS": 12360, "ccl": 1529.0, "precioUSD": 8.083715, "comision": 0, "notas": ""}, {"id": 116, "fecha": "26/12/2025", "tipo": "compra", "mercado": "USA", "ticker": "NFLX", "qty": 167, "precioARS": 2995, "ccl": 1520.0, "precioUSD": 1.970395, "comision": 0, "notas": ""}, {"id": 117, "fecha": "05/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "JD", "qty": 35, "precioARS": 11420, "ccl": 1536.0, "precioUSD": 7.434896, "comision": 0, "notas": ""}, {"id": 118, "fecha": "05/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "SPOT", "qty": 15, "precioARS": 33320, "ccl": 1536.0, "precioUSD": 21.692708, "comision": 0, "notas": ""}, {"id": 119, "fecha": "05/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "SPOT", "qty": 15, "precioARS": 33300, "ccl": 1536.0, "precioUSD": 21.679688, "comision": 0, "notas": ""}, {"id": 120, "fecha": "12/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "LAC", "qty": 45, "precioARS": 8880, "ccl": 1534.0, "precioUSD": 5.788787, "comision": 0, "notas": ""}, {"id": 121, "fecha": "14/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "META", "qty": 12, "precioARS": 39079, "ccl": 1522.0, "precioUSD": 25.676084, "comision": 0, "notas": ""}, {"id": 122, "fecha": "14/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "META", "qty": 5, "precioARS": 39059, "ccl": 1522.0, "precioUSD": 25.662943, "comision": 0, "notas": ""}, {"id": 123, "fecha": "15/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 25, "precioARS": 23200, "ccl": 1523.0, "precioUSD": 15.233093, "comision": 0, "notas": ""}, {"id": 124, "fecha": "15/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 50, "precioARS": 23190, "ccl": 1523.0, "precioUSD": 15.226527, "comision": 0, "notas": ""}, {"id": 125, "fecha": "15/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "AVGO", "qty": 37, "precioARS": 13470, "ccl": 1523.0, "precioUSD": 8.844386, "comision": 0, "notas": ""}, {"id": 126, "fecha": "20/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "STLA", "qty": 69, "precioARS": 2888, "ccl": 1523.0, "precioUSD": 1.896257, "comision": 0, "notas": ""}, {"id": 127, "fecha": "20/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "STLA", "qty": 173, "precioARS": 2885, "ccl": 1523.0, "precioUSD": 1.894288, "comision": 0, "notas": ""}, {"id": 128, "fecha": "20/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "STLA", "qty": 69, "precioARS": 2880, "ccl": 1523.0, "precioUSD": 1.891005, "comision": 0, "notas": ""}, {"id": 129, "fecha": "21/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "NFLX", "qty": 374, "precioARS": 2675, "ccl": 1516.0, "precioUSD": 1.764512, "comision": 0, "notas": ""}, {"id": 130, "fecha": "21/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "NFLX", "qty": 89, "precioARS": 2645, "ccl": 1516.0, "precioUSD": 1.744723, "comision": 0, "notas": ""}, {"id": 131, "fecha": "21/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "NFLX", "qty": 40, "precioARS": 2640, "ccl": 1516.0, "precioUSD": 1.741425, "comision": 0, "notas": ""}, {"id": 132, "fecha": "21/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "ADBE", "qty": 9, "precioARS": 10220, "ccl": 1516.0, "precioUSD": 6.741425, "comision": 0, "notas": ""}, {"id": 133, "fecha": "22/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "HOG", "qty": 29, "precioARS": 10253, "ccl": 1508.0, "precioUSD": 6.799072, "comision": 0, "notas": ""}, {"id": 134, "fecha": "22/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "HOG", "qty": 29, "precioARS": 10223, "ccl": 1508.0, "precioUSD": 6.779178, "comision": 0, "notas": ""}, {"id": 135, "fecha": "26/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "AVGO", "qty": 15, "precioARS": 12710, "ccl": 1516.0, "precioUSD": 8.383905, "comision": 0, "notas": ""}, {"id": 136, "fecha": "27/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "UNH", "qty": 46, "precioARS": 12938, "ccl": 1511.0, "precioUSD": 8.562541, "comision": 0, "notas": ""}, {"id": 137, "fecha": "28/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "UBER", "qty": 2, "precioARS": 60500, "ccl": 1513.0, "precioUSD": 39.986781, "comision": 0, "notas": ""}, {"id": 138, "fecha": "29/01/2026", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 23, "precioARS": 21620, "ccl": 1505.0, "precioUSD": 14.365449, "comision": 0, "notas": ""}, {"id": 139, "fecha": "12/02/2026", "tipo": "compra", "mercado": "USA", "ticker": "AMZN", "qty": 750, "precioARS": 2090, "ccl": 1486.0, "precioUSD": 1.40646, "comision": 0, "notas": ""}, {"id": 140, "fecha": "18/02/2026", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 20, "precioARS": 19640, "ccl": 1449.0, "precioUSD": 13.554175, "comision": 0, "notas": ""}, {"id": 141, "fecha": "18/02/2026", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 10, "precioARS": 19620, "ccl": 1449.0, "precioUSD": 13.540373, "comision": 0, "notas": ""}, {"id": 142, "fecha": "20/02/2026", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 36, "precioARS": 19170, "ccl": 1442.0, "precioUSD": 13.294036, "comision": 0, "notas": ""}, {"id": 143, "fecha": "02/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 100, "precioARS": 19420, "ccl": 1456.0, "precioUSD": 13.337912, "comision": 0, "notas": ""}, {"id": 144, "fecha": "02/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 50, "precioARS": 19520, "ccl": 1456.0, "precioUSD": 13.406593, "comision": 0, "notas": ""}, {"id": 145, "fecha": "02/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 70, "precioARS": 11000, "ccl": 1456.0, "precioUSD": 7.554945, "comision": 0, "notas": ""}, {"id": 146, "fecha": "02/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 40, "precioARS": 19500, "ccl": 1456.0, "precioUSD": 13.392857, "comision": 0, "notas": ""}, {"id": 147, "fecha": "02/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 50, "precioARS": 11070, "ccl": 1456.0, "precioUSD": 7.603022, "comision": 0, "notas": ""}, {"id": 148, "fecha": "02/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 40, "precioARS": 11080, "ccl": 1456.0, "precioUSD": 7.60989, "comision": 0, "notas": ""}, {"id": 149, "fecha": "03/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 13, "precioARS": 19770, "ccl": 1484.0, "precioUSD": 13.322102, "comision": 0, "notas": ""}, {"id": 150, "fecha": "03/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 25, "precioARS": 19810, "ccl": 1484.0, "precioUSD": 13.349057, "comision": 0, "notas": ""}, {"id": 151, "fecha": "03/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "MSFT", "qty": 5, "precioARS": 19800, "ccl": 1484.0, "precioUSD": 13.342318, "comision": 0, "notas": ""}, {"id": 152, "fecha": "03/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "ADBE", "qty": 44, "precioARS": 9030, "ccl": 1484.0, "precioUSD": 6.084906, "comision": 0, "notas": ""}, {"id": 153, "fecha": "04/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "NVDA", "qty": 53, "precioARS": 11170, "ccl": 1464.0, "precioUSD": 7.629781, "comision": 0, "notas": ""}, {"id": 154, "fecha": "05/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "CRM", "qty": 8, "precioARS": 16600, "ccl": 1462.0, "precioUSD": 11.354309, "comision": 0, "notas": ""}, {"id": 155, "fecha": "05/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "CRM", "qty": 4, "precioARS": 16630, "ccl": 1462.0, "precioUSD": 11.374829, "comision": 0, "notas": ""}, {"id": 156, "fecha": "05/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "CRM", "qty": 36, "precioARS": 16610, "ccl": 1462.0, "precioUSD": 11.361149, "comision": 0, "notas": ""}, {"id": 157, "fecha": "05/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "CRM", "qty": 12, "precioARS": 16570, "ccl": 1462.0, "precioUSD": 11.333789, "comision": 0, "notas": ""}, {"id": 158, "fecha": "05/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "ADBE", "qty": 42, "precioARS": 9460, "ccl": 1462.0, "precioUSD": 6.470588, "comision": 0, "notas": ""}, {"id": 159, "fecha": "05/03/2026", "tipo": "compra", "mercado": "USA", "ticker": "ADBE", "qty": 42, "precioARS": 9440, "ccl": 1462.0, "precioUSD": 6.456908, "comision": 0, "notas": ""}, {"id": 160, "fecha": "01/04/2026", "tipo": "compra", "mercado": "USA", "ticker": "FSLR", "qty": 6, "precioARS": 16360, "ccl": 1486.0, "precioUSD": 11.009421, "comision": 0, "notas": ""}];
 
-function getMkt(mercado) { return MKT[mercado] || MKT.USA; }
-function isARSMarket(mercado) { return getMkt(mercado).isARS; }
-
-function getYahooTicker(ticker, mercado) {
-  var m = getMkt(mercado);
-  var base = ticker.toUpperCase().replace(/\.(BA)$/i,'').replace(/-USD$/i,'');
-  return base + m.yahooSuffix;
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-item').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
 }
 
-function posKey(ticker, mercado) { return ticker + '|' + mercado; }
-
-function showPage(id, btn) {
-  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
-  document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.remove('active'); });
-  document.getElementById('page-' + id).classList.add('active');
-  if (btn) btn.classList.add('active');
+function onTipo(){
+  var t=document.getElementById('m-tipo').value;
+  var isA=t==='aporte';
+  document.getElementById('row-normal').style.display=isA?'none':'';
+  document.getElementById('row-aporte').style.display=isA?'':'none';
+  document.getElementById('g-mkt').style.display=isA?'none':'';
+  document.getElementById('g-ticker').style.display=isA?'none':'';
+  document.getElementById('lbl-precio').textContent=t==='dividendo'?'Monto ARS':'Precio ARS';
 }
 
-function onTipoChange() {
-  var t = document.getElementById('m-tipo').value;
-  var isAporte = t === 'aporte';
-  document.getElementById('row-normal').style.display = isAporte ? 'none' : '';
-  document.getElementById('row-aporte').style.display = isAporte ? '' : 'none';
-  document.getElementById('g-ticker').style.display = isAporte ? 'none' : '';
-  document.getElementById('g-mercado').style.display = isAporte ? 'none' : '';
-  document.getElementById('lbl-precio').textContent = t === 'dividendo' ? 'Monto total' : 'Precio unitario';
+document.getElementById('m-fecha').value=new Date().toISOString().split('T')[0];
+
+// Auto-fill CCL when date changes
+document.getElementById('m-fecha').addEventListener('change',function(){
+  var c=getCCL(this.value.split('-').reverse().join('/'));
+  if(c){document.getElementById('m-ccl').value=c;calcUSD();}
+});
+document.getElementById('m-precio-ars').addEventListener('input',calcUSD);
+document.getElementById('m-ccl').addEventListener('input',calcUSD);
+function calcUSD(){
+  var ars=parseFloat(document.getElementById('m-precio-ars').value);
+  var ccl=parseFloat(document.getElementById('m-ccl').value);
+  document.getElementById('m-precio-usd').value=(ars&&ccl)?(ars/ccl).toFixed(4):'—';
 }
 
-function onMercadoChange() {
-  var m = document.getElementById('m-mercado').value;
-  document.getElementById('m-moneda').value = isARSMarket(m) ? 'ARS' : 'USD';
-}
-
-document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
-
-function addMovimiento() {
-  var tipo = document.getElementById('m-tipo').value;
-  var statusEl = document.getElementById('m-status');
-
-  if (tipo === 'aporte') {
-    var monto = parseFloat(document.getElementById('m-monto').value);
-    if (!monto || monto <= 0) { flash(statusEl, 'Ingresa un monto valido', true); return; }
-    movimientos.push({ id: Date.now(), fecha: document.getElementById('m-fecha').value, tipo: tipo, mercado: '—', ticker: 'APORTE', qty: 0, precio: monto, moneda: document.getElementById('m-moneda2').value, comision: 0, notas: '' });
-    saveAndRender();
-    flash(statusEl, 'Aporte registrado', false);
-    return;
+function addMov(){
+  var tipo=document.getElementById('m-tipo').value;
+  var sel=document.getElementById('m-status');
+  if(tipo==='aporte'){
+    var monto=parseFloat(document.getElementById('m-monto').value);
+    if(!monto||monto<=0){flash(sel,'Ingresa un monto',true);return;}
+    movimientos.push({id:Date.now(),fecha:document.getElementById('m-fecha').value.split('-').reverse().join('/'),tipo:tipo,mercado:'—',ticker:'APORTE',qty:0,precioARS:monto,ccl:null,precioUSD:monto,comision:0,notas:''});
+    saveAndRender();flash(sel,'Aporte registrado',false);return;
   }
-
-  var ticker = document.getElementById('m-ticker').value.trim().toUpperCase();
-  var mercado = document.getElementById('m-mercado').value;
-  var qty = parseFloat(document.getElementById('m-qty').value);
-  var precio = parseFloat(document.getElementById('m-precio').value);
-  var comision = parseFloat(document.getElementById('m-comision').value) || 0;
-  var moneda = document.getElementById('m-moneda').value;
-
-  if (!ticker) { flash(statusEl, 'Ingresa un ticker', true); return; }
-  if (!qty || qty <= 0) { flash(statusEl, 'Cantidad invalida', true); return; }
-  if (isNaN(precio) || precio < 0) { flash(statusEl, 'Precio invalido', true); return; }
-
-  movimientos.push({ id: Date.now(), fecha: document.getElementById('m-fecha').value, tipo: tipo, mercado: mercado, ticker: ticker, qty: qty, precio: precio, moneda: moneda, comision: comision, notas: document.getElementById('m-notas').value });
+  var ticker=document.getElementById('m-ticker').value.trim().toUpperCase();
+  var fechaInput=document.getElementById('m-fecha').value;
+  var fecha=fechaInput.split('-').reverse().join('/');
+  var qty=parseFloat(document.getElementById('m-qty').value);
+  var precioARS=parseFloat(document.getElementById('m-precio-ars').value);
+  var cclVal=parseFloat(document.getElementById('m-ccl').value)||getCCL(fecha);
+  var comision=parseFloat(document.getElementById('m-comision').value)||0;
+  if(!ticker){flash(sel,'Ingresa un ticker',true);return;}
+  if(!qty||qty<=0){flash(sel,'Cantidad invalida',true);return;}
+  if(isNaN(precioARS)||precioARS<0){flash(sel,'Precio invalido',true);return;}
+  var precioUSD=cclVal?precioARS/cclVal:null;
+  movimientos.push({id:Date.now(),fecha:fecha,tipo:tipo,mercado:document.getElementById('m-mkt').value,ticker:ticker,qty:qty,precioARS:precioARS,ccl:cclVal,precioUSD:precioUSD,comision:comision,notas:document.getElementById('m-notas').value});
   saveAndRender();
-  ['m-ticker','m-qty','m-precio','m-comision','m-notas'].forEach(function(id){ document.getElementById(id).value = ''; });
-  flash(statusEl, 'Movimiento registrado', false);
+  ['m-ticker','m-qty','m-precio-ars','m-ccl','m-precio-usd','m-comision','m-notas'].forEach(function(id){document.getElementById(id).value='';});
+  flash(sel,'Movimiento registrado',false);
 }
 
-function flash(el, msg, isErr) {
-  el.className = isErr ? 'err-msg' : 'status-msg';
-  el.textContent = msg;
-  setTimeout(function(){ el.textContent = ''; }, 3000);
+function flash(el,msg,isErr){el.className=isErr?'emsg':'smsg';el.textContent=msg;setTimeout(function(){el.textContent='';},3000);}
+function deleteMov(id){movimientos=movimientos.filter(function(m){return m.id!==id;});saveAndRender();}
+
+function saveAndRender(){
+  try{localStorage.setItem('ptNYSE_mov2',JSON.stringify(movimientos));}catch(e){}
+  renderMovimientos();renderPortfolio();
+  document.getElementById('lupd').textContent=new Date().toLocaleTimeString('es-AR');
 }
 
-function deleteMovimiento(id) {
-  movimientos = movimientos.filter(function(m){ return m.id !== id; });
-  saveAndRender();
-}
-
-function saveAndRender() {
-  try { localStorage.setItem('ptMov', JSON.stringify(movimientos)); } catch(e) {}
-  renderMovimientos();
-  renderPortfolio();
-  document.getElementById('last-updated').textContent = new Date().toLocaleTimeString('es-AR');
-}
-
-function renderMovimientos() {
-  var body = document.getElementById('mov-body');
-  var empty = document.getElementById('mov-empty');
-  var wrap = document.getElementById('mov-wrap');
-  if (!movimientos.length) { empty.style.display=''; wrap.style.display='none'; return; }
-  empty.style.display='none'; wrap.style.display='';
-  body.innerHTML = movimientos.slice().reverse().map(function(m){
-    var mLabel = MKT[m.mercado] ? MKT[m.mercado].label : m.mercado;
-    return '<tr>' +
-      '<td class="mono">' + m.fecha + '</td>' +
-      '<td><span class="badge badge-' + m.tipo + '">' + m.tipo + '</span></td>' +
-      '<td><span class="mkt-badge">' + mLabel + '</span></td>' +
-      '<td style="font-weight:600">' + m.ticker + '</td>' +
-      '<td class="mono">' + (m.qty || '') + '</td>' +
-      '<td class="mono">' + (m.precio != null ? Number(m.precio).toFixed(2) : '') + '</td>' +
-      '<td class="mono muted">' + m.moneda + '</td>' +
-      '<td class="mono muted">' + (m.comision || 0) + '</td>' +
-      '<td class="muted" style="max-width:140px;overflow:hidden;text-overflow:ellipsis">' + (m.notas||'') + '</td>' +
-      '<td><button class="btn btn-danger btn-sm" onclick="deleteMovimiento(' + m.id + ')">x</button></td>' +
+function renderMovimientos(){
+  var body=document.getElementById('mov-body');
+  var empty=document.getElementById('mov-empty');
+  var wrap=document.getElementById('mov-wrap');
+  document.getElementById('mov-count').textContent=movimientos.length;
+  if(!movimientos.length){empty.style.display='';wrap.style.display='none';return;}
+  empty.style.display='none';wrap.style.display='';
+  body.innerHTML=movimientos.slice().reverse().map(function(m){
+    var mLabel=m.mercado==='USA'?'NYSE':m.mercado==='ETF'?'ETF':m.mercado;
+    return '<tr>'+
+      '<td class="mono">'+m.fecha+'</td>'+
+      '<td><span class="badge badge-'+m.tipo+'">'+m.tipo+'</span></td>'+
+      '<td><span class="mkt">'+mLabel+'</span></td>'+
+      '<td style="font-weight:600">'+m.ticker+'</td>'+
+      '<td class="mono">'+(m.qty||'')+'</td>'+
+      '<td class="mono">'+(m.precioARS?'$'+m.precioARS.toLocaleString('es-AR'):'')+'</td>'+
+      '<td class="mono muted">'+(m.ccl?m.ccl:'—')+'</td>'+
+      '<td class="mono">'+(m.precioUSD?'$'+m.precioUSD.toFixed(4):'—')+'</td>'+
+      '<td class="mono muted">'+(m.comision||0)+'</td>'+
+      '<td class="muted" style="max-width:120px;overflow:hidden;text-overflow:ellipsis">'+(m.notas||'')+'</td>'+
+      '<td><button class="btn btn-d btn-sm" onclick="deleteMov('+m.id+')">x</button></td>'+
     '</tr>';
   }).join('');
 }
 
-function toUSD(amount, moneda) {
-  if (moneda === 'ARS') { return tcBlue ? amount / tcBlue : 0; }
-  return amount;
-}
-
-function getPositions() {
-  var pos = {};
+function getPositions(){
+  var pos={};
   movimientos.forEach(function(m){
-    if (m.tipo === 'aporte') return;
-    var key = posKey(m.ticker, m.mercado);
-    if (!pos[key]) pos[key] = { ticker: m.ticker, mercado: m.mercado, qty: 0, costUSD: 0, dividendsUSD: 0 };
-    var p = pos[key];
-    var priceUSD = toUSD(m.precio, m.moneda);
-    var comUSD = toUSD(m.comision || 0, m.moneda);
-    if (m.tipo === 'dividendo') {
-      p.dividendsUSD += priceUSD;
-    } else if (m.tipo === 'compra') {
-      p.costUSD += priceUSD * m.qty + comUSD;
-      p.qty += m.qty;
-    } else if (m.tipo === 'venta') {
-      var avg = p.qty > 0 ? p.costUSD / p.qty : 0;
-      p.costUSD -= avg * m.qty;
-      p.qty -= m.qty;
+    if(m.tipo==='aporte')return;
+    var key=m.ticker;
+    if(!pos[key])pos[key]={ticker:m.ticker,mercado:m.mercado,qty:0,costUSD:0,realizedPnl:0,dividendsUSD:0};
+    var p=pos[key];
+    var priceUSD=m.precioUSD||0;
+    var comUSD=m.comision||0;
+    if(m.tipo==='dividendo'){
+      p.dividendsUSD+=priceUSD;
+    } else if(m.tipo==='compra'){
+      p.costUSD+=priceUSD*m.qty+comUSD;
+      p.qty+=m.qty;
+    } else if(m.tipo==='venta'){
+      var avg=p.qty>0?p.costUSD/p.qty:0;
+      var proceeds=priceUSD*m.qty-comUSD;
+      var costBasis=avg*m.qty;
+      p.realizedPnl+=proceeds-costBasis;
+      p.costUSD-=costBasis;
+      p.qty-=m.qty;
     }
   });
-  return Object.values(pos).filter(function(p){ return p.qty > 0.000001; });
+  return Object.values(pos);
 }
 
-function renderPortfolio() {
-  var positions = getPositions();
-  var body = document.getElementById('pos-body');
-  var empty = document.getElementById('pos-empty');
-  var wrap = document.getElementById('pos-wrap');
+function renderPortfolio(){
+  var all=getPositions();
+  var open=all.filter(function(p){return p.qty>0.000001;});
+  var body=document.getElementById('pos-body');
+  var empty=document.getElementById('pos-empty');
+  var wrap=document.getElementById('pos-wrap');
 
-  if (!positions.length) {
-    empty.style.display=''; wrap.style.display='none';
-    ['m-total-usd','m-total-ars','m-pnl','m-costo','m-divs'].forEach(function(id){ document.getElementById(id).textContent='—'; });
+  var totalVal=0,totalCost=0,totalRpnl=0,totalDivs=0;
+  all.forEach(function(p){totalRpnl+=p.realizedPnl;totalDivs+=p.dividendsUSD;});
+
+  if(!open.length){
+    empty.style.display='';wrap.style.display='none';
+    ['m-val','m-cost','m-pnl','m-rpnl','m-divs','m-count'].forEach(function(id){document.getElementById(id).textContent='—';});
     return;
   }
-  empty.style.display='none'; wrap.style.display='';
+  empty.style.display='none';wrap.style.display='';
 
-  var totalValUSD=0, totalCostUSD=0, totalDivs=0;
-
-  body.innerHTML = positions.map(function(p){
-    var key = posKey(p.ticker, p.mercado);
-    var q = quotes[key];
-    var rawPrice = q ? q.price : null;
-    var isARS = isARSMarket(p.mercado);
-    var currentUSD = rawPrice != null ? (isARS && tcBlue ? rawPrice / tcBlue : rawPrice) : null;
-    var valueUSD = currentUSD != null ? currentUSD * p.qty : null;
-    var avgCostUSD = p.qty > 0 ? p.costUSD / p.qty : 0;
-    var pnl = valueUSD != null ? valueUSD - p.costUSD : null;
-    var pnlPct = pnl != null && p.costUSD > 0 ? pnl / p.costUSD * 100 : null;
-    if (valueUSD != null) totalValUSD += valueUSD;
-    totalCostUSD += p.costUSD;
-    totalDivs += p.dividendsUSD;
-    var pc = pnl != null ? (pnl >= 0 ? 'pos' : 'neg') : '';
-    var currency = isARS ? 'ARS' : 'USD';
-    var priceDisplay = rawPrice != null ? rawPrice.toFixed(2) + ' ' + currency : '<span style="color:var(--text3)">—</span>';
-    return '<tr>' +
-      '<td style="font-weight:600">' + p.ticker + '</td>' +
-      '<td><span class="mkt-badge">' + getMkt(p.mercado).label + '</span></td>' +
-      '<td class="mono">' + (p.qty % 1 === 0 ? p.qty.toFixed(0) : p.qty.toFixed(4)) + '</td>' +
-      '<td class="mono muted">' + avgCostUSD.toFixed(2) + ' USD</td>' +
-      '<td class="mono">' + priceDisplay + '</td>' +
-      '<td class="mono">' + (valueUSD != null ? '$' + valueUSD.toFixed(2) : '—') + '</td>' +
-      '<td class="mono ' + pc + '">' + (pnl != null ? (pnl>=0?'+':'') + pnl.toFixed(2) : '—') + '</td>' +
-      '<td class="mono ' + pc + '">' + (pnlPct != null ? (pnlPct>=0?'+':'') + pnlPct.toFixed(2) + '%' : '—') + '</td>' +
+  body.innerHTML=open.map(function(p){
+    var q=quotes[p.ticker];
+    var price=q?q.price:null;
+    var valueUSD=price!=null?price*p.qty:null;
+    var avgCost=p.qty>0?p.costUSD/p.qty:0;
+    var pnl=valueUSD!=null?valueUSD-p.costUSD:null;
+    var pnlPct=pnl!=null&&p.costUSD>0?pnl/p.costUSD*100:null;
+    if(valueUSD!=null)totalVal+=valueUSD;
+    totalCost+=p.costUSD;
+    var pc=pnl!=null?(pnl>=0?'pos':'neg'):'';
+    var chgHtml='';
+    if(q&&q.changePct!=null){var cc=q.changePct>=0?'pos':'neg';chgHtml='<span class="'+cc+'">'+(q.changePct>=0?'+':'')+q.changePct.toFixed(2)+'%</span>';}
+    var mLabel=p.mercado==='USA'?'NYSE':p.mercado==='ETF'?'ETF':p.mercado;
+    return '<tr>'+
+      '<td style="font-weight:700">'+p.ticker+'</td>'+
+      '<td><span class="mkt">'+mLabel+'</span></td>'+
+      '<td class="mono">'+(p.qty%1===0?p.qty.toFixed(0):p.qty.toFixed(4))+'</td>'+
+      '<td class="mono muted">$'+avgCost.toFixed(4)+'</td>'+
+      '<td class="mono">'+(price!=null?'$'+price.toFixed(2):'<span style="color:var(--text3)">—</span>')+'</td>'+
+      '<td class="mono">'+(valueUSD!=null?'$'+valueUSD.toFixed(2):'—')+'</td>'+
+      '<td class="mono '+pc+'">'+(pnl!=null?(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2):'—')+'</td>'+
+      '<td class="mono '+pc+'">'+(pnlPct!=null?(pnlPct>=0?'+':'')+pnlPct.toFixed(2)+'%':'—')+'</td>'+
+      '<td>'+chgHtml+'</td>'+
     '</tr>';
   }).join('');
 
-  document.getElementById('m-total-usd').textContent = totalValUSD > 0 ? '$' + totalValUSD.toFixed(2) : '—';
-  document.getElementById('m-total-ars').textContent = totalValUSD > 0 && tcBlue ? '$' + Math.round(totalValUSD * tcBlue).toLocaleString('es-AR') : '—';
-  document.getElementById('m-costo').textContent = '$' + totalCostUSD.toFixed(2);
-  document.getElementById('m-divs').textContent = totalDivs > 0 ? '$' + totalDivs.toFixed(2) : '—';
+  document.getElementById('m-val').textContent=totalVal>0?'$'+totalVal.toFixed(2):'—';
+  document.getElementById('m-cost').textContent='$'+totalCost.toFixed(2);
+  document.getElementById('m-count').textContent=open.length;
+  document.getElementById('m-divs').textContent=totalDivs>0?'$'+totalDivs.toFixed(2):'—';
+  document.getElementById('m-rpnl').textContent=totalRpnl!==0?(totalRpnl>=0?'+$':'-$')+Math.abs(totalRpnl).toFixed(2):'—';
+  document.getElementById('m-rpnl').className='metric-value '+(totalRpnl>=0?'pos':'neg');
 
-  var pnlTotal = totalValUSD - totalCostUSD;
-  var pnlEl = document.getElementById('m-pnl');
-  var pnlPctEl = document.getElementById('m-pnl-pct');
-  if (totalValUSD > 0) {
-    pnlEl.textContent = (pnlTotal >= 0 ? '+' : '') + pnlTotal.toFixed(2);
-    pnlEl.className = 'metric-value ' + (pnlTotal >= 0 ? 'pos' : 'neg');
-    pnlPctEl.textContent = totalCostUSD > 0 ? (pnlTotal >= 0 ? '+' : '') + (pnlTotal / totalCostUSD * 100).toFixed(2) + '%' : '';
-  } else {
-    pnlEl.textContent = '—';
-    pnlEl.className = 'metric-value';
-    pnlPctEl.textContent = '';
-  }
+  var pnlTotal=totalVal-totalCost;
+  var pnlEl=document.getElementById('m-pnl');
+  if(totalVal>0){
+    pnlEl.textContent=(pnlTotal>=0?'+$':'-$')+Math.abs(pnlTotal).toFixed(2);
+    pnlEl.className='metric-value '+(pnlTotal>=0?'pos':'neg');
+    document.getElementById('m-pnl-pct').textContent=totalCost>0?(pnlTotal>=0?'+':''+(pnlTotal/totalCost*100).toFixed(2)+'%'):'';
+  } else {pnlEl.textContent='—';pnlEl.className='metric-value';}
 
-  if (tcBlue) {
-    document.getElementById('m-tc').textContent = '$' + Math.round(tcBlue).toLocaleString('es-AR');
-    document.getElementById('m-tc-sub').textContent = 'blue';
-    document.getElementById('tc-pill').textContent = 'Blue $' + Math.round(tcBlue).toLocaleString('es-AR');
-  }
-
-  var allDivs = movimientos.filter(function(m){ return m.tipo==='dividendo'; });
-  var divsEl = document.getElementById('divs-content');
-  if (!allDivs.length) {
-    divsEl.className = 'empty-state'; divsEl.textContent = 'Sin dividendos registrados';
-  } else {
-    var totalDivUSD = allDivs.reduce(function(acc,d){ return acc + toUSD(d.precio, d.moneda); }, 0);
-    divsEl.className = '';
-    divsEl.innerHTML = '<div class="table-wrap"><table>' +
-      '<thead><tr><th>Fecha</th><th>Ticker</th><th>Monto</th><th>Moneda</th><th>Notas</th></tr></thead>' +
-      '<tbody>' + allDivs.map(function(d){
-        return '<tr><td class="mono">' + d.fecha + '</td><td style="font-weight:600">' + d.ticker + '</td>' +
-          '<td class="mono pos">+' + Number(d.precio).toFixed(2) + '</td>' +
-          '<td class="mono muted">' + d.moneda + '</td>' +
-          '<td class="muted">' + (d.notas||'') + '</td></tr>';
-      }).join('') + '</tbody></table></div>' +
-      '<div style="padding:8px 0.9rem;font-size:0.75rem;font-family:var(--mono);color:var(--accent);border-top:1px solid var(--border)">Total: $' + totalDivUSD.toFixed(2) + ' USD</div>';
+  var allDivs=movimientos.filter(function(m){return m.tipo==='dividendo';});
+  var divsEl=document.getElementById('divs-content');
+  if(!allDivs.length){divsEl.className='empty-state';divsEl.textContent='Sin dividendos registrados';}
+  else{
+    var tot=allDivs.reduce(function(a,d){return a+(d.precioUSD||0);},0);
+    divsEl.className='';
+    divsEl.innerHTML='<div class="tw"><table><thead><tr><th>Fecha</th><th>Ticker</th><th>USD</th><th>Notas</th></tr></thead><tbody>'+
+      allDivs.map(function(d){return '<tr><td class="mono">'+d.fecha+'</td><td style="font-weight:600">'+d.ticker+'</td><td class="mono pos">+$'+(d.precioUSD||0).toFixed(2)+'</td><td class="muted">'+(d.notas||'')+'</td></tr>';}).join('')+
+      '</tbody></table></div><div style="padding:8px .9rem;font-size:.72rem;font-family:var(--mono);color:var(--accent);border-top:1px solid var(--border)">Total: $'+tot.toFixed(2)+' USD</div>';
   }
 }
 
-async function fetchTC() {
-  var el = document.getElementById('tc-result');
-  el.innerHTML = '<span class="spinner"></span> Consultando dolarapi.com...';
-  el.className = '';
-  try {
-    var res = await fetch('https://dolarapi.com/v1/dolares/blue');
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    var data = await res.json();
-    tcBlue = data.venta;
-    var tcVenta = data.venta;
-    var tcCompra = data.compra;
-    var tcFecha = data.fechaActualizacion || '';
+// ── Finnhub ────────────────────────────────────────────────────────────────
+async function fetchFinnhub(ticker){
+  var res=await fetch(FBASE+'/quote?symbol='+encodeURIComponent(ticker)+'&token='+FKEY);
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  var d=await res.json();
+  if(!d||d.c==null||d.c===0)throw new Error('Sin datos');
+  return{price:d.c,prevClose:d.pc,changePct:d.pc?(d.c-d.pc)/d.pc*100:0,high:d.h,low:d.l,open:d.o};
+}
 
-    var oficial = null;
-    try {
-      var r2 = await fetch('https://dolarapi.com/v1/dolares/oficial');
-      var d2 = await r2.json();
-      oficial = d2.venta;
-      tcOficial = oficial;
-    } catch(e2) {}
-
-    el.innerHTML =
-      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem">' +
-        '<div class="metric" style="flex:0 0 auto"><div class="metric-label">Blue venta</div><div class="metric-value pos">$' + Math.round(tcVenta).toLocaleString('es-AR') + '</div></div>' +
-        '<div class="metric" style="flex:0 0 auto"><div class="metric-label">Blue compra</div><div class="metric-value">$' + Math.round(tcCompra).toLocaleString('es-AR') + '</div></div>' +
-        (oficial ? '<div class="metric" style="flex:0 0 auto"><div class="metric-label">Oficial venta</div><div class="metric-value muted">$' + Math.round(oficial).toLocaleString('es-AR') + '</div></div>' : '') +
-      '</div>' +
-      '<div style="font-size:0.68rem;font-family:var(--mono);color:var(--text3)">Fuente: dolarapi.com &middot; ' + (tcFecha ? new Date(tcFecha).toLocaleString('es-AR') : new Date().toLocaleString('es-AR')) + '</div>';
-
-    document.getElementById('tc-pill').textContent = 'Blue $' + Math.round(tcBlue).toLocaleString('es-AR');
-    renderPortfolio();
-  } catch(e) {
-    el.textContent = 'Error: ' + e.message;
-    el.className = 'empty-state';
+async function fetchAllQuotes(){
+  var pos=getPositions().filter(function(p){return p.qty>0.000001;});
+  if(!pos.length){flash(document.getElementById('ref-status'),'No hay posiciones',true);return;}
+  var icon=document.getElementById('ref-icon');
+  var status=document.getElementById('ref-status');
+  var prog=document.getElementById('pos-prog');
+  var pfill=document.getElementById('pfill');
+  icon.innerHTML='<span class="spinner"></span>';
+  prog.style.display='';pfill.style.width='0%';
+  var total=pos.length,done=0,errors=0;
+  for(var i=0;i<pos.length;i++){
+    var p=pos[i];
+    status.textContent=p.ticker+'...';
+    try{var q=await fetchFinnhub(p.ticker);quotes[p.ticker]=q;renderPortfolio();}
+    catch(e){errors++;}
+    done++;pfill.style.width=Math.round(done/total*100)+'%';
+    if(i<pos.length-1)await new Promise(function(r){setTimeout(r,1100);});
   }
+  icon.textContent='⟳';prog.style.display='none';
+  status.className=errors>0?'emsg':'smsg';
+  status.textContent=errors>0?errors+' sin datos':'Actualizado';
+  setTimeout(function(){status.textContent='';},5000);
+  document.getElementById('lupd').textContent=new Date().toLocaleTimeString('es-AR');
+  try{localStorage.setItem('ptNYSE_q2',JSON.stringify(quotes));}catch(e){}
 }
 
-async function fetchYahoo(yTicker) {
-  var urls = [
-    'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(yTicker) + '?interval=1d&range=1d',
-    'https://query2.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(yTicker) + '?interval=1d&range=1d'
-  ];
-  var lastErr;
-  for (var i = 0; i < urls.length; i++) {
-    try {
-      var res = await fetch(urls[i]);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      var data = await res.json();
-      var meta = data && data.chart && data.chart.result && data.chart.result[0] && data.chart.result[0].meta;
-      if (!meta) throw new Error('Sin datos');
-      var price = meta.regularMarketPrice != null ? meta.regularMarketPrice : meta.chartPreviousClose;
-      var prev = meta.previousClose != null ? meta.previousClose : meta.chartPreviousClose;
-      var changePct = (prev && prev !== 0) ? (price - prev) / prev * 100 : 0;
-      return { price: price, currency: meta.currency, changePct: changePct };
-    } catch(e) { lastErr = e; }
-  }
-  throw lastErr || new Error('Error Yahoo');
+async function fetchSingle(){
+  var ticker=document.getElementById('q-ticker').value.trim().toUpperCase();
+  var el=document.getElementById('q-result');
+  if(!ticker){el.innerHTML='<span class="emsg">Ingresa un ticker</span>';return;}
+  el.innerHTML='<span class="spinner"></span> Consultando...';
+  try{
+    var q=await fetchFinnhub(ticker);
+    var cc=q.changePct>=0?'pos':'neg';
+    el.innerHTML='<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem">'+
+      '<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px">'+
+        '<span style="font-size:1rem;font-weight:700">'+ticker+'</span>'+
+        '<span style="font-size:1.3rem;font-weight:600;font-family:var(--mono)">$'+q.price.toFixed(2)+'</span>'+
+        '<span class="mono '+cc+'">'+(q.changePct>=0?'+':'')+q.changePct.toFixed(2)+'% hoy</span>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;font-family:var(--mono);font-size:.72rem">'+
+        '<div><div style="color:var(--text3);font-size:.6rem">Apertura</div>$'+q.open.toFixed(2)+'</div>'+
+        '<div><div style="color:var(--text3);font-size:.6rem">Max hoy</div>$'+q.high.toFixed(2)+'</div>'+
+        '<div><div style="color:var(--text3);font-size:.6rem">Min hoy</div>$'+q.low.toFixed(2)+'</div>'+
+        '<div><div style="color:var(--text3);font-size:.6rem">Cierre ant.</div>$'+q.prevClose.toFixed(2)+'</div>'+
+      '</div></div>';
+  }catch(e){el.innerHTML='<span class="emsg">Error: '+e.message+'</span>';}
 }
 
-async function fetchAllQuotes() {
-  var positions = getPositions();
-  if (!positions.length) return;
-
-  var icon = document.getElementById('refresh-icon');
-  var status = document.getElementById('refresh-status');
-  var progressWrap = document.getElementById('pos-progress');
-  var progressFill = document.getElementById('progress-fill');
-
-  icon.innerHTML = '<span class="spinner"></span>';
-  progressWrap.style.display = '';
-  progressFill.style.width = '0%';
-  status.textContent = 'Actualizando TC...';
-
-  try { await fetchTC(); } catch(e) {}
-
-  var total = positions.length;
-  var done = 0;
-  var errors = 0;
-
-  for (var i = 0; i < positions.length; i++) {
-    var p = positions[i];
-    var key = posKey(p.ticker, p.mercado);
-    status.textContent = (done+1) + '/' + total + ' ' + p.ticker;
-    try {
-      var yTicker = getYahooTicker(p.ticker, p.mercado);
-      var q = await fetchYahoo(yTicker);
-      quotes[key] = { price: q.price, currency: q.currency, changePct: q.changePct, ts: Date.now() };
-      renderPortfolio();
-    } catch(e) {
-      errors++;
-    }
-    done++;
-    progressFill.style.width = Math.round(done / total * 100) + '%';
-    await new Promise(function(r){ setTimeout(r, 350); });
-  }
-
-  icon.textContent = '⟳';
-  progressWrap.style.display = 'none';
-  status.className = errors > 0 ? 'err-msg' : 'status-msg';
-  status.textContent = errors > 0 ? errors + ' sin datos' : 'Actualizado';
-  setTimeout(function(){ status.textContent=''; }, 5000);
-  document.getElementById('last-updated').textContent = new Date().toLocaleTimeString('es-AR');
-  try { localStorage.setItem('ptQuotes', JSON.stringify(quotes)); } catch(e) {}
+function exportCSV(){
+  if(!movimientos.length)return;
+  var h=['Fecha','Tipo','Mercado','Ticker','Cantidad','PrecioARS','CCL','PrecioUSD','Comision','Notas'];
+  var rows=movimientos.map(function(m){return[m.fecha,m.tipo,m.mercado,m.ticker,m.qty,m.precioARS,m.ccl,m.precioUSD,m.comision,m.notas].map(function(v){return'"'+(v!=null?v:'')+'"';}).join(',');});
+  var csv=[h.join(',')].concat(rows).join('\n');
+  var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='portafolio_nyse_'+new Date().toISOString().split('T')[0]+'.csv';a.click();
 }
 
-function exportCSV() {
-  if (!movimientos.length) return;
-  var headers = ['Fecha','Tipo','Mercado','Ticker','Cantidad','Precio','Moneda','Comision','Notas'];
-  var rows = movimientos.map(function(m){
-    return [m.fecha,m.tipo,m.mercado,m.ticker,m.qty,m.precio,m.moneda,m.comision,m.notas].map(function(v){ return '"'+(v!=null?v:'')+'"'; }).join(',');
-  });
-  var csv = [headers.join(',')].concat(rows).join('\n');
-  var a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'portafolio_' + new Date().toISOString().split('T')[0] + '.csv';
-  a.click();
-}
-
-function clearAll() {
-  if (!confirm('Seguro que queres borrar todos los movimientos? Esta accion no se puede deshacer.')) return;
-  movimientos=[]; quotes={}; tcBlue=null;
-  try { localStorage.removeItem('ptMov'); localStorage.removeItem('ptQuotes'); } catch(e) {}
+function clearAll(){
+  if(!confirm('Borrar todo? Se perderan los movimientos cargados.'))return;
+  movimientos=[];quotes={};
+  try{localStorage.removeItem('ptNYSE_mov2');localStorage.removeItem('ptNYSE_q2');}catch(e){}
   saveAndRender();
 }
 
-// INIT
+// ── Init ───────────────────────────────────────────────────────────────────
 (function(){
-  try {
-    var saved = localStorage.getItem('ptMov');
-    if (saved) movimientos = JSON.parse(saved);
-    var savedQ = localStorage.getItem('ptQuotes');
-    if (savedQ) quotes = JSON.parse(savedQ);
-    renderMovimientos();
-    renderPortfolio();
-  } catch(e) {}
-  fetchTC().catch(function(){});
+  var saved=null;
+  try{saved=localStorage.getItem('ptNYSE_mov2');}catch(e){}
+  if(saved){
+    try{movimientos=JSON.parse(saved);}catch(e){}
+  } else {
+    // Load pre-loaded movimientos on first run
+    movimientos=PRELOADED;
+    try{localStorage.setItem('ptNYSE_mov2',JSON.stringify(movimientos));}catch(e){}
+  }
+  try{var sq=localStorage.getItem('ptNYSE_q2');if(sq)quotes=JSON.parse(sq);}catch(e){}
+  renderMovimientos();renderPortfolio();
+  document.getElementById('lupd').textContent='Datos cargados';
 })();
 </script>
 </body>
