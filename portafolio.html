@@ -524,6 +524,18 @@ function renderRatios(){
   }).join('');
 }
 
+function recalcMovimientos(ticker){
+  // Recalcula precioUSD de todos los movimientos del ticker usando el ratio actualizado
+  movimientos.forEach(function(m){
+    if(ticker && m.ticker!==ticker)return;
+    if(m.tipo==='aporte'||!m.ccl)return;
+    var r=getRatio(m.ticker);
+    m.ratio=r;
+    m.precioUSD=Math.round(m.precioARS*r/m.ccl*1000000)/1000000;
+  });
+  saveAndRender();
+}
+
 function saveRatio(){
   var ticker=document.getElementById('r-ticker').value.trim().toUpperCase();
   var ratio=parseFloat(document.getElementById('r-ratio').value);
@@ -535,13 +547,15 @@ function saveRatio(){
   document.getElementById('r-ticker').value='';
   document.getElementById('r-ratio').value='';
   renderRatios();
-  flash(sel,'Ratio guardado — recalculá posiciones',false);
+  recalcMovimientos(ticker);
+  flash(sel,'Ratio actualizado y posiciones recalculadas',false);
 }
 
 function deleteRatio(ticker){
   delete RATIOS_TABLE[ticker];
   try{localStorage.setItem('ptNYSE_ratios',JSON.stringify(RATIOS_TABLE));}catch(e){}
   renderRatios();
+  recalcMovimientos(ticker);
 }
 
 
