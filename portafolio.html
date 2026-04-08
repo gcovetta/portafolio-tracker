@@ -896,7 +896,7 @@ function renderMovimientos(){
 
   body.innerHTML=lista.map(function(m){
     var mLabel=m.mercado==='USA'?'NYSE':m.mercado==='ETF'?'ETF':(m.mercado||'—');
-    var sid=JSON.stringify(String(m.id));
+    var sid="'"+String(m.id)+"'";
     var canReduce=m.tipo==='compra'&&m.qty>0;
     var reduceHtml=canReduce
       ? '<span style="display:inline-flex;align-items:center;gap:3px">'+
