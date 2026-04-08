@@ -238,6 +238,72 @@ tr:hover td{background:var(--surface2)}
           <div class="ibox" style="margin-top:12px"><b>Tip:</b> El CCL se auto-completa con la tabla embebida. Si la fecha no tiene CCL, ingresalo manualmente.</div>
         </div>
       </div>
+      <!-- Simulador de Venta -->
+      <div class="card" id="sim-card">
+        <div class="card-header">
+          <span class="card-title">Simulador de venta</span>
+          <span id="sim-status" class="smsg"></span>
+        </div>
+        <div class="card-body">
+          <div class="fg">
+            <div class="fgrp">
+              <label>Activo a vender</label>
+              <select id="sim-ticker" onchange="simOnTickerChange()">
+                <option value="">— elegir —</option>
+              </select>
+            </div>
+            <div class="fgrp">
+              <label>Fecha de venta</label>
+              <input type="date" id="sim-fecha" oninput="simCalc()">
+            </div>
+            <div class="fgrp">
+              <label>Precio venta ARS (CEDEAR)</label>
+              <input type="number" id="sim-precio-ars" placeholder="0" min="0" step="any" oninput="simCalc()">
+            </div>
+            <div class="fgrp">
+              <label>CCL del día</label>
+              <input type="number" id="sim-ccl" placeholder="auto" min="0" step="any" oninput="simCalc()">
+            </div>
+            <div class="fgrp">
+              <label>Cantidad a vender</label>
+              <input type="number" id="sim-qty" placeholder="todas" min="0" step="any" oninput="simCalc()">
+            </div>
+          </div>
+          <div id="sim-result" style="display:none;margin-top:12px">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">
+              <div class="metric" style="padding:.7rem .85rem">
+                <div class="metric-label">Precio USD (venta)</div>
+                <div class="metric-value" id="sim-r-pusd" style="font-size:1rem">—</div>
+              </div>
+              <div class="metric" style="padding:.7rem .85rem">
+                <div class="metric-label">PPC USD (costo)</div>
+                <div class="metric-value" id="sim-r-ppusd" style="font-size:1rem">—</div>
+              </div>
+              <div class="metric" style="padding:.7rem .85rem">
+                <div class="metric-label">G/P USD total</div>
+                <div class="metric-value" id="sim-r-pnl" style="font-size:1rem">—</div>
+                <div class="metric-sub" id="sim-r-pnl-pct"></div>
+              </div>
+              <div class="metric" style="padding:.7rem .85rem">
+                <div class="metric-label">Ingreso bruto USD</div>
+                <div class="metric-value" id="sim-r-ingreso" style="font-size:1rem">—</div>
+              </div>
+              <div class="metric" style="padding:.7rem .85rem">
+                <div class="metric-label">Qty vendida</div>
+                <div class="metric-value" id="sim-r-qty" style="font-size:1rem">—</div>
+                <div class="metric-sub" id="sim-r-qty-sub"></div>
+              </div>
+              <div class="metric" style="padding:.7rem .85rem">
+                <div class="metric-label">CCL usado</div>
+                <div class="metric-value" id="sim-r-ccl" style="font-size:1rem">—</div>
+              </div>
+            </div>
+            <div id="sim-r-detail" style="margin-top:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:.7rem .9rem;font-size:.7rem;font-family:var(--mono);color:var(--text2);line-height:1.9"></div>
+          </div>
+          <div id="sim-empty-msg" style="display:none" class="ibox" style="margin-top:8px"></div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header">
           <span class="card-title">Historial (<span id="mov-count">0</span> movimientos)</span>
@@ -529,6 +595,7 @@ function showPage(id,btn){
   document.getElementById('page-'+id).classList.add('active');
   if(btn)btn.classList.add('active');
   if(id==='tracker') initTracker();
+  if(id==='movimientos') simPopulateSelect();
 }
 
 function onTipo(){
@@ -605,7 +672,7 @@ function reduceMov(id){
 
 function saveAndRender(){
   try{localStorage.setItem('ptNYSE_mov2',JSON.stringify(movimientos));}catch(e){}
-  renderMovimientos();renderPortfolio();renderDivsCard();
+  renderMovimientos();renderPortfolio();renderDivsCard();simPopulateSelect();
   document.getElementById('lupd').textContent=new Date().toLocaleTimeString('es-AR');
 }
 
@@ -683,6 +750,145 @@ function movModalSave(){
 function movModalClose(){
   document.getElementById('mov-modal-overlay').style.display='none';
   MOV_EDIT_ID=null;
+}
+
+
+// ════════════════════════════════════════════════════════
+// SIMULADOR DE VENTA
+// ════════════════════════════════════════════════════════
+function simPopulateSelect(){
+  var sel = document.getElementById('sim-ticker');
+  if(!sel) return;
+  var positions = getPositions().filter(function(p){ return p.qty > 0.000001; })
+    .sort(function(a,b){ return a.ticker.localeCompare(b.ticker); });
+  var current = sel.value;
+  sel.innerHTML = '<option value="">— elegir —</option>' +
+    positions.map(function(p){
+      return '<option value="'+p.ticker+'"'+(p.ticker===current?' selected':'')+'>'+p.ticker+' ('+
+        (p.qty%1===0?p.qty.toFixed(0):p.qty.toFixed(4))+' u.)</option>';
+    }).join('');
+  // Setear fecha de hoy si está vacía
+  var fEl = document.getElementById('sim-fecha');
+  if(fEl && !fEl.value) fEl.value = new Date().toISOString().split('T')[0];
+  simCalc();
+}
+
+function simOnTickerChange(){
+  simCalc();
+}
+
+function simCalc(){
+  var tickerEl = document.getElementById('sim-ticker');
+  var fechaEl  = document.getElementById('sim-fecha');
+  var arsEl    = document.getElementById('sim-precio-ars');
+  var cclEl    = document.getElementById('sim-ccl');
+  var qtyEl    = document.getElementById('sim-qty');
+  var result   = document.getElementById('sim-result');
+  var emptyMsg = document.getElementById('sim-empty-msg');
+
+  if(!tickerEl) return;
+  var ticker = tickerEl.value;
+
+  // Ocultar si no hay ticker
+  if(!ticker){
+    result.style.display='none';
+    emptyMsg.style.display='none';
+    return;
+  }
+
+  // Obtener posición
+  var positions = getPositions();
+  var pos = positions.find(function(p){ return p.ticker===ticker; });
+  if(!pos || pos.qty <= 0){
+    result.style.display='none';
+    emptyMsg.style.display='block';
+    emptyMsg.textContent = 'No tenés posición abierta en '+ticker+'.';
+    return;
+  }
+  emptyMsg.style.display='none';
+
+  var ratio   = getRatio(ticker);
+  var precioARS = parseFloat(arsEl.value);
+
+  // CCL: input manual > tabla por fecha > CCL_HOY
+  var cclManual = parseFloat(cclEl.value);
+  var fechaStr  = fechaEl.value ? fechaEl.value.split('-').reverse().join('/') : '';
+  var cclTabla  = fechaStr ? getCCL(fechaStr) : null;
+  var ccl       = cclManual > 0 ? cclManual : (cclTabla || CCL_HOY);
+
+  // Auto-rellenar campo CCL si vino de la tabla
+  if(!cclManual && cclTabla && cclEl){
+    // Solo mostrar el valor inferido sin sobreescribir el input (placeholder)
+  }
+
+  // Mostrar CCL resuelto en el placeholder
+  if(cclEl && !cclManual) cclEl.placeholder = ccl;
+
+  // Qty a vender: input o toda la posición
+  var qtyInput = parseFloat(qtyEl.value);
+  var qtySell  = (qtyInput > 0 && qtyInput <= pos.qty) ? qtyInput : pos.qty;
+  var sellAll  = !(qtyInput > 0 && qtyInput <= pos.qty);
+
+  // Si no hay precio ARS todavía, mostrar parcial
+  if(!precioARS || precioARS <= 0){
+    result.style.display='none';
+    return;
+  }
+
+  result.style.display='block';
+
+  // Precio de venta en USD (por CEDEAR → por acción NYSE)
+  var precioVentaUSD = (precioARS * ratio) / ccl;
+
+  // Costo promedio ponderado por CEDEAR
+  var avgCostUSDperCedear = pos.qty > 0 ? (pos.costUSD / pos.qty) : 0;  // USD por CEDEAR
+  var ppcARS = (avgCostUSDperCedear / ratio) * ccl;  // ARS por CEDEAR al CCL actual
+
+  // G/P por CEDEAR en USD
+  var pnlPerCedear = (precioVentaUSD/ratio) - (avgCostUSDperCedear/ratio); // ambos por CEDEAR
+  // Simplificando: precio venta USD (por cedear) vs costo USD (por cedear)
+  var ventaUSDperCedear = precioARS / ccl;           // USD que recibo por 1 CEDEAR
+  var costoUSDperCedear = avgCostUSDperCedear;       // USD que pagué por 1 CEDEAR
+
+  var ingresoTotal = ventaUSDperCedear * qtySell;
+  var costoBase    = costoUSDperCedear * qtySell;
+  var pnlTotal     = ingresoTotal - costoBase;
+  var pnlPct       = costoBase > 0 ? (pnlTotal / costoBase) * 100 : 0;
+
+  // Actualizar métricas
+  var pnlClass = pnlTotal >= 0 ? 'pos' : 'neg';
+  var pnlSign  = pnlTotal >= 0 ? '+' : '';
+
+  document.getElementById('sim-r-pusd').textContent   = 'USD '+ventaUSDperCedear.toFixed(4);
+  document.getElementById('sim-r-ppusd').textContent  = 'USD '+costoUSDperCedear.toFixed(4);
+
+  var pnlEl = document.getElementById('sim-r-pnl');
+  pnlEl.textContent  = pnlSign+'USD '+Math.abs(pnlTotal).toFixed(2);
+  pnlEl.className    = 'metric-value '+pnlClass;
+
+  var pnlPctEl = document.getElementById('sim-r-pnl-pct');
+  pnlPctEl.textContent  = pnlSign+pnlPct.toFixed(2)+'%';
+  pnlPctEl.className    = pnlClass;
+
+  document.getElementById('sim-r-ingreso').textContent = 'USD '+ingresoTotal.toFixed(2);
+  document.getElementById('sim-r-qty').textContent     = qtySell%1===0?qtySell.toFixed(0):qtySell.toFixed(4);
+  document.getElementById('sim-r-qty-sub').textContent = sellAll ? 'posición completa' : 'de '+
+    (pos.qty%1===0?pos.qty.toFixed(0):pos.qty.toFixed(4))+' totales';
+  document.getElementById('sim-r-ccl').textContent     = '$'+Math.round(ccl).toLocaleString('es-AR')+
+    (cclTabla && !cclManual ? ' (tabla)' : cclManual ? ' (manual)' : ' (hoy)');
+
+  // Detalle
+  var detail = document.getElementById('sim-r-detail');
+  detail.innerHTML =
+    '<b>'+ticker+'</b> · ratio 1:'+ratio+' · ' +
+    'Precio ARS: $'+precioARS.toLocaleString('es-AR')+
+    ' → USD '+ventaUSDperCedear.toFixed(4)+' por cedear'+
+    '<br>PPC compra: $'+ppcARS.toLocaleString('es-AR',{maximumFractionDigits:2})+' ARS'+
+    ' (USD '+costoUSDperCedear.toFixed(4)+')'+
+    ' · Qty: '+qtySell+(sellAll?' (toda la posición)':' de '+pos.qty.toFixed(4))+
+    '<br><span class="'+pnlClass+'"><b>'+(pnlTotal>=0?'Ganancia':'Pérdida')+': '+
+    pnlSign+'USD '+Math.abs(pnlTotal).toFixed(2)+
+    ' ('+pnlSign+pnlPct.toFixed(2)+'%)</b></span>';
 }
 
 function renderMovimientos(){
