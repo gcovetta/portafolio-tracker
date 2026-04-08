@@ -1529,6 +1529,52 @@ function trkCalcCCL(){
   try{var st=localStorage.getItem('ptNYSE_targets');if(st){Object.assign(TARGET_TABLE,JSON.parse(st));}}catch(e){}
   renderMovimientos();renderPortfolio();renderRatios();renderTargets();renderDividendos();renderDivsCard();
   document.getElementById('lupd').textContent='Datos cargados';
+
+  // ── Auto-refresh cada 5 minutos mientras la pagina esta abierta ──
+  var AUTO_MS = 5 * 60 * 1000;
+  var _countdown = AUTO_MS / 1000;
+  var _autoTimer = null;
+  var _tickTimer = null;
+
+  function _updateLabel(){
+    var el = document.getElementById('lupd');
+    if(!el) return;
+    var last = el.dataset.lastupd || '';
+    var m = Math.floor(_countdown / 60);
+    var s = _countdown % 60;
+    var next = 'próx. ' + m + ':' + (s < 10 ? '0' : '') + s;
+    el.textContent = (last ? last + ' · ' : '') + next;
+  }
+
+  function _startCycle(){
+    if(_autoTimer)  clearTimeout(_autoTimer);
+    if(_tickTimer)  clearInterval(_tickTimer);
+    _countdown = AUTO_MS / 1000;
+    _updateLabel();
+    _tickTimer = setInterval(function(){ if(_countdown > 0){ _countdown--; _updateLabel(); } }, 1000);
+    _autoTimer = setTimeout(function(){
+      clearInterval(_tickTimer);
+      if(document.hidden){
+        document.addEventListener('visibilitychange', function _onVis(){
+          if(!document.hidden){ document.removeEventListener('visibilitychange', _onVis); fetchAllQuotes(); }
+        });
+      } else {
+        fetchAllQuotes();
+      }
+    }, AUTO_MS);
+  }
+
+  // Al terminar fetchAllQuotes reiniciar el ciclo y guardar timestamp
+  var _origFetch = fetchAllQuotes;
+  fetchAllQuotes = async function(){
+    var r = await _origFetch();
+    var el = document.getElementById('lupd');
+    if(el) el.dataset.lastupd = new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+    _startCycle();
+    return r;
+  };
+
+  _startCycle();
 })();
 </script>
 </body>
