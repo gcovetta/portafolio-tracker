@@ -20,300 +20,115 @@
   --red: #f87171;
   --amber: #fbbf24;
   --blue: #60a5fa;
-  --purple: #a78bfa;
   --mono: 'DM Mono', monospace;
   --sans: 'Syne', sans-serif;
   --radius: 10px;
   --radius-sm: 6px;
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 14px; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  min-height: 100vh;
-  line-height: 1.5;
-}
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; line-height: 1.5; }
 
-/* ── Layout ── */
 .app { display: grid; grid-template-rows: auto 1fr; min-height: 100vh; }
-
 header {
-  padding: 1rem 1.5rem;
+  padding: 0.85rem 1.5rem;
   border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
   background: var(--surface);
 }
+.logo { font-weight: 700; font-size: 1.05rem; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink:0; }
+.header-right { display:flex; align-items:center; gap:12px; }
+.last-updated { font-family: var(--mono); font-size: 0.7rem; color: var(--text3); }
+.tc-pill { font-family:var(--mono); font-size:0.7rem; background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:3px 10px; color:var(--accent); cursor:pointer; }
 
-.logo {
-  font-weight: 700;
-  font-size: 1.1rem;
-  letter-spacing: -0.02em;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
-
-.last-updated { font-family: var(--mono); font-size: 0.75rem; color: var(--text3); }
-
-.main { display: grid; grid-template-columns: 220px 1fr; height: calc(100vh - 53px); }
-
-/* ── Sidebar ── */
-.sidebar {
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  padding: 1.25rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.nav-item {
-  padding: 0.6rem 1.25rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.875rem;
-  color: var(--text2);
-  border: none;
-  background: none;
-  width: 100%;
-  text-align: left;
-  border-radius: 0;
-  transition: background 0.15s, color 0.15s;
-  font-family: var(--sans);
-}
+.main { display: grid; grid-template-columns: 210px 1fr; height: calc(100vh - 49px); }
+.sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 1rem 0; display: flex; flex-direction: column; gap: 1px; overflow-y:auto; }
+.nav-item { padding: 0.55rem 1.2rem; cursor: pointer; display: flex; align-items: center; gap: 9px; font-size: 0.85rem; color: var(--text2); border: none; background: none; width: 100%; text-align: left; transition: background 0.12s, color 0.12s; font-family: var(--sans); }
 .nav-item:hover { background: var(--surface2); color: var(--text); }
 .nav-item.active { background: var(--surface2); color: var(--accent); }
-.nav-icon { width: 16px; text-align: center; font-size: 14px; }
+.nav-icon { width: 15px; text-align: center; font-size: 13px; flex-shrink:0; }
+.nav-section { font-size: 0.62rem; font-family: var(--mono); color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; padding: 0.9rem 1.2rem 0.35rem; }
 
-.nav-section {
-  font-size: 0.65rem;
-  font-family: var(--mono);
-  color: var(--text3);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 1rem 1.25rem 0.4rem;
-}
-
-/* ── Content ── */
 .content { overflow-y: auto; }
-.page { display: none; padding: 1.5rem; }
+.page { display: none; padding: 1.25rem; }
 .page.active { display: block; }
 
-/* ── Metrics ── */
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 10px;
-  margin-bottom: 1.5rem;
-}
-.metric {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem 1.25rem;
-}
-.metric-label { font-size: 0.7rem; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-.metric-value { font-size: 1.4rem; font-weight: 600; letter-spacing: -0.02em; }
-.metric-sub { font-size: 0.7rem; font-family: var(--mono); color: var(--text3); margin-top: 3px; }
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 1.25rem; }
+.metric { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.9rem 1.1rem; }
+.metric-label { font-size: 0.65rem; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+.metric-value { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; font-family:var(--mono); }
+.metric-sub { font-size: 0.65rem; font-family: var(--mono); color: var(--text3); margin-top: 2px; }
 
-/* ── Cards ── */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 1rem;
-  overflow: hidden;
-}
-.card-header {
-  padding: 0.9rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.card-title { font-weight: 600; font-size: 0.875rem; }
-.card-body { padding: 1.25rem; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 1rem; overflow: hidden; }
+.card-header { padding: 0.8rem 1.1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.card-title { font-weight: 600; font-size: 0.85rem; }
+.card-body { padding: 1.1rem; }
 
-/* ── Table ── */
 .table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-th {
-  text-align: left;
-  padding: 0.6rem 1rem;
-  color: var(--text3);
-  font-weight: 400;
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-}
-td {
-  padding: 0.65rem 1rem;
-  border-bottom: 1px solid var(--border);
-  color: var(--text);
-  white-space: nowrap;
-}
+table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+th { text-align: left; padding: 0.55rem 0.9rem; color: var(--text3); font-weight: 400; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); color: var(--text); white-space: nowrap; }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: var(--surface2); }
 
-/* ── Forms ── */
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 10px;
-  margin-bottom: 10px;
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 8px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group label { font-size: 0.65rem; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+.form-group input, .form-group select {
+  background: var(--bg); border: 1px solid var(--border2); border-radius: var(--radius-sm);
+  color: var(--text); font-family: var(--mono); font-size: 0.78rem;
+  padding: 6px 9px; height: 32px; outline: none; transition: border-color 0.12s; width: 100%;
 }
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-group label { font-size: 0.7rem; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
-.form-group input,
-.form-group select {
-  background: var(--bg);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 0.8rem;
-  padding: 7px 10px;
-  height: 34px;
-  outline: none;
-  transition: border-color 0.15s;
-  width: 100%;
-}
-.form-group input:focus,
-.form-group select:focus { border-color: var(--accent); }
+.form-group input:focus, .form-group select:focus { border-color: var(--accent); }
 .form-group select option { background: var(--surface2); }
 .form-group input::placeholder { color: var(--text3); }
 
-/* ── Buttons ── */
-.btn {
-  padding: 6px 14px;
-  height: 32px;
-  font-size: 0.75rem;
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  background: var(--surface2);
-  color: var(--text2);
-  font-family: var(--sans);
-  font-weight: 500;
-  white-space: nowrap;
-  transition: all 0.15s;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.btn:hover { border-color: var(--border), background: var(--bg); color: var(--text); }
-.btn-accent {
-  background: var(--accent);
-  color: #0a1a10;
-  border-color: var(--accent);
-  font-weight: 600;
-}
-.btn-accent:hover { background: var(--accent2); border-color: var(--accent2); }
-.btn-danger { color: var(--red); border-color: #4a2222; }
-.btn-danger:hover { background: #2a1515; }
-.btn-sm { height: 26px; padding: 0 10px; font-size: 0.7rem; }
+.btn { padding: 5px 12px; height: 30px; font-size: 0.72rem; border: 1px solid var(--border2); border-radius: var(--radius-sm); cursor: pointer; background: var(--surface2); color: var(--text2); font-family: var(--sans); font-weight: 500; white-space: nowrap; transition: all 0.12s; display: inline-flex; align-items: center; gap: 5px; }
+.btn:hover { color: var(--text); border-color: var(--border2); }
+.btn-accent { background: var(--accent); color: #072010; border-color: var(--accent); font-weight: 600; }
+.btn-accent:hover { background: var(--accent2); border-color: var(--accent2); color: #072010; }
+.btn-danger { color: var(--red); border-color: #3a1818; }
+.btn-danger:hover { background: #221010; }
+.btn-sm { height: 24px; padding: 0 8px; font-size: 0.68rem; }
 
-/* ── Badges ── */
-.badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-size: 0.65rem;
-  font-family: var(--mono);
-  font-weight: 500;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-.badge-compra { background: #0d2e1a; color: var(--accent); border: 1px solid #1a4a2a; }
-.badge-venta  { background: #2e0d0d; color: var(--red);   border: 1px solid #4a1a1a; }
-.badge-dividendo { background: #0d1e3a; color: var(--blue); border: 1px solid #1a3060; }
-.badge-aporte { background: #2a1e0d; color: var(--amber); border: 1px solid #4a3a1a; }
+.badge { display: inline-block; padding: 2px 7px; border-radius: 20px; font-size: 0.62rem; font-family: var(--mono); font-weight: 500; }
+.badge-compra { background: #0a2218; color: var(--accent); border: 1px solid #143a24; }
+.badge-venta { background: #2a0e0e; color: var(--red); border: 1px solid #451818; }
+.badge-dividendo { background: #0d1a30; color: var(--blue); border: 1px solid #162a50; }
+.badge-aporte { background: #261a08; color: var(--amber); border: 1px solid #3e2c10; }
+
+.mkt-badge { display:inline-block; padding:1px 6px; border-radius:4px; font-size:0.6rem; font-family:var(--mono); background:var(--surface2); color:var(--text3); border:1px solid var(--border); }
 
 .pos { color: var(--accent); }
 .neg { color: var(--red); }
 .muted { color: var(--text2); }
 .mono { font-family: var(--mono); }
 
-/* ── Quote box ── */
-.quote-box {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  margin-bottom: 8px;
-  font-family: var(--mono);
-  font-size: 0.8rem;
-  flex-wrap: wrap;
-}
-.quote-ticker { font-weight: 500; color: var(--text); min-width: 70px; }
-.quote-price { font-size: 0.95rem; font-weight: 500; color: var(--text); }
+.gap-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.status-msg { font-size: 0.72rem; font-family: var(--mono); color: var(--accent); }
+.err-msg { font-size: 0.72rem; font-family: var(--mono); color: var(--red); }
 
-/* ── Status / loading ── */
-.empty-state {
-  text-align: center;
-  padding: 2.5rem;
-  color: var(--text3);
-  font-size: 0.8rem;
-  font-family: var(--mono);
-}
-.status-msg { font-size: 0.75rem; font-family: var(--mono); color: var(--accent); }
+.empty-state { text-align: center; padding: 2.5rem; color: var(--text3); font-size: 0.78rem; font-family: var(--mono); }
 
-.spinner {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid var(--border2);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  vertical-align: middle;
-}
+.spinner { display: inline-block; width: 11px; height: 11px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Misc ── */
-.dividers td + td { border-left: none; }
-.text-right { text-align: right; }
-.gap-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.section-divider {
-  font-size: 0.65rem;
-  font-family: var(--mono);
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.4rem;
-  border-bottom: 1px solid var(--border);
-}
+.progress-bar { height: 3px; background: var(--border); border-radius: 2px; margin: 0 1.1rem 0; overflow:hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+.info-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.7rem 1rem; font-size: 0.72rem; font-family: var(--mono); color: var(--text2); }
+.info-box b { color: var(--text); }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
-/* ── Responsive ── */
-@media (max-width: 700px) {
-  .main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+@media (max-width: 680px) {
+  .main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: auto; }
   .sidebar { flex-direction: row; overflow-x: auto; padding: 0; border-right: none; border-bottom: 1px solid var(--border); }
   .nav-section { display: none; }
-  .nav-item { padding: 0.75rem 1rem; flex-direction: column; gap: 4px; font-size: 0.65rem; border-radius: 0; }
-  .main { height: auto; }
+  .nav-item { padding: 0.7rem 0.9rem; flex-direction: column; gap: 3px; font-size: 0.62rem; }
   .content { height: auto; }
 }
 </style>
@@ -322,74 +137,53 @@ tr:hover td { background: var(--surface2); }
 <div class="app">
 
 <header>
-  <div class="logo">
-    <div class="logo-dot"></div>
-    Portafolio Tracker
+  <div class="logo"><div class="logo-dot"></div>Portafolio Tracker</div>
+  <div class="header-right">
+    <div class="tc-pill" id="tc-pill">USD/ARS —</div>
+    <div class="last-updated" id="last-updated">—</div>
   </div>
-  <div class="last-updated" id="last-updated">—</div>
 </header>
 
 <div class="main">
   <nav class="sidebar">
     <div class="nav-section">Vistas</div>
-    <button class="nav-item active" onclick="showPage('portafolio',this)">
-      <span class="nav-icon">◈</span> Portafolio
-    </button>
-    <button class="nav-item" onclick="showPage('movimientos',this)">
-      <span class="nav-icon">↕</span> Movimientos
-    </button>
+    <button class="nav-item active" onclick="showPage('portafolio',this)"><span class="nav-icon">◈</span>Portafolio</button>
+    <button class="nav-item" onclick="showPage('movimientos',this)"><span class="nav-icon">↕</span>Movimientos</button>
     <div class="nav-section">Mercado</div>
-    <button class="nav-item" onclick="showPage('cotizaciones',this)">
-      <span class="nav-icon">◎</span> Cotizaciones
-    </button>
-    <button class="nav-item" onclick="showPage('tipocambio',this)">
-      <span class="nav-icon">$</span> Tipo de cambio
-    </button>
+    <button class="nav-item" onclick="showPage('tipocambio',this)"><span class="nav-icon">$</span>Tipo de cambio</button>
   </nav>
 
   <div class="content">
 
-    <!-- ═══ PORTAFOLIO ═══ -->
+    <!-- PORTAFOLIO -->
     <div class="page active" id="page-portafolio">
       <div class="metrics-grid">
-        <div class="metric">
-          <div class="metric-label">Valor total USD</div>
-          <div class="metric-value mono" id="total-usd">—</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Valor total ARS</div>
-          <div class="metric-value mono" id="total-ars">—</div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">G/P no realizada</div>
-          <div class="metric-value mono" id="total-pnl">—</div>
-          <div class="metric-sub" id="total-pnl-pct"></div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Dólar blue</div>
-          <div class="metric-value mono" id="tc-header">—</div>
-          <div class="metric-sub" id="tc-header-sub"></div>
-        </div>
-        <div class="metric">
-          <div class="metric-label">Dividendos totales</div>
-          <div class="metric-value mono" id="total-divs">—</div>
-        </div>
+        <div class="metric"><div class="metric-label">Valor total USD</div><div class="metric-value" id="m-total-usd">—</div></div>
+        <div class="metric"><div class="metric-label">Valor total ARS</div><div class="metric-value" id="m-total-ars">—</div></div>
+        <div class="metric"><div class="metric-label">G/P no realizada</div><div class="metric-value" id="m-pnl">—</div><div class="metric-sub" id="m-pnl-pct"></div></div>
+        <div class="metric"><div class="metric-label">Costo total USD</div><div class="metric-value" id="m-costo">—</div></div>
+        <div class="metric"><div class="metric-label">Dividendos USD</div><div class="metric-value" id="m-divs">—</div></div>
+        <div class="metric"><div class="metric-label">Dólar blue</div><div class="metric-value" id="m-tc">—</div><div class="metric-sub" id="m-tc-sub"></div></div>
       </div>
 
       <div class="card">
         <div class="card-header">
           <span class="card-title">Posiciones abiertas</span>
-          <button class="btn btn-accent" onclick="fetchAllQuotes()"><span id="btn-refresh-icon">⟳</span> Actualizar precios</button>
+          <div class="gap-row">
+            <span id="refresh-status" class="status-msg"></span>
+            <button class="btn btn-accent" onclick="fetchAllQuotes()"><span id="refresh-icon">⟳</span> Actualizar precios</button>
+          </div>
         </div>
-        <div id="positions-empty" class="empty-state">Cargá movimientos para ver tus posiciones</div>
-        <div class="table-wrap" id="positions-wrap" style="display:none">
+        <div id="pos-progress" style="display:none;padding:6px 0"><div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div></div>
+        <div id="pos-empty" class="empty-state">Cargá movimientos para ver tus posiciones</div>
+        <div class="table-wrap" id="pos-wrap" style="display:none">
           <table>
             <thead><tr>
               <th>Ticker</th><th>Mercado</th><th>Cantidad</th>
               <th>Costo prom.</th><th>Precio actual</th><th>Valor USD</th>
               <th>G/P USD</th><th>G/P %</th>
             </tr></thead>
-            <tbody id="positions-body"></tbody>
+            <tbody id="pos-body"></tbody>
           </table>
         </div>
       </div>
@@ -400,7 +194,7 @@ tr:hover td { background: var(--surface2); }
       </div>
     </div>
 
-    <!-- ═══ MOVIMIENTOS ═══ -->
+    <!-- MOVIMIENTOS -->
     <div class="page" id="page-movimientos">
       <div class="card">
         <div class="card-header"><span class="card-title">Registrar movimiento</span></div>
@@ -412,24 +206,24 @@ tr:hover td { background: var(--surface2); }
                 <option value="compra">Compra</option>
                 <option value="venta">Venta</option>
                 <option value="dividendo">Dividendo</option>
-                <option value="aporte">Aporte capital</option>
+                <option value="aporte">Aporte de capital</option>
               </select>
             </div>
             <div class="form-group" id="g-mercado">
               <label>Mercado</label>
               <select id="m-mercado" onchange="onMercadoChange()">
-                <option value="USA">USA (NYSE/NASDAQ)</option>
-                <option value="ARG">Argentina (BYMA)</option>
+                <option value="USA">NYSE / NASDAQ</option>
+                <option value="ETF">ETF (USA)</option>
+                <option value="ARG">Acciones ARG (BYMA)</option>
+                <option value="BONO">Bono Argentino</option>
+                <option value="ON">Obligacion Negociable</option>
                 <option value="CEDEAR">Cedear</option>
                 <option value="CRYPTO">Cripto</option>
-                <option value="ETF">ETF</option>
-                <option value="BONO">Bono Argentino</option>
-                <option value="ON">Oblig. Negociable</option>
               </select>
             </div>
             <div class="form-group" id="g-ticker">
-              <label>Ticker / Activo</label>
-              <input id="m-ticker" type="text" placeholder="AAPL, BTC, AL30..." style="text-transform:uppercase">
+              <label>Ticker</label>
+              <input id="m-ticker" type="text" placeholder="AAPL, GGAL, AL30..." style="text-transform:uppercase">
             </div>
             <div class="form-group">
               <label>Fecha</label>
@@ -444,18 +238,15 @@ tr:hover td { background: var(--surface2); }
                 <input id="m-qty" type="number" min="0" step="any" placeholder="0">
               </div>
               <div class="form-group">
-                <label id="label-precio">Precio unitario</label>
+                <label id="lbl-precio">Precio unitario</label>
                 <input id="m-precio" type="number" min="0" step="any" placeholder="0.00">
               </div>
-              <div class="form-group" style="max-width:100px">
+              <div class="form-group" style="max-width:90px">
                 <label>Moneda</label>
-                <select id="m-moneda">
-                  <option value="USD">USD</option>
-                  <option value="ARS">ARS</option>
-                </select>
+                <select id="m-moneda"><option value="USD">USD</option><option value="ARS">ARS</option></select>
               </div>
               <div class="form-group">
-                <label>Comisión</label>
+                <label>Comision</label>
                 <input id="m-comision" type="number" min="0" step="any" placeholder="0.00">
               </div>
             </div>
@@ -467,36 +258,38 @@ tr:hover td { background: var(--surface2); }
                 <label>Monto</label>
                 <input id="m-monto" type="number" min="0" step="any" placeholder="0.00">
               </div>
-              <div class="form-group" style="max-width:100px">
+              <div class="form-group" style="max-width:90px">
                 <label>Moneda</label>
-                <select id="m-moneda2">
-                  <option value="USD">USD</option>
-                  <option value="ARS">ARS</option>
-                </select>
+                <select id="m-moneda2"><option value="USD">USD</option><option value="ARS">ARS</option></select>
               </div>
             </div>
           </div>
 
-          <div class="form-grid">
-            <div class="form-group" style="grid-column: 1 / -1">
+          <div class="form-grid" style="margin-top:4px">
+            <div class="form-group" style="grid-column:1/-1">
               <label>Notas (opcional)</label>
               <input id="m-notas" type="text" placeholder="">
             </div>
           </div>
 
-          <div class="gap-row" style="margin-top:10px">
+          <div class="gap-row" style="margin-top:12px">
             <button class="btn btn-accent" onclick="addMovimiento()">+ Agregar</button>
-            <span class="status-msg" id="m-status"></span>
+            <span id="m-status"></span>
+          </div>
+
+          <div class="info-box" style="margin-top:14px">
+            <b>Tip:</b> Para activos argentinos ingresa solo el ticker base: <b>GGAL</b>, <b>AL30</b>, <b>YCA6O</b> — se agrega .BA automaticamente segun el mercado.
+            Para cripto usa el simbolo base: <b>BTC</b>, <b>ETH</b> (se consulta como BTC-USD).
           </div>
         </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Historial</span>
+          <span class="card-title">Historial de movimientos</span>
           <div class="gap-row">
-            <button class="btn" onclick="exportCSV()">↓ Exportar CSV</button>
-            <button class="btn btn-danger" onclick="clearAll()">✕ Limpiar todo</button>
+            <button class="btn" onclick="exportCSV()">Exportar CSV</button>
+            <button class="btn btn-danger" onclick="clearAll()">Limpiar todo</button>
           </div>
         </div>
         <div id="mov-empty" class="empty-state">No hay movimientos registrados</div>
@@ -504,7 +297,7 @@ tr:hover td { background: var(--surface2); }
           <table>
             <thead><tr>
               <th>Fecha</th><th>Tipo</th><th>Mercado</th><th>Ticker</th>
-              <th>Cantidad</th><th>Precio</th><th>Moneda</th><th>Comisión</th><th>Notas</th><th></th>
+              <th>Cantidad</th><th>Precio</th><th>Moneda</th><th>Comision</th><th>Notas</th><th></th>
             </tr></thead>
             <tbody id="mov-body"></tbody>
           </table>
@@ -512,407 +305,399 @@ tr:hover td { background: var(--surface2); }
       </div>
     </div>
 
-    <!-- ═══ COTIZACIONES ═══ -->
-    <div class="page" id="page-cotizaciones">
-      <div class="card">
-        <div class="card-header"><span class="card-title">Consultar cotización</span></div>
-        <div class="card-body">
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Ticker / Activo</label>
-              <input id="q-ticker" type="text" placeholder="AAPL, BTC, AL30..." style="text-transform:uppercase">
-            </div>
-            <div class="form-group">
-              <label>Mercado</label>
-              <select id="q-mercado">
-                <option value="USA">USA (NYSE/NASDAQ)</option>
-                <option value="ARG">Argentina (BYMA)</option>
-                <option value="CEDEAR">Cedear</option>
-                <option value="CRYPTO">Cripto</option>
-                <option value="ETF">ETF</option>
-                <option value="BONO">Bono Argentino</option>
-                <option value="ON">Oblig. Negociable</option>
-              </select>
-            </div>
-            <div style="align-self:flex-end">
-              <button class="btn btn-accent" onclick="fetchSingleQuote()">Consultar</button>
-            </div>
-          </div>
-          <div id="q-result" style="margin-top:12px"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══ TIPO DE CAMBIO ═══ -->
+    <!-- TIPO DE CAMBIO -->
     <div class="page" id="page-tipocambio">
       <div class="card">
         <div class="card-header">
           <span class="card-title">Tipo de cambio USD / ARS</span>
-          <button class="btn btn-accent" onclick="fetchTC()">⟳ Actualizar</button>
+          <button class="btn btn-accent" onclick="fetchTC()">Actualizar</button>
         </div>
         <div class="card-body">
-          <div id="tc-result" class="empty-state">Presioná Actualizar para consultar el tipo de cambio</div>
+          <div id="tc-result" class="empty-state" style="padding:1rem 0">Presiona Actualizar para consultar</div>
+          <div class="info-box" style="margin-top:14px">
+            Fuente: <b>dolarapi.com</b> — gratuito, sin registro. Se usa el dolar blue (venta) para convertir ARS a USD.
+          </div>
         </div>
       </div>
     </div>
 
-  </div><!-- /content -->
-</div><!-- /main -->
-</div><!-- /app -->
+  </div>
+</div>
+</div>
 
 <script>
-let movimientos = [];
-let quotes = {};
-let tcUSDARS = null;
+var movimientos = [];
+var quotes = {};
+var tcBlue = null;
+var tcOficial = null;
 
-const MERCADO_LABELS = {
-  USA:'USA', ARG:'BYMA', CEDEAR:'Cedear', CRYPTO:'Cripto',
-  ETF:'ETF', BONO:'Bono', ON:'O.N.'
+var MKT = {
+  USA:    { label:'NYSE',   yahooSuffix:'',     currency:'USD', isARS:false },
+  ETF:    { label:'ETF',    yahooSuffix:'',     currency:'USD', isARS:false },
+  ARG:    { label:'BYMA',   yahooSuffix:'.BA',  currency:'ARS', isARS:true  },
+  BONO:   { label:'Bono',   yahooSuffix:'.BA',  currency:'ARS', isARS:true  },
+  ON:     { label:'O.N.',   yahooSuffix:'.BA',  currency:'ARS', isARS:true  },
+  CEDEAR: { label:'Cedear', yahooSuffix:'.BA',  currency:'ARS', isARS:true  },
+  CRYPTO: { label:'Cripto', yahooSuffix:'-USD', currency:'USD', isARS:false },
 };
 
+function getMkt(mercado) { return MKT[mercado] || MKT.USA; }
+function isARSMarket(mercado) { return getMkt(mercado).isARS; }
+
+function getYahooTicker(ticker, mercado) {
+  var m = getMkt(mercado);
+  var base = ticker.toUpperCase().replace(/\.(BA)$/i,'').replace(/-USD$/i,'');
+  return base + m.yahooSuffix;
+}
+
+function posKey(ticker, mercado) { return ticker + '|' + mercado; }
+
 function showPage(id, btn) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.remove('active'); });
   document.getElementById('page-' + id).classList.add('active');
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
 }
 
 function onTipoChange() {
-  const t = document.getElementById('m-tipo').value;
-  const isAporte = t === 'aporte';
+  var t = document.getElementById('m-tipo').value;
+  var isAporte = t === 'aporte';
   document.getElementById('row-normal').style.display = isAporte ? 'none' : '';
   document.getElementById('row-aporte').style.display = isAporte ? '' : 'none';
   document.getElementById('g-ticker').style.display = isAporte ? 'none' : '';
   document.getElementById('g-mercado').style.display = isAporte ? 'none' : '';
-  document.getElementById('label-precio').textContent = t === 'dividendo' ? 'Monto total' : 'Precio unitario';
+  document.getElementById('lbl-precio').textContent = t === 'dividendo' ? 'Monto total' : 'Precio unitario';
 }
 
 function onMercadoChange() {
-  const m = document.getElementById('m-mercado').value;
-  document.getElementById('m-moneda').value = (m === 'ARG' || m === 'BONO' || m === 'ON') ? 'ARS' : 'USD';
+  var m = document.getElementById('m-mercado').value;
+  document.getElementById('m-moneda').value = isARSMarket(m) ? 'ARS' : 'USD';
 }
 
-function setToday() {
-  document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
-}
-setToday();
+document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
 
 function addMovimiento() {
-  const tipo = document.getElementById('m-tipo').value;
-  const status = document.getElementById('m-status');
+  var tipo = document.getElementById('m-tipo').value;
+  var statusEl = document.getElementById('m-status');
 
   if (tipo === 'aporte') {
-    const monto = parseFloat(document.getElementById('m-monto').value);
-    if (!monto || monto <= 0) { status.textContent = 'Ingresá un monto válido'; return; }
-    movimientos.push({
-      id: Date.now(), fecha: document.getElementById('m-fecha').value,
-      tipo, mercado: '—', ticker: 'APORTE',
-      qty: 0, precio: monto,
-      moneda: document.getElementById('m-moneda2').value,
-      comision: 0, notas: ''
-    });
+    var monto = parseFloat(document.getElementById('m-monto').value);
+    if (!monto || monto <= 0) { flash(statusEl, 'Ingresa un monto valido', true); return; }
+    movimientos.push({ id: Date.now(), fecha: document.getElementById('m-fecha').value, tipo: tipo, mercado: '—', ticker: 'APORTE', qty: 0, precio: monto, moneda: document.getElementById('m-moneda2').value, comision: 0, notas: '' });
     saveAndRender();
-    flash(status, 'Aporte registrado ✓');
+    flash(statusEl, 'Aporte registrado', false);
     return;
   }
 
-  const ticker = document.getElementById('m-ticker').value.trim().toUpperCase();
-  const qty = parseFloat(document.getElementById('m-qty').value);
-  const precio = parseFloat(document.getElementById('m-precio').value);
-  const comision = parseFloat(document.getElementById('m-comision').value) || 0;
+  var ticker = document.getElementById('m-ticker').value.trim().toUpperCase();
+  var mercado = document.getElementById('m-mercado').value;
+  var qty = parseFloat(document.getElementById('m-qty').value);
+  var precio = parseFloat(document.getElementById('m-precio').value);
+  var comision = parseFloat(document.getElementById('m-comision').value) || 0;
+  var moneda = document.getElementById('m-moneda').value;
 
-  if (!ticker) { status.textContent = 'Ingresá un ticker'; return; }
-  if (!qty || qty <= 0) { status.textContent = 'Cantidad inválida'; return; }
-  if (isNaN(precio) || precio < 0) { status.textContent = 'Precio inválido'; return; }
+  if (!ticker) { flash(statusEl, 'Ingresa un ticker', true); return; }
+  if (!qty || qty <= 0) { flash(statusEl, 'Cantidad invalida', true); return; }
+  if (isNaN(precio) || precio < 0) { flash(statusEl, 'Precio invalido', true); return; }
 
-  movimientos.push({
-    id: Date.now(),
-    fecha: document.getElementById('m-fecha').value,
-    tipo,
-    mercado: document.getElementById('m-mercado').value,
-    ticker, qty, precio,
-    moneda: document.getElementById('m-moneda').value,
-    comision,
-    notas: document.getElementById('m-notas').value
-  });
+  movimientos.push({ id: Date.now(), fecha: document.getElementById('m-fecha').value, tipo: tipo, mercado: mercado, ticker: ticker, qty: qty, precio: precio, moneda: moneda, comision: comision, notas: document.getElementById('m-notas').value });
   saveAndRender();
-  ['m-ticker','m-qty','m-precio','m-comision','m-notas'].forEach(id => document.getElementById(id).value = '');
-  flash(status, 'Movimiento registrado ✓');
+  ['m-ticker','m-qty','m-precio','m-comision','m-notas'].forEach(function(id){ document.getElementById(id).value = ''; });
+  flash(statusEl, 'Movimiento registrado', false);
 }
 
-function flash(el, msg) {
+function flash(el, msg, isErr) {
+  el.className = isErr ? 'err-msg' : 'status-msg';
   el.textContent = msg;
-  setTimeout(() => el.textContent = '', 2500);
+  setTimeout(function(){ el.textContent = ''; }, 3000);
 }
 
 function deleteMovimiento(id) {
-  movimientos = movimientos.filter(m => m.id !== id);
+  movimientos = movimientos.filter(function(m){ return m.id !== id; });
   saveAndRender();
 }
 
 function saveAndRender() {
-  try { localStorage.setItem('ptMovimientos', JSON.stringify(movimientos)); } catch(e) {}
+  try { localStorage.setItem('ptMov', JSON.stringify(movimientos)); } catch(e) {}
   renderMovimientos();
   renderPortfolio();
-  document.getElementById('last-updated').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-AR');
+  document.getElementById('last-updated').textContent = new Date().toLocaleTimeString('es-AR');
 }
 
 function renderMovimientos() {
-  const body = document.getElementById('mov-body');
-  const empty = document.getElementById('mov-empty');
-  const wrap = document.getElementById('mov-wrap');
-  if (!movimientos.length) { empty.style.display = ''; wrap.style.display = 'none'; return; }
-  empty.style.display = 'none'; wrap.style.display = '';
-  body.innerHTML = movimientos.slice().reverse().map(m => `
-    <tr>
-      <td class="mono">${m.fecha}</td>
-      <td><span class="badge badge-${m.tipo}">${m.tipo}</span></td>
-      <td class="muted">${MERCADO_LABELS[m.mercado] || m.mercado}</td>
-      <td style="font-weight:600">${m.ticker}</td>
-      <td class="mono">${m.qty || ''}</td>
-      <td class="mono">${m.precio != null ? m.precio.toFixed(2) : ''}</td>
-      <td class="mono muted">${m.moneda}</td>
-      <td class="mono muted">${m.comision || 0}</td>
-      <td class="muted" style="max-width:150px;overflow:hidden;text-overflow:ellipsis">${m.notas || ''}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteMovimiento(${m.id})">✕</button></td>
-    </tr>`).join('');
+  var body = document.getElementById('mov-body');
+  var empty = document.getElementById('mov-empty');
+  var wrap = document.getElementById('mov-wrap');
+  if (!movimientos.length) { empty.style.display=''; wrap.style.display='none'; return; }
+  empty.style.display='none'; wrap.style.display='';
+  body.innerHTML = movimientos.slice().reverse().map(function(m){
+    var mLabel = MKT[m.mercado] ? MKT[m.mercado].label : m.mercado;
+    return '<tr>' +
+      '<td class="mono">' + m.fecha + '</td>' +
+      '<td><span class="badge badge-' + m.tipo + '">' + m.tipo + '</span></td>' +
+      '<td><span class="mkt-badge">' + mLabel + '</span></td>' +
+      '<td style="font-weight:600">' + m.ticker + '</td>' +
+      '<td class="mono">' + (m.qty || '') + '</td>' +
+      '<td class="mono">' + (m.precio != null ? Number(m.precio).toFixed(2) : '') + '</td>' +
+      '<td class="mono muted">' + m.moneda + '</td>' +
+      '<td class="mono muted">' + (m.comision || 0) + '</td>' +
+      '<td class="muted" style="max-width:140px;overflow:hidden;text-overflow:ellipsis">' + (m.notas||'') + '</td>' +
+      '<td><button class="btn btn-danger btn-sm" onclick="deleteMovimiento(' + m.id + ')">x</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function toUSD(amount, moneda) {
+  if (moneda === 'ARS') { return tcBlue ? amount / tcBlue : 0; }
+  return amount;
 }
 
 function getPositions() {
-  const pos = {};
-  for (const m of movimientos) {
-    if (m.tipo === 'aporte') continue;
+  var pos = {};
+  movimientos.forEach(function(m){
+    if (m.tipo === 'aporte') return;
+    var key = posKey(m.ticker, m.mercado);
+    if (!pos[key]) pos[key] = { ticker: m.ticker, mercado: m.mercado, qty: 0, costUSD: 0, dividendsUSD: 0 };
+    var p = pos[key];
+    var priceUSD = toUSD(m.precio, m.moneda);
+    var comUSD = toUSD(m.comision || 0, m.moneda);
     if (m.tipo === 'dividendo') {
-      if (!pos[m.ticker]) pos[m.ticker] = { ticker: m.ticker, mercado: m.mercado, qty: 0, cost: 0, moneda: m.moneda, dividends: 0 };
-      const priceUSD = m.moneda === 'ARS' && tcUSDARS ? m.precio / tcUSDARS : m.precio;
-      pos[m.ticker].dividends = (pos[m.ticker].dividends || 0) + priceUSD;
-      continue;
-    }
-    if (!pos[m.ticker]) pos[m.ticker] = { ticker: m.ticker, mercado: m.mercado, qty: 0, cost: 0, moneda: m.moneda, dividends: 0 };
-    const p = pos[m.ticker];
-    const priceUSD = m.moneda === 'ARS' && tcUSDARS ? m.precio / tcUSDARS : m.precio;
-    const comisionUSD = m.moneda === 'ARS' && tcUSDARS ? m.comision / tcUSDARS : m.comision;
-    if (m.tipo === 'compra') {
-      p.cost += priceUSD * m.qty + comisionUSD;
+      p.dividendsUSD += priceUSD;
+    } else if (m.tipo === 'compra') {
+      p.costUSD += priceUSD * m.qty + comUSD;
       p.qty += m.qty;
     } else if (m.tipo === 'venta') {
-      const avg = p.qty > 0 ? p.cost / p.qty : 0;
-      p.cost -= avg * m.qty;
+      var avg = p.qty > 0 ? p.costUSD / p.qty : 0;
+      p.costUSD -= avg * m.qty;
       p.qty -= m.qty;
     }
-  }
-  return Object.values(pos).filter(p => p.qty > 0.00001);
+  });
+  return Object.values(pos).filter(function(p){ return p.qty > 0.000001; });
 }
 
 function renderPortfolio() {
-  const positions = getPositions();
-  const body = document.getElementById('positions-body');
-  const empty = document.getElementById('positions-empty');
-  const wrap = document.getElementById('positions-wrap');
+  var positions = getPositions();
+  var body = document.getElementById('pos-body');
+  var empty = document.getElementById('pos-empty');
+  var wrap = document.getElementById('pos-wrap');
 
   if (!positions.length) {
-    empty.style.display = ''; wrap.style.display = 'none';
-    ['total-usd','total-ars','total-pnl','total-divs'].forEach(id => document.getElementById(id).textContent = '—');
+    empty.style.display=''; wrap.style.display='none';
+    ['m-total-usd','m-total-ars','m-pnl','m-costo','m-divs'].forEach(function(id){ document.getElementById(id).textContent='—'; });
     return;
   }
-  empty.style.display = 'none'; wrap.style.display = '';
+  empty.style.display='none'; wrap.style.display='';
 
-  let totalVal = 0, totalCost = 0;
+  var totalValUSD=0, totalCostUSD=0, totalDivs=0;
 
-  body.innerHTML = positions.map(p => {
-    const q = quotes[p.ticker];
-    const rawPrice = q ? q.price : null;
-    const isARS = p.mercado === 'ARG' || p.mercado === 'BONO' || p.mercado === 'ON';
-    const currentUSD = rawPrice ? (isARS && tcUSDARS ? rawPrice / tcUSDARS : rawPrice) : null;
-    const valueUSD = currentUSD != null ? currentUSD * p.qty : null;
-    const avgCost = p.qty > 0 ? p.cost / p.qty : 0;
-    const pnl = valueUSD != null ? valueUSD - p.cost : null;
-    const pnlPct = pnl != null && p.cost > 0 ? pnl / p.cost * 100 : null;
-    if (valueUSD != null) totalVal += valueUSD;
-    totalCost += p.cost;
-    const pc = pnl != null ? (pnl >= 0 ? 'pos' : 'neg') : '';
-    const priceDisplay = rawPrice != null
-      ? rawPrice.toFixed(2) + (isARS ? ' ARS' : ' USD')
-      : '<span class="muted">—</span>';
-    return `<tr>
-      <td style="font-weight:600">${p.ticker}</td>
-      <td><span class="muted" style="font-size:0.7rem">${MERCADO_LABELS[p.mercado]||p.mercado}</span></td>
-      <td class="mono">${p.qty % 1 === 0 ? p.qty.toFixed(0) : p.qty.toFixed(4)}</td>
-      <td class="mono">${avgCost.toFixed(2)} USD</td>
-      <td class="mono">${priceDisplay}</td>
-      <td class="mono">${valueUSD != null ? '$' + valueUSD.toFixed(2) : '—'}</td>
-      <td class="mono ${pc}">${pnl != null ? (pnl >= 0 ? '+' : '') + pnl.toFixed(2) : '—'}</td>
-      <td class="mono ${pc}">${pnlPct != null ? (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(2) + '%' : '—'}</td>
-    </tr>`;
+  body.innerHTML = positions.map(function(p){
+    var key = posKey(p.ticker, p.mercado);
+    var q = quotes[key];
+    var rawPrice = q ? q.price : null;
+    var isARS = isARSMarket(p.mercado);
+    var currentUSD = rawPrice != null ? (isARS && tcBlue ? rawPrice / tcBlue : rawPrice) : null;
+    var valueUSD = currentUSD != null ? currentUSD * p.qty : null;
+    var avgCostUSD = p.qty > 0 ? p.costUSD / p.qty : 0;
+    var pnl = valueUSD != null ? valueUSD - p.costUSD : null;
+    var pnlPct = pnl != null && p.costUSD > 0 ? pnl / p.costUSD * 100 : null;
+    if (valueUSD != null) totalValUSD += valueUSD;
+    totalCostUSD += p.costUSD;
+    totalDivs += p.dividendsUSD;
+    var pc = pnl != null ? (pnl >= 0 ? 'pos' : 'neg') : '';
+    var currency = isARS ? 'ARS' : 'USD';
+    var priceDisplay = rawPrice != null ? rawPrice.toFixed(2) + ' ' + currency : '<span style="color:var(--text3)">—</span>';
+    return '<tr>' +
+      '<td style="font-weight:600">' + p.ticker + '</td>' +
+      '<td><span class="mkt-badge">' + getMkt(p.mercado).label + '</span></td>' +
+      '<td class="mono">' + (p.qty % 1 === 0 ? p.qty.toFixed(0) : p.qty.toFixed(4)) + '</td>' +
+      '<td class="mono muted">' + avgCostUSD.toFixed(2) + ' USD</td>' +
+      '<td class="mono">' + priceDisplay + '</td>' +
+      '<td class="mono">' + (valueUSD != null ? '$' + valueUSD.toFixed(2) : '—') + '</td>' +
+      '<td class="mono ' + pc + '">' + (pnl != null ? (pnl>=0?'+':'') + pnl.toFixed(2) : '—') + '</td>' +
+      '<td class="mono ' + pc + '">' + (pnlPct != null ? (pnlPct>=0?'+':'') + pnlPct.toFixed(2) + '%' : '—') + '</td>' +
+    '</tr>';
   }).join('');
 
-  document.getElementById('total-usd').textContent = totalVal > 0 ? '$' + totalVal.toFixed(2) : '—';
-  document.getElementById('total-ars').textContent = totalVal > 0 && tcUSDARS
-    ? '$' + (totalVal * tcUSDARS).toLocaleString('es-AR', { maximumFractionDigits: 0 })
-    : '—';
+  document.getElementById('m-total-usd').textContent = totalValUSD > 0 ? '$' + totalValUSD.toFixed(2) : '—';
+  document.getElementById('m-total-ars').textContent = totalValUSD > 0 && tcBlue ? '$' + Math.round(totalValUSD * tcBlue).toLocaleString('es-AR') : '—';
+  document.getElementById('m-costo').textContent = '$' + totalCostUSD.toFixed(2);
+  document.getElementById('m-divs').textContent = totalDivs > 0 ? '$' + totalDivs.toFixed(2) : '—';
 
-  const pnl = totalVal - totalCost;
-  const pnlEl = document.getElementById('total-pnl');
-  const pnlPctEl = document.getElementById('total-pnl-pct');
-  if (totalVal > 0) {
-    pnlEl.textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(2) + ' USD';
-    pnlEl.className = 'metric-value mono ' + (pnl >= 0 ? 'pos' : 'neg');
-    pnlPctEl.textContent = totalCost > 0 ? (pnl >= 0 ? '+' : '') + (pnl / totalCost * 100).toFixed(2) + '%' : '';
+  var pnlTotal = totalValUSD - totalCostUSD;
+  var pnlEl = document.getElementById('m-pnl');
+  var pnlPctEl = document.getElementById('m-pnl-pct');
+  if (totalValUSD > 0) {
+    pnlEl.textContent = (pnlTotal >= 0 ? '+' : '') + pnlTotal.toFixed(2);
+    pnlEl.className = 'metric-value ' + (pnlTotal >= 0 ? 'pos' : 'neg');
+    pnlPctEl.textContent = totalCostUSD > 0 ? (pnlTotal >= 0 ? '+' : '') + (pnlTotal / totalCostUSD * 100).toFixed(2) + '%' : '';
   } else {
     pnlEl.textContent = '—';
-    pnlEl.className = 'metric-value mono';
+    pnlEl.className = 'metric-value';
+    pnlPctEl.textContent = '';
   }
 
-  if (tcUSDARS) {
-    document.getElementById('tc-header').textContent = '$' + tcUSDARS.toLocaleString('es-AR', { maximumFractionDigits: 0 });
-    document.getElementById('tc-header-sub').textContent = 'Blue';
+  if (tcBlue) {
+    document.getElementById('m-tc').textContent = '$' + Math.round(tcBlue).toLocaleString('es-AR');
+    document.getElementById('m-tc-sub').textContent = 'blue';
+    document.getElementById('tc-pill').textContent = 'Blue $' + Math.round(tcBlue).toLocaleString('es-AR');
   }
 
-  const allDivs = movimientos.filter(m => m.tipo === 'dividendo');
-  const totalDiv = allDivs.reduce((acc, d) => acc + (d.moneda === 'ARS' && tcUSDARS ? d.precio / tcUSDARS : d.precio), 0);
-  document.getElementById('total-divs').textContent = allDivs.length ? '$' + totalDiv.toFixed(2) + ' USD' : '—';
-
-  const divsEl = document.getElementById('divs-content');
+  var allDivs = movimientos.filter(function(m){ return m.tipo==='dividendo'; });
+  var divsEl = document.getElementById('divs-content');
   if (!allDivs.length) {
-    divsEl.className = 'empty-state';
-    divsEl.textContent = 'Sin dividendos registrados';
+    divsEl.className = 'empty-state'; divsEl.textContent = 'Sin dividendos registrados';
   } else {
+    var totalDivUSD = allDivs.reduce(function(acc,d){ return acc + toUSD(d.precio, d.moneda); }, 0);
     divsEl.className = '';
-    divsEl.innerHTML = `<div class="table-wrap"><table>
-      <thead><tr><th>Fecha</th><th>Ticker</th><th>Monto</th><th>Moneda</th><th>Notas</th></tr></thead>
-      <tbody>${allDivs.map(d => `<tr>
-        <td class="mono">${d.fecha}</td>
-        <td style="font-weight:600">${d.ticker}</td>
-        <td class="mono pos">+${d.precio.toFixed(2)}</td>
-        <td class="mono muted">${d.moneda}</td>
-        <td class="muted">${d.notas || ''}</td>
-      </tr>`).join('')}</tbody>
-    </table></div>
-    <div style="padding:10px 1rem;font-size:0.8rem;font-family:var(--mono);color:var(--accent);border-top:1px solid var(--border)">
-      Total: $${totalDiv.toFixed(2)} USD
-    </div>`;
+    divsEl.innerHTML = '<div class="table-wrap"><table>' +
+      '<thead><tr><th>Fecha</th><th>Ticker</th><th>Monto</th><th>Moneda</th><th>Notas</th></tr></thead>' +
+      '<tbody>' + allDivs.map(function(d){
+        return '<tr><td class="mono">' + d.fecha + '</td><td style="font-weight:600">' + d.ticker + '</td>' +
+          '<td class="mono pos">+' + Number(d.precio).toFixed(2) + '</td>' +
+          '<td class="mono muted">' + d.moneda + '</td>' +
+          '<td class="muted">' + (d.notas||'') + '</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      '<div style="padding:8px 0.9rem;font-size:0.75rem;font-family:var(--mono);color:var(--accent);border-top:1px solid var(--border)">Total: $' + totalDivUSD.toFixed(2) + ' USD</div>';
   }
-}
-
-async function callClaude(prompt) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      messages: [{ role: 'user', content: prompt }]
-    })
-  });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
-  return data.content.map(b => b.type === 'text' ? b.text : '').join(' ');
 }
 
 async function fetchTC() {
-  const el = document.getElementById('tc-result');
-  el.innerHTML = '<span class="spinner"></span> Consultando tipo de cambio...';
+  var el = document.getElementById('tc-result');
+  el.innerHTML = '<span class="spinner"></span> Consultando dolarapi.com...';
   el.className = '';
   try {
-    const resp = await callClaude('What is the current USD to Argentine Peso (ARS) blue/informal exchange rate and the official rate today? Respond ONLY with a JSON object: {"blue":1234,"oficial":1234,"date":"2025-01-01"} — no markdown, no extra text.');
-    const parsed = JSON.parse(resp.replace(/```json|```/g, '').trim());
-    tcUSDARS = parsed.blue || parsed.oficial;
-    el.innerHTML = `
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px">
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.5rem;text-align:center">
-          <div class="metric-label">Dólar blue</div>
-          <div class="metric-value mono pos">$${parsed.blue?.toLocaleString('es-AR') || '—'}</div>
-        </div>
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.5rem;text-align:center">
-          <div class="metric-label">Dólar oficial</div>
-          <div class="metric-value mono">$${parsed.oficial?.toLocaleString('es-AR') || '—'}</div>
-        </div>
-      </div>
-      <div style="font-size:0.7rem;font-family:var(--mono);color:var(--text3)">Usando dólar blue para conversiones. Fecha: ${parsed.date || 'hoy'}</div>`;
-    document.getElementById('tc-header').textContent = '$' + tcUSDARS?.toLocaleString('es-AR', { maximumFractionDigits: 0 });
-    document.getElementById('tc-header-sub').textContent = 'Blue';
+    var res = await fetch('https://dolarapi.com/v1/dolares/blue');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+    tcBlue = data.venta;
+    var tcVenta = data.venta;
+    var tcCompra = data.compra;
+    var tcFecha = data.fechaActualizacion || '';
+
+    var oficial = null;
+    try {
+      var r2 = await fetch('https://dolarapi.com/v1/dolares/oficial');
+      var d2 = await r2.json();
+      oficial = d2.venta;
+      tcOficial = oficial;
+    } catch(e2) {}
+
+    el.innerHTML =
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem">' +
+        '<div class="metric" style="flex:0 0 auto"><div class="metric-label">Blue venta</div><div class="metric-value pos">$' + Math.round(tcVenta).toLocaleString('es-AR') + '</div></div>' +
+        '<div class="metric" style="flex:0 0 auto"><div class="metric-label">Blue compra</div><div class="metric-value">$' + Math.round(tcCompra).toLocaleString('es-AR') + '</div></div>' +
+        (oficial ? '<div class="metric" style="flex:0 0 auto"><div class="metric-label">Oficial venta</div><div class="metric-value muted">$' + Math.round(oficial).toLocaleString('es-AR') + '</div></div>' : '') +
+      '</div>' +
+      '<div style="font-size:0.68rem;font-family:var(--mono);color:var(--text3)">Fuente: dolarapi.com &middot; ' + (tcFecha ? new Date(tcFecha).toLocaleString('es-AR') : new Date().toLocaleString('es-AR')) + '</div>';
+
+    document.getElementById('tc-pill').textContent = 'Blue $' + Math.round(tcBlue).toLocaleString('es-AR');
     renderPortfolio();
   } catch(e) {
-    el.textContent = 'Error al consultar. Verificá tu conexión e intentá de nuevo.';
+    el.textContent = 'Error: ' + e.message;
     el.className = 'empty-state';
   }
 }
 
-async function fetchSingleQuote() {
-  const ticker = document.getElementById('q-ticker').value.trim().toUpperCase();
-  const mercado = document.getElementById('q-mercado').value;
-  const el = document.getElementById('q-result');
-  if (!ticker) { el.innerHTML = '<span style="color:var(--red);font-size:0.8rem;font-family:var(--mono)">Ingresá un ticker</span>'; return; }
-  el.innerHTML = '<span class="spinner"></span> Buscando cotización...';
-  try {
-    const mktDesc = { USA:'NYSE/NASDAQ', ARG:'Buenos Aires Stock Exchange BYMA', CEDEAR:'CEDEAR en Argentina', CRYPTO:'crypto market', ETF:'ETF market', BONO:'Argentine government bond market', ON:'Argentine corporate bond market' }[mercado] || mercado;
-    const currency = (mercado === 'ARG' || mercado === 'BONO' || mercado === 'ON') ? 'ARS' : 'USD';
-    const resp = await callClaude(`Current market price of ${ticker} on ${mktDesc} in ${currency}. Respond ONLY with JSON: {"ticker":"${ticker}","price":123.45,"currency":"${currency}","name":"Full name","change_pct":1.23,"source":"source name"} — no markdown.`);
-    const parsed = JSON.parse(resp.replace(/```json|```/g, '').trim());
-    quotes[ticker] = { price: parsed.price, currency: parsed.currency, mercado };
-    const chg = parsed.change_pct;
-    el.innerHTML = `<div class="quote-box">
-      <span class="quote-ticker">${ticker}</span>
-      <span class="quote-price">${parsed.price?.toFixed(2)} ${parsed.currency}</span>
-      <span class="mono ${chg >= 0 ? 'pos' : 'neg'}" style="font-size:0.8rem">${chg != null ? (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%' : ''}</span>
-      <span class="muted" style="font-size:0.75rem;font-family:var(--mono)">${parsed.name || ''}</span>
-      <span style="margin-left:auto;font-size:0.65rem;font-family:var(--mono);color:var(--text3)">vía ${parsed.source || mercado}</span>
-    </div>`;
-    renderPortfolio();
-  } catch(e) {
-    el.innerHTML = '<span style="color:var(--red);font-size:0.8rem;font-family:var(--mono)">Error al consultar. Intentá de nuevo.</span>';
+async function fetchYahoo(yTicker) {
+  var urls = [
+    'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(yTicker) + '?interval=1d&range=1d',
+    'https://query2.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(yTicker) + '?interval=1d&range=1d'
+  ];
+  var lastErr;
+  for (var i = 0; i < urls.length; i++) {
+    try {
+      var res = await fetch(urls[i]);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var data = await res.json();
+      var meta = data && data.chart && data.chart.result && data.chart.result[0] && data.chart.result[0].meta;
+      if (!meta) throw new Error('Sin datos');
+      var price = meta.regularMarketPrice != null ? meta.regularMarketPrice : meta.chartPreviousClose;
+      var prev = meta.previousClose != null ? meta.previousClose : meta.chartPreviousClose;
+      var changePct = (prev && prev !== 0) ? (price - prev) / prev * 100 : 0;
+      return { price: price, currency: meta.currency, changePct: changePct };
+    } catch(e) { lastErr = e; }
   }
+  throw lastErr || new Error('Error Yahoo');
 }
 
 async function fetchAllQuotes() {
-  const positions = getPositions();
+  var positions = getPositions();
   if (!positions.length) return;
-  const btn = document.querySelector('.btn-accent');
-  const icon = document.getElementById('btn-refresh-icon');
+
+  var icon = document.getElementById('refresh-icon');
+  var status = document.getElementById('refresh-status');
+  var progressWrap = document.getElementById('pos-progress');
+  var progressFill = document.getElementById('progress-fill');
+
   icon.innerHTML = '<span class="spinner"></span>';
-  for (const p of positions) {
+  progressWrap.style.display = '';
+  progressFill.style.width = '0%';
+  status.textContent = 'Actualizando TC...';
+
+  try { await fetchTC(); } catch(e) {}
+
+  var total = positions.length;
+  var done = 0;
+  var errors = 0;
+
+  for (var i = 0; i < positions.length; i++) {
+    var p = positions[i];
+    var key = posKey(p.ticker, p.mercado);
+    status.textContent = (done+1) + '/' + total + ' ' + p.ticker;
     try {
-      const mktDesc = { USA:'NYSE/NASDAQ', ARG:'Buenos Aires Stock Exchange BYMA', CEDEAR:'CEDEAR Argentina', CRYPTO:'crypto market', ETF:'ETF market', BONO:'Argentine government bond market', ON:'Argentine corporate bond market' }[p.mercado] || p.mercado;
-      const currency = (p.mercado === 'ARG' || p.mercado === 'BONO' || p.mercado === 'ON') ? 'ARS' : 'USD';
-      const resp = await callClaude(`Current price of ${p.ticker} on ${mktDesc} in ${currency}. ONLY JSON: {"ticker":"${p.ticker}","price":123.45,"currency":"${currency}","change_pct":1.23} no markdown.`);
-      const parsed = JSON.parse(resp.replace(/```json|```/g, '').trim());
-      quotes[p.ticker] = { price: parsed.price, currency: parsed.currency, mercado: p.mercado };
+      var yTicker = getYahooTicker(p.ticker, p.mercado);
+      var q = await fetchYahoo(yTicker);
+      quotes[key] = { price: q.price, currency: q.currency, changePct: q.changePct, ts: Date.now() };
       renderPortfolio();
-      await new Promise(r => setTimeout(r, 800));
-    } catch(e) { /* skip */ }
+    } catch(e) {
+      errors++;
+    }
+    done++;
+    progressFill.style.width = Math.round(done / total * 100) + '%';
+    await new Promise(function(r){ setTimeout(r, 350); });
   }
+
   icon.textContent = '⟳';
-  document.getElementById('last-updated').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-AR');
+  progressWrap.style.display = 'none';
+  status.className = errors > 0 ? 'err-msg' : 'status-msg';
+  status.textContent = errors > 0 ? errors + ' sin datos' : 'Actualizado';
+  setTimeout(function(){ status.textContent=''; }, 5000);
+  document.getElementById('last-updated').textContent = new Date().toLocaleTimeString('es-AR');
+  try { localStorage.setItem('ptQuotes', JSON.stringify(quotes)); } catch(e) {}
 }
 
 function exportCSV() {
   if (!movimientos.length) return;
-  const headers = ['Fecha','Tipo','Mercado','Ticker','Cantidad','Precio','Moneda','Comision','Notas'];
-  const rows = movimientos.map(m =>
-    [m.fecha, m.tipo, m.mercado, m.ticker, m.qty, m.precio, m.moneda, m.comision, m.notas]
-    .map(v => `"${v ?? ''}"`)
-    .join(',')
-  );
-  const csv = [headers.join(','), ...rows].join('\n');
-  const a = document.createElement('a');
+  var headers = ['Fecha','Tipo','Mercado','Ticker','Cantidad','Precio','Moneda','Comision','Notas'];
+  var rows = movimientos.map(function(m){
+    return [m.fecha,m.tipo,m.mercado,m.ticker,m.qty,m.precio,m.moneda,m.comision,m.notas].map(function(v){ return '"'+(v!=null?v:'')+'"'; }).join(',');
+  });
+  var csv = [headers.join(',')].concat(rows).join('\n');
+  var a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
   a.download = 'portafolio_' + new Date().toISOString().split('T')[0] + '.csv';
   a.click();
 }
 
 function clearAll() {
-  if (!confirm('¿Seguro que querés borrar todos los movimientos? Esta acción no se puede deshacer.')) return;
-  movimientos = []; quotes = {}; tcUSDARS = null;
-  try { localStorage.removeItem('ptMovimientos'); } catch(e) {}
+  if (!confirm('Seguro que queres borrar todos los movimientos? Esta accion no se puede deshacer.')) return;
+  movimientos=[]; quotes={}; tcBlue=null;
+  try { localStorage.removeItem('ptMov'); localStorage.removeItem('ptQuotes'); } catch(e) {}
   saveAndRender();
 }
 
-// Load saved data
-try {
-  const saved = localStorage.getItem('ptMovimientos');
-  if (saved) { movimientos = JSON.parse(saved); renderMovimientos(); renderPortfolio(); }
-} catch(e) {}
+// INIT
+(function(){
+  try {
+    var saved = localStorage.getItem('ptMov');
+    if (saved) movimientos = JSON.parse(saved);
+    var savedQ = localStorage.getItem('ptQuotes');
+    if (savedQ) quotes = JSON.parse(savedQ);
+    renderMovimientos();
+    renderPortfolio();
+  } catch(e) {}
+  fetchTC().catch(function(){});
+})();
 </script>
 </body>
 </html>
