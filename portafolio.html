@@ -72,7 +72,14 @@ tr:hover td{background:var(--surface2)}
 .ibox{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:.65rem .9rem;font-size:.7rem;font-family:var(--mono);color:var(--text2)}
 .ibox b{color:var(--text)}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-@media(max-width:680px){.main{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto}.sidebar{flex-direction:row;overflow-x:auto;padding:0;border-right:none;border-bottom:1px solid var(--border)}.nav-sec{display:none}.nav-item{padding:.65rem .85rem;flex-direction:column;gap:3px;font-size:.6rem}.content{height:auto}}
+/* Panel grid — lado a lado si entran */
+.panels-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:1rem;align-items:start}
+.panels-grid .card{margin-bottom:0}
+/* Tablas compactas en paneles */
+.panel-table table{width:auto;min-width:100%}
+.panel-table th{padding:.35rem .6rem;font-size:.58rem}
+.panel-table td{padding:.38rem .6rem;font-size:.72rem}
+@media(max-width:680px){.main{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:auto}.sidebar{flex-direction:row;overflow-x:auto;padding:0;border-right:none;border-bottom:1px solid var(--border)}.nav-sec{display:none}.nav-item{padding:.65rem .85rem;flex-direction:column;gap:3px;font-size:.6rem}.content{height:auto}.panels-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -119,10 +126,13 @@ tr:hover td{background:var(--surface2)}
         <div id="pos-empty" class="empty-state">Cargando posiciones...</div>
       </div>
 
+      <!-- Panels grid -->
+      <div class="panels-grid" id="panels-grid">
+
       <!-- Panel NYSE/NASDAQ -->
       <div class="card" id="panel-nyse" style="display:none">
         <div class="card-header"><span class="card-title">🇺🇸 NYSE / NASDAQ</span><span id="panel-nyse-meta" class="tag"></span></div>
-        <div class="tw"><table>
+        <div class="tw panel-table"><table>
           <thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead>
           <tbody id="body-nyse"></tbody>
         </table></div>
@@ -131,7 +141,7 @@ tr:hover td{background:var(--surface2)}
       <!-- Panel Europa -->
       <div class="card" id="panel-europa" style="display:none">
         <div class="card-header"><span class="card-title">🇪🇺 Europa</span><span id="panel-europa-meta" class="tag"></span></div>
-        <div class="tw"><table>
+        <div class="tw panel-table"><table>
           <thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead>
           <tbody id="body-europa"></tbody>
         </table></div>
@@ -140,7 +150,7 @@ tr:hover td{background:var(--surface2)}
       <!-- Panel China/Asia -->
       <div class="card" id="panel-china" style="display:none">
         <div class="card-header"><span class="card-title">🇨🇳 China / Asia</span><span id="panel-china-meta" class="tag"></span></div>
-        <div class="tw"><table>
+        <div class="tw panel-table"><table>
           <thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead>
           <tbody id="body-china"></tbody>
         </table></div>
@@ -149,7 +159,7 @@ tr:hover td{background:var(--surface2)}
       <!-- Panel Cripto -->
       <div class="card" id="panel-cripto" style="display:none">
         <div class="card-header"><span class="card-title">₿ Cripto ETF</span><span id="panel-cripto-meta" class="tag"></span></div>
-        <div class="tw"><table>
+        <div class="tw panel-table"><table>
           <thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead>
           <tbody id="body-cripto"></tbody>
         </table></div>
@@ -158,11 +168,13 @@ tr:hover td{background:var(--surface2)}
       <!-- Panel Brasil -->
       <div class="card" id="panel-brasil" style="display:none">
         <div class="card-header"><span class="card-title">🇧🇷 Brasil</span><span id="panel-brasil-meta" class="tag"></span></div>
-        <div class="tw"><table>
+        <div class="tw panel-table"><table>
           <thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead>
           <tbody id="body-brasil"></tbody>
         </table></div>
       </div>
+
+      </div><!-- /panels-grid -->
       <div class="card">
         <div class="card-header"><span class="card-title">Dividendos cobrados</span></div>
         <div id="divs-content" class="empty-state">Sin dividendos registrados</div>
@@ -479,11 +491,13 @@ function renderPortfolio(){
 
   if(!open.length){
     empty.style.display='';
+    document.getElementById('panels-grid').style.display='none';
     ['panel-nyse','panel-europa','panel-china','panel-cripto','panel-brasil'].forEach(function(id){document.getElementById(id).style.display='none';});
     ['m-val','m-cost','m-pnl','m-rpnl','m-divs','m-count'].forEach(function(id){document.getElementById(id).textContent='—';});
     return;
   }
   empty.style.display='none';
+  document.getElementById('panels-grid').style.display='';
 
   // Build rows per sector
   var sectors={nyse:[],europa:[],china:[],cripto:[],brasil:[]};
