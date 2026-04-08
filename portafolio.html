@@ -605,7 +605,7 @@ function reduceMov(id){
 
 function saveAndRender(){
   try{localStorage.setItem('ptNYSE_mov2',JSON.stringify(movimientos));}catch(e){}
-  renderMovimientos();renderPortfolio();
+  renderMovimientos();renderPortfolio();renderDivsCard();
   document.getElementById('lupd').textContent=new Date().toLocaleTimeString('es-AR');
 }
 
@@ -758,6 +758,7 @@ function renderPortfolio(){
     document.getElementById('panels-grid').style.display='none';
     ['panel-nyse','panel-europa','panel-china','panel-cripto','panel-brasil'].forEach(function(id){document.getElementById(id).style.display='none';});
     ['m-val','m-cost','m-pnl','m-rpnl','m-divs','m-count'].forEach(function(id){document.getElementById(id).textContent='—';});
+    renderDivsCard();
     return;
   }
   empty.style.display='none';
@@ -807,133 +808,117 @@ function renderPortfolio(){
   var pnlTotal=totalVal-totalCost;
   var pnlEl=document.getElementById('m-pnl');
   if(totalVal>0){pnlEl.textContent=(pnlTotal>=0?'+$':'-$')+Math.round(Math.abs(pnlTotal)).toLocaleString('es-AR');pnlEl.className='metric-value '+(pnlTotal>=0?'pos':'neg');document.getElementById('m-pnl-pct').textContent=totalCost>0?(pnlTotal>=0?'+':''+Math.round(pnlTotal/totalCost*100)+'%'):'';} else {pnlEl.textContent='—';pnlEl.className='metric-value';}
-  // ── Dividendos cobrados: combinar movimientos tipo dividendo + array dividendos ──
-  var divsEl=document.getElementById('divs-content');
+  renderDivsCard();
+}
 
-  // Fuente 1: movimientos tipo 'dividendo' (ya tienen precioUSD calculado con CCL del día)
+function renderDivsCard(){
+  var divsEl=document.getElementById('divs-content');
+  if(!divsEl)return;
+
+  // Fuente 1: movimientos tipo dividendo
   var movDivs=movimientos.filter(function(m){return m.tipo==='dividendo';}).map(function(m){
     return {fecha:m.fecha, ticker:m.ticker, usd:m.precioUSD||0, notas:m.notas||''};
   });
 
-  // Fuente 2: array dividendos (sección Dividendos) — ya tienen .usd calculado
-  var regDivs=dividendos.map(function(d){
+  // Fuente 2: array dividendos (sección Dividendos)
+  var regDivs=(dividendos||[]).map(function(d){
     return {fecha:d.fecha, ticker:d.ticker, usd:d.usd||0, notas:d.notas||''};
   });
 
-  // Fuente 3: TRK.divs (Tracker) — en USD ya; los ARS se convierten con CCL del día de cobro
-  var trkDivs=(typeof TRK!=='undefined'&&TRK.divs?TRK.divs:[]).map(function(d){
+  // Fuente 3: TRK.divs — leer de localStorage directamente (no requiere que el tracker esté abierto)
+  var trkRaw=[];
+  try{var s=localStorage.getItem('trk_divs_v1');if(s)trkRaw=JSON.parse(s);}catch(e){}
+  var trkDivs=trkRaw.map(function(d){
     var usd=0;
     if(d.moneda==='USD'){
       usd=d.montoUSD||d.monto||0;
     } else {
-      // ARS: convertir con CCL del día de cobro usando la tabla embebida
       var fechaKey='';
-      if(d.fecha){
-        var fp=d.fecha.split('-'); // formato YYYY-MM-DD
-        if(fp.length===3) fechaKey=fp[2]+'/'+fp[1]+'/'+fp[0]; // DD/MM/YYYY
-      }
-      var cclDia=CCL_TABLE[fechaKey]||TRK.ccl||CCL_HOY;
+      if(d.fecha){var fp=d.fecha.split('-');if(fp.length===3)fechaKey=fp[2]+'/'+fp[1]+'/'+fp[0];}
+      var cclDia=CCL_TABLE[fechaKey]||CCL_HOY;
       usd=cclDia>0?(d.monto||0)/cclDia:0;
     }
-    // Normalizar fecha a DD/MM/YYYY para consistencia
-    var fechaDisp=d.fecha||'';
-    if(fechaDisp.indexOf('-')>0){var fp=fechaDisp.split('-');fechaDisp=fp[2]+'/'+fp[1]+'/'+fp[0];}
-    return {fecha:fechaDisp, ticker:d.ticker||'', usd:usd, notas:(d.tipo||'')};
+    var fd=d.fecha||'';
+    if(fd.indexOf('-')>0){var fp=fd.split('-');fd=fp[2]+'/'+fp[1]+'/'+fp[0];}
+    return {fecha:fd, ticker:d.ticker||'', usd:usd, notas:(d.tipo||'')};
   });
 
-  var allDivsCombined=[].concat(movDivs,regDivs,trkDivs);
+  var all=[].concat(movDivs,regDivs,trkDivs);
 
-  if(!allDivsCombined.length){
-    divsEl.className='empty-state';divsEl.textContent='Sin dividendos registrados';
-  } else {
-    var totUSD=allDivsCombined.reduce(function(a,d){return a+(d.usd||0);},0);
-
-    // Agrupar por mes (YYYY-MM) para la gráfica
-    var byMonth={};
-    allDivsCombined.forEach(function(d){
-      if(!d.fecha)return;
-      // Soportar DD/MM/YYYY y DD/MM/YY y YYYY-MM-DD
-      var yr,mo;
-      var fp=d.fecha.split('/');
-      if(fp.length===3){
-        yr=fp[2].length===2?'20'+fp[2]:fp[2];
-        mo=fp[1].padStart(2,'0');
-      } else {
-        var fd=d.fecha.split('-');
-        yr=fd[0];mo=(fd[1]||'').padStart(2,'0');
-      }
-      var key=yr+'-'+mo;
-      byMonth[key]=(byMonth[key]||0)+(d.usd||0);
-    });
-
-    var months=Object.keys(byMonth).sort();
-    var maxVal=Math.max.apply(null,months.map(function(k){return byMonth[k];}));
-    var MNAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-
-    // Construir SVG de barras inline
-    var BAR_W=28, BAR_GAP=6, CHART_H=70, LABEL_H=16, PAD_L=40, PAD_R=10;
-    var svgW=PAD_L+(BAR_W+BAR_GAP)*months.length+PAD_R;
-    var svgH=CHART_H+LABEL_H+4;
-
-    var bars=months.map(function(k,i){
-      var val=byMonth[k];
-      var barH=maxVal>0?Math.max(2,Math.round(val/maxVal*CHART_H)):2;
-      var x=PAD_L+i*(BAR_W+BAR_GAP);
-      var y=CHART_H-barH;
-      var parts=k.split('-');
-      var moIdx=parseInt(parts[1],10)-1;
-      var label=(MNAMES[moIdx]||parts[1])+'\''+parts[0].slice(2);
-      var valLabel='$'+val.toFixed(0);
-      return '<g>'+
-        '<rect x="'+x+'" y="'+y+'" width="'+BAR_W+'" height="'+barH+'" rx="3" fill="var(--accent)" opacity="0.85"/>'+
-        '<text x="'+(x+BAR_W/2)+'" y="'+(y-3)+'" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="var(--accent)">'+valLabel+'</text>'+
-        '<text x="'+(x+BAR_W/2)+'" y="'+(CHART_H+LABEL_H)+'" text-anchor="middle" font-family="var(--mono)" font-size="7.5" fill="var(--text3)">'+label+'</text>'+
-      '</g>';
-    }).join('');
-
-    // Líneas guía Y
-    var guides=[0.25,0.5,0.75,1].map(function(pct){
-      var y=CHART_H-Math.round(pct*CHART_H);
-      var v=(pct*maxVal).toFixed(0);
-      return '<line x1="'+PAD_L+'" y1="'+y+'" x2="'+(svgW-PAD_R)+'" y2="'+y+'" stroke="var(--border)" stroke-width="1"/>'+
-             '<text x="'+(PAD_L-3)+'" y="'+(y+3)+'" text-anchor="end" font-family="var(--mono)" font-size="7" fill="var(--text3)">'+v+'</text>';
-    }).join('');
-
-    var svgChart='<svg viewBox="0 0 '+svgW+' '+svgH+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+svgW+'px;height:'+svgH+'px;display:block">'+guides+bars+'</svg>';
-
-    // Tabla detalle (ordenada por fecha desc)
-    var sorted=allDivsCombined.slice().sort(function(a,b){
-      var ka=(a.fecha||'').split('/').reverse().join('');
-      var kb=(b.fecha||'').split('/').reverse().join('');
-      return kb.localeCompare(ka);
-    });
-    var tableRows=sorted.map(function(d){
-      return '<tr>'+
-        '<td class="mono">'+(d.fecha||'')+'</td>'+
-        '<td style="font-weight:600">'+(d.ticker||'')+'</td>'+
-        '<td class="mono pos">+USD '+d.usd.toFixed(2)+'</td>'+
-        '<td class="muted">'+(d.notas||'')+'</td>'+
-      '</tr>';
-    }).join('');
-
-    divsEl.className='';
-    divsEl.innerHTML=
-      // Total + gráfica
-      '<div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;padding:.85rem 1rem;border-bottom:1px solid var(--border)">'+
-        '<div>'+
-          '<div style="font-size:.6rem;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Total dividendos</div>'+
-          '<div style="font-size:1.4rem;font-weight:600;font-family:var(--mono);color:var(--accent)">USD '+totUSD.toFixed(2)+'</div>'+
-          '<div style="font-size:.65rem;font-family:var(--mono);color:var(--text3);margin-top:2px">'+allDivsCombined.length+' cobros · '+months.length+' meses</div>'+
-        '</div>'+
-        '<div style="flex:1;min-width:180px;padding-top:4px">'+svgChart+'</div>'+
-      '</div>'+
-      // Tabla
-      '<div class="tw"><table>'+
-        '<thead><tr><th>Fecha</th><th>Ticker</th><th>USD</th><th>Notas</th></tr></thead>'+
-        '<tbody>'+tableRows+'</tbody>'+
-      '</table></div>';
+  if(!all.length){
+    divsEl.className='empty-state';
+    divsEl.textContent='Sin dividendos registrados';
+    return;
   }
+
+  var totUSD=all.reduce(function(a,d){return a+(d.usd||0);},0);
+
+  // Agrupar por mes YYYY-MM
+  var byMonth={};
+  all.forEach(function(d){
+    if(!d.fecha)return;
+    var yr,mo,fp;
+    fp=d.fecha.split('/');
+    if(fp.length===3){yr=fp[2].length===2?'20'+fp[2]:fp[2];mo=fp[1].padStart(2,'0');}
+    else{fp=d.fecha.split('-');yr=fp[0];mo=(fp[1]||'01').padStart(2,'0');}
+    var key=yr+'-'+mo;
+    byMonth[key]=(byMonth[key]||0)+(d.usd||0);
+  });
+
+  var months=Object.keys(byMonth).sort();
+  var maxVal=months.reduce(function(a,k){return Math.max(a,byMonth[k]);},0);
+  var MNAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+  // SVG barras
+  var BW=28,BG=6,CH=72,LH=18,PL=38,PR=8;
+  var SW=PL+(BW+BG)*months.length+PR;
+  var SH=CH+LH+10;
+
+  var bars=months.map(function(k,i){
+    var val=byMonth[k];
+    var bh=maxVal>0?Math.max(3,Math.round(val/maxVal*CH)):3;
+    var x=PL+i*(BW+BG);
+    var y=CH-bh;
+    var parts=k.split('-');
+    var lbl=MNAMES[parseInt(parts[1],10)-1]+"'"+parts[0].slice(2);
+    var vlbl=val>=1?'$'+Math.round(val):'<$1';
+    return '<g>'+
+      '<rect x="'+x+'" y="'+y+'" width="'+BW+'" height="'+bh+'" rx="3" fill="var(--accent)" opacity="0.85"/>'+
+      (bh>=12?'<text x="'+(x+BW/2)+'" y="'+(y-4)+'" text-anchor="middle" font-family="DM Mono,monospace" font-size="7" fill="var(--accent)">'+vlbl+'</text>':'')+
+      '<text x="'+(x+BW/2)+'" y="'+(CH+LH)+'" text-anchor="middle" font-family="DM Mono,monospace" font-size="7" fill="var(--text3)">'+lbl+'</text>'+
+    '</g>';
+  }).join('');
+
+  var guides=[0.25,0.5,1].map(function(pct){
+    var y=CH-Math.round(pct*CH);
+    return '<line x1="'+PL+'" y1="'+y+'" x2="'+(SW-PR)+'" y2="'+y+'" stroke="var(--border)" stroke-width="1"/>'+
+           '<text x="'+(PL-4)+'" y="'+(y+3)+'" text-anchor="end" font-family="DM Mono,monospace" font-size="6.5" fill="var(--text3)">'+Math.round(pct*maxVal)+'</text>';
+  }).join('');
+
+  var svg='<svg viewBox="0 0 '+SW+' '+SH+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:'+SW+'px;height:auto;display:block;overflow:visible">'+guides+bars+'</svg>';
+
+  // Tabla ordenada fecha desc
+  var sorted=all.slice().sort(function(a,b){
+    function ts(f){var p=f.split('/');return p.length===3?p[2]+p[1]+p[0]:f.replace(/-/g,'');}
+    return ts(b.fecha).localeCompare(ts(a.fecha));
+  });
+  var rows=sorted.map(function(d){
+    return '<tr><td class="mono">'+(d.fecha||'')+'</td><td style="font-weight:600">'+(d.ticker||'')+'</td><td class="mono pos">+USD '+d.usd.toFixed(2)+'</td><td class="muted">'+(d.notas||'')+'</td></tr>';
+  }).join('');
+
+  divsEl.className='';
+  divsEl.innerHTML=
+    '<div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;padding:.9rem 1rem;border-bottom:1px solid var(--border)">'+
+      '<div style="min-width:120px">'+
+        '<div style="font-size:.58rem;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Total cobrado</div>'+
+        '<div style="font-size:1.5rem;font-weight:700;font-family:var(--mono);color:var(--accent);letter-spacing:-.02em">USD '+totUSD.toFixed(2)+'</div>'+
+        '<div style="font-size:.62rem;font-family:var(--mono);color:var(--text3);margin-top:3px">'+all.length+' cobros · '+months.length+' mes'+(months.length!==1?'es':'')+'</div>'+
+      '</div>'+
+      '<div style="flex:1;min-width:200px">'+svg+'</div>'+
+    '</div>'+
+    '<div class="tw"><table><thead><tr><th>Fecha</th><th>Ticker</th><th>USD</th><th>Notas</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
+
 
 async function fetchFinnhub(ticker){
   var res=await fetch(FBASE+'/quote?symbol='+encodeURIComponent(ticker)+'&token='+FKEY);
@@ -1056,7 +1041,7 @@ function addDividendo(){
   var usd=ccl?ars/ccl:null;
   dividendos.push({id:Date.now(),fecha:fecha,ticker:ticker,ars:ars,ccl:ccl||null,usd:usd,notas:notas});
   try{localStorage.setItem('ptNYSE_divs',JSON.stringify(dividendos));}catch(e){}
-  renderDividendos();renderPortfolio();
+  renderDividendos();renderPortfolio();renderDivsCard();
   document.getElementById('d-ars').value='';document.getElementById('d-ccl').value='';document.getElementById('d-usd').value='';document.getElementById('d-notas').value='';
   flash(sel,'Dividendo registrado',false);
 }
@@ -1064,13 +1049,13 @@ function addDividendo(){
 function deleteDividendo(id){
   dividendos=dividendos.filter(function(d){return d.id!==id;});
   try{localStorage.setItem('ptNYSE_divs',JSON.stringify(dividendos));}catch(e){}
-  renderDividendos();renderPortfolio();
+  renderDividendos();renderPortfolio();renderDivsCard();
 }
 
 function clearDividendos(){
   if(!confirm('Borrar todos los dividendos?'))return;
   dividendos=[];try{localStorage.removeItem('ptNYSE_divs');}catch(e){}
-  renderDividendos();renderPortfolio();
+  renderDividendos();renderPortfolio();renderDivsCard();
 }
 
 function renderDividendos(){
@@ -1552,7 +1537,7 @@ function trkCalcCCL(){
   try{var sr=localStorage.getItem('ptNYSE_ratios');if(sr){Object.assign(RATIOS_TABLE,JSON.parse(sr));}}catch(e){}
   try{var sd=localStorage.getItem('ptNYSE_divs');if(sd)dividendos=JSON.parse(sd);}catch(e){}
   try{var st=localStorage.getItem('ptNYSE_targets');if(st){Object.assign(TARGET_TABLE,JSON.parse(st));}}catch(e){}
-  renderMovimientos();renderPortfolio();renderRatios();renderTargets();renderDividendos();
+  renderMovimientos();renderPortfolio();renderRatios();renderTargets();renderDividendos();renderDivsCard();
   document.getElementById('lupd').textContent='Datos cargados';
 })();
 </script>
