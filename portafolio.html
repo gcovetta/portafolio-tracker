@@ -528,11 +528,26 @@ function renderRatios(){
   body.innerHTML=tickers.map(function(t){
     return '<tr>'+
       '<td style="font-weight:600">'+t+'</td>'+
-      '<td class="mono">'+RATIOS_TABLE[t]+'</td>'+
-      '<td class="muted" style="font-size:.7rem">1 acción NYSE = '+RATIOS_TABLE[t]+' CEDEARs</td>'+
-      '<td><button class="btn btn-d btn-sm" onclick="deleteRatio(\''+t+'\')">x</button></td>'+
+      '<td><input type="number" min="0.01" step="any" value="'+RATIOS_TABLE[t]+'" id="ri-'+t+'" style="width:70px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.75rem;padding:3px 6px;height:26px"></td>'+
+      '<td style="font-size:.65rem;color:var(--text3)">1 acción NYSE = <b style="color:var(--text2)">'+RATIOS_TABLE[t]+'</b> CEDEARs</td>'+
+      '<td class="gap-row" style="gap:4px">'+
+        '<button class="btn btn-a btn-sm" onclick="updateRatioInline(\''+t+'\')">✓</button>'+
+        '<button class="btn btn-d btn-sm" onclick="deleteRatio(\''+t+'\')">x</button>'+
+      '</td>'+
     '</tr>';
   }).join('');
+}
+
+function updateRatioInline(ticker){
+  var input=document.getElementById('ri-'+ticker);
+  var ratio=parseFloat(input.value);
+  var sel=document.getElementById('ratios-status');
+  if(!ratio||ratio<=0){flash(sel,'Ratio inválido para '+ticker,true);return;}
+  RATIOS_TABLE[ticker]=ratio;
+  try{localStorage.setItem('ptNYSE_ratios',JSON.stringify(RATIOS_TABLE));}catch(e){}
+  renderRatios();
+  recalcMovimientos(ticker);
+  flash(sel,ticker+' actualizado a '+ratio+' — posiciones recalculadas',false);
 }
 
 function recalcMovimientos(ticker){
