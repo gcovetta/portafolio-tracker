@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stock Figuritas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #181818;
+    --surface2: #222222;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0ede8;
+    --muted: #888;
+    --accent: #e8c547;
+    --accent-dim: rgba(232,197,71,0.12);
+    --accent-dim2: rgba(232,197,71,0.2);
+    --green: #4caf7d;
+    --green-dim: rgba(76,175,125,0.12);
+    --red: #e05c5c;
+    --red-dim: rgba(224,92,92,0.12);
+    --blue: #5b9cf6;
+    --blue-dim: rgba(91,156,246,0.12);
+    --orange: #f4855a;
+    --orange-dim: rgba(244,133,90,0.12);
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border2);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo span { color: var(--text); }
+
+  /* TABS */
+  .nav-tabs {
+    display: flex;
+    gap: 2px;
+  }
+  .nav-tab {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: all 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .nav-tab:hover { color: var(--text); background: var(--surface2); }
+  .nav-tab.active { color: var(--accent); background: var(--accent-dim); }
+
+  /* LAYOUT */
+  .container { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* METRICS */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 2rem;
+  }
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.2rem 1.4rem;
+    transition: border-color 0.2s;
+  }
+  .metric:hover { border-color: var(--border2); }
+  .metric-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .metric-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .metric-sub { font-size: 10px; color: var(--muted); margin-top: 4px; }
+  .c-accent { color: var(--accent); }
+  .c-green { color: var(--green); }
+  .c-red { color: var(--red); }
+  .c-blue { color: var(--blue); }
+  .c-orange { color: var(--orange); }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.4rem;
+    margin-bottom: 1.2rem;
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* FORM */
+  .form-grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 110px; }
+  .form-group.narrow { max-width: 100px; flex: none; }
+  .form-group.medium { max-width: 180px; }
+  label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  input, select {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 9px 12px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: #222; }
+
+  /* BUTTONS */
+  .btn {
+    padding: 9px 18px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn:hover { background: var(--surface2); border-color: var(--border2); }
+  .btn-accent { background: var(--accent-dim); color: var(--accent); border-color: rgba(232,197,71,0.3); }
+  .btn-accent:hover { background: var(--accent-dim2); }
+  .btn-green { background: var(--green-dim); color: var(--green); border-color: rgba(76,175,125,0.3); }
+  .btn-green:hover { background: rgba(76,175,125,0.2); }
+  .btn-red { background: var(--red-dim); color: var(--red); border-color: rgba(224,92,92,0.2); }
+  .btn-red:hover { background: rgba(224,92,92,0.2); }
+  .btn-blue { background: var(--blue-dim); color: var(--blue); border-color: rgba(91,156,246,0.2); }
+  .btn-sm { padding: 5px 10px; font-size: 11px; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  tbody td {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+    line-height: 1.4;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+  }
+  .badge-green { background: var(--green-dim); color: var(--green); }
+  .badge-red { background: var(--red-dim); color: var(--red); }
+  .badge-yellow { background: var(--accent-dim); color: var(--accent); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); }
+  .badge-orange { background: var(--orange-dim); color: var(--orange); }
+
+  /* EMPTY */
+  .empty {
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ÁLBUM CARD */
+  .album-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .album-card-info { flex: 1; }
+  .album-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .album-sub { font-size: 11px; color: var(--muted); }
+  .progress-wrap { flex: 1; }
+  .progress-bar {
+    height: 5px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--accent);
+    transition: width 0.4s;
+  }
+  .progress-label { font-size: 10px; color: var(--muted); display: flex; justify-content: space-between; margin-top: 4px; }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+  .section-heading {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  /* RESERVA CARD MOBILE */
+  .name-tag {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+  @media (max-width: 640px) {
+    .container { padding: 1rem; }
+    .header { padding: 0 1rem; }
+    .nav-tab { padding: 6px 10px; font-size: 11px; }
+    .logo { font-size: 15px; }
+    .form-grid { flex-direction: column; }
+    .form-group.narrow, .form-group.medium { max-width: 100%; }
+    .album-card { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+    .progress-wrap { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">◈ <span>Stock</span>Figuritas</div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('stock', this)">Stock</button>
+    <button class="nav-tab" onclick="showTab('paquetes', this)">Paquetes</button>
+    <button class="nav-tab" onclick="showTab('reservas', this)">Reservas</button>
+    <button class="nav-tab" onclick="showTab('ventas', this)">Ventas</button>
+    <button class="nav-tab" onclick="showTab('albumes', this)">Álbumes</button>
+  </nav>
+</header>
+
+<div class="container">
+
+  <!-- STOCK -->
+  <div id="tab-stock" class="section active">
+    <div class="section-header">
+      <div class="section-heading">Inventario</div>
+    </div>
+    <div class="metrics" id="metrics-stock"></div>
+    <div class="card">
+      <div class="card-title">Cargar figuritas</div>
+      <div class="form-grid">
+        <div class="form-group narrow"><label>Nro</label><input type="number" id="fig-num" placeholder="42" min="1" /></div>
+        <div class="form-group"><label>Descripción</label><input type="text" id="fig-desc" placeholder="Ej: Messi, Jugador..." /></div>
+        <div class="form-group narrow"><label>Cantidad</label><input type="number" id="fig-qty" value="1" min="1" /></div>
+        <div class="form-group medium"><label>Álbum</label><select id="fig-album"></select></div>
+        <button class="btn btn-accent" onclick="agregarFigurita()">+ Agregar</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Figuritas cargadas</div>
+      <div class="form-grid" style="margin-bottom:1rem;">
+        <input type="text" id="buscar-fig" placeholder="Buscar por número o nombre..." oninput="renderStock()" style="max-width:260px;flex:none;" />
+        <select id="filtro-album-stock" onchange="renderStock()" style="max-width:180px;flex:none;">
+          <option value="">Todos los álbumes</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:55px">Nro</th>
+            <th>Descripción</th>
+            <th>Álbum</th>
+            <th style="width:65px">Stock</th>
+            <th style="width:80px">Reservado</th>
+            <th style="width:65px">Vendido</th>
+            <th style="width:80px">Disponible</th>
+            <th style="width:40px"></th>
+          </tr></thead>
+          <tbody id="tabla-stock"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAQUETES -->
+  <div id="tab-paquetes" class="section">
+    <div class="section-header">
+      <div class="section-heading">Paquetes</div>
+    </div>
+    <div class="metrics" id="metrics-paquetes"></div>
+    <div class="card">
+      <div class="card-title">Definir tipo de paquete</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Nombre del paquete</label><input type="text" id="paq-nombre" placeholder="Ej: Paquete x5, Sobre Premium..." /></div>
+        <div class="form-group narrow"><label>Figuritas/paquete</label><input type="number" id="paq-figs" placeholder="5" min="1" /></div>
+        <div class="form-group narrow"><label>Precio</label><input type="number" id="paq-precio" placeholder="500" min="0" step="0.01" /></div>
+        <div class="form-group medium"><label>Álbum</label><select id="paq-album"></select></div>
+        <div class="form-group narrow"><label>Stock inicial</label><input type="number" id="paq-stock" placeholder="100" min="0" /></div>
+        <button class="btn btn-accent" onclick="agregarPaquete()">+ Crear</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Paquetes disponibles</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Paquete</th>
+            <th>Álbum</th>
+            <th style="width:80px">Figs/sobre</th>
+            <th style="width:80px">Precio</th>
+            <th style="width:70px">Stock</th>
+            <th style="width:80px">Reservado</th>
+            <th style="width:70px">Vendido</th>
+            <th style="width:85px">Disponible</th>
+            <th style="width:40px"></th>
+          </tr></thead>
+          <tbody id="tabla-paquetes"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESERVAS -->
+  <div id="tab-reservas" class="section">
+    <div class="section-header">
+      <div class="section-heading">Reservas</div>
+    </div>
+    <div class="metrics" id="metrics-reservas"></div>
+    <div class="card">
+      <div class="card-title">Nueva reserva de paquetes</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Nombre del cliente</label><input type="text" id="res-cliente" placeholder="Nombre y apellido" /></div>
+        <div class="form-group"><label>Teléfono / contacto</label><input type="text" id="res-contacto" placeholder="Opcional" /></div>
+        <div class="form-group medium"><label>Paquete</label><select id="res-paquete"><option value="">— Elegir —</option></select></div>
+        <div class="form-group narrow"><label>Cantidad</label><input type="number" id="res-qty" value="1" min="1" /></div>
+        <button class="btn btn-accent" onclick="agregarReserva()">+ Reservar</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Listado de reservas</div>
+      <div class="form-grid" style="margin-bottom:1rem;">
+        <select id="filtro-estado-res" onchange="renderReservas()" style="max-width:160px;flex:none;">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendientes</option>
+          <option value="completada">Completadas</option>
+          <option value="cancelada">Canceladas</option>
+        </select>
+        <input type="text" id="buscar-res" placeholder="Buscar cliente..." oninput="renderReservas()" style="max-width:220px;flex:none;" />
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Cliente</th>
+            <th>Contacto</th>
+            <th>Paquete</th>
+            <th style="width:70px">Cant.</th>
+            <th style="width:90px">Total</th>
+            <th style="width:80px">Fecha</th>
+            <th style="width:80px">Estado</th>
+            <th style="width:130px"></th>
+          </tr></thead>
+          <tbody id="tabla-reservas"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- VENTAS -->
+  <div id="tab-ventas" class="section">
+    <div class="section-header">
+      <div class="section-heading">Ventas</div>
+    </div>
+    <div class="metrics" id="metrics-ventas"></div>
+    <div class="card">
+      <div class="card-title">Registrar venta directa de paquetes</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Nombre del cliente</label><input type="text" id="ven-cliente" placeholder="Nombre y apellido" /></div>
+        <div class="form-group medium"><label>Paquete</label><select id="ven-paquete"><option value="">— Elegir —</option></select></div>
+        <div class="form-group narrow"><label>Cantidad</label><input type="number" id="ven-qty" value="1" min="1" /></div>
+        <button class="btn btn-green" onclick="agregarVenta()">+ Vender</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Historial de ventas</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Cliente</th>
+            <th>Paquete</th>
+            <th style="width:70px">Cant.</th>
+            <th style="width:90px">Precio unit.</th>
+            <th style="width:90px">Total</th>
+            <th style="width:80px">Fecha</th>
+            <th style="width:40px"></th>
+          </tr></thead>
+          <tbody id="tabla-ventas"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ÁLBUMES -->
+  <div id="tab-albumes" class="section">
+    <div class="section-header">
+      <div class="section-heading">Álbumes</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Crear álbum</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Nombre del álbum</label><input type="text" id="alb-nombre" placeholder="Ej: Mundial 2026" /></div>
+        <div class="form-group narrow"><label>Total figuritas</label><input type="number" id="alb-total" placeholder="680" min="1" /></div>
+        <button class="btn btn-accent" onclick="agregarAlbum()">+ Crear</button>
+      </div>
+    </div>
+    <div id="lista-albumes"></div>
+  </div>
+
+</div>
+
+<script>
+let state = {
+  albumes: [{ id: 1, nombre: 'Mundial 2026', total: 680 }],
+  figuritas: [],
+  paquetes: [],
+  reservas: [],
+  ventas: [],
+  nextId: { alb: 2, fig: 1, paq: 1, res: 1, ven: 1 }
+};
+
+function save() {
+  try { localStorage.setItem('fig_stock_v2', JSON.stringify(state)); } catch(e) {}
+}
+function load() {
+  try {
+    const d = localStorage.getItem('fig_stock_v2');
+    if (d) state = JSON.parse(d);
+  } catch(e) {}
+}
+load();
+
+function showTab(name, btn) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  renderAll();
+}
+
+function getAlbumName(id) {
+  const a = state.albumes.find(x => x.id == id);
+  return a ? a.nombre : '—';
+}
+
+function getPaqueteReservado(paqId) {
+  return state.reservas.filter(r => r.paqId == paqId && r.estado === 'pendiente').reduce((s, r) => s + r.qty, 0);
+}
+function getPaqueteVendido(paqId) {
+  return state.ventas.filter(v => v.paqId == paqId).reduce((s, v) => s + v.qty, 0);
+}
+function getPaqueteDisponible(paqId) {
+  const p = state.paquetes.find(x => x.id == paqId);
+  if (!p) return 0;
+  return p.stock - getPaqueteReservado(paqId) - getPaqueteVendido(paqId);
+}
+
+function getFigReservado(figId) {
+  return state.reservas.filter(r => r.estado === 'pendiente').reduce((s, r) => {
+    const p = state.paquetes.find(x => x.id == r.paqId);
+    return s;
+  }, 0);
+}
+function getFigVendido(figId) { return state.ventas.filter(v => v.figId == figId).reduce((s, v) => s + v.qty, 0); }
+function getFigDisponible(figId) {
+  const f = state.figuritas.find(x => x.id == figId);
+  if (!f) return 0;
+  const res = state.reservas.filter(r => r.figId == figId && r.estado === 'pendiente').reduce((s, r) => s + r.qty, 0);
+  const ven = state.ventas.filter(v => v.figId == figId).reduce((s, v) => s + v.qty, 0);
+  return f.qty - res - ven;
+}
+
+function refreshSelects() {
+  ['fig-album', 'filtro-album-stock', 'paq-album'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const curr = el.value;
+    const isFilter = id === 'filtro-album-stock';
+    el.innerHTML = isFilter ? '<option value="">Todos los álbumes</option>' : '';
+    state.albumes.forEach(a => {
+      el.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
+    });
+    if (curr) el.value = curr;
+  });
+
+  ['res-paquete', 'ven-paquete'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const curr = el.value;
+    el.innerHTML = '<option value="">— Elegir paquete —</option>';
+    state.paquetes.forEach(p => {
+      const disp = getPaqueteDisponible(p.id);
+      el.innerHTML += `<option value="${p.id}" ${disp <= 0 ? 'disabled' : ''}>${p.nombre} (${getAlbumName(p.albumId)}) — disp: ${Math.max(0, disp)}</option>`;
+    });
+    if (curr) el.value = curr;
+  });
+}
+
+// ÁLBUMES
+function agregarAlbum() {
+  const nombre = document.getElementById('alb-nombre').value.trim();
+  const total = parseInt(document.getElementById('alb-total').value) || 0;
+  if (!nombre) return alert('Ingresá el nombre del álbum.');
+  state.albumes.push({ id: state.nextId.alb++, nombre, total });
+  document.getElementById('alb-nombre').value = '';
+  document.getElementById('alb-total').value = '';
+  save(); renderAll();
+}
+function eliminarAlbum(id) {
+  if (!confirm('¿Eliminar álbum? Se eliminarán también sus figuritas y paquetes.')) return;
+  state.albumes = state.albumes.filter(a => a.id != id);
+  state.figuritas = state.figuritas.filter(f => f.albumId != id);
+  state.paquetes = state.paquetes.filter(p => p.albumId != id);
+  save(); renderAll();
+}
+
+// FIGURITAS
+function agregarFigurita() {
+  const num = parseInt(document.getElementById('fig-num').value);
+  const desc = document.getElementById('fig-desc').value.trim();
+  const qty = parseInt(document.getElementById('fig-qty').value) || 1;
+  const albumId = parseInt(document.getElementById('fig-album').value);
+  if (!num) return alert('Ingresá el número de figurita.');
+  if (!albumId) return alert('Seleccioná un álbum.');
+  const exist = state.figuritas.find(f => f.num === num && f.albumId === albumId);
+  if (exist) { exist.qty += qty; }
+  else { state.figuritas.push({ id: state.nextId.fig++, num, desc, qty, albumId }); }
+  document.getElementById('fig-num').value = '';
+  document.getElementById('fig-desc').value = '';
+  document.getElementById('fig-qty').value = '1';
+  save(); renderAll();
+}
+function eliminarFigurita(id) {
+  if (!confirm('¿Eliminar figurita?')) return;
+  state.figuritas = state.figuritas.filter(f => f.id != id);
+  save(); renderAll();
+}
+
+// PAQUETES
+function agregarPaquete() {
+  const nombre = document.getElementById('paq-nombre').value.trim();
+  const figs = parseInt(document.getElementById('paq-figs').value) || 5;
+  const precio = parseFloat(document.getElementById('paq-precio').value) || 0;
+  const albumId = parseInt(document.getElementById('paq-album').value);
+  const stock = parseInt(document.getElementById('paq-stock').value) || 0;
+  if (!nombre) return alert('Ingresá el nombre del paquete.');
+  if (!albumId) return alert('Seleccioná un álbum.');
+  state.paquetes.push({ id: state.nextId.paq++, nombre, figs, precio, albumId, stock });
+  document.getElementById('paq-nombre').value = '';
+  document.getElementById('paq-figs').value = '';
+  document.getElementById('paq-precio').value = '';
+  document.getElementById('paq-stock').value = '';
+  save(); renderAll();
+}
+function ajustarStockPaquete(id) {
+  const p = state.paquetes.find(x => x.id == id);
+  if (!p) return;
+  const nuevo = parseInt(prompt(`Stock actual: ${p.stock}\nNuevo stock total:`, p.stock));
+  if (isNaN(nuevo) || nuevo < 0) return;
+  p.stock = nuevo;
+  save(); renderAll();
+}
+function eliminarPaquete(id) {
+  if (!confirm('¿Eliminar paquete?')) return;
+  state.paquetes = state.paquetes.filter(p => p.id != id);
+  save(); renderAll();
+}
+
+// RESERVAS
+function agregarReserva() {
+  const cliente = document.getElementById('res-cliente').value.trim();
+  const contacto = document.getElementById('res-contacto').value.trim();
+  const paqId = parseInt(document.getElementById('res-paquete').value);
+  const qty = parseInt(document.getElementById('res-qty').value) || 1;
+  if (!cliente) return alert('Ingresá el nombre del cliente.');
+  if (!paqId) return alert('Seleccioná un paquete.');
+  if (getPaqueteDisponible(paqId) < qty) return alert('No hay suficiente stock disponible.');
+  const p = state.paquetes.find(x => x.id == paqId);
+  state.reservas.push({
+    id: state.nextId.res++, cliente, contacto, paqId,
+    paqNombre: p.nombre, qty, precio: p.precio,
+    estado: 'pendiente', fecha: new Date().toLocaleDateString('es-AR')
+  });
+  document.getElementById('res-cliente').value = '';
+  document.getElementById('res-contacto').value = '';
+  document.getElementById('res-paquete').value = '';
+  document.getElementById('res-qty').value = '1';
+  save(); renderAll();
+}
+function completarReserva(id) {
+  const res = state.reservas.find(r => r.id == id);
+  if (!res) return;
+  res.estado = 'completada';
+  state.ventas.push({
+    id: state.nextId.ven++, cliente: res.cliente, paqId: res.paqId,
+    paqNombre: res.paqNombre, qty: res.qty, precio: res.precio,
+    fecha: new Date().toLocaleDateString('es-AR'), origenReserva: true
+  });
+  save(); renderAll();
+}
+function cancelarReserva(id) {
+  if (!confirm('¿Cancelar esta reserva?')) return;
+  const res = state.reservas.find(r => r.id == id);
+  if (res) res.estado = 'cancelada';
+  save(); renderAll();
+}
+function eliminarReserva(id) {
+  state.reservas = state.reservas.filter(r => r.id != id);
+  save(); renderAll();
+}
+
+// VENTAS
+function agregarVenta() {
+  const cliente = document.getElementById('ven-cliente').value.trim();
+  const paqId = parseInt(document.getElementById('ven-paquete').value);
+  const qty = parseInt(document.getElementById('ven-qty').value) || 1;
+  if (!cliente) return alert('Ingresá el nombre del cliente.');
+  if (!paqId) return alert('Seleccioná un paquete.');
+  if (getPaqueteDisponible(paqId) < qty) return alert('No hay suficiente stock disponible.');
+  const p = state.paquetes.find(x => x.id == paqId);
+  state.ventas.push({
+    id: state.nextId.ven++, cliente, paqId, paqNombre: p.nombre,
+    qty, precio: p.precio, fecha: new Date().toLocaleDateString('es-AR')
+  });
+  document.getElementById('ven-cliente').value = '';
+  document.getElementById('ven-paquete').value = '';
+  document.getElementById('ven-qty').value = '1';
+  save(); renderAll();
+}
+function eliminarVenta(id) {
+  if (!confirm('¿Eliminar venta?')) return;
+  state.ventas = state.ventas.filter(v => v.id != id);
+  save(); renderAll();
+}
+
+// RENDERS
+function renderMetricsStock() {
+  const total = state.figuritas.reduce((s, f) => s + f.qty, 0);
+  const vendido = state.ventas.reduce((s, v) => s + (v.qty * (state.paquetes.find(p => p.id == v.paqId)?.figs || 0)), 0);
+  document.getElementById('metrics-stock').innerHTML = `
+    <div class="metric"><div class="metric-label">Figuritas totales</div><div class="metric-value c-accent">${total}</div></div>
+    <div class="metric"><div class="metric-label">Tipos distintos</div><div class="metric-value">${state.figuritas.length}</div></div>
+    <div class="metric"><div class="metric-label">Álbumes activos</div><div class="metric-value c-blue">${state.albumes.length}</div></div>
+  `;
+}
+
+function renderStock() {
+  renderMetricsStock();
+  const busq = (document.getElementById('buscar-fig').value || '').toLowerCase();
+  const filtroAlb = document.getElementById('filtro-album-stock').value;
+  let figs = state.figuritas.filter(f => {
+    const b = !busq || String(f.num).includes(busq) || (f.desc || '').toLowerCase().includes(busq);
+    const a = !filtroAlb || String(f.albumId) === filtroAlb;
+    return b && a;
+  }).sort((a, b) => a.num - b.num);
+
+  const tbody = document.getElementById('tabla-stock');
+  if (!figs.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">Sin figuritas cargadas.</td></tr>'; return; }
+  tbody.innerHTML = figs.map(f => {
+    const disp = getFigDisponible(f.id);
+    const dc = disp <= 0 ? 'badge-red' : disp <= 2 ? 'badge-yellow' : 'badge-green';
+    return `<tr>
+      <td style="font-family:'Syne',sans-serif;font-weight:700">${f.num}</td>
+      <td style="color:var(--muted)">${f.desc || '—'}</td>
+      <td style="font-size:11px;color:var(--muted)">${getAlbumName(f.albumId)}</td>
+      <td>${f.qty}</td>
+      <td><span class="badge badge-yellow">0</span></td>
+      <td><span class="badge badge-blue">0</span></td>
+      <td><span class="badge ${dc}">${Math.max(0, disp)}</span></td>
+      <td><button class="btn btn-sm btn-red" onclick="eliminarFigurita(${f.id})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPaquetes() {
+  const totalPaq = state.paquetes.reduce((s, p) => s + p.stock, 0);
+  const totalRes = state.paquetes.reduce((s, p) => s + getPaqueteReservado(p.id), 0);
+  const totalVen = state.paquetes.reduce((s, p) => s + getPaqueteVendido(p.id), 0);
+  const totalDisp = state.paquetes.reduce((s, p) => s + Math.max(0, getPaqueteDisponible(p.id)), 0);
+  document.getElementById('metrics-paquetes').innerHTML = `
+    <div class="metric"><div class="metric-label">Stock total</div><div class="metric-value c-accent">${totalPaq}</div><div class="metric-sub">paquetes</div></div>
+    <div class="metric"><div class="metric-label">Disponibles</div><div class="metric-value c-green">${totalDisp}</div></div>
+    <div class="metric"><div class="metric-label">Reservados</div><div class="metric-value c-orange">${totalRes}</div></div>
+    <div class="metric"><div class="metric-label">Vendidos</div><div class="metric-value c-blue">${totalVen}</div></div>
+  `;
+
+  const tbody = document.getElementById('tabla-paquetes');
+  if (!state.paquetes.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">Sin paquetes creados.</td></tr>'; return; }
+  tbody.innerHTML = state.paquetes.map(p => {
+    const res = getPaqueteReservado(p.id);
+    const ven = getPaqueteVendido(p.id);
+    const disp = Math.max(0, getPaqueteDisponible(p.id));
+    const dc = disp <= 0 ? 'badge-red' : disp <= 5 ? 'badge-yellow' : 'badge-green';
+    return `<tr>
+      <td><span style="font-family:'Syne',sans-serif;font-weight:700">${p.nombre}</span></td>
+      <td style="font-size:11px;color:var(--muted)">${getAlbumName(p.albumId)}</td>
+      <td style="text-align:center">${p.figs}</td>
+      <td>$${p.precio.toLocaleString('es-AR')}</td>
+      <td>${p.stock}</td>
+      <td><span class="badge badge-orange">${res}</span></td>
+      <td><span class="badge badge-blue">${ven}</span></td>
+      <td><span class="badge ${dc}">${disp}</span></td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-sm btn-accent" onclick="ajustarStockPaquete(${p.id})" title="Ajustar stock">↕</button>
+        <button class="btn btn-sm btn-red" onclick="eliminarPaquete(${p.id})">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderReservas() {
+  const pending = state.reservas.filter(r => r.estado === 'pendiente');
+  const totalQty = pending.reduce((s, r) => s + r.qty, 0);
+  const totalVal = pending.reduce((s, r) => s + r.qty * r.precio, 0);
+  document.getElementById('metrics-reservas').innerHTML = `
+    <div class="metric"><div class="metric-label">Reservas activas</div><div class="metric-value c-orange">${pending.length}</div></div>
+    <div class="metric"><div class="metric-label">Paquetes reservados</div><div class="metric-value c-orange">${totalQty}</div></div>
+    <div class="metric"><div class="metric-label">Valor reservado</div><div class="metric-value c-accent">$${totalVal.toLocaleString('es-AR')}</div></div>
+    <div class="metric"><div class="metric-label">Completadas</div><div class="metric-value c-green">${state.reservas.filter(r => r.estado === 'completada').length}</div></div>
+  `;
+
+  const filtroEstado = document.getElementById('filtro-estado-res').value;
+  const busq = (document.getElementById('buscar-res').value || '').toLowerCase();
+  let reservas = [...state.reservas].reverse().filter(r => {
+    const e = !filtroEstado || r.estado === filtroEstado;
+    const b = !busq || r.cliente.toLowerCase().includes(busq);
+    return e && b;
+  });
+
+  const tbody = document.getElementById('tabla-reservas');
+  if (!reservas.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">Sin reservas.</td></tr>'; return; }
+  tbody.innerHTML = reservas.map(r => {
+    const estadoMap = { pendiente: ['badge-yellow','Pendiente'], completada: ['badge-green','Completada'], cancelada: ['badge-red','Cancelada'] };
+    const [ec, el] = estadoMap[r.estado] || ['badge-blue', r.estado];
+    const acciones = r.estado === 'pendiente' ? `
+      <button class="btn btn-sm btn-green" onclick="completarReserva(${r.id})">Vender ✓</button>
+      <button class="btn btn-sm btn-red" onclick="cancelarReserva(${r.id})">Cancelar</button>
+    ` : `<button class="btn btn-sm" onclick="eliminarReserva(${r.id})">✕</button>`;
+    return `<tr>
+      <td><span class="name-tag">${r.cliente}</span></td>
+      <td style="color:var(--muted);font-size:11px">${r.contacto || '—'}</td>
+      <td>${r.paqNombre}</td>
+      <td>${r.qty}</td>
+      <td>$${(r.qty * r.precio).toLocaleString('es-AR')}</td>
+      <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
+      <td><span class="badge ${ec}">${el}</span></td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">${acciones}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderVentas() {
+  const total = state.ventas.reduce((s, v) => s + v.qty * v.precio, 0);
+  const totalUnidades = state.ventas.reduce((s, v) => s + v.qty, 0);
+  document.getElementById('metrics-ventas').innerHTML = `
+    <div class="metric"><div class="metric-label">Total ventas</div><div class="metric-value">${state.ventas.length}</div></div>
+    <div class="metric"><div class="metric-label">Paquetes vendidos</div><div class="metric-value c-blue">${totalUnidades}</div></div>
+    <div class="metric"><div class="metric-label">Recaudado</div><div class="metric-value c-green">$${total.toLocaleString('es-AR')}</div></div>
+  `;
+
+  const tbody = document.getElementById('tabla-ventas');
+  if (!state.ventas.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">Sin ventas registradas.</td></tr>'; return; }
+  tbody.innerHTML = [...state.ventas].reverse().map(v => `<tr>
+    <td><span class="name-tag">${v.cliente}</span></td>
+    <td>${v.paqNombre}${v.origenReserva ? ' <span class="badge badge-blue" style="font-size:10px">reserva</span>' : ''}</td>
+    <td>${v.qty}</td>
+    <td>$${v.precio.toLocaleString('es-AR')}</td>
+    <td><strong>$${(v.qty * v.precio).toLocaleString('es-AR')}</strong></td>
+    <td style="font-size:11px;color:var(--muted)">${v.fecha}</td>
+    <td><button class="btn btn-sm btn-red" onclick="eliminarVenta(${v.id})">✕</button></td>
+  </tr>`).join('');
+}
+
+function renderAlbumes() {
+  const container = document.getElementById('lista-albumes');
+  if (!state.albumes.length) { container.innerHTML = '<div class="empty">Sin álbumes creados.</div>'; return; }
+  container.innerHTML = state.albumes.map(a => {
+    const figs = state.figuritas.filter(f => f.albumId == a.id);
+    const distintas = new Set(figs.map(f => f.num)).size;
+    const pct = a.total ? Math.min(100, Math.round(distintas / a.total * 100)) : 0;
+    const paquetesCnt = state.paquetes.filter(p => p.albumId == a.id).length;
+    return `<div class="album-card">
+      <div class="album-card-info">
+        <div class="album-name">${a.nombre}</div>
+        <div class="album-sub">${distintas} figuritas distintas · ${paquetesCnt} tipo${paquetesCnt !== 1 ? 's' : ''} de paquete${a.total ? ' · Total: ' + a.total + ' figuritas' : ''}</div>
+      </div>
+      ${a.total ? `<div class="progress-wrap">
+        <div class="progress-label"><span>Completitud</span><span>${pct}%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </div>` : ''}
+      <button class="btn btn-sm btn-red" onclick="eliminarAlbum(${a.id})">✕ Eliminar</button>
+    </div>`;
+  }).join('');
+}
+
+function renderAll() {
+  refreshSelects();
+  renderStock();
+  renderPaquetes();
+  renderReservas();
+  renderVentas();
+  renderAlbumes();
+}
+
+renderAll();
+</script>
+</body>
+</html>
