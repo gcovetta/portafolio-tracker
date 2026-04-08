@@ -253,20 +253,6 @@ tr:hover td{background:var(--surface2)}
         </div>
       </div>
 
-      <!-- Modal edicion -->
-      <div id="mov-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center">
-        <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:1.2rem;width:min(520px,95vw);max-height:90vh;overflow-y:auto">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-            <span style="font-weight:600;font-size:.9rem">Editar movimiento</span>
-            <button class="btn btn-sm" onclick="movModalClose()">✕ Cerrar</button>
-          </div>
-          <div class="fg" id="mov-edit-fields"></div>
-          <div class="gap-row" style="margin-top:12px">
-            <button class="btn btn-a" onclick="movModalSave()">✓ Guardar cambios</button>
-            <span id="mov-edit-status" class="smsg"></span>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- DIVIDENDOS (portafolio) -->
@@ -482,6 +468,23 @@ tr:hover td{background:var(--surface2)}
 </div>
 </div>
 
+<!-- Modal edicion movimientos - fuera de cualquier page para que position:fixed funcione -->
+<div id="mov-modal-overlay" onclick="if(event.target===this)movModalClose()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9999;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:1.4rem;width:min(540px,100%);max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.6)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem">
+      <span style="font-weight:600;font-size:.95rem">Editar movimiento</span>
+      <button class="btn btn-sm" onclick="movModalClose()">✕ Cerrar</button>
+    </div>
+    <div class="fg" id="mov-edit-fields" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))"></div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:.6rem .85rem;font-size:.7rem;font-family:var(--mono);color:var(--text2);margin-top:8px" id="me-usd-hint"></div>
+    <div class="gap-row" style="margin-top:12px">
+      <button class="btn btn-a" onclick="movModalSave()">✓ Guardar cambios</button>
+      <button class="btn" onclick="movModalClose()">Cancelar</button>
+      <span id="mov-edit-status" class="smsg"></span>
+    </div>
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════════════════════════════
 // PORTAFOLIO ORIGINAL
@@ -681,12 +684,6 @@ function movModalClose(){
   document.getElementById('mov-modal-overlay').style.display='none';
   MOV_EDIT_ID=null;
 }
-
-// Cerrar modal al click fuera
-document.addEventListener('click',function(e){
-  var overlay=document.getElementById('mov-modal-overlay');
-  if(overlay&&e.target===overlay)movModalClose();
-});
 
 function renderMovimientos(){
   var body=document.getElementById('mov-body');
