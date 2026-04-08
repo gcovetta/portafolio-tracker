@@ -930,13 +930,26 @@ function getPositions(){
   movimientos.forEach(function(m){
     if(m.tipo==='aporte')return;
     var key=m.ticker;
-    if(!pos[key])pos[key]={ticker:m.ticker,mercado:m.mercado,qty:0,costUSD:0,realizedPnl:0,dividendsUSD:0};
+    if(!pos[key])pos[key]={ticker:m.ticker,mercado:m.mercado,qty:0,costUSD:0,costARS:0,realizedPnl:0,dividendsUSD:0};
     var p=pos[key];
     var priceUSD=m.precioUSD||0;
     var comUSD=m.comision||0;
     if(m.tipo==='dividendo'){p.dividendsUSD+=priceUSD;}
-    else if(m.tipo==='compra'){p.costUSD+=priceUSD*m.qty+comUSD;p.qty+=m.qty;}
-    else if(m.tipo==='venta'){var avg=p.qty>0?p.costUSD/p.qty:0;var proceeds=priceUSD*m.qty-comUSD;var costBasis=avg*m.qty;p.realizedPnl+=proceeds-costBasis;p.costUSD-=costBasis;p.qty-=m.qty;}
+    else if(m.tipo==='compra'){
+      p.costUSD+=priceUSD*m.qty+comUSD;
+      p.costARS+=(m.precioARS||0)*m.qty;  // costo original en ARS sin reconversión
+      p.qty+=m.qty;
+    }
+    else if(m.tipo==='venta'){
+      var avg=p.qty>0?p.costUSD/p.qty:0;
+      var avgARS=p.qty>0?p.costARS/p.qty:0;
+      var proceeds=priceUSD*m.qty-comUSD;
+      var costBasis=avg*m.qty;
+      p.realizedPnl+=proceeds-costBasis;
+      p.costUSD-=costBasis;
+      p.costARS-=avgARS*m.qty;
+      p.qty-=m.qty;
+    }
   });
   return Object.values(pos);
 }
@@ -965,8 +978,9 @@ function renderPortfolio(){
     var q=quotes[p.ticker];var price=q?q.price:null;
     var ratio=getRatio(p.ticker);var sector=getSector(p.ticker);
     var avgCost=p.qty>0?p.costUSD/p.qty:0;
-    var ppcCedearARS=(avgCost/ratio)*CCL_HOY;
-    var inversionCedearARS=(p.costUSD/ratio)*CCL_HOY;
+    // PPC e Inversión usan costARS directo (precio original de compra, sin reconvertir por CCL hoy)
+    var ppcCedearARS=p.qty>0?p.costARS/p.qty:0;
+    var inversionCedearARS=p.costARS;
     var mercadoCedearARS=price!=null?(price/ratio)*CCL_HOY:null;
     var pnlPct=mercadoCedearARS!=null&&ppcCedearARS>0?(mercadoCedearARS-ppcCedearARS)/ppcCedearARS*100:null;
     var valueUSD=price!=null?(price/ratio)*p.qty:null;
