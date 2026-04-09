@@ -150,9 +150,9 @@ tr:hover td{background:var(--surface2)}
     <div class="nav-sec">R. Variable</div>
     <div style="padding:.4rem 1.1rem .6rem;display:flex;flex-direction:column;gap:6px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-        <label style="font-size:.65rem;font-family:var(--mono);color:#f97316;font-weight:700">2%</label>
+        <label style="font-size:.65rem;font-family:var(--mono);color:#eab308;font-weight:700">2%</label>
         <input id="rv-naranja" type="number" min="0" step="1" placeholder="$ ARS"
-          style="width:80px;background:var(--bg);border:1px solid #f97316;border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.72rem;padding:2px 6px;height:24px;text-align:right;outline:none"
+          style="width:80px;background:var(--bg);border:1px solid #eab308;border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.72rem;padding:2px 6px;height:24px;text-align:right;outline:none"
           oninput="renderPortfolio()">
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
@@ -196,10 +196,6 @@ tr:hover td{background:var(--surface2)}
           <div class="card-header"><span class="card-title">🇺🇸 NYSE / NASDAQ</span><span id="panel-nyse-meta" class="tag"></span></div>
           <div class="tw panel-table"><table><thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead><tbody id="body-nyse"></tbody></table></div>
         </div>
-        <div class="card" id="panel-brasil" style="display:none">
-          <div class="card-header"><span class="card-title">🇧🇷 Brasil</span><span id="panel-brasil-meta" class="tag"></span></div>
-          <div class="tw panel-table"><table><thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead><tbody id="body-brasil"></tbody></table></div>
-        </div>
         <div class="card" id="panel-europa" style="display:none">
           <div class="card-header"><span class="card-title">🇪🇺 Europa</span><span id="panel-europa-meta" class="tag"></span></div>
           <div class="tw panel-table"><table><thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead><tbody id="body-europa"></tbody></table></div>
@@ -211,6 +207,10 @@ tr:hover td{background:var(--surface2)}
         <div class="card" id="panel-cripto" style="display:none">
           <div class="card-header"><span class="card-title">₿ Cripto ETF</span><span id="panel-cripto-meta" class="tag"></span></div>
           <div class="tw panel-table"><table><thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead><tbody id="body-cripto"></tbody></table></div>
+        </div>
+        <div class="card" id="panel-brasil" style="display:none">
+          <div class="card-header"><span class="card-title">🇧🇷 Brasil</span><span id="panel-brasil-meta" class="tag"></span></div>
+          <div class="tw panel-table"><table><thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead><tbody id="body-brasil"></tbody></table></div>
         </div>
       </div>
       <div class="card">
@@ -1029,7 +1029,7 @@ function renderPortfolio(){
   function pctColor(pct){
     if(pct===null||isNaN(pct)) return 'var(--text3)';
     if(pct<0) return 'var(--red)';
-    if(pct<10) return '#f97316';
+    if(pct<10) return '#eab308';
     return 'var(--accent)';
   }
   function pctCell(pct,sign){
@@ -1074,7 +1074,7 @@ function renderPortfolio(){
     var sectorTotal=sectorTotalMktARS[sector]||0;
     // Comparación directa: inversionCedearARS vs umbrales en ARS
     var invColor=(rvRojo>0&&inversionCedearARS>rvRojo)?'var(--red)':
-                 (rvNaranja>0&&inversionCedearARS>rvNaranja)?'#f97316':'var(--text)';
+                 (rvNaranja>0&&inversionCedearARS>rvNaranja)?'#eab308':'var(--text)';
     var invARS='<span style="color:'+invColor+'">$'+Math.round(inversionCedearARS).toLocaleString('es-AR')+'</span>';
 
     var mktARS=mercadoCedearARS!=null?'$'+Math.round(mercadoCedearARS).toLocaleString('es-AR'):null;
