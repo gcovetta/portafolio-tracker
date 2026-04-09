@@ -31,7 +31,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .eco-block{background:var(--surface);border:1px solid rgba(76,175,125,.18);border-radius:var(--radius-lg);padding:1.2rem 1.6rem;margin-bottom:1rem;}
 .eco-header{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--green);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
 .eco-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-.eco-card{background:var(--surface2);border-radius:var(--radius);padding:1rem 1.1rem;}
+.eco-card{background:var(--surface2);border-radius:var(--radius);padding:1rem 1.1rem;border:1px solid transparent;transition:border-color .3s;}
 .eco-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;}
 .eco-value{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:500;color:var(--green);line-height:1;}
 .eco-value.dim{color:var(--muted);}
@@ -186,10 +186,10 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
         <div class="eco-value" id="eco-entregado">$0</div>
         <div class="eco-sub" id="eco-entregado-sub">—</div>
       </div>
-      <div class="eco-card">
-        <div class="eco-label">Stock disponible</div>
-        <div class="eco-value" id="eco-disponible">$0</div>
-        <div class="eco-sub" id="eco-disponible-sub">—</div>
+      <div class="eco-card" id="eco-ganancia-card">
+        <div class="eco-label">Ganancia neta</div>
+        <div class="eco-value" id="eco-ganancia">$0</div>
+        <div class="eco-sub" id="eco-ganancia-sub">—</div>
       </div>
     </div>
   </div>
@@ -418,23 +418,50 @@ function renderMetrics() {
   set('m-alb-ent-sub', `${ent.length} entrega${ent.length!==1?'s':''}`);
 
   /* ── ECONÓMICO ── */
-  /* invertido: solo lo que se agregó, calculado al costo fijo */
-  const totalSobresAgregados = stock.sobres + sobRes + sobEnt;   /* stock actual + reservados + entregados */
+  // Invertido = costo de todo lo que se ingresó al stock alguna vez
+  const totalSobresAgregados = stock.sobres + sobRes + sobEnt;
   const totalAlbAgregados    = stock.albumes + albRes + albEnt;
   const invertido = (totalSobresAgregados * COSTO_SOBRE) + (totalAlbAgregados * COSTO_ALBUM);
 
   const valorRes = pend.reduce((s,r)=>s+calcTotal(r),0);
   const valorEnt = ent.reduce((s,r)=>s+calcTotal(r),0);
-  const valorDisp = (stock.sobres * COSTO_SOBRE) + (stock.albumes * COSTO_ALBUM);
 
-  set('eco-invertido',     pesos(invertido));
-  set('eco-invertido-sub', `${totalSobresAgregados.toLocaleString('es-AR')} sob · ${totalAlbAgregados.toLocaleString('es-AR')} álb`);
+  // Lo entregado va restando la inversión. Cuando valorEnt > invertido, el excedente es ganancia neta.
+  const saldoInvertido = Math.max(0, invertido - valorEnt);   // inversión que aún no se recuperó
+  const gananciaNeta   = Math.max(0, valorEnt - invertido);   // solo positivo cuando se superó la inversión
+  const enCamino       = valorEnt < invertido;                // todavía recuperando inversión
+
+  set('eco-invertido',     pesos(saldoInvertido));
+  set('eco-invertido-sub', saldoInvertido > 0
+    ? `Recuperado: ${pesos(valorEnt)} de ${pesos(invertido)}`
+    : 'Inversión recuperada ✓');
+
   set('eco-reservado',     valorRes > 0 ? pesos(valorRes) : '$0');
   set('eco-reservado-sub', `${pend.length} reserva${pend.length!==1?'s':''} · ${sobRes.toLocaleString('es-AR')} sob`);
+
   set('eco-entregado',     valorEnt > 0 ? pesos(valorEnt) : '$0');
   set('eco-entregado-sub', `${ent.length} entrega${ent.length!==1?'s':''} · ${sobEnt.toLocaleString('es-AR')} sob`);
-  set('eco-disponible',    pesos(valorDisp));
-  set('eco-disponible-sub',`${stock.sobres.toLocaleString('es-AR')} sob · ${stock.albumes.toLocaleString('es-AR')} álb`);
+
+  // Ganancia neta: 0 hasta recuperar inversión, luego el excedente
+  const gCard = document.getElementById('eco-ganancia-card');
+  if (gCard) {
+    const valEl  = document.getElementById('eco-ganancia');
+    const subEl  = document.getElementById('eco-ganancia-sub');
+    if (gananciaNeta > 0) {
+      valEl.textContent  = pesos(gananciaNeta);
+      valEl.style.color  = 'var(--green)';
+      subEl.textContent  = `Recuperaste ${pesos(invertido)} + ganaste ${pesos(gananciaNeta)}`;
+      gCard.style.borderColor = 'rgba(76,175,125,.25)';
+    } else {
+      const faltaRecuperar = invertido - valorEnt;
+      valEl.textContent  = '$0';
+      valEl.style.color  = 'var(--muted)';
+      subEl.textContent  = enCamino && invertido > 0
+        ? `Faltan recuperar ${pesos(faltaRecuperar)}`
+        : 'Comenzará al recuperar la inversión';
+      gCard.style.borderColor = '';
+    }
+  }
 }
 
 /* ── CAJAS SVG ── */
