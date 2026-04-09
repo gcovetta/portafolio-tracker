@@ -1049,7 +1049,8 @@ function renderPortfolio(){
     var pnlPct=mercadoCedearARS!=null&&ppcCedearARS>0?(mercadoCedearARS-ppcCedearARS)/ppcCedearARS*100:null;
     var targetUSD=getTarget(p.ticker);
     var targetARS=targetUSD!=null?(targetUSD/ratio)*CCL_HOY:null;
-    var upside=targetARS!=null&&mercadoCedearARS!=null&&mercadoCedearARS>0?(targetARS-mercadoCedearARS)/mercadoCedearARS*100:null;
+    // ΔUP en USD directo: (targetUSD - precioNYSE) / precioNYSE * 100
+    var upside=targetUSD!=null&&price!=null&&price>0?(targetUSD-price)/price*100:null;
 
     // Color Δ%
     var deltaCell=pctCell(pnlPct,true);
@@ -1356,7 +1357,7 @@ function renderTargets(){
   var pos_map={};getPositions().forEach(function(p){if(p.qty>0)pos_map[p.ticker]=p;});
   var tickers=Object.keys(TARGET_TABLE).sort();
   body.innerHTML=tickers.map(function(t){
-    var targetUSD=TARGET_TABLE[t];var ratio=getRatio(t);var sector=getSector(t);var targetARS=targetUSD!=null?(targetUSD/ratio)*CCL_HOY:null;var pos=pos_map[t];var q=quotes[t];var mercadoARS=q?(q.price/ratio)*CCL_HOY:null;var targetPct=targetARS!=null&&mercadoARS&&mercadoARS>0?((targetARS-mercadoARS)/mercadoARS*100):null;var pctHtml=targetPct!=null?'<span class="'+(targetPct>=0?'pos':'neg')+'">'+(targetPct>=0?'+':'')+targetPct.toFixed(1)+'%</span>':'—';
+    var targetUSD=TARGET_TABLE[t];var ratio=getRatio(t);var sector=getSector(t);var targetARS=targetUSD!=null?(targetUSD/ratio)*CCL_HOY:null;var pos=pos_map[t];var q=quotes[t];var mercadoARS=q?(q.price/ratio)*CCL_HOY:null;var targetPct=targetUSD!=null&&q&&q.price>0?((targetUSD-q.price)/q.price*100):null;var pctHtml=targetPct!=null?'<span class="'+(targetPct>=0?'pos':'neg')+'">'+(targetPct>=0?'+':'')+targetPct.toFixed(1)+'%</span>':'—';
     return '<tr><td style="font-weight:700">'+t+'</td><td><span class="mkt" style="font-size:.6rem">'+SECTOR_LABELS[sector]+'</span></td><td><input type="number" min="0" step="any" value="'+(targetUSD!=null?targetUSD:'')+'" placeholder="USD NYSE" id="ti-'+t+'" style="width:110px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.75rem;padding:3px 8px;height:26px" onkeydown="if(event.key===\'Enter\')saveTarget(\''+t+'\')"></td><td class="mono">'+(targetARS!=null?'$'+targetARS.toLocaleString('es-AR',{maximumFractionDigits:0}):'<span style="color:var(--text3)">—</span>')+'</td><td>'+pctHtml+'</td><td><button class="btn btn-a btn-sm" onclick="saveTarget(\''+t+'\')">✓</button></td></tr>';
   }).join('');
 }
