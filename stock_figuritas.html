@@ -7,184 +7,123 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
 :root {
-  --bg: #0f0f0f; --surface: #181818; --surface2: #222222;
-  --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
-  --text: #f0ede8; --muted: #888;
-  --accent: #e8c547; --accent-dim: rgba(232,197,71,0.12); --accent-dim2: rgba(232,197,71,0.22);
-  --green: #4caf7d; --green-dim: rgba(76,175,125,0.12); --green-dim2: rgba(76,175,125,0.22);
-  --red: #e05c5c; --red-dim: rgba(224,92,92,0.12);
-  --orange: #f4855a; --orange-dim: rgba(244,133,90,0.12);
-  --teal: #38bdf8; --teal-dim: rgba(56,189,248,0.12);
-  --radius: 10px; --radius-lg: 16px;
+  --bg:#0f0f0f; --surface:#181818; --surface2:#222222;
+  --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.14);
+  --text:#f0ede8; --muted:#888;
+  --accent:#e8c547; --accent-dim:rgba(232,197,71,0.12); --accent-dim2:rgba(232,197,71,0.22);
+  --green:#4caf7d; --green-dim:rgba(76,175,125,0.12); --green-dim2:rgba(76,175,125,0.22);
+  --red:#e05c5c; --red-dim:rgba(224,92,92,0.12);
+  --orange:#f4855a; --orange-dim:rgba(244,133,90,0.12);
+  --teal:#38bdf8; --teal-dim:rgba(56,189,248,0.12);
+  --purple:#a78bfa; --purple-dim:rgba(167,139,250,0.12);
+  --radius:10px; --radius-lg:16px;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; min-height: 100vh; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;min-height:100vh;}
 
-.header { background: var(--surface); border-bottom: 1px solid var(--border2); padding: 0 2rem; display: flex; align-items: center; height: 60px; }
-.logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.5px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
-.logo span { color: var(--text); }
+.header{background:var(--surface);border-bottom:1px solid var(--border2);padding:0 2rem;display:flex;align-items:center;height:60px;}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-0.5px;color:var(--accent);display:flex;align-items:center;gap:8px;}
+.logo span{color:var(--text);}
+.container{max-width:980px;margin:0 auto;padding:2rem;}
 
-.container { max-width: 960px; margin: 0 auto; padding: 2rem; }
-
-/* MÉTRICAS */
-.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2rem; }
-.metric { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.2rem 1.4rem; transition: border-color 0.2s; }
-.metric:hover { border-color: var(--border2); }
-.metric-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 10px; }
-.metric-value { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; line-height: 1; }
-.metric-sub { font-size: 10px; color: var(--muted); margin-top: 6px; }
-.c-accent { color: var(--accent); }
-.c-teal   { color: var(--teal); }
-.c-orange { color: var(--orange); }
+/* MÉTRICAS — 2 filas */
+.metrics-row{display:grid;gap:12px;margin-bottom:1rem;}
+.metrics-row.top{grid-template-columns:repeat(4,1fr);}
+.metrics-row.bot{grid-template-columns:repeat(2,1fr);}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem 1.4rem;transition:border-color .2s;}
+.metric:hover{border-color:var(--border2);}
+.metric-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;}
+.metric-value{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;line-height:1;}
+.metric-sub{font-size:10px;color:var(--muted);margin-top:6px;}
+.c-accent{color:var(--accent);} .c-teal{color:var(--teal);} .c-orange{color:var(--orange);} .c-green{color:var(--green);} .c-purple{color:var(--purple);}
 
 /* CALCULADORAS */
-.calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 2rem; }
-.calc-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; }
-.calc-block.sob { border-color: rgba(232,197,71,0.2); }
-.calc-block.alb { border-color: rgba(56,189,248,0.2); }
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:2rem;}
+.calc-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.4rem;}
+.calc-block.sob{border-color:rgba(232,197,71,.2);} .calc-block.alb{border-color:rgba(56,189,248,.2);}
+.calc-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+.dot-y{background:var(--accent);} .dot-t{background:var(--teal);}
+.cnt-row{display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;}
+.btn-cnt{width:36px;height:36px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;transition:all .12s;flex-shrink:0;}
+.btn-cnt.y:hover{background:var(--accent-dim);color:var(--accent);border-color:rgba(232,197,71,.4);}
+.btn-cnt.t:hover{background:var(--teal-dim);color:var(--teal);border-color:rgba(56,189,248,.4);}
+.cnt-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;min-width:40px;text-align:center;}
+.cnt-num.y{color:var(--accent);} .cnt-num.t{color:var(--teal);}
+.cnt-in{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:8px 10px;outline:none;width:72px;transition:border-color .15s;}
+.cnt-in:focus{border-color:var(--accent);}
+.cnt-lbl{font-size:12px;color:var(--muted);}
+.calc-res{display:flex;gap:8px;margin-bottom:1.2rem;}
+.cres{flex:1;background:var(--surface2);border-radius:var(--radius);padding:10px 12px;text-align:center;}
+.cres-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px;}
+.cres-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;}
+.boxes-row{display:flex;flex-wrap:wrap;gap:5px;min-height:44px;align-items:flex-end;margin-bottom:1rem;}
+.calc-formula{font-size:11px;color:var(--muted);margin-bottom:1.2rem;line-height:1.5;}
+.btn-add{width:100%;padding:11px;border-radius:var(--radius);border:1px solid;font-family:'DM Mono',monospace;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;}
+.btn-add:active{transform:scale(.98);}
+.btn-add.y{background:var(--accent-dim);color:var(--accent);border-color:rgba(232,197,71,.3);}
+.btn-add.y:hover{background:var(--accent-dim2);}
+.btn-add.t{background:var(--teal-dim);color:var(--teal);border-color:rgba(56,189,248,.3);}
+.btn-add.t:hover{background:rgba(56,189,248,.2);}
 
-.calc-title { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
-.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
-.dot-y { background: var(--accent); } .dot-t { background: var(--teal); }
+/* BLOQUE COMPARTIDO (reservas + entregados) */
+.block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.4rem;margin-bottom:2rem;}
+.block-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.dot-o{background:var(--orange);} .dot-g{background:var(--green);}
 
-.cnt-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1.2rem; }
-.btn-cnt { width: 36px; height: 36px; border-radius: var(--radius); border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; transition: all 0.12s; flex-shrink: 0; }
-.btn-cnt.y:hover { background: var(--accent-dim); color: var(--accent); border-color: rgba(232,197,71,0.4); }
-.btn-cnt.t:hover { background: var(--teal-dim); color: var(--teal); border-color: rgba(56,189,248,0.4); }
-.cnt-num { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; min-width: 40px; text-align: center; }
-.cnt-num.y { color: var(--accent); } .cnt-num.t { color: var(--teal); }
-.cnt-in { background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius); color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; padding: 8px 10px; outline: none; width: 72px; transition: border-color 0.15s; }
-.cnt-in:focus { border-color: var(--accent); }
-.cnt-lbl { font-size: 12px; color: var(--muted); }
+/* FILA NUEVA RESERVA */
+.new-res-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 44px;gap:8px;align-items:end;margin-bottom:.8rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+.nrf{display:flex;flex-direction:column;gap:5px;}
+.nrf label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.nrf input{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:9px 12px;outline:none;width:100%;transition:border-color .15s;}
+.nrf input:focus{border-color:var(--orange);}
+.nrf input::placeholder{color:var(--muted);}
+.btn-confirm{width:44px;height:44px;border-radius:var(--radius);border:1px solid rgba(76,175,125,.3);background:var(--green-dim);color:var(--green);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.btn-confirm:hover{background:var(--green-dim2);}
+.btn-confirm:active{transform:scale(.95);}
 
-.calc-res { display: flex; gap: 8px; margin-bottom: 1.2rem; }
-.cres { flex: 1; background: var(--surface2); border-radius: var(--radius); padding: 10px 12px; text-align: center; }
-.cres-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 4px; }
-.cres-val { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+/* TABLA */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{text-align:left;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--border);}
+.tbl td{padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tbody tr:hover td{background:rgba(255,255,255,.02);}
 
-.boxes-row { display: flex; flex-wrap: wrap; gap: 5px; min-height: 44px; align-items: flex-end; margin-bottom: 1rem; }
-.calc-formula { font-size: 11px; color: var(--muted); margin-bottom: 1.2rem; line-height: 1.5; }
-.btn-add { width: 100%; padding: 11px; border-radius: var(--radius); border: 1px solid; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s; }
-.btn-add:active { transform: scale(0.98); }
-.btn-add.y { background: var(--accent-dim); color: var(--accent); border-color: rgba(232,197,71,0.3); }
-.btn-add.y:hover { background: var(--accent-dim2); }
-.btn-add.t { background: var(--teal-dim); color: var(--teal); border-color: rgba(56,189,248,0.3); }
-.btn-add.t:hover { background: rgba(56,189,248,0.2); }
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;}
+.b-orange{background:var(--orange-dim);color:var(--orange);}
+.b-green{background:var(--green-dim);color:var(--green);}
+.b-purple{background:var(--purple-dim);color:var(--purple);}
 
-/* RESERVAS */
-.res-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; margin-bottom: 2rem; }
-.res-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border); }
-.res-title { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); display: flex; align-items: center; gap: 8px; }
-.dot-o { background: var(--orange); }
+.cname{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
 
-/* FILA DE NUEVA RESERVA */
-.new-res-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 44px;
-  gap: 8px;
-  align-items: end;
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-.nrf { display: flex; flex-direction: column; gap: 5px; }
-.nrf label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-.nrf input {
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-family: 'DM Mono', monospace;
-  font-size: 13px;
-  padding: 9px 12px;
-  outline: none;
-  width: 100%;
-  transition: border-color 0.15s;
-}
-.nrf input:focus { border-color: var(--orange); }
-.nrf input::placeholder { color: var(--muted); }
+.btn-icon{width:30px;height:30px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .12s;}
+.btn-icon:hover{background:var(--surface2);color:var(--text);}
+.btn-icon.ok:hover{background:var(--green-dim);color:var(--green);border-color:rgba(76,175,125,.3);}
+.btn-icon.del:hover{background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);}
 
-.btn-confirm {
-  width: 44px; height: 44px;
-  border-radius: var(--radius);
-  border: 1px solid rgba(76,175,125,0.3);
-  background: var(--green-dim);
-  color: var(--green);
-  font-size: 20px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
-  flex-shrink: 0;
-}
-.btn-confirm:hover { background: var(--green-dim2); }
-.btn-confirm:active { transform: scale(0.95); }
+.empty-row{text-align:center;padding:2rem;color:var(--muted);font-size:12px;}
+.preview-txt{font-size:11px;color:var(--muted);margin-bottom:.8rem;padding-left:2px;display:none;}
+.preview-txt span{color:var(--accent);font-weight:500;}
 
-/* TABLA DE RESERVAS */
-.res-table { width: 100%; border-collapse: collapse; }
-.res-table th {
-  text-align: left;
-  padding: 8px 10px;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  border-bottom: 1px solid var(--border);
-}
-.res-table td {
-  padding: 11px 10px;
-  border-bottom: 1px solid var(--border);
-  vertical-align: middle;
-}
-.res-table tr:last-child td { border-bottom: none; }
-.res-table tbody tr:hover td { background: rgba(255,255,255,0.02); }
+/* EDIT */
+.editing td{background:rgba(232,197,71,.03)!important;}
+.ei{background:var(--surface2);border:1px solid rgba(232,197,71,.4);border-radius:6px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:5px 8px;outline:none;width:100%;}
+.ei.nm{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
 
-.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
-.badge-orange { background: var(--orange-dim); color: var(--orange); }
-.badge-green  { background: var(--green-dim);  color: var(--green); }
+/* DIVIDER entre tablas */
+.tbl-divider{height:1px;background:var(--border);margin:1.5rem 0;}
+.sub-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.8rem;display:flex;align-items:center;gap:6px;}
 
-.client-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+@keyframes flash{0%{transform:scale(1)}30%{transform:scale(1.08)}100%{transform:scale(1)}}
+.flash{animation:flash .35s ease;}
 
-.btn-icon {
-  width: 32px; height: 32px;
-  border-radius: 8px;
-  border: 1px solid var(--border2);
-  background: transparent;
-  color: var(--muted);
-  font-size: 14px;
-  cursor: pointer;
-  display: inline-flex; align-items: center; justify-content: center;
-  transition: all 0.12s;
-}
-.btn-icon:hover { background: var(--surface2); color: var(--text); }
-.btn-icon.del:hover { background: var(--red-dim); color: var(--red); border-color: rgba(224,92,92,0.3); }
-
-.empty-row { text-align: center; padding: 2.5rem; color: var(--muted); font-size: 12px; }
-
-/* EDIT MODE */
-.editing td { background: rgba(232,197,71,0.04) !important; }
-.edit-input {
-  background: var(--surface2);
-  border: 1px solid rgba(232,197,71,0.4);
-  border-radius: 6px;
-  color: var(--text);
-  font-family: 'DM Mono', monospace;
-  font-size: 13px;
-  padding: 5px 8px;
-  outline: none;
-  width: 100%;
-}
-.edit-input.name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
-
-/* FLASH */
-@keyframes flash { 0%{transform:scale(1)} 30%{transform:scale(1.08)} 100%{transform:scale(1)} }
-.flash { animation: flash 0.35s ease; }
-
-@media (max-width: 680px) {
-  .metrics { grid-template-columns: repeat(2, 1fr); }
-  .calc-grid { grid-template-columns: 1fr; }
-  .new-res-row { grid-template-columns: 1fr 1fr; }
-  .container { padding: 1rem; }
-  .header { padding: 0 1rem; }
+@media(max-width:680px){
+  .metrics-row.top{grid-template-columns:repeat(2,1fr);}
+  .metrics-row.bot{grid-template-columns:1fr 1fr;}
+  .calc-grid{grid-template-columns:1fr;}
+  .new-res-row{grid-template-columns:1fr 1fr;}
+  .container{padding:1rem;}
+  .header{padding:0 1rem;}
 }
 </style>
 </head>
@@ -196,8 +135,8 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monosp
 
 <div class="container">
 
-  <!-- MÉTRICAS -->
-  <div class="metrics">
+  <!-- MÉTRICAS FILA 1: stock y reservados -->
+  <div class="metrics-row top" style="margin-bottom:12px;">
     <div class="metric">
       <div class="metric-label">Sobres en stock</div>
       <div class="metric-value c-accent" id="m-sobres">0</div>
@@ -217,6 +156,20 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monosp
       <div class="metric-label">Álbumes reservados</div>
       <div class="metric-value c-orange" id="m-alb-res">0</div>
       <div class="metric-sub" id="m-alb-res-sub">0 reservas</div>
+    </div>
+  </div>
+
+  <!-- MÉTRICAS FILA 2: entregados -->
+  <div class="metrics-row bot" style="margin-bottom:2rem;">
+    <div class="metric">
+      <div class="metric-label">Sobres entregados</div>
+      <div class="metric-value c-green" id="m-sob-ent">0</div>
+      <div class="metric-sub" id="m-sob-ent-sub">0 entregas</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Álbumes entregados</div>
+      <div class="metric-value c-green" id="m-alb-ent">0</div>
+      <div class="metric-sub" id="m-alb-ent-sub">0 entregas</div>
     </div>
   </div>
 
@@ -240,7 +193,6 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monosp
       <div class="calc-formula" id="sob-fm">1 bulto × 40 packs × 25 sobres = 1.000 sobres</div>
       <button class="btn-add y" onclick="agregarSobres()">+ Agregar al stock</button>
     </div>
-
     <div class="calc-block alb">
       <div class="calc-title"><span class="dot dot-t"></span>Ingresar álbumes</div>
       <div class="cnt-row">
@@ -260,55 +212,55 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monosp
     </div>
   </div>
 
-  <!-- RESERVAS -->
-  <div class="res-block">
-    <div class="res-header">
-      <div class="res-title"><span class="dot dot-o"></span>Reservas</div>
-    </div>
+  <!-- RESERVAS + ENTREGADOS -->
+  <div class="block">
+    <div class="block-title"><span class="dot dot-o"></span>Reservas</div>
 
     <!-- NUEVA RESERVA -->
     <div class="new-res-row">
-      <div class="nrf">
-        <label>Nombre del cliente</label>
-        <input type="text" id="nr-nombre" placeholder="Nombre y apellido" />
-      </div>
-      <div class="nrf">
-        <label>Packs (×25 sobres)</label>
-        <input type="number" id="nr-packs" placeholder="0" min="0" value="0" oninput="calcNR()" />
-      </div>
-      <div class="nrf">
-        <label>Sobres sueltos</label>
-        <input type="number" id="nr-sobres" placeholder="0" min="0" value="0" oninput="calcNR()" />
-      </div>
-      <div class="nrf">
-        <label>Álbumes</label>
-        <input type="number" id="nr-albumes" placeholder="0" min="0" value="0" />
-      </div>
+      <div class="nrf"><label>Nombre del cliente</label><input type="text" id="nr-nombre" placeholder="Nombre y apellido" /></div>
+      <div class="nrf"><label>Packs (×25 sobres)</label><input type="number" id="nr-packs" placeholder="0" min="0" value="0" oninput="calcNR()" /></div>
+      <div class="nrf"><label>Sobres sueltos</label><input type="number" id="nr-sobres" placeholder="0" min="0" value="0" oninput="calcNR()" /></div>
+      <div class="nrf"><label>Álbumes</label><input type="number" id="nr-albumes" placeholder="0" min="0" value="0" /></div>
       <button class="btn-confirm" onclick="confirmarReserva()" title="Confirmar reserva">✓</button>
     </div>
+    <div class="preview-txt" id="nr-preview">Total sobres: <span id="nr-preview-val"></span></div>
 
-    <!-- PREVIEW TOTAL SOBRES -->
-    <div id="nr-preview" style="font-size:11px;color:var(--muted);margin-bottom:1rem;padding-left:2px;display:none;">
-      Total sobres a reservar: <span id="nr-preview-val" style="color:var(--accent);font-weight:500"></span>
+    <!-- TABLA RESERVAS PENDIENTES -->
+    <div class="sub-title"><span class="dot dot-o"></span>Pendientes</div>
+    <div style="overflow-x:auto;">
+      <table class="tbl">
+        <thead><tr>
+          <th style="width:28%">Cliente</th>
+          <th style="width:9%">Packs</th>
+          <th style="width:12%">Sobres sueltos</th>
+          <th style="width:13%">Total sobres</th>
+          <th style="width:10%">Álbumes</th>
+          <th style="width:9%">Fecha</th>
+          <th style="width:8%">Estado</th>
+          <th style="width:11%"></th>
+        </tr></thead>
+        <tbody id="tb-pend"></tbody>
+      </table>
     </div>
 
-    <!-- TABLA -->
+    <div class="tbl-divider"></div>
+
+    <!-- TABLA ENTREGADOS -->
+    <div class="sub-title"><span class="dot dot-g"></span>Entregados</div>
     <div style="overflow-x:auto;">
-      <table class="res-table">
-        <thead>
-          <tr>
-            <th style="width:30%">Cliente</th>
-            <th style="width:12%">Packs</th>
-            <th style="width:12%">Sobres sueltos</th>
-            <th style="width:13%">Total sobres</th>
-            <th style="width:12%">Álbumes</th>
-            <th style="width:10%">Estado</th>
-            <th style="width:11%"></th>
-          </tr>
-        </thead>
-        <tbody id="res-tbody">
-          <tr><td colspan="7" class="empty-row">Sin reservas aún.</td></tr>
-        </tbody>
+      <table class="tbl">
+        <thead><tr>
+          <th style="width:28%">Cliente</th>
+          <th style="width:9%">Packs</th>
+          <th style="width:12%">Sobres sueltos</th>
+          <th style="width:13%">Total sobres</th>
+          <th style="width:10%">Álbumes</th>
+          <th style="width:9%">Fecha res.</th>
+          <th style="width:9%">Entregado</th>
+          <th style="width:10%"></th>
+        </tr></thead>
+        <tbody id="tb-ent"></tbody>
       </table>
     </div>
   </div>
@@ -323,96 +275,106 @@ const ALBUMES_POR_BULTO = 25;
 let sobB = 1, albB = 1;
 
 let stock = {
-  sobres: 0, sobBultos: 0, sobPacks: 0,
-  albumes: 0, albBultos: 0,
-  sobRes: 0, albRes: 0
+  sobres:0, sobBultos:0, sobPacks:0,
+  albumes:0, albBultos:0,
+  sobRes:0, albRes:0,
+  sobEnt:0, albEnt:0
 };
 
 let reservas = [];
-let nextId = 1;
+let nextId   = 1;
 
 function save() {
   try {
-    localStorage.setItem('figstock', JSON.stringify(stock));
-    localStorage.setItem('figreservas', JSON.stringify(reservas));
-    localStorage.setItem('fignextid', nextId);
+    localStorage.setItem('figstock4',   JSON.stringify(stock));
+    localStorage.setItem('figreservas4', JSON.stringify(reservas));
+    localStorage.setItem('fignext4',     nextId);
   } catch(e) {}
 }
 function load() {
   try {
-    const s = localStorage.getItem('figstock');
-    if (s) stock = { ...stock, ...JSON.parse(s) };
-    const r = localStorage.getItem('figreservas');
+    const s = localStorage.getItem('figstock4');
+    if (s) stock = {...stock, ...JSON.parse(s)};
+    const r = localStorage.getItem('figreservas4');
     if (r) reservas = JSON.parse(r);
-    const n = localStorage.getItem('fignextid');
+    const n = localStorage.getItem('fignext4');
     if (n) nextId = parseInt(n);
   } catch(e) {}
 }
 load();
 
-function g(id) { return document.getElementById(id); }
-function set(id, val) { const e = g(id); if (e) e.textContent = val; }
-function setV(id, val) { const e = g(id); if (e) e.value = val; }
+const g   = id => document.getElementById(id);
+const set = (id, v) => { const e = g(id); if(e) e.textContent = v; };
+const setV= (id, v) => { const e = g(id); if(e) e.value = v; };
 
 function flashEl(id) {
-  const e = g(id); if (!e) return;
-  e.classList.remove('flash');
-  void e.offsetWidth;
-  e.classList.add('flash');
+  const e = g(id); if(!e) return;
+  e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash');
 }
 
+/* ── MÉTRICAS ── */
 function renderMetrics() {
-  set('m-sobres',     stock.sobres.toLocaleString('es-AR'));
-  set('m-sobres-sub', `${stock.sobBultos} bulto${stock.sobBultos!==1?'s':''} · ${stock.sobPacks} packs`);
-  set('m-albumes',    stock.albumes.toLocaleString('es-AR'));
-  set('m-albumes-sub',`${stock.albBultos} bulto${stock.albBultos!==1?'s':''}`);
+  const pend = reservas.filter(r => r.estado === 'pendiente');
+  const sobRes = pend.reduce((s,r) => s + r.totalSobres, 0);
+  const albRes = pend.reduce((s,r) => s + r.albumes, 0);
+  stock.sobRes = sobRes; stock.albRes = albRes;
 
-  const activeRes = reservas.filter(r => r.estado === 'pendiente');
-  const totalSobRes = activeRes.reduce((s, r) => s + r.totalSobres, 0);
-  const totalAlbRes = activeRes.reduce((s, r) => s + r.albumes, 0);
+  const ent   = reservas.filter(r => r.estado === 'entregado');
+  const sobEnt = ent.reduce((s,r) => s + r.totalSobres, 0);
+  const albEnt = ent.reduce((s,r) => s + r.albumes, 0);
+  stock.sobEnt = sobEnt; stock.albEnt = albEnt;
 
-  set('m-sob-res',     totalSobRes.toLocaleString('es-AR'));
-  set('m-sob-res-sub', `${activeRes.length} reserva${activeRes.length!==1?'s':''}`);
-  set('m-alb-res',     totalAlbRes.toLocaleString('es-AR'));
-  set('m-alb-res-sub', `${activeRes.length} reserva${activeRes.length!==1?'s':''}`);
+  set('m-sobres',      stock.sobres.toLocaleString('es-AR'));
+  set('m-sobres-sub',  `${stock.sobBultos} bulto${stock.sobBultos!==1?'s':''} · ${stock.sobPacks} packs`);
+  set('m-albumes',     stock.albumes.toLocaleString('es-AR'));
+  set('m-albumes-sub', `${stock.albBultos} bulto${stock.albBultos!==1?'s':''}`);
+
+  set('m-sob-res',     sobRes.toLocaleString('es-AR'));
+  set('m-sob-res-sub', `${pend.length} reserva${pend.length!==1?'s':''}`);
+  set('m-alb-res',     albRes.toLocaleString('es-AR'));
+  set('m-alb-res-sub', `${pend.length} reserva${pend.length!==1?'s':''}`);
+
+  set('m-sob-ent',     sobEnt.toLocaleString('es-AR'));
+  set('m-sob-ent-sub', `${ent.length} entrega${ent.length!==1?'s':''}`);
+  set('m-alb-ent',     albEnt.toLocaleString('es-AR'));
+  set('m-alb-ent-sub', `${ent.length} entrega${ent.length!==1?'s':''}`);
 }
 
-/* ---- CAJAS ---- */
+/* ── CAJAS SVG ── */
 function drawBox(color) {
-  const ns = 'http://www.w3.org/2000/svg';
-  const s = document.createElementNS(ns, 'svg');
-  s.setAttribute('width','42'); s.setAttribute('height','42'); s.setAttribute('viewBox','0 0 72 72'); s.style.display='block';
-  const iT = color==='teal';
-  const f=iT?'#1D9E75':'#7F77DD', tp=iT?'#5DCAA5':'#AFA9EC', sd=iT?'#0F6E56':'#534AB7', sk=iT?'#085041':'#3C3489', fl=iT?'#9FE1CB':'#CECBF6';
-  s.innerHTML=`<rect x="10" y="26" width="48" height="36" rx="3" fill="${f}" stroke="${sk}" stroke-width="0.8"/>
-    <polygon points="10,26 34,16 58,26 34,36" fill="${tp}" stroke="${sk}" stroke-width="0.8"/>
-    <polygon points="58,26 66,30 66,62 58,58" fill="${sd}" stroke="${sk}" stroke-width="0.8"/>
-    <line x1="34" y1="16" x2="34" y2="36" stroke="${sk}" stroke-width="0.6" stroke-dasharray="2,2"/>
-    <rect x="14" y="28" width="40" height="6" rx="2" fill="${fl}" opacity="0.6"/>`;
+  const ns='http://www.w3.org/2000/svg';
+  const s=document.createElementNS(ns,'svg');
+  s.setAttribute('width','42'); s.setAttribute('height','42');
+  s.setAttribute('viewBox','0 0 72 72'); s.style.display='block';
+  const iT=color==='teal';
+  const f=iT?'#1D9E75':'#7F77DD', tp=iT?'#5DCAA5':'#AFA9EC',
+        sd=iT?'#0F6E56':'#534AB7', sk=iT?'#085041':'#3C3489', fl=iT?'#9FE1CB':'#CECBF6';
+  s.innerHTML=`<rect x="10" y="26" width="48" height="36" rx="3" fill="${f}" stroke="${sk}" stroke-width=".8"/>
+    <polygon points="10,26 34,16 58,26 34,36" fill="${tp}" stroke="${sk}" stroke-width=".8"/>
+    <polygon points="58,26 66,30 66,62 58,58" fill="${sd}" stroke="${sk}" stroke-width=".8"/>
+    <line x1="34" y1="16" x2="34" y2="36" stroke="${sk}" stroke-width=".6" stroke-dasharray="2,2"/>
+    <rect x="14" y="28" width="40" height="6" rx="2" fill="${fl}" opacity=".6"/>`;
   return s;
 }
 function renderBoxes(cid, count, color) {
-  const el = g(cid); if(!el) return; el.innerHTML='';
-  const mx = Math.min(count,20);
+  const el=g(cid); if(!el) return; el.innerHTML='';
+  const mx=Math.min(count,20);
   for(let i=0;i<mx;i++) el.appendChild(drawBox(color));
   if(count>20){const m=document.createElement('div');m.style.cssText='display:flex;align-items:center;justify-content:center;width:42px;height:42px;font-size:12px;color:var(--muted);border:1px dashed var(--border2);border-radius:8px;';m.textContent=`+${count-20}`;el.appendChild(m);}
 }
 
-/* ---- CALCULADORAS ---- */
+/* ── CALCULADORAS ── */
 function renderSobCalc() {
   const packs=sobB*PACKS_POR_BULTO, sobres=packs*SOBRES_POR_PACK;
   set('sob-n',sobB); setV('sob-i',sobB);
-  set('sob-rb',sobB.toLocaleString('es-AR'));
-  set('sob-rp',packs.toLocaleString('es-AR'));
-  set('sob-rs',sobres.toLocaleString('es-AR'));
+  set('sob-rb',sobB.toLocaleString('es-AR')); set('sob-rp',packs.toLocaleString('es-AR')); set('sob-rs',sobres.toLocaleString('es-AR'));
   set('sob-fm',`${sobB} bulto${sobB!==1?'s':''} × ${PACKS_POR_BULTO} packs × ${SOBRES_POR_PACK} sobres = ${sobres.toLocaleString('es-AR')} sobres`);
   renderBoxes('sob-bx',sobB,'purple');
 }
 function renderAlbCalc() {
   const albs=albB*ALBUMES_POR_BULTO;
   set('alb-n',albB); setV('alb-i',albB);
-  set('alb-rb',albB.toLocaleString('es-AR'));
-  set('alb-ra',albs.toLocaleString('es-AR'));
+  set('alb-rb',albB.toLocaleString('es-AR')); set('alb-ra',albs.toLocaleString('es-AR'));
   set('alb-fm',`${albB} bulto${albB!==1?'s':''} × ${ALBUMES_POR_BULTO} álbumes = ${albs.toLocaleString('es-AR')} álbumes`);
   renderBoxes('alb-bx',albB,'teal');
 }
@@ -432,151 +394,146 @@ function agregarAlbumes() {
   save(); renderMetrics(); flashEl('m-albumes');
 }
 
-/* ---- PREVIEW NUEVA RESERVA ---- */
+/* ── PREVIEW ── */
 function calcNR() {
-  const packs  = parseInt(g('nr-packs').value)  || 0;
-  const sobres = parseInt(g('nr-sobres').value) || 0;
-  const total  = packs * SOBRES_POR_PACK + sobres;
-  const prev   = g('nr-preview');
-  if (total > 0) {
-    g('nr-preview-val').textContent = total.toLocaleString('es-AR');
-    prev.style.display = 'block';
-  } else {
-    prev.style.display = 'none';
-  }
+  const packs=parseInt(g('nr-packs').value)||0, sobres=parseInt(g('nr-sobres').value)||0;
+  const total=packs*SOBRES_POR_PACK+sobres;
+  const prev=g('nr-preview');
+  if(total>0){g('nr-preview-val').textContent=total.toLocaleString('es-AR');prev.style.display='block';}
+  else prev.style.display='none';
 }
 
-/* ---- CONFIRMAR RESERVA ---- */
+/* ── CONFIRMAR RESERVA ── */
 function confirmarReserva() {
-  const nombre  = g('nr-nombre').value.trim();
-  const packs   = parseInt(g('nr-packs').value)   || 0;
-  const sobres  = parseInt(g('nr-sobres').value)  || 0;
-  const albumes = parseInt(g('nr-albumes').value) || 0;
-  const totalSobres = packs * SOBRES_POR_PACK + sobres;
+  const nombre =g('nr-nombre').value.trim();
+  const packs  =parseInt(g('nr-packs').value)||0;
+  const sobres =parseInt(g('nr-sobres').value)||0;
+  const albumes=parseInt(g('nr-albumes').value)||0;
+  const totalSobres=packs*SOBRES_POR_PACK+sobres;
 
-  if (!nombre)       return alert('Ingresá el nombre del cliente.');
-  if (totalSobres === 0 && albumes === 0) return alert('Ingresá al menos una cantidad.');
-  if (totalSobres > stock.sobres - stock.sobRes) return alert(`Stock insuficiente. Sobres disponibles: ${(stock.sobres - stock.sobRes).toLocaleString('es-AR')}`);
-  if (albumes > stock.albumes - stock.albRes)    return alert(`Stock insuficiente. Álbumes disponibles: ${(stock.albumes - stock.albRes).toLocaleString('es-AR')}`);
+  if(!nombre) return alert('Ingresá el nombre del cliente.');
+  if(totalSobres===0&&albumes===0) return alert('Ingresá al menos una cantidad.');
 
-  reservas.push({ id: nextId++, nombre, packs, sobres, totalSobres, albumes, estado: 'pendiente', fecha: new Date().toLocaleDateString('es-AR') });
+  const dispSob = stock.sobres - stock.sobRes - stock.sobEnt;
+  const dispAlb = stock.albumes - stock.albRes - stock.albEnt;
+  if(totalSobres > dispSob) return alert(`Stock insuficiente.\nSobres disponibles: ${dispSob.toLocaleString('es-AR')}`);
+  if(albumes > dispAlb)     return alert(`Stock insuficiente.\nÁlbumes disponibles: ${dispAlb.toLocaleString('es-AR')}`);
 
-  stock.sobRes += totalSobres;
-  stock.albRes += albumes;
+  reservas.push({
+    id: nextId++, nombre, packs, sobres, totalSobres, albumes,
+    estado: 'pendiente', fecha: new Date().toLocaleDateString('es-AR'), fechaEnt: null
+  });
 
-  g('nr-nombre').value  = '';
-  g('nr-packs').value   = '0';
-  g('nr-sobres').value  = '0';
-  g('nr-albumes').value = '0';
-  g('nr-preview').style.display = 'none';
+  g('nr-nombre').value=''; g('nr-packs').value='0';
+  g('nr-sobres').value='0'; g('nr-albumes').value='0';
+  g('nr-preview').style.display='none';
 
-  save(); renderMetrics(); renderReservas();
+  save(); renderMetrics(); renderTablas();
   flashEl('m-sob-res'); flashEl('m-alb-res');
 }
 
-/* ---- TABLA RESERVAS ---- */
-function renderReservas() {
-  const tb = g('res-tbody');
-  if (!reservas.length) {
-    tb.innerHTML = '<tr><td colspan="7" class="empty-row">Sin reservas aún.</td></tr>';
-    return;
-  }
-  tb.innerHTML = [...reservas].reverse().map(r => buildRow(r)).join('');
+/* ── ENTREGAR ── */
+function entregarReserva(id) {
+  const r=reservas.find(x=>x.id===id); if(!r||r.estado!=='pendiente') return;
+  if(!confirm(`¿Confirmar entrega a ${r.nombre}?\n${r.totalSobres} sobres · ${r.albumes} álbumes`)) return;
+  r.estado   = 'entregado';
+  r.fechaEnt = new Date().toLocaleDateString('es-AR');
+  save(); renderMetrics(); renderTablas();
+  flashEl('m-sob-ent'); flashEl('m-alb-ent');
 }
 
-function buildRow(r) {
-  const badgeCls = r.estado === 'pendiente' ? 'badge-orange' : 'badge-green';
-  const badgeTxt = r.estado === 'pendiente' ? 'Pendiente' : 'Completada';
-  return `<tr id="row-${r.id}">
-    <td><span class="client-name">${esc(r.nombre)}</span></td>
+/* ── EDITAR ── */
+function editarReserva(id) {
+  const r=reservas.find(x=>x.id===id); if(!r) return;
+  const row=g(`row-${id}`); if(!row) return;
+  row.outerHTML=`<tr id="row-${id}" class="editing">
+    <td><input class="ei nm" id="e-nom-${id}" value="${esc(r.nombre)}" /></td>
+    <td><input class="ei" id="e-pk-${id}" type="number" min="0" value="${r.packs}" style="width:55px" oninput="updEd(${id})" /></td>
+    <td><input class="ei" id="e-sb-${id}" type="number" min="0" value="${r.sobres}" style="width:55px" oninput="updEd(${id})" /></td>
+    <td><strong id="e-tot-${id}">${r.totalSobres.toLocaleString('es-AR')}</strong></td>
+    <td><input class="ei" id="e-al-${id}" type="number" min="0" value="${r.albumes}" style="width:55px" /></td>
+    <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
+    <td><span class="badge b-orange">Editando</span></td>
+    <td style="display:flex;gap:5px">
+      <button class="btn-icon ok" onclick="guardarEd(${id})" title="Guardar">✓</button>
+      <button class="btn-icon del" onclick="renderTablas()" title="Cancelar">✕</button>
+    </td>
+  </tr>`;
+}
+function updEd(id) {
+  const packs=parseInt(g(`e-pk-${id}`).value)||0, sobres=parseInt(g(`e-sb-${id}`).value)||0;
+  const el=g(`e-tot-${id}`); if(el) el.textContent=(packs*SOBRES_POR_PACK+sobres).toLocaleString('es-AR');
+}
+function guardarEd(id) {
+  const r=reservas.find(x=>x.id===id); if(!r) return;
+  const nombre =g(`e-nom-${id}`).value.trim();
+  const packs  =parseInt(g(`e-pk-${id}`).value)||0;
+  const sobres =parseInt(g(`e-sb-${id}`).value)||0;
+  const albumes=parseInt(g(`e-al-${id}`).value)||0;
+  const totalSobres=packs*SOBRES_POR_PACK+sobres;
+  if(!nombre) return alert('Ingresá el nombre.');
+
+  const diffSob=totalSobres-r.totalSobres, diffAlb=albumes-r.albumes;
+  const dispSob=stock.sobres-stock.sobRes-stock.sobEnt;
+  const dispAlb=stock.albumes-stock.albRes-stock.albEnt;
+  if(diffSob>dispSob) return alert(`Stock insuficiente. Sobres disponibles: ${dispSob.toLocaleString('es-AR')}`);
+  if(diffAlb>dispAlb) return alert(`Stock insuficiente. Álbumes disponibles: ${dispAlb.toLocaleString('es-AR')}`);
+
+  r.nombre=nombre; r.packs=packs; r.sobres=sobres; r.totalSobres=totalSobres; r.albumes=albumes;
+  save(); renderMetrics(); renderTablas();
+}
+
+/* ── ELIMINAR ── */
+function eliminarReserva(id) {
+  const r=reservas.find(x=>x.id===id); if(!r) return;
+  if(!confirm(`¿Eliminar la reserva de ${r.nombre}?`)) return;
+  reservas=reservas.filter(x=>x.id!==id);
+  save(); renderMetrics(); renderTablas();
+}
+
+/* ── RENDER TABLAS ── */
+function renderTablas() {
+  const pend=[...reservas].filter(r=>r.estado==='pendiente').reverse();
+  const ent =[...reservas].filter(r=>r.estado==='entregado').reverse();
+
+  const tbP=g('tb-pend');
+  tbP.innerHTML = pend.length ? pend.map(r=>`<tr id="row-${r.id}">
+    <td><span class="cname">${esc(r.nombre)}</span></td>
     <td>${r.packs}</td>
     <td>${r.sobres}</td>
     <td><strong>${r.totalSobres.toLocaleString('es-AR')}</strong></td>
     <td>${r.albumes}</td>
-    <td><span class="badge ${badgeCls}">${badgeTxt}</span></td>
-    <td style="display:flex;gap:6px">
+    <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
+    <td><span class="badge b-orange">Reservado</span></td>
+    <td style="display:flex;gap:5px">
+      <button class="btn-icon ok" onclick="entregarReserva(${r.id})" title="Confirmar entrega">✓</button>
       <button class="btn-icon" onclick="editarReserva(${r.id})" title="Editar">✎</button>
       <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar">✕</button>
     </td>
-  </tr>`;
-}
+  </tr>`).join('') : '<tr><td colspan="8" class="empty-row">Sin reservas pendientes.</td></tr>';
 
-function buildEditRow(r) {
-  return `<tr id="row-${r.id}" class="editing">
-    <td><input class="edit-input name" id="e-nombre-${r.id}" value="${esc(r.nombre)}" /></td>
-    <td><input class="edit-input" id="e-packs-${r.id}"   type="number" min="0" value="${r.packs}"   style="width:60px" oninput="updateEditTotal(${r.id})" /></td>
-    <td><input class="edit-input" id="e-sobres-${r.id}"  type="number" min="0" value="${r.sobres}"  style="width:60px" oninput="updateEditTotal(${r.id})" /></td>
-    <td><strong id="e-total-${r.id}">${r.totalSobres.toLocaleString('es-AR')}</strong></td>
-    <td><input class="edit-input" id="e-albumes-${r.id}" type="number" min="0" value="${r.albumes}" style="width:60px" /></td>
-    <td><span class="badge badge-orange">Editando</span></td>
-    <td style="display:flex;gap:6px">
-      <button class="btn-icon" onclick="guardarEdicion(${r.id})" title="Guardar" style="color:var(--green);border-color:rgba(76,175,125,0.3)">✓</button>
-      <button class="btn-icon del" onclick="cancelarEdicion(${r.id})" title="Cancelar">✕</button>
+  const tbE=g('tb-ent');
+  tbE.innerHTML = ent.length ? ent.map(r=>`<tr id="row-${r.id}">
+    <td><span class="cname">${esc(r.nombre)}</span></td>
+    <td>${r.packs}</td>
+    <td>${r.sobres}</td>
+    <td><strong>${r.totalSobres.toLocaleString('es-AR')}</strong></td>
+    <td>${r.albumes}</td>
+    <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
+    <td style="font-size:11px;color:var(--green)">${r.fechaEnt}</td>
+    <td style="display:flex;gap:5px">
+      <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar">✕</button>
     </td>
-  </tr>`;
+  </tr>`).join('') : '<tr><td colspan="8" class="empty-row">Sin entregas registradas.</td></tr>';
 }
 
-function updateEditTotal(id) {
-  const packs  = parseInt(g(`e-packs-${id}`).value)  || 0;
-  const sobres = parseInt(g(`e-sobres-${id}`).value) || 0;
-  const total  = packs * SOBRES_POR_PACK + sobres;
-  const el = g(`e-total-${id}`); if(el) el.textContent = total.toLocaleString('es-AR');
-}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-function editarReserva(id) {
-  const r = reservas.find(x => x.id===id); if(!r) return;
-  const row = g(`row-${id}`); if(!row) return;
-  row.outerHTML = buildEditRow(r);
-}
-
-function guardarEdicion(id) {
-  const r = reservas.find(x => x.id===id); if(!r) return;
-  const nombre  = g(`e-nombre-${id}`).value.trim();
-  const packs   = parseInt(g(`e-packs-${id}`).value)   || 0;
-  const sobres  = parseInt(g(`e-sobres-${id}`).value)  || 0;
-  const albumes = parseInt(g(`e-albumes-${id}`).value) || 0;
-  const totalSobres = packs * SOBRES_POR_PACK + sobres;
-  if (!nombre) return alert('Ingresá el nombre.');
-
-  const diffSob = totalSobres - r.totalSobres;
-  const diffAlb = albumes - r.albumes;
-  const dispSob = stock.sobres - stock.sobRes;
-  const dispAlb = stock.albumes - stock.albRes;
-
-  if (diffSob > dispSob) return alert(`Stock insuficiente. Sobres disponibles: ${dispSob.toLocaleString('es-AR')}`);
-  if (diffAlb > dispAlb) return alert(`Stock insuficiente. Álbumes disponibles: ${dispAlb.toLocaleString('es-AR')}`);
-
-  stock.sobRes += diffSob;
-  stock.albRes += diffAlb;
-
-  r.nombre = nombre; r.packs = packs; r.sobres = sobres;
-  r.totalSobres = totalSobres; r.albumes = albumes;
-
-  save(); renderMetrics(); renderReservas();
-}
-
-function cancelarEdicion(id) { renderReservas(); }
-
-function eliminarReserva(id) {
-  const r = reservas.find(x => x.id===id); if(!r) return;
-  if (!confirm(`¿Eliminar la reserva de ${r.nombre}?`)) return;
-  if (r.estado === 'pendiente') {
-    stock.sobRes -= r.totalSobres;
-    stock.albRes -= r.albumes;
-  }
-  reservas = reservas.filter(x => x.id!==id);
-  save(); renderMetrics(); renderReservas();
-}
-
-function esc(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-/* ---- INIT ---- */
+/* ── INIT ── */
 renderMetrics();
 renderSobCalc();
 renderAlbCalc();
-renderReservas();
+renderTablas();
 </script>
 </body>
 </html>
