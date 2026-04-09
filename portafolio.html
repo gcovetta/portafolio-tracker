@@ -1739,7 +1739,7 @@ function trkCalcCCL(){
 
 // ── Init ──────────────────────────────────────────────────────────────────
 (function(){
-  var DATA_VERSION='v3_brasil';
+  var DATA_VERSION='v4_fix_ppc';
   var storedVersion=null;try{storedVersion=localStorage.getItem('ptNYSE_version');}catch(e){}
   var saved=null;try{saved=localStorage.getItem('ptNYSE_mov2');}catch(e){}
   if(saved&&storedVersion===DATA_VERSION){try{movimientos=JSON.parse(saved);}catch(e){}}
