@@ -1280,13 +1280,29 @@ function renderDivsCard(){
 
 
 async function fetchYahooAR(ticker){
-  // Yahoo Finance para acciones argentinas (precio en ARS)
   var symbol=ticker+'.BA';
-  var url='https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?interval=1d&range=1d';
-  var res=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0'}});
-  if(!res.ok)throw new Error('HTTP '+res.status);
-  var d=await res.json();
-  var meta=d&&d.chart&&d.chart.result&&d.chart.result[0]&&d.chart.result[0].meta;
+  // Intentar v7/quote con corsDomain (a veces pasa CORS sin cookie)
+  var url1='https://query2.finance.yahoo.com/v7/finance/quote?symbols='+encodeURIComponent(symbol)+'&corsDomain=finance.yahoo.com&formatted=false&lang=en-US&region=AR';
+  try{
+    var r1=await fetch(url1,{headers:{'Accept':'application/json','Origin':'https://finance.yahoo.com'}});
+    if(r1.ok){
+      var j1=await r1.json();
+      var res1=j1&&j1.quoteResponse&&j1.quoteResponse.result&&j1.quoteResponse.result[0];
+      if(res1&&res1.regularMarketPrice){
+        var p1=res1.regularMarketPrice;
+        var pc1=res1.regularMarketPreviousClose||p1;
+        return{price:p1,prevClose:pc1,changePct:pc1?(p1-pc1)/pc1*100:0};
+      }
+    }
+  }catch(e1){}
+  // Fallback: allorigins proxy sobre el chart endpoint
+  var innerUrl='https://query2.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?interval=1d&range=1d';
+  var proxyUrl='https://api.allorigins.win/get?url='+encodeURIComponent(innerUrl);
+  var r2=await fetch(proxyUrl);
+  if(!r2.ok)throw new Error('HTTP '+r2.status);
+  var j2=await r2.json();
+  var d2=JSON.parse(j2.contents||'{}');
+  var meta=d2&&d2.chart&&d2.chart.result&&d2.chart.result[0]&&d2.chart.result[0].meta;
   if(!meta||!meta.regularMarketPrice)throw new Error('Sin datos');
   var price=meta.regularMarketPrice;
   var prev=meta.chartPreviousClose||meta.previousClose||price;
