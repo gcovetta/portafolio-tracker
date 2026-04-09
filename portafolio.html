@@ -1254,6 +1254,19 @@ function renderDivsCard(){
 }
 
 
+async function fetchYahooAR(ticker){
+  // Yahoo Finance para acciones argentinas (precio en ARS)
+  var symbol=ticker+'.BA';
+  var url='https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?interval=1d&range=1d';
+  var res=await fetch(url,{headers:{'User-Agent':'Mozilla/5.0'}});
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  var d=await res.json();
+  var meta=d&&d.chart&&d.chart.result&&d.chart.result[0]&&d.chart.result[0].meta;
+  if(!meta||!meta.regularMarketPrice)throw new Error('Sin datos');
+  var price=meta.regularMarketPrice;
+  var prev=meta.chartPreviousClose||meta.previousClose||price;
+  return{price:price,prevClose:prev,changePct:prev?(price-prev)/prev*100:0};
+}
 async function fetchFinnhub(ticker){
   var res=await fetch(FBASE+'/quote?symbol='+encodeURIComponent(ticker)+'&token='+FKEY);
   if(!res.ok)throw new Error('HTTP '+res.status);
@@ -1273,7 +1286,7 @@ async function fetchAllQuotes(){
   var total=pos.length,done=0,errors=0;
   for(var i=0;i<pos.length;i++){
     var p=pos[i];status.textContent=p.ticker+'...';
-    try{var q=await fetchFinnhub(getFinnhubTicker(p.ticker));quotes[p.ticker]=q;renderPortfolio();}
+    try{var q=getSector(p.ticker)==='argentina'?await fetchYahooAR(p.ticker):await fetchFinnhub(getFinnhubTicker(p.ticker));quotes[p.ticker]=q;renderPortfolio();}
     catch(e){errors++;}
     done++;pfill.style.width=Math.round(done/total*100)+'%';
     if(i<pos.length-1)await new Promise(function(r){setTimeout(r,1100);});
@@ -1865,7 +1878,7 @@ function trkCalcCCL(){
 
 // ── Init ──────────────────────────────────────────────────────────────────
 (function(){
-  var DATA_VERSION='v7_ar_finnhub';
+  var DATA_VERSION='v8_ar_yahoo';
   var storedVersion=null;try{storedVersion=localStorage.getItem('ptNYSE_version');}catch(e){}
   var saved=null;try{saved=localStorage.getItem('ptNYSE_mov2');}catch(e){}
   if(saved&&storedVersion===DATA_VERSION){try{movimientos=JSON.parse(saved);}catch(e){}}
