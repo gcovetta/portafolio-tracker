@@ -155,9 +155,85 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
   .container{padding:1rem;}
   .header{padding:0 1rem;}
 }
+
+/* LOGIN */
+.login-overlay{
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  z-index:9999;transition:opacity .4s;
+}
+.login-overlay.hidden{opacity:0;pointer-events:none;}
+.login-box{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--radius-lg);padding:2.4rem 2rem;width:300px;
+  display:flex;flex-direction:column;align-items:center;gap:1.4rem;
+}
+.login-logo{
+  font-family:'Inter',sans-serif;font-weight:700;font-size:20px;
+  letter-spacing:0.5px;color:var(--accent);display:flex;align-items:center;gap:8px;
+}
+.login-logo span{color:var(--text);}
+.login-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);align-self:flex-start;}
+.login-dots{display:flex;gap:10px;justify-content:center;}
+.login-dot{
+  width:14px;height:14px;border-radius:50%;
+  background:var(--surface2);border:1px solid var(--border2);
+  transition:background .15s;
+}
+.login-dot.filled{background:var(--accent);border-color:var(--accent);}
+.login-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;}
+.login-key{
+  padding:14px;border-radius:var(--radius);
+  border:1px solid var(--border2);background:var(--surface2);
+  color:var(--text);font-family:'IBM Plex Mono',monospace;
+  font-size:18px;font-weight:500;cursor:pointer;
+  transition:all .12s;user-select:none;
+}
+.login-key:hover{background:var(--accent-dim);color:var(--accent);border-color:rgba(232,197,71,.4);}
+.login-key:active{transform:scale(.94);}
+.login-key.del{font-size:14px;color:var(--muted);}
+.login-key.del:hover{background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);}
+.login-key.zero{grid-column:2;}
+.login-error{
+  font-size:11px;color:var(--red);letter-spacing:.04em;
+  min-height:16px;transition:opacity .2s;opacity:0;
+}
+.login-error.show{opacity:1;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.shake{animation:shake .35s ease;}
+
 </style>
 </head>
 <body>
+
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">◈ <span>Stock</span>Figuritas</div>
+    <div class="login-label">Ingresá tu código</div>
+    <div class="login-dots">
+      <div class="login-dot" id="ld0"></div>
+      <div class="login-dot" id="ld1"></div>
+      <div class="login-dot" id="ld2"></div>
+      <div class="login-dot" id="ld3"></div>
+    </div>
+    <div class="login-numpad">
+      <button class="login-key" onclick="lkPress(1)">1</button>
+      <button class="login-key" onclick="lkPress(2)">2</button>
+      <button class="login-key" onclick="lkPress(3)">3</button>
+      <button class="login-key" onclick="lkPress(4)">4</button>
+      <button class="login-key" onclick="lkPress(5)">5</button>
+      <button class="login-key" onclick="lkPress(6)">6</button>
+      <button class="login-key" onclick="lkPress(7)">7</button>
+      <button class="login-key" onclick="lkPress(8)">8</button>
+      <button class="login-key" onclick="lkPress(9)">9</button>
+      <button class="login-key del" onclick="lkDel()">⌫</button>
+      <button class="login-key zero" onclick="lkPress(0)">0</button>
+    </div>
+    <div class="login-error" id="login-error">Código incorrecto</div>
+  </div>
+</div>
+
 
 <header class="header">
   <div class="logo">◈ <span>Stock</span>Figuritas</div>
@@ -349,6 +425,66 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 </div>
 
 <script>
+
+/* ── LOGIN ── */
+const _lkh = '2ca9f63bb06128cdda3ab45ebc7033656c2495bbb82308afee8faad496048390';
+let lkBuffer = '';
+
+async function _hash(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function lkPress(n) {
+  if (lkBuffer.length >= 4) return;
+  lkBuffer += String(n);
+  lkUpdateDots();
+  if (lkBuffer.length === 4) lkCheck();
+}
+function lkDel() {
+  lkBuffer = lkBuffer.slice(0, -1);
+  lkUpdateDots();
+  const err = document.getElementById('login-error');
+  err.classList.remove('show');
+}
+function lkUpdateDots() {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('ld' + i);
+    if (d) d.classList.toggle('filled', i < lkBuffer.length);
+  }
+}
+async function lkCheck() {
+  const inputHash = await _hash(lkBuffer);
+  if (inputHash === _lkh) {
+    const ov = document.getElementById('login-overlay');
+    ov.classList.add('hidden');
+    setTimeout(() => ov.style.display = 'none', 400);
+    try { sessionStorage.setItem('fig_auth', '1'); } catch(e) {}
+  } else {
+    const box = document.querySelector('.login-box');
+    const err = document.getElementById('login-error');
+    box.classList.add('shake');
+    err.classList.add('show');
+    setTimeout(() => box.classList.remove('shake'), 400);
+    lkBuffer = '';
+    lkUpdateDots();
+  }
+}
+document.addEventListener('keydown', e => {
+  const ov = document.getElementById('login-overlay');
+  if (!ov || ov.style.display === 'none') return;
+  if (e.key >= '0' && e.key <= '9') lkPress(parseInt(e.key));
+  if (e.key === 'Backspace') lkDel();
+});
+(function() {
+  try {
+    if (sessionStorage.getItem('fig_auth') === '1') {
+      const ov = document.getElementById('login-overlay');
+      if (ov) { ov.style.display = 'none'; }
+    }
+  } catch(e) {}
+})();
+
 const PACKS_POR_BULTO   = 40;
 const SOBRES_POR_PACK   = 25;
 const ALBUMES_POR_BULTO = 25;
@@ -389,7 +525,17 @@ function flashEl(id){
 
 /* total $ de una reserva según sus precios cargados */
 function calcTotal(r){
-  return (r.packs * (r.pPack||0)) + (r.sobres * (r.pSobre||0)) + (r.albumes * (r.pAlbum||0));
+  // Packs: si tiene precio por pack usalo; si tiene precio por sobre, multiplicá por 25
+  const costoPacks = r.packs * (
+    (r.pPack||0) > 0
+      ? (r.pPack||0)
+      : (r.pSobre||0) * SOBRES_POR_PACK
+  );
+  // Sobres sueltos: siempre por precio de sobre
+  const costoSobres = r.sobres * (r.pSobre||0);
+  // Álbumes
+  const costoAlbumes = r.albumes * (r.pAlbum||0);
+  return costoPacks + costoSobres + costoAlbumes;
 }
 
 /* ── MÉTRICAS + ECO ── */
