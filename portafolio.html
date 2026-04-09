@@ -1320,19 +1320,55 @@ async function fetchFinnhub(ticker){
 async function fetchAllQuotes(){
   var pos=getPositions().filter(function(p){return p.qty>0.000001;});
   if(!pos.length){flash(document.getElementById('ref-status'),'No hay posiciones',true);return;}
-  // Limpiar caché antes de fetchear para garantizar precios frescos
   quotes={};
   try{localStorage.removeItem('ptNYSE_q2');localStorage.removeItem('ptNYSE_q2_ts');}catch(e){}
   var icon=document.getElementById('ref-icon');var status=document.getElementById('ref-status');var prog=document.getElementById('pos-prog');var pfill=document.getElementById('pfill');
   icon.innerHTML='<span class="spinner"></span>';prog.style.display='';pfill.style.width='0%';
+
+  // Separar por tipo: Finnhub (NYSE/Brasil/etc) y Yahoo (Argentina)
+  var finnhubPos=pos.filter(function(p){return getSector(p.ticker)!=='argentina';});
+  var yahooPos=pos.filter(function(p){return getSector(p.ticker)==='argentina';});
+
   var total=pos.length,done=0,errors=0;
-  for(var i=0;i<pos.length;i++){
-    var p=pos[i];status.textContent=p.ticker+'...';
-    try{var q=getSector(p.ticker)==='argentina'?await fetchYahooAR(p.ticker):await fetchFinnhub(getFinnhubTicker(p.ticker));quotes[p.ticker]=q;renderPortfolio();}
-    catch(e){errors++;}
-    done++;pfill.style.width=Math.round(done/total*100)+'%';
-    if(i<pos.length-1)await new Promise(function(r){setTimeout(r,1100);});
+
+  function updateProgress(){
+    done++;
+    pfill.style.width=Math.round(done/total*100)+'%';
+    status.textContent=done+'/'+total+'...';
+    renderPortfolio();
   }
+
+  // Delay helper para Finnhub (rate limit: 1 req/seg)
+  function delay(ms){return new Promise(function(r){setTimeout(r,ms);});}
+
+  // ── Finnhub: secuencial con 1.1s entre cada uno ─────────────────────
+  async function fetchFinnhubAll(){
+    for(var i=0;i<finnhubPos.length;i++){
+      var p=finnhubPos[i];
+      try{quotes[p.ticker]=await fetchFinnhub(getFinnhubTicker(p.ticker));}
+      catch(e){errors++;}
+      updateProgress();
+      if(i<finnhubPos.length-1)await delay(1100);
+    }
+  }
+
+  // ── Yahoo AR: paralelo por lotes de 3 con 500ms entre lotes ─────────
+  async function fetchYahooAll(){
+    var batchSize=3;
+    for(var i=0;i<yahooPos.length;i+=batchSize){
+      var batch=yahooPos.slice(i,i+batchSize);
+      await Promise.all(batch.map(async function(p){
+        try{quotes[p.ticker]=await fetchYahooAR(p.ticker);}
+        catch(e){errors++;}
+        updateProgress();
+      }));
+      if(i+batchSize<yahooPos.length)await delay(500);
+    }
+  }
+
+  // Correr ambos en paralelo
+  await Promise.all([fetchFinnhubAll(),fetchYahooAll()]);
+
   icon.textContent='⟳';prog.style.display='none';
   status.className=errors>0?'emsg':'smsg';
   status.textContent=errors>0?errors+' sin datos':'Actualizado';
