@@ -74,7 +74,7 @@ tr:hover td{background:var(--surface2)}
 .ibox{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:.65rem .9rem;font-size:.7rem;font-family:var(--mono);color:var(--text2)}
 .ibox b{color:var(--text)}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-.panels-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:1rem;align-items:start}
+.panels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;align-items:start}
 .panels-grid .card{margin-bottom:0}
 .panel-table table{width:auto;min-width:100%}
 .panel-table th{padding:.35rem .6rem;font-size:.58rem}
@@ -196,6 +196,18 @@ tr:hover td{background:var(--surface2)}
           <div class="card-header"><span class="card-title">🇺🇸 NYSE / NASDAQ</span><span id="panel-nyse-meta" class="tag"></span></div>
           <div class="tw panel-table"><table><thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead><tbody id="body-nyse"></tbody></table></div>
         </div>
+        <div class="card" id="panel-bonos" style="display:none">
+          <div class="card-header"><span class="card-title">🏦 Bonos</span><span id="panel-bonos-meta" class="tag"></span></div>
+          <div class="tw panel-table"><table><thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead><tbody id="body-bonos"></tbody></table></div>
+        </div>
+        <div class="card" id="panel-argentina" style="display:none">
+          <div class="card-header"><span class="card-title">🇦🇷 Argentina</span><span id="panel-argentina-meta" class="tag"></span></div>
+          <div class="tw panel-table"><table><thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead><tbody id="body-argentina"></tbody></table></div>
+        </div>
+        <div class="card" id="panel-brasil" style="display:none">
+          <div class="card-header"><span class="card-title">🇧🇷 Brasil</span><span id="panel-brasil-meta" class="tag"></span></div>
+          <div class="tw panel-table"><table><thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead><tbody id="body-brasil"></tbody></table></div>
+        </div>
         <div class="card" id="panel-europa" style="display:none">
           <div class="card-header"><span class="card-title">🇪🇺 Europa</span><span id="panel-europa-meta" class="tag"></span></div>
           <div class="tw panel-table"><table><thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead><tbody id="body-europa"></tbody></table></div>
@@ -207,10 +219,6 @@ tr:hover td{background:var(--surface2)}
         <div class="card" id="panel-cripto" style="display:none">
           <div class="card-header"><span class="card-title">₿ Cripto ETF</span><span id="panel-cripto-meta" class="tag"></span></div>
           <div class="tw panel-table"><table><thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead><tbody id="body-cripto"></tbody></table></div>
-        </div>
-        <div class="card" id="panel-brasil" style="display:none">
-          <div class="card-header"><span class="card-title">🇧🇷 Brasil</span><span id="panel-brasil-meta" class="tag"></span></div>
-          <div class="tw panel-table"><table><thead><tr><th>Ticker</th><th>Δ%</th><th>ΔUP</th><th>Inversión $</th><th>Mercado $</th><th>PPC $</th><th>P. Venta</th><th>Cant.</th></tr></thead><tbody id="body-brasil"></tbody></table></div>
         </div>
       </div>
       <div class="card">
@@ -989,16 +997,16 @@ function renderPortfolio(){
   if(!open.length){
     empty.style.display='';
     document.getElementById('panels-grid').style.display='none';
-    ['panel-nyse','panel-europa','panel-china','panel-cripto','panel-brasil'].forEach(function(id){document.getElementById(id).style.display='none';});
+    ['panel-nyse','panel-bonos','panel-argentina','panel-brasil','panel-europa','panel-china','panel-cripto'].forEach(function(id){document.getElementById(id).style.display='none';});
     ['m-val','m-cost','m-pnl','m-rpnl','m-divs','m-count'].forEach(function(id){document.getElementById(id).textContent='—';});
     renderDivsCard();
     return;
   }
   empty.style.display='none';
   document.getElementById('panels-grid').style.display='';
-  var sectors={nyse:[],europa:[],china:[],cripto:[],brasil:[]};
-  var sectorCost={nyse:0,europa:0,china:0,cripto:0,brasil:0};
-  var sectorVal={nyse:0,europa:0,china:0,cripto:0,brasil:0};
+  var sectors={nyse:[],bonos:[],argentina:[],brasil:[],europa:[],china:[],cripto:[]};
+  var sectorCost={nyse:0,bonos:0,argentina:0,brasil:0,europa:0,china:0,cripto:0};
+  var sectorVal={nyse:0,bonos:0,argentina:0,brasil:0,europa:0,china:0,cripto:0};
   // Pasada 1: acumular totales globales y por sector
   open.forEach(function(p){
     var q=quotes[p.ticker];var price=q?q.price:null;
@@ -1014,7 +1022,7 @@ function renderPortfolio(){
   });
 
   // Totales de Valor Mercado ARS por sector (para concentración)
-  var sectorTotalMktARS={nyse:0,europa:0,china:0,cripto:0,brasil:0};
+  var sectorTotalMktARS={nyse:0,bonos:0,argentina:0,brasil:0,europa:0,china:0,cripto:0};
   open.forEach(function(p){
     var sec=getSector(p.ticker);
     sectorTotalMktARS[sec]=(sectorTotalMktARS[sec]||0)+(p._invARS||0);
@@ -1092,7 +1100,7 @@ function renderPortfolio(){
     '</tr>';
     sectors[sector].push(row);
   });
-  var panelDefs=[{id:'nyse',key:'nyse'},{id:'europa',key:'europa'},{id:'china',key:'china'},{id:'cripto',key:'cripto'},{id:'brasil',key:'brasil'}];
+  var panelDefs=[{id:'nyse',key:'nyse'},{id:'bonos',key:'bonos'},{id:'argentina',key:'argentina'},{id:'brasil',key:'brasil'},{id:'europa',key:'europa'},{id:'china',key:'china'},{id:'cripto',key:'cripto'}];
   panelDefs.forEach(function(def){
     var rows=sectors[def.key];var panel=document.getElementById('panel-'+def.id);var body=document.getElementById('body-'+def.id);var meta=document.getElementById('panel-'+def.id+'-meta');
     if(!rows||!rows.length){panel.style.display='none';return;}
