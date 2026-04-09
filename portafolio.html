@@ -147,7 +147,21 @@ tr:hover td{background:var(--surface2)}
     <div class="nav-sec">Vistas</div>
     <button class="nav-item active" onclick="showPage('portafolio',this)"><span>◈</span>Portafolio</button>
     <button class="nav-item" onclick="showPage('movimientos',this)"><span>↕</span>Movimientos</button>
-    <button class="nav-item" onclick="showPage('dividendos',this)"><span>$</span>Dividendos</button>
+    <div class="nav-sec">R. Variable</div>
+    <div style="padding:.4rem 1.1rem .6rem;display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+        <label style="font-size:.65rem;font-family:var(--mono);color:#f97316;font-weight:700">2%</label>
+        <input id="rv-naranja" type="number" min="0" step="1" placeholder="$ ARS"
+          style="width:80px;background:var(--bg);border:1px solid #f97316;border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.72rem;padding:2px 6px;height:24px;text-align:right;outline:none"
+          oninput="renderPortfolio()">
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+        <label style="font-size:.65rem;font-family:var(--mono);color:var(--red);font-weight:700">3%</label>
+        <input id="rv-rojo" type="number" min="0" step="1" placeholder="$ ARS"
+          style="width:80px;background:var(--bg);border:1px solid var(--red);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.72rem;padding:2px 6px;height:24px;text-align:right;outline:none"
+          oninput="renderPortfolio()">
+      </div>
+    </div>
     <div class="nav-sec">Herramientas</div>
     <button class="nav-item" onclick="showPage('tracker',this)"><span>◎</span>Tracker Div.</button>
     <button class="nav-item" onclick="showPage('cotizador',this)"><span>◎</span>Cotizador</button>
@@ -985,31 +999,87 @@ function renderPortfolio(){
   var sectors={nyse:[],europa:[],china:[],cripto:[],brasil:[]};
   var sectorCost={nyse:0,europa:0,china:0,cripto:0,brasil:0};
   var sectorVal={nyse:0,europa:0,china:0,cripto:0,brasil:0};
+  // Pasada 1: acumular totales globales y por sector
   open.forEach(function(p){
     var q=quotes[p.ticker];var price=q?q.price:null;
     var ratio=getRatio(p.ticker);var sector=getSector(p.ticker);
-    var avgCost=p.qty>0?p.costUSD/p.qty:0;
     var mercadoCedearARS=price!=null?(price/ratio)*CCL_HOY:null;
-    // PPC: costo en USD (precioARS/ccl por cada compra) convertido a ARS con CCL hoy
-    var ppcUSD=p.qty>0?p.costUSDpuro/p.qty:0;
-    var ppcCedearARS=ppcUSD*CCL_HOY;
     var inversionCedearARS=mercadoCedearARS!=null?mercadoCedearARS*p.qty:p.costARS;
-    var pnlPct=mercadoCedearARS!=null&&ppcCedearARS>0?(mercadoCedearARS-ppcCedearARS)/ppcCedearARS*100:null;
     var valueUSD=price!=null?(price/ratio)*p.qty:null;
     if(valueUSD!=null){totalVal+=valueUSD;sectorVal[sector]=(sectorVal[sector]||0)+valueUSD;}
     totalCost+=p.costUSDpuro;
     sectorCost[sector]=(sectorCost[sector]||0)+p.costUSDpuro;
-    var pnlClass=pnlPct!=null?(pnlPct>=0?'pos':'neg'):'';
-    var invARS=inversionCedearARS.toLocaleString('es-AR',{maximumFractionDigits:0});
-    var mktARS=mercadoCedearARS!=null?mercadoCedearARS.toLocaleString('es-AR',{maximumFractionDigits:0}):null;
-    var ppcARS=ppcCedearARS.toLocaleString('es-AR',{maximumFractionDigits:0});
+    p._mktARS=mercadoCedearARS;
+    p._invARS=inversionCedearARS;
+  });
+
+  // Totales de Valor Mercado ARS por sector (para concentración)
+  var sectorTotalMktARS={nyse:0,europa:0,china:0,cripto:0,brasil:0};
+  open.forEach(function(p){
+    var sec=getSector(p.ticker);
+    sectorTotalMktARS[sec]=(sectorTotalMktARS[sec]||0)+(p._invARS||0);
+  });
+
+  // Umbrales RVariable
+  // RVariable: umbrales en ARS absolutos (0 = desactivado)
+  var rvNaranja=parseFloat((document.getElementById('rv-naranja')||{value:''}).value)||0;
+  var rvRojo=parseFloat((document.getElementById('rv-rojo')||{value:''}).value)||0;
+
+  // Función color % — <0 rojo, 0-10 naranja, >10 verde
+  function pctColor(pct){
+    if(pct===null||isNaN(pct)) return 'var(--text3)';
+    if(pct<0) return 'var(--red)';
+    if(pct<10) return '#f97316';
+    return 'var(--accent)';
+  }
+  function pctCell(pct,sign){
+    if(pct===null||isNaN(pct)) return '<span style="color:var(--text3)">—</span>';
+    var s=sign&&pct>0?'+':'';
+    return '<span style="color:'+pctColor(pct)+'">'+s+Math.round(pct)+'%</span>';
+  }
+
+  // Pasada 2: construir filas
+  open.forEach(function(p){
+    var q=quotes[p.ticker];var price=q?q.price:null;
+    var ratio=getRatio(p.ticker);var sector=getSector(p.ticker);
+    var ppcUSD=p.qty>0?p.costUSDpuro/p.qty:0;
+    var ppcCedearARS=ppcUSD*CCL_HOY;
+    var mercadoCedearARS=p._mktARS;
+    var inversionCedearARS=p._invARS;
+    var pnlPct=mercadoCedearARS!=null&&ppcCedearARS>0?(mercadoCedearARS-ppcCedearARS)/ppcCedearARS*100:null;
     var targetUSD=getTarget(p.ticker);
     var targetARS=targetUSD!=null?(targetUSD/ratio)*CCL_HOY:null;
-    var targetPct=targetARS!=null&&ppcCedearARS>0?(targetARS-ppcCedearARS)/ppcCedearARS*100:null;
     var upside=targetARS!=null&&mercadoCedearARS!=null&&mercadoCedearARS>0?(targetARS-mercadoCedearARS)/mercadoCedearARS*100:null;
-    var upsideCell=upside!=null?'<span class="'+(upside>=0?'pos':'neg')+'">'+(upside>=0?'+':'')+upside.toFixed(0)+'%</span>':'<span style="color:var(--text3)">—</span>';
-    var targetCell=targetARS!=null?'$'+targetARS.toLocaleString('es-AR',{maximumFractionDigits:0})+(targetPct!=null?' <span style="font-size:.6rem;color:var(--text3)">('+( targetPct>=0?'+':'')+targetPct.toFixed(0)+'%)</span>':''):'<span style="color:var(--text3)">—</span>';
-    var row='<tr><td style="font-weight:700">'+p.ticker+'</td><td class="mono '+pnlClass+'">'+(pnlPct!=null?(pnlPct>=0?'+':'')+pnlPct.toFixed(0)+'%':'—')+'</td><td class="mono">'+upsideCell+'</td><td class="mono">$'+invARS+'</td><td class="mono">'+(mktARS!=null?'$'+mktARS:'<span style="color:var(--text3)">—</span>')+'</td><td class="mono muted">$'+ppcARS+'</td><td class="mono">'+targetCell+'</td><td class="mono">'+(p.qty%1===0?p.qty.toFixed(0):p.qty.toFixed(4))+'</td></tr>';
+
+    // Color Δ%
+    var deltaCell=pctCell(pnlPct,true);
+
+    // Color ΔUP
+    var upsideCell=upside!=null?pctCell(upside,true):'<span style="color:var(--text3)">—</span>';
+
+    // P. Venta
+    var targetCell=targetARS!=null?'$'+Math.round(targetARS).toLocaleString('es-AR'):'<span style="color:var(--text3)">—</span>';
+
+    // Inversión $ con color por concentración en el sector
+    var sectorTotal=sectorTotalMktARS[sector]||0;
+    // Comparación directa: inversionCedearARS vs umbrales en ARS
+    var invColor=(rvRojo>0&&inversionCedearARS>rvRojo)?'var(--red)':
+                 (rvNaranja>0&&inversionCedearARS>rvNaranja)?'#f97316':'var(--text)';
+    var invARS='<span style="color:'+invColor+'">$'+Math.round(inversionCedearARS).toLocaleString('es-AR')+'</span>';
+
+    var mktARS=mercadoCedearARS!=null?'$'+Math.round(mercadoCedearARS).toLocaleString('es-AR'):null;
+    var ppcARS='$'+Math.round(ppcCedearARS).toLocaleString('es-AR');
+
+    var row='<tr>'+
+      '<td style="font-weight:700">'+p.ticker+'</td>'+
+      '<td class="mono">'+deltaCell+'</td>'+
+      '<td class="mono">'+upsideCell+'</td>'+
+      '<td class="mono">'+invARS+'</td>'+
+      '<td class="mono">'+(mktARS?mktARS:'<span style="color:var(--text3)">—</span>')+'</td>'+
+      '<td class="mono muted">'+ppcARS+'</td>'+
+      '<td class="mono">'+targetCell+'</td>'+
+      '<td class="mono">'+(p.qty%1===0?p.qty.toFixed(0):p.qty.toFixed(2))+'</td>'+
+    '</tr>';
     sectors[sector].push(row);
   });
   var panelDefs=[{id:'nyse',key:'nyse'},{id:'europa',key:'europa'},{id:'china',key:'china'},{id:'cripto',key:'cripto'},{id:'brasil',key:'brasil'}];
@@ -1286,7 +1356,7 @@ function renderTargets(){
   var pos_map={};getPositions().forEach(function(p){if(p.qty>0)pos_map[p.ticker]=p;});
   var tickers=Object.keys(TARGET_TABLE).sort();
   body.innerHTML=tickers.map(function(t){
-    var targetUSD=TARGET_TABLE[t];var ratio=getRatio(t);var sector=getSector(t);var targetARS=targetUSD!=null?(targetUSD/ratio)*CCL_HOY:null;var pos=pos_map[t];var ppcARS=pos&&pos.qty>0?(pos.costUSDpuro/pos.qty)*CCL_HOY:null;var targetPct=targetARS!=null&&ppcARS?((targetARS-ppcARS)/ppcARS*100):null;var pctHtml=targetPct!=null?'<span class="'+(targetPct>=0?'pos':'neg')+'">'+(targetPct>=0?'+':'')+targetPct.toFixed(1)+'%</span>':'—';
+    var targetUSD=TARGET_TABLE[t];var ratio=getRatio(t);var sector=getSector(t);var targetARS=targetUSD!=null?(targetUSD/ratio)*CCL_HOY:null;var pos=pos_map[t];var q=quotes[t];var mercadoARS=q?(q.price/ratio)*CCL_HOY:null;var targetPct=targetARS!=null&&mercadoARS&&mercadoARS>0?((targetARS-mercadoARS)/mercadoARS*100):null;var pctHtml=targetPct!=null?'<span class="'+(targetPct>=0?'pos':'neg')+'">'+(targetPct>=0?'+':'')+targetPct.toFixed(1)+'%</span>':'—';
     return '<tr><td style="font-weight:700">'+t+'</td><td><span class="mkt" style="font-size:.6rem">'+SECTOR_LABELS[sector]+'</span></td><td><input type="number" min="0" step="any" value="'+(targetUSD!=null?targetUSD:'')+'" placeholder="USD NYSE" id="ti-'+t+'" style="width:110px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.75rem;padding:3px 8px;height:26px" onkeydown="if(event.key===\'Enter\')saveTarget(\''+t+'\')"></td><td class="mono">'+(targetARS!=null?'$'+targetARS.toLocaleString('es-AR',{maximumFractionDigits:0}):'<span style="color:var(--text3)">—</span>')+'</td><td>'+pctHtml+'</td><td><button class="btn btn-a btn-sm" onclick="saveTarget(\''+t+'\')">✓</button></td></tr>';
   }).join('');
 }
