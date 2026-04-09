@@ -493,25 +493,149 @@ const COSTO_ALBUM       = 11250;
 
 let sobB = 1, albB = 1;
 
+/* ── SUPABASE ── */
+const SB_URL = 'https://rdkaisxgclwivkyyrmvv.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJka2Fpc3hnY2x3aXZreXlybXZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MDMzMTYsImV4cCI6MjA5MTI3OTMxNn0.kaMCkx61OJX_3-kjCc4uvnpomXwkc6pVoBc1OchV36g';
+
+async function sbFetch(path, opts={}) {
+  const res = await fetch(SB_URL + '/rest/v1/' + path, {
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || ''
+    },
+    ...opts
+  });
+  if (!res.ok) { const t = await res.text(); console.error('SB error:', t); return null; }
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
 let stock = { sobres:0, sobBultos:0, sobPacks:0, albumes:0, albBultos:0 };
 let reservas = [];
 let nextId   = 1;
+let _saving  = false;
 
-function save() {
+async function save() {
+  if (_saving) return;
+  _saving = true;
   try {
-    localStorage.setItem('figstock5',    JSON.stringify(stock));
-    localStorage.setItem('figreservas5', JSON.stringify(reservas));
-    localStorage.setItem('fignext5',     nextId);
-  } catch(e) {}
+    await sbFetch('stock?id=eq.main', {
+      method: 'PATCH',
+      prefer: 'return=minimal',
+      body: JSON.stringify({
+        sobres:     stock.sobres,
+        sob_bultos: stock.sobBultos,
+        sob_packs:  stock.sobPacks,
+        albumes:    stock.albumes,
+        alb_bultos: stock.albBultos
+      })
+    });
+  } catch(e) { console.error('save stock:', e); }
+  _saving = false;
 }
-function load() {
+
+async function saveReserva(r) {
+  const row = {
+    id:           r.id,
+    nombre:       r.nombre,
+    packs:        r.packs,
+    sobres:       r.sobres,
+    total_sobres: r.totalSobres,
+    albumes:      r.albumes,
+    p_pack:       r.pPack  || 0,
+    p_sobre:      r.pSobre || 0,
+    p_album:      r.pAlbum || 0,
+    estado:       r.estado,
+    fecha:        r.fecha,
+    fecha_ent:    r.fechaEnt || null
+  };
+  await sbFetch('reservas?id=eq.' + r.id, {
+    method: 'PATCH',
+    prefer: 'return=minimal',
+    body: JSON.stringify(row)
+  });
+}
+
+async function insertReserva(r) {
+  const row = {
+    id:           r.id,
+    nombre:       r.nombre,
+    packs:        r.packs,
+    sobres:       r.sobres,
+    total_sobres: r.totalSobres,
+    albumes:      r.albumes,
+    p_pack:       r.pPack  || 0,
+    p_sobre:      r.pSobre || 0,
+    p_album:      r.pAlbum || 0,
+    estado:       r.estado,
+    fecha:        r.fecha,
+    fecha_ent:    r.fechaEnt || null
+  };
+  await sbFetch('reservas', {
+    method: 'POST',
+    prefer: 'return=minimal',
+    body: JSON.stringify(row)
+  });
+}
+
+async function deleteReserva(id) {
+  await sbFetch('reservas?id=eq.' + id, { method: 'DELETE' });
+}
+
+async function load() {
+  showLoader(true);
   try {
-    const s = localStorage.getItem('figstock5');   if(s) stock    = {...stock,...JSON.parse(s)};
-    const r = localStorage.getItem('figreservas5');if(r) reservas = JSON.parse(r);
-    const n = localStorage.getItem('fignext5');    if(n) nextId   = parseInt(n);
-  } catch(e) {}
+    const [stockData, resData] = await Promise.all([
+      sbFetch('stock?id=eq.main&select=*'),
+      sbFetch('reservas?select=*&order=id.asc')
+    ]);
+    if (stockData && stockData.length) {
+      const s = stockData[0];
+      stock = {
+        sobres:    s.sobres    || 0,
+        sobBultos: s.sob_bultos || 0,
+        sobPacks:  s.sob_packs  || 0,
+        albumes:   s.albumes   || 0,
+        albBultos: s.alb_bultos || 0
+      };
+    }
+    if (resData && resData.length) {
+      reservas = resData.map(r => ({
+        id:          r.id,
+        nombre:      r.nombre,
+        packs:       r.packs,
+        sobres:      r.sobres,
+        totalSobres: r.total_sobres,
+        albumes:     r.albumes,
+        pPack:       r.p_pack  || 0,
+        pSobre:      r.p_sobre || 0,
+        pAlbum:      r.p_album || 0,
+        estado:      r.estado,
+        fecha:       r.fecha,
+        fechaEnt:    r.fecha_ent || null
+      }));
+      nextId = Math.max(...reservas.map(r => r.id), 0) + 1;
+    }
+  } catch(e) { console.error('load error:', e); }
+  showLoader(false);
 }
-load();
+
+function showLoader(show) {
+  let el = document.getElementById('db-loader');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'db-loader';
+    el.style.cssText = 'position:fixed;bottom:16px;right:16px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:8px 14px;font-size:11px;color:var(--muted);z-index:999;display:flex;align-items:center;gap:6px;';
+    el.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;animation:pulse 1s infinite"></span> Conectando...';
+    document.body.appendChild(el);
+    const style = document.createElement('style');
+    style.textContent = '@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}';
+    document.head.appendChild(style);
+  }
+  el.style.display = show ? 'flex' : 'none';
+}
 
 const g   = id => document.getElementById(id);
 const set = (id,v) => { const e=g(id); if(e) e.textContent=v; };
@@ -651,15 +775,17 @@ function sobSt(v){const n=parseInt(v);if(!isNaN(n)&&n>=1){sobB=n;renderSobCalc()
 function albCh(d){albB=Math.max(1,albB+d);renderAlbCalc();}
 function albSt(v){const n=parseInt(v);if(!isNaN(n)&&n>=1){albB=n;renderAlbCalc();}}
 
-function agregarSobres(){
+async function agregarSobres(){
   const packs=sobB*PACKS_POR_BULTO,sobres=packs*SOBRES_POR_PACK;
   stock.sobres+=sobres;stock.sobBultos+=sobB;stock.sobPacks+=packs;
-  save();renderMetrics();flashEl('m-sobres');flashEl('eco-invertido');
+  renderMetrics();flashEl('m-sobres');flashEl('eco-invertido');
+  await save();
 }
-function agregarAlbumes(){
+async function agregarAlbumes(){
   const albs=albB*ALBUMES_POR_BULTO;
   stock.albumes+=albs;stock.albBultos+=albB;
-  save();renderMetrics();flashEl('m-albumes');flashEl('eco-invertido');
+  renderMetrics();flashEl('m-albumes');flashEl('eco-invertido');
+  await save();
 }
 
 /* ── PREVIEW ── */
@@ -672,7 +798,7 @@ function calcNR(){
 }
 
 /* ── CONFIRMAR RESERVA ── */
-function confirmarReserva(){
+async function confirmarReserva(){
   const nombre =g('nr-nombre').value.trim();
   const packs  =parseInt(g('nr-packs').value)||0;
   const sobres =parseInt(g('nr-sobres').value)||0;
@@ -696,17 +822,19 @@ function confirmarReserva(){
   g('nr-albumes').value='0';g('nr-ppk').value='0';g('nr-psob').value='0';g('nr-palb').value='0';
   g('nr-preview').style.display='none';
 
-  save();renderMetrics();renderTablas();
+  renderMetrics();renderTablas();
   flashEl('m-sobres');flashEl('m-sob-res');flashEl('m-alb-res');flashEl('eco-reservado');
+  await Promise.all([save(), insertReserva(reservas[reservas.length-1])]);
 }
 
 /* ── ENTREGAR ── */
-function entregarReserva(id){
+async function entregarReserva(id){
   const r=reservas.find(x=>x.id===id);if(!r||r.estado!=='pendiente')return;
   if(!confirm(`¿Confirmar entrega a ${r.nombre}?\n${r.totalSobres} sobres · ${r.albumes} álbumes\nTotal: ${pesos(calcTotal(r))}`))return;
   r.estado='entregado';r.fechaEnt=new Date().toLocaleDateString('es-AR');
-  save();renderMetrics();renderTablas();
+  renderMetrics();renderTablas();
   flashEl('m-sob-ent');flashEl('m-alb-ent');flashEl('eco-entregado');flashEl('eco-reservado');
+  await Promise.all([save(), saveReserva(r)]);
 }
 
 /* ── EDITAR ── */
@@ -735,7 +863,7 @@ function updEd(id){
   const p=parseInt(g(`e-pk-${id}`).value)||0,s=parseInt(g(`e-sb-${id}`).value)||0;
   const el=g(`e-tot-${id}`);if(el)el.textContent=(p*SOBRES_POR_PACK+s).toLocaleString('es-AR');
 }
-function guardarEd(id){
+async function guardarEd(id){
   const r=reservas.find(x=>x.id===id);if(!r)return;
   const nombre=g(`e-nom-${id}`).value.trim();
   const packs  =parseInt(g(`e-pk-${id}`).value)||0;
@@ -755,16 +883,18 @@ function guardarEd(id){
   }
   r.nombre=nombre;r.packs=packs;r.sobres=sobres;r.totalSobres=totalSobres;
   r.albumes=albumes;r.pPack=pPack;r.pSobre=pSobre;r.pAlbum=pAlbum;
-  save();renderMetrics();renderTablas();
+  renderMetrics();renderTablas();
+  await Promise.all([save(), saveReserva(r)]);
 }
 
 /* ── ELIMINAR ── */
-function eliminarReserva(id){
+async function eliminarReserva(id){
   const r=reservas.find(x=>x.id===id);if(!r)return;
   if(!confirm(`¿Eliminar reserva de ${r.nombre}?`))return;
   if(r.estado==='pendiente'){stock.sobres+=r.totalSobres;stock.albumes+=r.albumes;}
   reservas=reservas.filter(x=>x.id!==id);
-  save();renderMetrics();renderTablas();
+  renderMetrics();renderTablas();
+  await Promise.all([save(), deleteReserva(id)]);
 }
 
 /* ── RENDER TABLAS ── */
@@ -834,13 +964,14 @@ function openModal(field){
 }
 function closeModal(e){if(e.target===g('modal-overlay'))closeModalDirect();}
 function closeModalDirect(){g('modal-overlay').classList.remove('open');modalField=null;}
-function saveModal(){
+async function saveModal(){
   if(!modalField)return;
   const val=parseInt(g('modal-inp').value);
   if(isNaN(val)||val<0)return alert('Ingresá un valor válido.');
   stock[modalField]=val;
-  save();renderMetrics();flashEl(modalField==='sobres'?'m-sobres':'m-albumes');
+  renderMetrics();flashEl(modalField==='sobres'?'m-sobres':'m-albumes');
   closeModalDirect();
+  await save();
 }
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape')closeModalDirect();
@@ -848,10 +979,13 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ── INIT ── */
-renderMetrics();
-renderSobCalc();
-renderAlbCalc();
-renderTablas();
+(async () => {
+  await load();
+  renderMetrics();
+  renderSobCalc();
+  renderAlbCalc();
+  renderTablas();
+})();
 </script>
 </body>
 </html>
