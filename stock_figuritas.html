@@ -21,34 +21,49 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;min-height:100vh;}
 
+/* HEADER */
 .header{background:var(--surface);border-bottom:1px solid var(--border2);padding:0 2rem;display:flex;align-items:center;height:60px;}
 .logo{font-family:'Inter',sans-serif;font-weight:700;font-size:18px;letter-spacing:0.5px;color:var(--accent);display:flex;align-items:center;gap:8px;}
 .logo span{color:var(--text);}
-.container{max-width:980px;margin:0 auto;padding:2rem;}
+.container{max-width:1020px;margin:0 auto;padding:2rem;}
 
-/* MÉTRICAS — 2 filas */
+/* SECCIÓN ECONÓMICA */
+.eco-block{background:var(--surface);border:1px solid rgba(76,175,125,.18);border-radius:var(--radius-lg);padding:1.2rem 1.6rem;margin-bottom:1rem;}
+.eco-header{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--green);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+.eco-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.eco-card{background:var(--surface2);border-radius:var(--radius);padding:1rem 1.1rem;}
+.eco-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;}
+.eco-value{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:500;color:var(--green);line-height:1;}
+.eco-value.dim{color:var(--muted);}
+.eco-sub{font-size:10px;color:var(--muted);margin-top:4px;}
+
+/* MÉTRICAS */
 .metrics-row{display:grid;gap:12px;margin-bottom:1rem;}
 .metrics-row.top{grid-template-columns:repeat(4,1fr);}
 .metrics-row.bot{grid-template-columns:repeat(2,1fr);}
-.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem 1.4rem;transition:border-color .2s;}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem 1.4rem;transition:border-color .2s;position:relative;}
 .metric:hover{border-color:var(--border2);}
 .metric-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;}
-.metric-value{font-family:'Inter',sans-serif;font-size:28px;font-weight:700;line-height:1;}
+.metric-value{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:500;line-height:1;}
 .metric-sub{font-size:10px;color:var(--muted);margin-top:6px;}
-.c-accent{color:var(--accent);} .c-teal{color:var(--teal);} .c-orange{color:var(--orange);} .c-green{color:var(--green);} .c-purple{color:var(--purple);}
+.c-accent{color:var(--accent);} .c-teal{color:var(--teal);} .c-orange{color:var(--orange);}
+.c-green{color:var(--green);} .c-purple{color:var(--purple);}
+.btn-es{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s,background .15s;line-height:1;}
+.metric:hover .btn-es{opacity:1;}
+.btn-es:hover{background:var(--surface2);color:var(--text);}
 
 /* CALCULADORAS */
 .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:2rem;}
 .calc-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.4rem;}
 .calc-block.sob{border-color:rgba(232,197,71,.2);} .calc-block.alb{border-color:rgba(56,189,248,.2);}
-.calc-title{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.calc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
 .dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
-.dot-y{background:var(--accent);} .dot-t{background:var(--teal);}
+.dot-y{background:var(--accent);} .dot-t{background:var(--teal);} .dot-o{background:var(--orange);} .dot-g{background:var(--green);}
 .cnt-row{display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;}
-.btn-cnt{width:36px;height:36px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;transition:all .12s;flex-shrink:0;}
+.btn-cnt{width:36px;height:36px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0;}
 .btn-cnt.y:hover{background:var(--accent-dim);color:var(--accent);border-color:rgba(232,197,71,.4);}
 .btn-cnt.t:hover{background:var(--teal-dim);color:var(--teal);border-color:rgba(56,189,248,.4);}
-.cnt-num{font-family:'Inter',sans-serif;font-size:28px;font-weight:800;min-width:40px;text-align:center;}
+.cnt-num{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:500;min-width:40px;text-align:center;}
 .cnt-num.y{color:var(--accent);} .cnt-num.t{color:var(--teal);}
 .cnt-in{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:8px 10px;outline:none;width:72px;transition:border-color .15s;}
 .cnt-in:focus{border-color:var(--accent);}
@@ -56,26 +71,25 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .calc-res{display:flex;gap:8px;margin-bottom:1.2rem;}
 .cres{flex:1;background:var(--surface2);border-radius:var(--radius);padding:10px 12px;text-align:center;}
 .cres-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px;}
-.cres-val{font-family:'Inter',sans-serif;font-size:18px;font-weight:700;}
+.cres-val{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:500;}
 .boxes-row{display:flex;flex-wrap:wrap;gap:5px;min-height:44px;align-items:flex-end;margin-bottom:1rem;}
 .calc-formula{font-size:11px;color:var(--muted);margin-bottom:1.2rem;line-height:1.5;}
-.btn-add{width:100%;padding:11px;border-radius:var(--radius);border:1px solid;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;}
+.btn-add{width:100%;padding:11px;border-radius:var(--radius);border:1px solid;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;letter-spacing:.02em;}
 .btn-add:active{transform:scale(.98);}
 .btn-add.y{background:var(--accent-dim);color:var(--accent);border-color:rgba(232,197,71,.3);}
 .btn-add.y:hover{background:var(--accent-dim2);}
 .btn-add.t{background:var(--teal-dim);color:var(--teal);border-color:rgba(56,189,248,.3);}
 .btn-add.t:hover{background:rgba(56,189,248,.2);}
 
-/* BLOQUE COMPARTIDO (reservas + entregados) */
+/* BLOQUE RESERVAS */
 .block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.4rem;margin-bottom:2rem;}
-.block-title{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
-.dot-o{background:var(--orange);} .dot-g{background:var(--green);}
+.block-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
 
-/* FILA NUEVA RESERVA */
-.new-res-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 44px;gap:8px;align-items:end;margin-bottom:.8rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+/* NUEVA RESERVA — 7 columnas + tilde */
+.new-res-row{display:grid;grid-template-columns:1.8fr .7fr .7fr .7fr .8fr .8fr .8fr 44px;gap:8px;align-items:end;margin-bottom:.8rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
 .nrf{display:flex;flex-direction:column;gap:5px;}
 .nrf label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
-.nrf input{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:9px 12px;outline:none;width:100%;transition:border-color .15s;}
+.nrf input{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:9px 10px;outline:none;width:100%;transition:border-color .15s;}
 .nrf input:focus{border-color:var(--orange);}
 .nrf input::placeholder{color:var(--muted);}
 .btn-confirm{width:44px;height:44px;border-radius:var(--radius);border:1px solid rgba(76,175,125,.3);background:var(--green-dim);color:var(--green);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
@@ -84,74 +98,46 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 
 /* TABLA */
 .tbl{width:100%;border-collapse:collapse;}
-.tbl th{text-align:left;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--border);}
-.tbl td{padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.tbl th{text-align:left;padding:8px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);}
+.tbl td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:12px;}
 .tbl tr:last-child td{border-bottom:none;}
 .tbl tbody tr:hover td{background:rgba(255,255,255,.02);}
+.tbl td.money{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--green);}
+.tbl td.total-money{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:var(--accent);}
 
-.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;}
 .b-orange{background:var(--orange-dim);color:var(--orange);}
 .b-green{background:var(--green-dim);color:var(--green);}
-.b-purple{background:var(--purple-dim);color:var(--purple);}
+.cname{font-size:13px;font-weight:600;}
 
-.cname{font-family:'Inter',sans-serif;font-size:14px;font-weight:700;}
-
-.btn-icon{width:30px;height:30px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .12s;}
+.btn-icon{width:28px;height:28px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .12s;}
 .btn-icon:hover{background:var(--surface2);color:var(--text);}
 .btn-icon.ok:hover{background:var(--green-dim);color:var(--green);border-color:rgba(76,175,125,.3);}
 .btn-icon.del:hover{background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);}
 
 .empty-row{text-align:center;padding:2rem;color:var(--muted);font-size:12px;}
-.preview-txt{font-size:11px;color:var(--muted);margin-bottom:.8rem;padding-left:2px;display:none;}
+.preview-txt{font-size:11px;color:var(--muted);margin-bottom:.8rem;display:none;}
 .preview-txt span{color:var(--accent);font-weight:500;}
 
 /* EDIT */
 .editing td{background:rgba(232,197,71,.03)!important;}
-.ei{background:var(--surface2);border:1px solid rgba(232,197,71,.4);border-radius:6px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:5px 8px;outline:none;width:100%;}
-.ei.nm{font-family:'Inter',sans-serif;font-size:14px;font-weight:700;}
+.ei{background:var(--surface2);border:1px solid rgba(232,197,71,.4);border-radius:6px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:4px 7px;outline:none;width:100%;}
+.ei.nm{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;}
 
-/* DIVIDER entre tablas */
 .tbl-divider{height:1px;background:var(--border);margin:1.5rem 0;}
-.sub-title{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.8rem;display:flex;align-items:center;gap:6px;}
-
-/* BOTÓN EDITAR STOCK */
-.metric{position:relative;}
-.metric .btn-es{
-  position:absolute;top:8px;right:8px;
-  width:22px;height:22px;border-radius:5px;
-  border:1px solid var(--border2);background:transparent;
-  color:var(--muted);font-size:11px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;transition:opacity .15s,background .15s;line-height:1;
-}
-.metric:hover .btn-es{opacity:1;}
-.metric .btn-es:hover{background:var(--surface2);color:var(--text);}
+.sub-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.8rem;display:flex;align-items:center;gap:6px;}
 
 /* MODAL */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.65);
-  display:flex;align-items:center;justify-content:center;
-  z-index:500;opacity:0;pointer-events:none;transition:opacity .2s;
-}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:500;opacity:0;pointer-events:none;transition:opacity .2s;}
 .modal-overlay.open{opacity:1;pointer-events:all;}
-.modal{
-  background:var(--surface);border:1px solid var(--border2);
-  border-radius:var(--radius-lg);padding:1.8rem;width:300px;
-  transform:translateY(14px);transition:transform .2s;
-}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:1.8rem;width:300px;transform:translateY(14px);transition:transform .2s;}
 .modal-overlay.open .modal{transform:translateY(0);}
-.modal-title{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;letter-spacing:.02em;margin-bottom:1.4rem;color:var(--text);}
+.modal-title{font-size:13px;font-weight:600;letter-spacing:.02em;margin-bottom:1.4rem;color:var(--text);}
 .modal-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;display:block;}
-.modal-inp{
-  background:var(--surface2);border:1px solid var(--border2);
-  border-radius:var(--radius);color:var(--text);
-  font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;
-  padding:10px 14px;outline:none;width:100%;
-  transition:border-color .15s;margin-bottom:1.4rem;
-}
+.modal-inp{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;padding:10px 14px;outline:none;width:100%;transition:border-color .15s;margin-bottom:1.4rem;}
 .modal-inp:focus{border-color:var(--accent);}
 .modal-btns{display:flex;gap:8px;}
-.modal-btn{flex:1;padding:10px;border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border:1px solid;transition:all .15s;letter-spacing:.02em;}
+.modal-btn{flex:1;padding:10px;border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border:1px solid;transition:all .15s;}
 .modal-btn.cancel{background:transparent;color:var(--muted);border-color:var(--border2);}
 .modal-btn.cancel:hover{background:var(--surface2);color:var(--text);}
 .modal-btn.save{background:var(--accent-dim);color:var(--accent);border-color:rgba(232,197,71,.3);}
@@ -160,9 +146,10 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 @keyframes flash{0%{transform:scale(1)}30%{transform:scale(1.08)}100%{transform:scale(1)}}
 .flash{animation:flash .35s ease;}
 
-@media(max-width:680px){
+@media(max-width:760px){
   .metrics-row.top{grid-template-columns:repeat(2,1fr);}
   .metrics-row.bot{grid-template-columns:1fr 1fr;}
+  .eco-grid{grid-template-columns:1fr 1fr;}
   .calc-grid{grid-template-columns:1fr;}
   .new-res-row{grid-template-columns:1fr 1fr;}
   .container{padding:1rem;}
@@ -178,16 +165,45 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 
 <div class="container">
 
-  <!-- MÉTRICAS FILA 1: stock y reservados -->
+  <!-- BLOQUE ECONÓMICO -->
+  <div class="eco-block" style="margin-bottom:12px;">
+    <div class="eco-header">
+      <span class="dot dot-g"></span>Resumen económico
+    </div>
+    <div class="eco-grid">
+      <div class="eco-card">
+        <div class="eco-label">Invertido en stock</div>
+        <div class="eco-value" id="eco-invertido">$0</div>
+        <div class="eco-sub" id="eco-invertido-sub">—</div>
+      </div>
+      <div class="eco-card">
+        <div class="eco-label">Reservado (a cobrar)</div>
+        <div class="eco-value" id="eco-reservado">$0</div>
+        <div class="eco-sub" id="eco-reservado-sub">—</div>
+      </div>
+      <div class="eco-card">
+        <div class="eco-label">Entregado (cobrado)</div>
+        <div class="eco-value" id="eco-entregado">$0</div>
+        <div class="eco-sub" id="eco-entregado-sub">—</div>
+      </div>
+      <div class="eco-card">
+        <div class="eco-label">Stock disponible</div>
+        <div class="eco-value" id="eco-disponible">$0</div>
+        <div class="eco-sub" id="eco-disponible-sub">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MÉTRICAS STOCK -->
   <div class="metrics-row top" style="margin-bottom:12px;">
     <div class="metric">
-      <button class="btn-es" onclick="openModal('sobres')" title="Editar stock">✎</button>
+      <button class="btn-es" onclick="openModal('sobres')" title="Editar">✎</button>
       <div class="metric-label">Sobres en stock</div>
       <div class="metric-value c-accent" id="m-sobres">0</div>
       <div class="metric-sub" id="m-sobres-sub">0 bultos · 0 packs</div>
     </div>
     <div class="metric">
-      <button class="btn-es" onclick="openModal('albumes')" title="Editar stock">✎</button>
+      <button class="btn-es" onclick="openModal('albumes')" title="Editar">✎</button>
       <div class="metric-label">Álbumes en stock</div>
       <div class="metric-value c-teal" id="m-albumes">0</div>
       <div class="metric-sub" id="m-albumes-sub">0 bultos</div>
@@ -204,7 +220,6 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     </div>
   </div>
 
-  <!-- MÉTRICAS FILA 2: entregados -->
   <div class="metrics-row bot" style="margin-bottom:2rem;">
     <div class="metric">
       <div class="metric-label">Sobres entregados</div>
@@ -257,33 +272,38 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     </div>
   </div>
 
-  <!-- RESERVAS + ENTREGADOS -->
+  <!-- RESERVAS -->
   <div class="block">
     <div class="block-title"><span class="dot dot-o"></span>Reservas</div>
 
-    <!-- NUEVA RESERVA -->
     <div class="new-res-row">
-      <div class="nrf"><label>Nombre del cliente</label><input type="text" id="nr-nombre" placeholder="Nombre y apellido" /></div>
-      <div class="nrf"><label>Packs (×25 sobres)</label><input type="number" id="nr-packs" placeholder="0" min="0" value="0" oninput="calcNR()" /></div>
-      <div class="nrf"><label>Sobres sueltos</label><input type="number" id="nr-sobres" placeholder="0" min="0" value="0" oninput="calcNR()" /></div>
+      <div class="nrf"><label>Cliente</label><input type="text" id="nr-nombre" placeholder="Nombre y apellido" /></div>
+      <div class="nrf"><label>Packs</label><input type="number" id="nr-packs" placeholder="0" min="0" value="0" oninput="calcNR()" /></div>
+      <div class="nrf"><label>Sobres</label><input type="number" id="nr-sobres" placeholder="0" min="0" value="0" oninput="calcNR()" /></div>
       <div class="nrf"><label>Álbumes</label><input type="number" id="nr-albumes" placeholder="0" min="0" value="0" /></div>
+      <div class="nrf"><label>$ / Pack</label><input type="number" id="nr-ppk" placeholder="0" min="0" step="0.01" value="0" /></div>
+      <div class="nrf"><label>$ / Sobre</label><input type="number" id="nr-psob" placeholder="0" min="0" step="0.01" value="0" /></div>
+      <div class="nrf"><label>$ / Álbum</label><input type="number" id="nr-palb" placeholder="0" min="0" step="0.01" value="0" /></div>
       <button class="btn-confirm" onclick="confirmarReserva()" title="Confirmar reserva">✓</button>
     </div>
     <div class="preview-txt" id="nr-preview">Total sobres: <span id="nr-preview-val"></span></div>
 
-    <!-- TABLA RESERVAS PENDIENTES -->
     <div class="sub-title"><span class="dot dot-o"></span>Pendientes</div>
     <div style="overflow-x:auto;">
       <table class="tbl">
         <thead><tr>
-          <th style="width:28%">Cliente</th>
-          <th style="width:9%">Packs</th>
-          <th style="width:12%">Sobres sueltos</th>
-          <th style="width:13%">Total sobres</th>
-          <th style="width:10%">Álbumes</th>
-          <th style="width:9%">Fecha</th>
-          <th style="width:8%">Estado</th>
-          <th style="width:11%"></th>
+          <th>Cliente</th>
+          <th>Packs</th>
+          <th>Sobres</th>
+          <th>Tot. sobres</th>
+          <th>Álbumes</th>
+          <th>$/Pack</th>
+          <th>$/Sobre</th>
+          <th>$/Álbum</th>
+          <th>Total</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th></th>
         </tr></thead>
         <tbody id="tb-pend"></tbody>
       </table>
@@ -291,19 +311,22 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 
     <div class="tbl-divider"></div>
 
-    <!-- TABLA ENTREGADOS -->
     <div class="sub-title"><span class="dot dot-g"></span>Entregados</div>
     <div style="overflow-x:auto;">
       <table class="tbl">
         <thead><tr>
-          <th style="width:28%">Cliente</th>
-          <th style="width:9%">Packs</th>
-          <th style="width:12%">Sobres sueltos</th>
-          <th style="width:13%">Total sobres</th>
-          <th style="width:10%">Álbumes</th>
-          <th style="width:9%">Fecha res.</th>
-          <th style="width:9%">Entregado</th>
-          <th style="width:10%"></th>
+          <th>Cliente</th>
+          <th>Packs</th>
+          <th>Sobres</th>
+          <th>Tot. sobres</th>
+          <th>Álbumes</th>
+          <th>$/Pack</th>
+          <th>$/Sobre</th>
+          <th>$/Álbum</th>
+          <th>Total</th>
+          <th>Reservado</th>
+          <th>Entregado</th>
+          <th></th>
         </tr></thead>
         <tbody id="tb-ent"></tbody>
       </table>
@@ -311,322 +334,6 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
   </div>
 
 </div>
-
-<script>
-const PACKS_POR_BULTO   = 40;
-const SOBRES_POR_PACK   = 25;
-const ALBUMES_POR_BULTO = 25;
-
-let sobB = 1, albB = 1;
-
-let stock = {
-  sobres:0, sobBultos:0, sobPacks:0,
-  albumes:0, albBultos:0,
-  sobRes:0, albRes:0,
-  sobEnt:0, albEnt:0
-};
-
-let reservas = [];
-let nextId   = 1;
-
-function save() {
-  try {
-    localStorage.setItem('figstock4',   JSON.stringify(stock));
-    localStorage.setItem('figreservas4', JSON.stringify(reservas));
-    localStorage.setItem('fignext4',     nextId);
-  } catch(e) {}
-}
-function load() {
-  try {
-    const s = localStorage.getItem('figstock4');
-    if (s) stock = {...stock, ...JSON.parse(s)};
-    const r = localStorage.getItem('figreservas4');
-    if (r) reservas = JSON.parse(r);
-    const n = localStorage.getItem('fignext4');
-    if (n) nextId = parseInt(n);
-  } catch(e) {}
-}
-load();
-
-const g   = id => document.getElementById(id);
-const set = (id, v) => { const e = g(id); if(e) e.textContent = v; };
-const setV= (id, v) => { const e = g(id); if(e) e.value = v; };
-
-function flashEl(id) {
-  const e = g(id); if(!e) return;
-  e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash');
-}
-
-/* ── MÉTRICAS ── */
-function renderMetrics() {
-  const pend   = reservas.filter(r => r.estado === 'pendiente');
-  const ent    = reservas.filter(r => r.estado === 'entregado');
-  const sobRes = pend.reduce((s,r) => s + r.totalSobres, 0);
-  const albRes = pend.reduce((s,r) => s + r.albumes, 0);
-  const sobEnt = ent.reduce((s,r)  => s + r.totalSobres, 0);
-  const albEnt = ent.reduce((s,r)  => s + r.albumes, 0);
-
-  set('m-sobres',      stock.sobres.toLocaleString('es-AR'));
-  set('m-sobres-sub',  `${stock.sobBultos} bulto${stock.sobBultos!==1?'s':''} · ${stock.sobPacks} packs`);
-  set('m-albumes',     stock.albumes.toLocaleString('es-AR'));
-  set('m-albumes-sub', `${stock.albBultos} bulto${stock.albBultos!==1?'s':''}`);
-
-  set('m-sob-res',     sobRes.toLocaleString('es-AR'));
-  set('m-sob-res-sub', `${pend.length} reserva${pend.length!==1?'s':''}`);
-  set('m-alb-res',     albRes.toLocaleString('es-AR'));
-  set('m-alb-res-sub', `${pend.length} reserva${pend.length!==1?'s':''}`);
-
-  set('m-sob-ent',     sobEnt.toLocaleString('es-AR'));
-  set('m-sob-ent-sub', `${ent.length} entrega${ent.length!==1?'s':''}`);
-  set('m-alb-ent',     albEnt.toLocaleString('es-AR'));
-  set('m-alb-ent-sub', `${ent.length} entrega${ent.length!==1?'s':''}`);
-}
-
-/* ── CAJAS SVG ── */
-function drawBox(color) {
-  const ns='http://www.w3.org/2000/svg';
-  const s=document.createElementNS(ns,'svg');
-  s.setAttribute('width','42'); s.setAttribute('height','42');
-  s.setAttribute('viewBox','0 0 72 72'); s.style.display='block';
-  const iT=color==='teal';
-  const f=iT?'#1D9E75':'#7F77DD', tp=iT?'#5DCAA5':'#AFA9EC',
-        sd=iT?'#0F6E56':'#534AB7', sk=iT?'#085041':'#3C3489', fl=iT?'#9FE1CB':'#CECBF6';
-  s.innerHTML=`<rect x="10" y="26" width="48" height="36" rx="3" fill="${f}" stroke="${sk}" stroke-width=".8"/>
-    <polygon points="10,26 34,16 58,26 34,36" fill="${tp}" stroke="${sk}" stroke-width=".8"/>
-    <polygon points="58,26 66,30 66,62 58,58" fill="${sd}" stroke="${sk}" stroke-width=".8"/>
-    <line x1="34" y1="16" x2="34" y2="36" stroke="${sk}" stroke-width=".6" stroke-dasharray="2,2"/>
-    <rect x="14" y="28" width="40" height="6" rx="2" fill="${fl}" opacity=".6"/>`;
-  return s;
-}
-function renderBoxes(cid, count, color) {
-  const el=g(cid); if(!el) return; el.innerHTML='';
-  const mx=Math.min(count,20);
-  for(let i=0;i<mx;i++) el.appendChild(drawBox(color));
-  if(count>20){const m=document.createElement('div');m.style.cssText='display:flex;align-items:center;justify-content:center;width:42px;height:42px;font-size:12px;color:var(--muted);border:1px dashed var(--border2);border-radius:8px;';m.textContent=`+${count-20}`;el.appendChild(m);}
-}
-
-/* ── CALCULADORAS ── */
-function renderSobCalc() {
-  const packs=sobB*PACKS_POR_BULTO, sobres=packs*SOBRES_POR_PACK;
-  set('sob-n',sobB); setV('sob-i',sobB);
-  set('sob-rb',sobB.toLocaleString('es-AR')); set('sob-rp',packs.toLocaleString('es-AR')); set('sob-rs',sobres.toLocaleString('es-AR'));
-  set('sob-fm',`${sobB} bulto${sobB!==1?'s':''} × ${PACKS_POR_BULTO} packs × ${SOBRES_POR_PACK} sobres = ${sobres.toLocaleString('es-AR')} sobres`);
-  renderBoxes('sob-bx',sobB,'purple');
-}
-function renderAlbCalc() {
-  const albs=albB*ALBUMES_POR_BULTO;
-  set('alb-n',albB); setV('alb-i',albB);
-  set('alb-rb',albB.toLocaleString('es-AR')); set('alb-ra',albs.toLocaleString('es-AR'));
-  set('alb-fm',`${albB} bulto${albB!==1?'s':''} × ${ALBUMES_POR_BULTO} álbumes = ${albs.toLocaleString('es-AR')} álbumes`);
-  renderBoxes('alb-bx',albB,'teal');
-}
-function sobCh(d){sobB=Math.max(1,sobB+d);renderSobCalc();}
-function sobSt(v){const n=parseInt(v);if(!isNaN(n)&&n>=1){sobB=n;renderSobCalc();}}
-function albCh(d){albB=Math.max(1,albB+d);renderAlbCalc();}
-function albSt(v){const n=parseInt(v);if(!isNaN(n)&&n>=1){albB=n;renderAlbCalc();}}
-
-function agregarSobres() {
-  const packs=sobB*PACKS_POR_BULTO, sobres=packs*SOBRES_POR_PACK;
-  stock.sobres+=sobres; stock.sobBultos+=sobB; stock.sobPacks+=packs;
-  save(); renderMetrics(); flashEl('m-sobres');
-}
-function agregarAlbumes() {
-  const albs=albB*ALBUMES_POR_BULTO;
-  stock.albumes+=albs; stock.albBultos+=albB;
-  save(); renderMetrics(); flashEl('m-albumes');
-}
-
-/* ── PREVIEW ── */
-function calcNR() {
-  const packs=parseInt(g('nr-packs').value)||0, sobres=parseInt(g('nr-sobres').value)||0;
-  const total=packs*SOBRES_POR_PACK+sobres;
-  const prev=g('nr-preview');
-  if(total>0){g('nr-preview-val').textContent=total.toLocaleString('es-AR');prev.style.display='block';}
-  else prev.style.display='none';
-}
-
-/* ── CONFIRMAR RESERVA ── */
-function confirmarReserva() {
-  const nombre =g('nr-nombre').value.trim();
-  const packs  =parseInt(g('nr-packs').value)||0;
-  const sobres =parseInt(g('nr-sobres').value)||0;
-  const albumes=parseInt(g('nr-albumes').value)||0;
-  const totalSobres=packs*SOBRES_POR_PACK+sobres;
-
-  if(!nombre) return alert('Ingresá el nombre del cliente.');
-  if(totalSobres===0&&albumes===0) return alert('Ingresá al menos una cantidad.');
-
-  if(totalSobres > stock.sobres) return alert(`Stock insuficiente.\nSobres disponibles: ${stock.sobres.toLocaleString('es-AR')}`);
-  if(albumes > stock.albumes)    return alert(`Stock insuficiente.\nÁlbumes disponibles: ${stock.albumes.toLocaleString('es-AR')}`);
-
-  // Restar del stock al reservar
-  stock.sobres  -= totalSobres;
-  stock.albumes -= albumes;
-
-  reservas.push({
-    id: nextId++, nombre, packs, sobres, totalSobres, albumes,
-    estado: 'pendiente', fecha: new Date().toLocaleDateString('es-AR'), fechaEnt: null
-  });
-
-  g('nr-nombre').value=''; g('nr-packs').value='0';
-  g('nr-sobres').value='0'; g('nr-albumes').value='0';
-  g('nr-preview').style.display='none';
-
-  save(); renderMetrics(); renderTablas();
-  flashEl('m-sobres'); flashEl('m-sob-res'); flashEl('m-alb-res');
-}
-
-/* ── ENTREGAR ── */
-function entregarReserva(id) {
-  const r=reservas.find(x=>x.id===id); if(!r||r.estado!=='pendiente') return;
-  if(!confirm(`¿Confirmar entrega a ${r.nombre}?\n${r.totalSobres} sobres · ${r.albumes} álbumes`)) return;
-  // El stock ya se descontó al reservar; acá solo cambia el estado
-  r.estado   = 'entregado';
-  r.fechaEnt = new Date().toLocaleDateString('es-AR');
-  save(); renderMetrics(); renderTablas();
-  flashEl('m-sob-ent'); flashEl('m-alb-ent'); flashEl('m-sob-res'); flashEl('m-alb-res');
-}
-
-/* ── EDITAR ── */
-function editarReserva(id) {
-  const r=reservas.find(x=>x.id===id); if(!r) return;
-  const row=g(`row-${id}`); if(!row) return;
-  row.outerHTML=`<tr id="row-${id}" class="editing">
-    <td><input class="ei nm" id="e-nom-${id}" value="${esc(r.nombre)}" /></td>
-    <td><input class="ei" id="e-pk-${id}" type="number" min="0" value="${r.packs}" style="width:55px" oninput="updEd(${id})" /></td>
-    <td><input class="ei" id="e-sb-${id}" type="number" min="0" value="${r.sobres}" style="width:55px" oninput="updEd(${id})" /></td>
-    <td><strong id="e-tot-${id}">${r.totalSobres.toLocaleString('es-AR')}</strong></td>
-    <td><input class="ei" id="e-al-${id}" type="number" min="0" value="${r.albumes}" style="width:55px" /></td>
-    <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
-    <td><span class="badge b-orange">Editando</span></td>
-    <td style="display:flex;gap:5px">
-      <button class="btn-icon ok" onclick="guardarEd(${id})" title="Guardar">✓</button>
-      <button class="btn-icon del" onclick="renderTablas()" title="Cancelar">✕</button>
-    </td>
-  </tr>`;
-}
-function updEd(id) {
-  const packs=parseInt(g(`e-pk-${id}`).value)||0, sobres=parseInt(g(`e-sb-${id}`).value)||0;
-  const el=g(`e-tot-${id}`); if(el) el.textContent=(packs*SOBRES_POR_PACK+sobres).toLocaleString('es-AR');
-}
-function guardarEd(id) {
-  const r=reservas.find(x=>x.id===id); if(!r) return;
-  const nombre =g(`e-nom-${id}`).value.trim();
-  const packs  =parseInt(g(`e-pk-${id}`).value)||0;
-  const sobres =parseInt(g(`e-sb-${id}`).value)||0;
-  const albumes=parseInt(g(`e-al-${id}`).value)||0;
-  const totalSobres=packs*SOBRES_POR_PACK+sobres;
-  if(!nombre) return alert('Ingresá el nombre.');
-
-  if(r.estado === 'pendiente') {
-    // Calcular diferencia y verificar stock para el excedente
-    const diffSob = totalSobres - r.totalSobres;
-    const diffAlb = albumes - r.albumes;
-    if(diffSob > stock.sobres)  return alert(`Stock insuficiente. Sobres disponibles: ${stock.sobres.toLocaleString('es-AR')}`);
-    if(diffAlb > stock.albumes) return alert(`Stock insuficiente. Álbumes disponibles: ${stock.albumes.toLocaleString('es-AR')}`);
-    // Ajustar stock por la diferencia
-    stock.sobres  -= diffSob;
-    stock.albumes -= diffAlb;
-  }
-
-  r.nombre=nombre; r.packs=packs; r.sobres=sobres; r.totalSobres=totalSobres; r.albumes=albumes;
-  save(); renderMetrics(); renderTablas();
-}
-
-/* ── ELIMINAR ── */
-function eliminarReserva(id) {
-  const r=reservas.find(x=>x.id===id); if(!r) return;
-  if(!confirm(`¿Eliminar la reserva de ${r.nombre}?`)) return;
-  // Si estaba pendiente, devolver al stock (si ya fue entregado no se devuelve)
-  if(r.estado === 'pendiente') {
-    stock.sobres  += r.totalSobres;
-    stock.albumes += r.albumes;
-  }
-  reservas=reservas.filter(x=>x.id!==id);
-  save(); renderMetrics(); renderTablas();
-}
-
-/* ── RENDER TABLAS ── */
-function renderTablas() {
-  const pend=[...reservas].filter(r=>r.estado==='pendiente').reverse();
-  const ent =[...reservas].filter(r=>r.estado==='entregado').reverse();
-
-  const tbP=g('tb-pend');
-  tbP.innerHTML = pend.length ? pend.map(r=>`<tr id="row-${r.id}">
-    <td><span class="cname">${esc(r.nombre)}</span></td>
-    <td>${r.packs}</td>
-    <td>${r.sobres}</td>
-    <td><strong>${r.totalSobres.toLocaleString('es-AR')}</strong></td>
-    <td>${r.albumes}</td>
-    <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
-    <td><span class="badge b-orange">Reservado</span></td>
-    <td style="display:flex;gap:5px">
-      <button class="btn-icon ok" onclick="entregarReserva(${r.id})" title="Confirmar entrega">✓</button>
-      <button class="btn-icon" onclick="editarReserva(${r.id})" title="Editar">✎</button>
-      <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar">✕</button>
-    </td>
-  </tr>`).join('') : '<tr><td colspan="8" class="empty-row">Sin reservas pendientes.</td></tr>';
-
-  const tbE=g('tb-ent');
-  tbE.innerHTML = ent.length ? ent.map(r=>`<tr id="row-${r.id}">
-    <td><span class="cname">${esc(r.nombre)}</span></td>
-    <td>${r.packs}</td>
-    <td>${r.sobres}</td>
-    <td><strong>${r.totalSobres.toLocaleString('es-AR')}</strong></td>
-    <td>${r.albumes}</td>
-    <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
-    <td style="font-size:11px;color:var(--green)">${r.fechaEnt}</td>
-    <td style="display:flex;gap:5px">
-      <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar">✕</button>
-    </td>
-  </tr>`).join('') : '<tr><td colspan="8" class="empty-row">Sin entregas registradas.</td></tr>';
-}
-
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
-
-/* ── MODAL EDITAR STOCK ── */
-let modalField = null;
-
-function openModal(field) {
-  modalField = field;
-  const labels = { sobres: 'Sobres en stock', albumes: 'Álbumes en stock' };
-  document.getElementById('modal-title').textContent = 'Editar — ' + labels[field];
-  document.getElementById('modal-lbl').textContent = 'Nuevo valor de ' + labels[field].toLowerCase();
-  document.getElementById('modal-inp').value = stock[field];
-  document.getElementById('modal-overlay').classList.add('open');
-  setTimeout(() => document.getElementById('modal-inp').select(), 50);
-}
-
-function closeModal(e) {
-  if (e.target === document.getElementById('modal-overlay')) closeModalDirect();
-}
-
-function closeModalDirect() {
-  document.getElementById('modal-overlay').classList.remove('open');
-  modalField = null;
-}
-
-function saveModal() {
-  if (!modalField) return;
-  const val = parseInt(document.getElementById('modal-inp').value);
-  if (isNaN(val) || val < 0) return alert('Ingresá un valor válido.');
-  stock[modalField] = val;
-  save(); renderMetrics(); flashEl(modalField === 'sobres' ? 'm-sobres' : 'm-albumes');
-  closeModalDirect();
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeModalDirect();
-  if (e.key === 'Enter' && modalField) saveModal();
-});
-
-/* ── INIT ── */
-renderMetrics();
-renderSobCalc();
-renderAlbCalc();
-renderTablas();
-</script>
 
 <!-- MODAL EDITAR STOCK -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
@@ -641,5 +348,337 @@ renderTablas();
   </div>
 </div>
 
+<script>
+const PACKS_POR_BULTO   = 40;
+const SOBRES_POR_PACK   = 25;
+const ALBUMES_POR_BULTO = 25;
+const COSTO_SOBRE       = 1500;
+const COSTO_ALBUM       = 11250;
+
+let sobB = 1, albB = 1;
+
+let stock = { sobres:0, sobBultos:0, sobPacks:0, albumes:0, albBultos:0 };
+let reservas = [];
+let nextId   = 1;
+
+function save() {
+  try {
+    localStorage.setItem('figstock5',    JSON.stringify(stock));
+    localStorage.setItem('figreservas5', JSON.stringify(reservas));
+    localStorage.setItem('fignext5',     nextId);
+  } catch(e) {}
+}
+function load() {
+  try {
+    const s = localStorage.getItem('figstock5');   if(s) stock    = {...stock,...JSON.parse(s)};
+    const r = localStorage.getItem('figreservas5');if(r) reservas = JSON.parse(r);
+    const n = localStorage.getItem('fignext5');    if(n) nextId   = parseInt(n);
+  } catch(e) {}
+}
+load();
+
+const g   = id => document.getElementById(id);
+const set = (id,v) => { const e=g(id); if(e) e.textContent=v; };
+const setV= (id,v) => { const e=g(id); if(e) e.value=v; };
+const pesos = v => '$' + Math.round(v).toLocaleString('es-AR');
+
+function flashEl(id){
+  const e=g(id); if(!e)return;
+  e.classList.remove('flash'); void e.offsetWidth; e.classList.add('flash');
+}
+
+/* total $ de una reserva según sus precios cargados */
+function calcTotal(r){
+  return (r.packs * (r.pPack||0)) + (r.sobres * (r.pSobre||0)) + (r.albumes * (r.pAlbum||0));
+}
+
+/* ── MÉTRICAS + ECO ── */
+function renderMetrics() {
+  const pend   = reservas.filter(r=>r.estado==='pendiente');
+  const ent    = reservas.filter(r=>r.estado==='entregado');
+  const sobRes = pend.reduce((s,r)=>s+r.totalSobres,0);
+  const albRes = pend.reduce((s,r)=>s+r.albumes,0);
+  const sobEnt = ent.reduce((s,r)=>s+r.totalSobres,0);
+  const albEnt = ent.reduce((s,r)=>s+r.albumes,0);
+
+  /* stock */
+  set('m-sobres',      stock.sobres.toLocaleString('es-AR'));
+  set('m-sobres-sub',  `${stock.sobBultos} bulto${stock.sobBultos!==1?'s':''} · ${stock.sobPacks} packs`);
+  set('m-albumes',     stock.albumes.toLocaleString('es-AR'));
+  set('m-albumes-sub', `${stock.albBultos} bulto${stock.albBultos!==1?'s':''}`);
+  /* reservados */
+  set('m-sob-res',     sobRes.toLocaleString('es-AR'));
+  set('m-sob-res-sub', `${pend.length} reserva${pend.length!==1?'s':''}`);
+  set('m-alb-res',     albRes.toLocaleString('es-AR'));
+  set('m-alb-res-sub', `${pend.length} reserva${pend.length!==1?'s':''}`);
+  /* entregados */
+  set('m-sob-ent',     sobEnt.toLocaleString('es-AR'));
+  set('m-sob-ent-sub', `${ent.length} entrega${ent.length!==1?'s':''}`);
+  set('m-alb-ent',     albEnt.toLocaleString('es-AR'));
+  set('m-alb-ent-sub', `${ent.length} entrega${ent.length!==1?'s':''}`);
+
+  /* ── ECONÓMICO ── */
+  /* invertido: solo lo que se agregó, calculado al costo fijo */
+  const totalSobresAgregados = stock.sobres + sobRes + sobEnt;   /* stock actual + reservados + entregados */
+  const totalAlbAgregados    = stock.albumes + albRes + albEnt;
+  const invertido = (totalSobresAgregados * COSTO_SOBRE) + (totalAlbAgregados * COSTO_ALBUM);
+
+  const valorRes = pend.reduce((s,r)=>s+calcTotal(r),0);
+  const valorEnt = ent.reduce((s,r)=>s+calcTotal(r),0);
+  const valorDisp = (stock.sobres * COSTO_SOBRE) + (stock.albumes * COSTO_ALBUM);
+
+  set('eco-invertido',     pesos(invertido));
+  set('eco-invertido-sub', `${totalSobresAgregados.toLocaleString('es-AR')} sob · ${totalAlbAgregados.toLocaleString('es-AR')} álb`);
+  set('eco-reservado',     valorRes > 0 ? pesos(valorRes) : '$0');
+  set('eco-reservado-sub', `${pend.length} reserva${pend.length!==1?'s':''} · ${sobRes.toLocaleString('es-AR')} sob`);
+  set('eco-entregado',     valorEnt > 0 ? pesos(valorEnt) : '$0');
+  set('eco-entregado-sub', `${ent.length} entrega${ent.length!==1?'s':''} · ${sobEnt.toLocaleString('es-AR')} sob`);
+  set('eco-disponible',    pesos(valorDisp));
+  set('eco-disponible-sub',`${stock.sobres.toLocaleString('es-AR')} sob · ${stock.albumes.toLocaleString('es-AR')} álb`);
+}
+
+/* ── CAJAS SVG ── */
+function drawBox(color){
+  const ns='http://www.w3.org/2000/svg';
+  const s=document.createElementNS(ns,'svg');
+  s.setAttribute('width','42');s.setAttribute('height','42');s.setAttribute('viewBox','0 0 72 72');s.style.display='block';
+  const iT=color==='teal';
+  const f=iT?'#1D9E75':'#7F77DD',tp=iT?'#5DCAA5':'#AFA9EC',sd=iT?'#0F6E56':'#534AB7',sk=iT?'#085041':'#3C3489',fl=iT?'#9FE1CB':'#CECBF6';
+  s.innerHTML=`<rect x="10" y="26" width="48" height="36" rx="3" fill="${f}" stroke="${sk}" stroke-width=".8"/>
+    <polygon points="10,26 34,16 58,26 34,36" fill="${tp}" stroke="${sk}" stroke-width=".8"/>
+    <polygon points="58,26 66,30 66,62 58,58" fill="${sd}" stroke="${sk}" stroke-width=".8"/>
+    <line x1="34" y1="16" x2="34" y2="36" stroke="${sk}" stroke-width=".6" stroke-dasharray="2,2"/>
+    <rect x="14" y="28" width="40" height="6" rx="2" fill="${fl}" opacity=".6"/>`;
+  return s;
+}
+function renderBoxes(cid,count,color){
+  const el=g(cid);if(!el)return;el.innerHTML='';
+  const mx=Math.min(count,20);
+  for(let i=0;i<mx;i++) el.appendChild(drawBox(color));
+  if(count>20){const m=document.createElement('div');m.style.cssText='display:flex;align-items:center;justify-content:center;width:42px;height:42px;font-size:12px;color:var(--muted);border:1px dashed var(--border2);border-radius:8px;';m.textContent=`+${count-20}`;el.appendChild(m);}
+}
+
+/* ── CALCULADORAS ── */
+function renderSobCalc(){
+  const packs=sobB*PACKS_POR_BULTO,sobres=packs*SOBRES_POR_PACK;
+  set('sob-n',sobB);setV('sob-i',sobB);
+  set('sob-rb',sobB.toLocaleString('es-AR'));set('sob-rp',packs.toLocaleString('es-AR'));set('sob-rs',sobres.toLocaleString('es-AR'));
+  set('sob-fm',`${sobB} bulto${sobB!==1?'s':''} × ${PACKS_POR_BULTO} packs × ${SOBRES_POR_PACK} sobres = ${sobres.toLocaleString('es-AR')} sobres`);
+  renderBoxes('sob-bx',sobB,'purple');
+}
+function renderAlbCalc(){
+  const albs=albB*ALBUMES_POR_BULTO;
+  set('alb-n',albB);setV('alb-i',albB);
+  set('alb-rb',albB.toLocaleString('es-AR'));set('alb-ra',albs.toLocaleString('es-AR'));
+  set('alb-fm',`${albB} bulto${albB!==1?'s':''} × ${ALBUMES_POR_BULTO} álbumes = ${albs.toLocaleString('es-AR')} álbumes`);
+  renderBoxes('alb-bx',albB,'teal');
+}
+function sobCh(d){sobB=Math.max(1,sobB+d);renderSobCalc();}
+function sobSt(v){const n=parseInt(v);if(!isNaN(n)&&n>=1){sobB=n;renderSobCalc();}}
+function albCh(d){albB=Math.max(1,albB+d);renderAlbCalc();}
+function albSt(v){const n=parseInt(v);if(!isNaN(n)&&n>=1){albB=n;renderAlbCalc();}}
+
+function agregarSobres(){
+  const packs=sobB*PACKS_POR_BULTO,sobres=packs*SOBRES_POR_PACK;
+  stock.sobres+=sobres;stock.sobBultos+=sobB;stock.sobPacks+=packs;
+  save();renderMetrics();flashEl('m-sobres');flashEl('eco-invertido');
+}
+function agregarAlbumes(){
+  const albs=albB*ALBUMES_POR_BULTO;
+  stock.albumes+=albs;stock.albBultos+=albB;
+  save();renderMetrics();flashEl('m-albumes');flashEl('eco-invertido');
+}
+
+/* ── PREVIEW ── */
+function calcNR(){
+  const packs=parseInt(g('nr-packs').value)||0,sobres=parseInt(g('nr-sobres').value)||0;
+  const total=packs*SOBRES_POR_PACK+sobres;
+  const prev=g('nr-preview');
+  if(total>0){g('nr-preview-val').textContent=total.toLocaleString('es-AR');prev.style.display='block';}
+  else prev.style.display='none';
+}
+
+/* ── CONFIRMAR RESERVA ── */
+function confirmarReserva(){
+  const nombre =g('nr-nombre').value.trim();
+  const packs  =parseInt(g('nr-packs').value)||0;
+  const sobres =parseInt(g('nr-sobres').value)||0;
+  const albumes=parseInt(g('nr-albumes').value)||0;
+  const pPack  =parseFloat(g('nr-ppk').value)||0;
+  const pSobre =parseFloat(g('nr-psob').value)||0;
+  const pAlbum =parseFloat(g('nr-palb').value)||0;
+  const totalSobres=packs*SOBRES_POR_PACK+sobres;
+
+  if(!nombre) return alert('Ingresá el nombre del cliente.');
+  if(totalSobres===0&&albumes===0) return alert('Ingresá al menos una cantidad.');
+  if(totalSobres>stock.sobres) return alert(`Stock insuficiente.\nSobres disponibles: ${stock.sobres.toLocaleString('es-AR')}`);
+  if(albumes>stock.albumes)    return alert(`Stock insuficiente.\nÁlbumes disponibles: ${stock.albumes.toLocaleString('es-AR')}`);
+
+  stock.sobres  -= totalSobres;
+  stock.albumes -= albumes;
+
+  reservas.push({id:nextId++,nombre,packs,sobres,totalSobres,albumes,pPack,pSobre,pAlbum,estado:'pendiente',fecha:new Date().toLocaleDateString('es-AR'),fechaEnt:null});
+
+  g('nr-nombre').value='';g('nr-packs').value='0';g('nr-sobres').value='0';
+  g('nr-albumes').value='0';g('nr-ppk').value='0';g('nr-psob').value='0';g('nr-palb').value='0';
+  g('nr-preview').style.display='none';
+
+  save();renderMetrics();renderTablas();
+  flashEl('m-sobres');flashEl('m-sob-res');flashEl('m-alb-res');flashEl('eco-reservado');
+}
+
+/* ── ENTREGAR ── */
+function entregarReserva(id){
+  const r=reservas.find(x=>x.id===id);if(!r||r.estado!=='pendiente')return;
+  if(!confirm(`¿Confirmar entrega a ${r.nombre}?\n${r.totalSobres} sobres · ${r.albumes} álbumes\nTotal: ${pesos(calcTotal(r))}`))return;
+  r.estado='entregado';r.fechaEnt=new Date().toLocaleDateString('es-AR');
+  save();renderMetrics();renderTablas();
+  flashEl('m-sob-ent');flashEl('m-alb-ent');flashEl('eco-entregado');flashEl('eco-reservado');
+}
+
+/* ── EDITAR ── */
+function editarReserva(id){
+  const r=reservas.find(x=>x.id===id);if(!r)return;
+  const row=g(`row-${id}`);if(!row)return;
+  row.outerHTML=`<tr id="row-${id}" class="editing">
+    <td><input class="ei nm" id="e-nom-${id}" value="${esc(r.nombre)}" /></td>
+    <td><input class="ei" id="e-pk-${id}"  type="number" min="0" value="${r.packs}"   style="width:50px" oninput="updEd(${id})" /></td>
+    <td><input class="ei" id="e-sb-${id}"  type="number" min="0" value="${r.sobres}"  style="width:50px" oninput="updEd(${id})" /></td>
+    <td><strong id="e-tot-${id}">${r.totalSobres.toLocaleString('es-AR')}</strong></td>
+    <td><input class="ei" id="e-al-${id}"  type="number" min="0" value="${r.albumes}" style="width:50px" /></td>
+    <td><input class="ei" id="e-ppk-${id}" type="number" min="0" value="${r.pPack||0}"  style="width:60px" step="0.01" /></td>
+    <td><input class="ei" id="e-psb-${id}" type="number" min="0" value="${r.pSobre||0}" style="width:60px" step="0.01" /></td>
+    <td><input class="ei" id="e-pal-${id}" type="number" min="0" value="${r.pAlbum||0}" style="width:60px" step="0.01" /></td>
+    <td>—</td>
+    <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
+    <td><span class="badge b-orange" style="font-size:10px">Editando</span></td>
+    <td style="display:flex;gap:4px">
+      <button class="btn-icon ok" onclick="guardarEd(${id})" title="Guardar">✓</button>
+      <button class="btn-icon del" onclick="renderTablas()" title="Cancelar">✕</button>
+    </td>
+  </tr>`;
+}
+function updEd(id){
+  const p=parseInt(g(`e-pk-${id}`).value)||0,s=parseInt(g(`e-sb-${id}`).value)||0;
+  const el=g(`e-tot-${id}`);if(el)el.textContent=(p*SOBRES_POR_PACK+s).toLocaleString('es-AR');
+}
+function guardarEd(id){
+  const r=reservas.find(x=>x.id===id);if(!r)return;
+  const nombre=g(`e-nom-${id}`).value.trim();
+  const packs  =parseInt(g(`e-pk-${id}`).value)||0;
+  const sobres =parseInt(g(`e-sb-${id}`).value)||0;
+  const albumes=parseInt(g(`e-al-${id}`).value)||0;
+  const pPack  =parseFloat(g(`e-ppk-${id}`).value)||0;
+  const pSobre =parseFloat(g(`e-psb-${id}`).value)||0;
+  const pAlbum =parseFloat(g(`e-pal-${id}`).value)||0;
+  const totalSobres=packs*SOBRES_POR_PACK+sobres;
+  if(!nombre)return alert('Ingresá el nombre.');
+
+  if(r.estado==='pendiente'){
+    const diffSob=totalSobres-r.totalSobres,diffAlb=albumes-r.albumes;
+    if(diffSob>stock.sobres)  return alert(`Stock insuficiente. Sobres disponibles: ${stock.sobres.toLocaleString('es-AR')}`);
+    if(diffAlb>stock.albumes) return alert(`Stock insuficiente. Álbumes disponibles: ${stock.albumes.toLocaleString('es-AR')}`);
+    stock.sobres-=diffSob;stock.albumes-=diffAlb;
+  }
+  r.nombre=nombre;r.packs=packs;r.sobres=sobres;r.totalSobres=totalSobres;
+  r.albumes=albumes;r.pPack=pPack;r.pSobre=pSobre;r.pAlbum=pAlbum;
+  save();renderMetrics();renderTablas();
+}
+
+/* ── ELIMINAR ── */
+function eliminarReserva(id){
+  const r=reservas.find(x=>x.id===id);if(!r)return;
+  if(!confirm(`¿Eliminar reserva de ${r.nombre}?`))return;
+  if(r.estado==='pendiente'){stock.sobres+=r.totalSobres;stock.albumes+=r.albumes;}
+  reservas=reservas.filter(x=>x.id!==id);
+  save();renderMetrics();renderTablas();
+}
+
+/* ── RENDER TABLAS ── */
+function moneyCell(v){ return v>0?`<td class="money">${pesos(v)}</td>`:'<td style="color:var(--muted)">—</td>';}
+
+function renderTablas(){
+  const pend=[...reservas].filter(r=>r.estado==='pendiente').reverse();
+  const ent =[...reservas].filter(r=>r.estado==='entregado').reverse();
+
+  const tbP=g('tb-pend');
+  tbP.innerHTML=pend.length?pend.map(r=>{
+    const tot=calcTotal(r);
+    return `<tr id="row-${r.id}">
+      <td><span class="cname">${esc(r.nombre)}</span></td>
+      <td>${r.packs}</td>
+      <td>${r.sobres}</td>
+      <td><strong>${r.totalSobres.toLocaleString('es-AR')}</strong></td>
+      <td>${r.albumes}</td>
+      ${moneyCell(r.pPack||0)}
+      ${moneyCell(r.pSobre||0)}
+      ${moneyCell(r.pAlbum||0)}
+      <td class="total-money">${tot>0?pesos(tot):'—'}</td>
+      <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
+      <td><span class="badge b-orange">Reservado</span></td>
+      <td style="display:flex;gap:4px">
+        <button class="btn-icon ok"  onclick="entregarReserva(${r.id})" title="Confirmar entrega">✓</button>
+        <button class="btn-icon"     onclick="editarReserva(${r.id})"   title="Editar">✎</button>
+        <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar">✕</button>
+      </td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="12" class="empty-row">Sin reservas pendientes.</td></tr>';
+
+  const tbE=g('tb-ent');
+  tbE.innerHTML=ent.length?ent.map(r=>{
+    const tot=calcTotal(r);
+    return `<tr id="row-${r.id}">
+      <td><span class="cname">${esc(r.nombre)}</span></td>
+      <td>${r.packs}</td>
+      <td>${r.sobres}</td>
+      <td><strong>${r.totalSobres.toLocaleString('es-AR')}</strong></td>
+      <td>${r.albumes}</td>
+      ${moneyCell(r.pPack||0)}
+      ${moneyCell(r.pSobre||0)}
+      ${moneyCell(r.pAlbum||0)}
+      <td class="total-money">${tot>0?pesos(tot):'—'}</td>
+      <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
+      <td style="font-size:11px;color:var(--green)">${r.fechaEnt}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar">✕</button>
+      </td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="12" class="empty-row">Sin entregas registradas.</td></tr>';
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* ── MODAL EDITAR STOCK ── */
+let modalField=null;
+function openModal(field){
+  modalField=field;
+  const labels={sobres:'Sobres en stock',albumes:'Álbumes en stock'};
+  g('modal-title').textContent='Editar — '+labels[field];
+  g('modal-lbl').textContent='Nuevo valor de '+labels[field].toLowerCase();
+  g('modal-inp').value=stock[field];
+  g('modal-overlay').classList.add('open');
+  setTimeout(()=>g('modal-inp').select(),50);
+}
+function closeModal(e){if(e.target===g('modal-overlay'))closeModalDirect();}
+function closeModalDirect(){g('modal-overlay').classList.remove('open');modalField=null;}
+function saveModal(){
+  if(!modalField)return;
+  const val=parseInt(g('modal-inp').value);
+  if(isNaN(val)||val<0)return alert('Ingresá un valor válido.');
+  stock[modalField]=val;
+  save();renderMetrics();flashEl(modalField==='sobres'?'m-sobres':'m-albumes');
+  closeModalDirect();
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeModalDirect();
+  if(e.key==='Enter'&&modalField)saveModal();
+});
+
+/* ── INIT ── */
+renderMetrics();
+renderSobCalc();
+renderAlbCalc();
+renderTablas();
+</script>
 </body>
 </html>
