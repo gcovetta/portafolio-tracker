@@ -314,15 +314,12 @@ function flashEl(id) {
 
 /* ── MÉTRICAS ── */
 function renderMetrics() {
-  const pend = reservas.filter(r => r.estado === 'pendiente');
+  const pend   = reservas.filter(r => r.estado === 'pendiente');
+  const ent    = reservas.filter(r => r.estado === 'entregado');
   const sobRes = pend.reduce((s,r) => s + r.totalSobres, 0);
   const albRes = pend.reduce((s,r) => s + r.albumes, 0);
-  stock.sobRes = sobRes; stock.albRes = albRes;
-
-  const ent   = reservas.filter(r => r.estado === 'entregado');
-  const sobEnt = ent.reduce((s,r) => s + r.totalSobres, 0);
-  const albEnt = ent.reduce((s,r) => s + r.albumes, 0);
-  stock.sobEnt = sobEnt; stock.albEnt = albEnt;
+  const sobEnt = ent.reduce((s,r)  => s + r.totalSobres, 0);
+  const albEnt = ent.reduce((s,r)  => s + r.albumes, 0);
 
   set('m-sobres',      stock.sobres.toLocaleString('es-AR'));
   set('m-sobres-sub',  `${stock.sobBultos} bulto${stock.sobBultos!==1?'s':''} · ${stock.sobPacks} packs`);
@@ -414,10 +411,12 @@ function confirmarReserva() {
   if(!nombre) return alert('Ingresá el nombre del cliente.');
   if(totalSobres===0&&albumes===0) return alert('Ingresá al menos una cantidad.');
 
-  const dispSob = stock.sobres - stock.sobRes - stock.sobEnt;
-  const dispAlb = stock.albumes - stock.albRes - stock.albEnt;
-  if(totalSobres > dispSob) return alert(`Stock insuficiente.\nSobres disponibles: ${dispSob.toLocaleString('es-AR')}`);
-  if(albumes > dispAlb)     return alert(`Stock insuficiente.\nÁlbumes disponibles: ${dispAlb.toLocaleString('es-AR')}`);
+  if(totalSobres > stock.sobres) return alert(`Stock insuficiente.\nSobres disponibles: ${stock.sobres.toLocaleString('es-AR')}`);
+  if(albumes > stock.albumes)    return alert(`Stock insuficiente.\nÁlbumes disponibles: ${stock.albumes.toLocaleString('es-AR')}`);
+
+  // Restar del stock al reservar
+  stock.sobres  -= totalSobres;
+  stock.albumes -= albumes;
 
   reservas.push({
     id: nextId++, nombre, packs, sobres, totalSobres, albumes,
@@ -429,17 +428,18 @@ function confirmarReserva() {
   g('nr-preview').style.display='none';
 
   save(); renderMetrics(); renderTablas();
-  flashEl('m-sob-res'); flashEl('m-alb-res');
+  flashEl('m-sobres'); flashEl('m-sob-res'); flashEl('m-alb-res');
 }
 
 /* ── ENTREGAR ── */
 function entregarReserva(id) {
   const r=reservas.find(x=>x.id===id); if(!r||r.estado!=='pendiente') return;
   if(!confirm(`¿Confirmar entrega a ${r.nombre}?\n${r.totalSobres} sobres · ${r.albumes} álbumes`)) return;
+  // El stock ya se descontó al reservar; acá solo cambia el estado
   r.estado   = 'entregado';
   r.fechaEnt = new Date().toLocaleDateString('es-AR');
   save(); renderMetrics(); renderTablas();
-  flashEl('m-sob-ent'); flashEl('m-alb-ent');
+  flashEl('m-sob-ent'); flashEl('m-alb-ent'); flashEl('m-sob-res'); flashEl('m-alb-res');
 }
 
 /* ── EDITAR ── */
@@ -473,11 +473,16 @@ function guardarEd(id) {
   const totalSobres=packs*SOBRES_POR_PACK+sobres;
   if(!nombre) return alert('Ingresá el nombre.');
 
-  const diffSob=totalSobres-r.totalSobres, diffAlb=albumes-r.albumes;
-  const dispSob=stock.sobres-stock.sobRes-stock.sobEnt;
-  const dispAlb=stock.albumes-stock.albRes-stock.albEnt;
-  if(diffSob>dispSob) return alert(`Stock insuficiente. Sobres disponibles: ${dispSob.toLocaleString('es-AR')}`);
-  if(diffAlb>dispAlb) return alert(`Stock insuficiente. Álbumes disponibles: ${dispAlb.toLocaleString('es-AR')}`);
+  if(r.estado === 'pendiente') {
+    // Calcular diferencia y verificar stock para el excedente
+    const diffSob = totalSobres - r.totalSobres;
+    const diffAlb = albumes - r.albumes;
+    if(diffSob > stock.sobres)  return alert(`Stock insuficiente. Sobres disponibles: ${stock.sobres.toLocaleString('es-AR')}`);
+    if(diffAlb > stock.albumes) return alert(`Stock insuficiente. Álbumes disponibles: ${stock.albumes.toLocaleString('es-AR')}`);
+    // Ajustar stock por la diferencia
+    stock.sobres  -= diffSob;
+    stock.albumes -= diffAlb;
+  }
 
   r.nombre=nombre; r.packs=packs; r.sobres=sobres; r.totalSobres=totalSobres; r.albumes=albumes;
   save(); renderMetrics(); renderTablas();
@@ -487,6 +492,11 @@ function guardarEd(id) {
 function eliminarReserva(id) {
   const r=reservas.find(x=>x.id===id); if(!r) return;
   if(!confirm(`¿Eliminar la reserva de ${r.nombre}?`)) return;
+  // Si estaba pendiente, devolver al stock (si ya fue entregado no se devuelve)
+  if(r.estado === 'pendiente') {
+    stock.sobres  += r.totalSobres;
+    stock.albumes += r.albumes;
+  }
   reservas=reservas.filter(x=>x.id!==id);
   save(); renderMetrics(); renderTablas();
 }
