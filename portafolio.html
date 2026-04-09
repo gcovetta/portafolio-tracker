@@ -1325,9 +1325,11 @@ async function fetchAllQuotes(){
   var icon=document.getElementById('ref-icon');var status=document.getElementById('ref-status');var prog=document.getElementById('pos-prog');var pfill=document.getElementById('pfill');
   icon.innerHTML='<span class="spinner"></span>';prog.style.display='';pfill.style.width='0%';
 
-  // Separar por tipo: Finnhub (NYSE/Brasil/etc) y Yahoo (Argentina)
-  var finnhubPos=pos.filter(function(p){return getSector(p.ticker)!=='argentina';});
+  // Separar por fuente: Finnhub (NYSE/Brasil/etc), Yahoo (Argentina), skip (Bonos/ON)
+  var skipSectors={bonos:1,on:1};
+  var finnhubPos=pos.filter(function(p){var s=getSector(p.ticker);return s!=='argentina'&&!skipSectors[s];});
   var yahooPos=pos.filter(function(p){return getSector(p.ticker)==='argentina';});
+  var skipPos=pos.filter(function(p){return !!skipSectors[getSector(p.ticker)];});
 
   var total=pos.length,done=0,errors=0;
 
@@ -1338,10 +1340,9 @@ async function fetchAllQuotes(){
     renderPortfolio();
   }
 
-  // Delay helper para Finnhub (rate limit: 1 req/seg)
   function delay(ms){return new Promise(function(r){setTimeout(r,ms);});}
 
-  // ── Finnhub: secuencial con 1.1s entre cada uno ─────────────────────
+  // ── Finnhub: secuencial 1.1s (rate limit) ───────────────────────────
   async function fetchFinnhubAll(){
     for(var i=0;i<finnhubPos.length;i++){
       var p=finnhubPos[i];
@@ -1352,7 +1353,7 @@ async function fetchAllQuotes(){
     }
   }
 
-  // ── Yahoo AR: paralelo por lotes de 3 con 500ms entre lotes ─────────
+  // ── Yahoo AR: lotes de 3 en paralelo ────────────────────────────────
   async function fetchYahooAll(){
     var batchSize=3;
     for(var i=0;i<yahooPos.length;i+=batchSize){
@@ -1366,8 +1367,13 @@ async function fetchAllQuotes(){
     }
   }
 
-  // Correr ambos en paralelo
-  await Promise.all([fetchFinnhubAll(),fetchYahooAll()]);
+  // ── Bonos/ON: se saltean (no tienen API disponible), cuentan en progreso
+  async function fetchSkipAll(){
+    skipPos.forEach(function(){updateProgress();});
+  }
+
+  // Los tres grupos corren en paralelo
+  await Promise.all([fetchFinnhubAll(),fetchYahooAll(),fetchSkipAll()]);
 
   icon.textContent='⟳';prog.style.display='none';
   status.className=errors>0?'emsg':'smsg';
