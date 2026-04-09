@@ -1245,7 +1245,7 @@ async function fetchAllQuotes(){
   status.textContent=errors>0?errors+' sin datos':'Actualizado';
   setTimeout(function(){status.textContent='';},5000);
   document.getElementById('lupd').textContent=new Date().toLocaleTimeString('es-AR');
-  try{localStorage.setItem('ptNYSE_q2',JSON.stringify(quotes));}catch(e){}
+  try{localStorage.setItem('ptNYSE_q2',JSON.stringify(quotes));localStorage.setItem('ptNYSE_q2_ts',Date.now());}catch(e){}
 }
 
 async function fetchSingle(){
@@ -1827,12 +1827,19 @@ function trkCalcCCL(){
 
 // ── Init ──────────────────────────────────────────────────────────────────
 (function(){
-  var DATA_VERSION='v4_fix_ppc';
+  var DATA_VERSION='v5_quotes_ttl';
   var storedVersion=null;try{storedVersion=localStorage.getItem('ptNYSE_version');}catch(e){}
   var saved=null;try{saved=localStorage.getItem('ptNYSE_mov2');}catch(e){}
   if(saved&&storedVersion===DATA_VERSION){try{movimientos=JSON.parse(saved);}catch(e){}}
   else{movimientos=PRELOADED;try{localStorage.setItem('ptNYSE_mov2',JSON.stringify(movimientos));localStorage.setItem('ptNYSE_version',DATA_VERSION);}catch(e){}}
-  try{var sq=localStorage.getItem('ptNYSE_q2');if(sq)quotes=JSON.parse(sq);}catch(e){}
+  // Cargar quotes solo si tienen menos de 4 horas (TTL)
+  try{
+    var sq=localStorage.getItem('ptNYSE_q2');
+    var sqTs=parseInt(localStorage.getItem('ptNYSE_q2_ts')||'0');
+    var sqAge=(Date.now()-sqTs)/1000/3600; // horas
+    if(sq && sqAge < 4){ quotes=JSON.parse(sq); }
+    else { localStorage.removeItem('ptNYSE_q2'); localStorage.removeItem('ptNYSE_q2_ts'); }
+  }catch(e){}
   try{var sr=localStorage.getItem('ptNYSE_ratios');if(sr){Object.assign(RATIOS_TABLE,JSON.parse(sr));}}catch(e){}
   try{var sd=localStorage.getItem('ptNYSE_divs');if(sd)dividendos=JSON.parse(sd);}catch(e){}
   try{var st=localStorage.getItem('ptNYSE_targets');if(st){Object.assign(TARGET_TABLE,JSON.parse(st));}}catch(e){}
