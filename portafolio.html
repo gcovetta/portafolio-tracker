@@ -1230,6 +1230,9 @@ async function fetchFinnhub(ticker){
 async function fetchAllQuotes(){
   var pos=getPositions().filter(function(p){return p.qty>0.000001;});
   if(!pos.length){flash(document.getElementById('ref-status'),'No hay posiciones',true);return;}
+  // Limpiar caché antes de fetchear para garantizar precios frescos
+  quotes={};
+  try{localStorage.removeItem('ptNYSE_q2');localStorage.removeItem('ptNYSE_q2_ts');}catch(e){}
   var icon=document.getElementById('ref-icon');var status=document.getElementById('ref-status');var prog=document.getElementById('pos-prog');var pfill=document.getElementById('pfill');
   icon.innerHTML='<span class="spinner"></span>';prog.style.display='';pfill.style.width='0%';
   var total=pos.length,done=0,errors=0;
