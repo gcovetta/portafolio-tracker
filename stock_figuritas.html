@@ -11,208 +11,178 @@
   --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
   --text: #f0ede8; --muted: #888;
   --accent: #e8c547; --accent-dim: rgba(232,197,71,0.12); --accent-dim2: rgba(232,197,71,0.22);
-  --green: #4caf7d; --green-dim: rgba(76,175,125,0.12);
+  --green: #4caf7d; --green-dim: rgba(76,175,125,0.12); --green-dim2: rgba(76,175,125,0.22);
+  --red: #e05c5c; --red-dim: rgba(224,92,92,0.12);
+  --orange: #f4855a; --orange-dim: rgba(244,133,90,0.12);
   --teal: #38bdf8; --teal-dim: rgba(56,189,248,0.12);
   --radius: 10px; --radius-lg: 16px;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; min-height: 100vh; }
 
-.header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border2);
-  padding: 0 2rem;
-  display: flex;
-  align-items: center;
-  height: 60px;
-}
-.logo {
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 20px;
-  letter-spacing: -0.5px;
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.header { background: var(--surface); border-bottom: 1px solid var(--border2); padding: 0 2rem; display: flex; align-items: center; height: 60px; }
+.logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; letter-spacing: -0.5px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
 .logo span { color: var(--text); }
 
-.container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+.container { max-width: 960px; margin: 0 auto; padding: 2rem; }
 
 /* MÉTRICAS */
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 2rem;
-}
-.metric {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1.2rem 1.4rem;
-  transition: border-color 0.2s;
-}
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2rem; }
+.metric { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.2rem 1.4rem; transition: border-color 0.2s; }
 .metric:hover { border-color: var(--border2); }
-.metric-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  margin-bottom: 10px;
-}
-.metric-value {
-  font-family: 'Syne', sans-serif;
-  font-size: 32px;
-  font-weight: 800;
-  line-height: 1;
-}
+.metric-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 10px; }
+.metric-value { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; line-height: 1; }
 .metric-sub { font-size: 10px; color: var(--muted); margin-top: 6px; }
 .c-accent { color: var(--accent); }
-.c-green { color: var(--green); }
-.c-teal { color: var(--teal); }
+.c-teal   { color: var(--teal); }
+.c-orange { color: var(--orange); }
 
 /* CALCULADORAS */
-.calc-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-.calc-block {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1.4rem;
-}
+.calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 2rem; }
+.calc-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; }
 .calc-block.sob { border-color: rgba(232,197,71,0.2); }
 .calc-block.alb { border-color: rgba(56,189,248,0.2); }
 
-.calc-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--muted);
-  margin-bottom: 1.2rem;
-  padding-bottom: 0.8rem;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.calc-title { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
 .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
-.dot-y { background: var(--accent); }
-.dot-t { background: var(--teal); }
+.dot-y { background: var(--accent); } .dot-t { background: var(--teal); }
 
-.cnt-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 1.2rem;
-}
-.btn-cnt {
-  width: 36px; height: 36px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border2);
-  background: var(--surface2);
-  color: var(--text);
-  font-size: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'DM Mono', monospace;
-  transition: all 0.12s;
-  flex-shrink: 0;
-}
+.cnt-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1.2rem; }
+.btn-cnt { width: 36px; height: 36px; border-radius: var(--radius); border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; transition: all 0.12s; flex-shrink: 0; }
 .btn-cnt.y:hover { background: var(--accent-dim); color: var(--accent); border-color: rgba(232,197,71,0.4); }
 .btn-cnt.t:hover { background: var(--teal-dim); color: var(--teal); border-color: rgba(56,189,248,0.4); }
-
-.cnt-num {
-  font-family: 'Syne', sans-serif;
-  font-size: 28px;
-  font-weight: 800;
-  min-width: 40px;
-  text-align: center;
-}
-.cnt-num.y { color: var(--accent); }
-.cnt-num.t { color: var(--teal); }
-
-.cnt-in {
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-family: 'DM Mono', monospace;
-  font-size: 13px;
-  padding: 8px 10px;
-  outline: none;
-  width: 72px;
-  transition: border-color 0.15s;
-}
+.cnt-num { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; min-width: 40px; text-align: center; }
+.cnt-num.y { color: var(--accent); } .cnt-num.t { color: var(--teal); }
+.cnt-in { background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius); color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; padding: 8px 10px; outline: none; width: 72px; transition: border-color 0.15s; }
 .cnt-in:focus { border-color: var(--accent); }
 .cnt-lbl { font-size: 12px; color: var(--muted); }
 
-.calc-res {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 1.2rem;
-}
-.cres {
-  flex: 1;
-  background: var(--surface2);
-  border-radius: var(--radius);
-  padding: 10px 12px;
-  text-align: center;
-}
+.calc-res { display: flex; gap: 8px; margin-bottom: 1.2rem; }
+.cres { flex: 1; background: var(--surface2); border-radius: var(--radius); padding: 10px 12px; text-align: center; }
 .cres-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 4px; }
 .cres-val { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
 
-.boxes-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  min-height: 44px;
-  align-items: flex-end;
-  margin-bottom: 1rem;
-}
+.boxes-row { display: flex; flex-wrap: wrap; gap: 5px; min-height: 44px; align-items: flex-end; margin-bottom: 1rem; }
 .calc-formula { font-size: 11px; color: var(--muted); margin-bottom: 1.2rem; line-height: 1.5; }
-
-.btn-add {
-  width: 100%;
-  padding: 11px;
-  border-radius: var(--radius);
-  border: none;
-  font-family: 'DM Mono', monospace;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.15s;
-  letter-spacing: 0.03em;
-}
+.btn-add { width: 100%; padding: 11px; border-radius: var(--radius); border: 1px solid; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s; }
 .btn-add:active { transform: scale(0.98); }
-.btn-add.y { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(232,197,71,0.3); }
+.btn-add.y { background: var(--accent-dim); color: var(--accent); border-color: rgba(232,197,71,0.3); }
 .btn-add.y:hover { background: var(--accent-dim2); }
-.btn-add.t { background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(56,189,248,0.3); }
+.btn-add.t { background: var(--teal-dim); color: var(--teal); border-color: rgba(56,189,248,0.3); }
 .btn-add.t:hover { background: rgba(56,189,248,0.2); }
 
-/* FLASH ANIMATION */
-@keyframes flash {
-  0%   { transform: scale(1); }
-  30%  { transform: scale(1.08); }
-  100% { transform: scale(1); }
+/* RESERVAS */
+.res-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.4rem; margin-bottom: 2rem; }
+.res-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border); }
+.res-title { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.dot-o { background: var(--orange); }
+
+/* FILA DE NUEVA RESERVA */
+.new-res-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 44px;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
 }
+.nrf { display: flex; flex-direction: column; gap: 5px; }
+.nrf label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.nrf input {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  padding: 9px 12px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+}
+.nrf input:focus { border-color: var(--orange); }
+.nrf input::placeholder { color: var(--muted); }
+
+.btn-confirm {
+  width: 44px; height: 44px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(76,175,125,0.3);
+  background: var(--green-dim);
+  color: var(--green);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.btn-confirm:hover { background: var(--green-dim2); }
+.btn-confirm:active { transform: scale(0.95); }
+
+/* TABLA DE RESERVAS */
+.res-table { width: 100%; border-collapse: collapse; }
+.res-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.res-table td {
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.res-table tr:last-child td { border-bottom: none; }
+.res-table tbody tr:hover td { background: rgba(255,255,255,0.02); }
+
+.badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge-orange { background: var(--orange-dim); color: var(--orange); }
+.badge-green  { background: var(--green-dim);  color: var(--green); }
+
+.client-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+
+.btn-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: all 0.12s;
+}
+.btn-icon:hover { background: var(--surface2); color: var(--text); }
+.btn-icon.del:hover { background: var(--red-dim); color: var(--red); border-color: rgba(224,92,92,0.3); }
+
+.empty-row { text-align: center; padding: 2.5rem; color: var(--muted); font-size: 12px; }
+
+/* EDIT MODE */
+.editing td { background: rgba(232,197,71,0.04) !important; }
+.edit-input {
+  background: var(--surface2);
+  border: 1px solid rgba(232,197,71,0.4);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  padding: 5px 8px;
+  outline: none;
+  width: 100%;
+}
+.edit-input.name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; }
+
+/* FLASH */
+@keyframes flash { 0%{transform:scale(1)} 30%{transform:scale(1.08)} 100%{transform:scale(1)} }
 .flash { animation: flash 0.35s ease; }
 
 @media (max-width: 680px) {
   .metrics { grid-template-columns: repeat(2, 1fr); }
   .calc-grid { grid-template-columns: 1fr; }
+  .new-res-row { grid-template-columns: 1fr 1fr; }
   .container { padding: 1rem; }
   .header { padding: 0 1rem; }
 }
@@ -240,18 +210,18 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monosp
     </div>
     <div class="metric">
       <div class="metric-label">Sobres reservados</div>
-      <div class="metric-value" id="m-sob-res" style="color:var(--muted)">0</div>
+      <div class="metric-value c-orange" id="m-sob-res">0</div>
+      <div class="metric-sub" id="m-sob-res-sub">0 reservas</div>
     </div>
     <div class="metric">
       <div class="metric-label">Álbumes reservados</div>
-      <div class="metric-value" id="m-alb-res" style="color:var(--muted)">0</div>
+      <div class="metric-value c-orange" id="m-alb-res">0</div>
+      <div class="metric-sub" id="m-alb-res-sub">0 reservas</div>
     </div>
   </div>
 
   <!-- CALCULADORAS -->
   <div class="calc-grid">
-
-    <!-- SOBRES -->
     <div class="calc-block sob">
       <div class="calc-title"><span class="dot dot-y"></span>Ingresar sobres</div>
       <div class="cnt-row">
@@ -264,14 +234,13 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monosp
       <div class="calc-res">
         <div class="cres"><div class="cres-lbl">Bultos</div><div class="cres-val c-accent" id="sob-rb">1</div></div>
         <div class="cres"><div class="cres-lbl">Packs</div><div class="cres-val c-accent" id="sob-rp">40</div></div>
-        <div class="cres"><div class="cres-val c-green" id="sob-rs" style="font-size:22px;padding-top:4px">1.000</div><div class="cres-lbl" style="margin-top:4px">Sobres</div></div>
+        <div class="cres"><div class="cres-val c-accent" id="sob-rs" style="font-size:22px;padding-top:4px">1.000</div><div class="cres-lbl" style="margin-top:4px">Sobres</div></div>
       </div>
       <div class="boxes-row" id="sob-bx"></div>
       <div class="calc-formula" id="sob-fm">1 bulto × 40 packs × 25 sobres = 1.000 sobres</div>
       <button class="btn-add y" onclick="agregarSobres()">+ Agregar al stock</button>
     </div>
 
-    <!-- ÁLBUMES -->
     <div class="calc-block alb">
       <div class="calc-title"><span class="dot dot-t"></span>Ingresar álbumes</div>
       <div class="cnt-row">
@@ -289,13 +258,66 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monosp
       <div class="calc-formula" id="alb-fm">1 bulto × 25 álbumes = 25 álbumes</div>
       <button class="btn-add t" onclick="agregarAlbumes()">+ Agregar al stock</button>
     </div>
-
   </div>
+
+  <!-- RESERVAS -->
+  <div class="res-block">
+    <div class="res-header">
+      <div class="res-title"><span class="dot dot-o"></span>Reservas</div>
+    </div>
+
+    <!-- NUEVA RESERVA -->
+    <div class="new-res-row">
+      <div class="nrf">
+        <label>Nombre del cliente</label>
+        <input type="text" id="nr-nombre" placeholder="Nombre y apellido" />
+      </div>
+      <div class="nrf">
+        <label>Packs (×25 sobres)</label>
+        <input type="number" id="nr-packs" placeholder="0" min="0" value="0" oninput="calcNR()" />
+      </div>
+      <div class="nrf">
+        <label>Sobres sueltos</label>
+        <input type="number" id="nr-sobres" placeholder="0" min="0" value="0" oninput="calcNR()" />
+      </div>
+      <div class="nrf">
+        <label>Álbumes</label>
+        <input type="number" id="nr-albumes" placeholder="0" min="0" value="0" />
+      </div>
+      <button class="btn-confirm" onclick="confirmarReserva()" title="Confirmar reserva">✓</button>
+    </div>
+
+    <!-- PREVIEW TOTAL SOBRES -->
+    <div id="nr-preview" style="font-size:11px;color:var(--muted);margin-bottom:1rem;padding-left:2px;display:none;">
+      Total sobres a reservar: <span id="nr-preview-val" style="color:var(--accent);font-weight:500"></span>
+    </div>
+
+    <!-- TABLA -->
+    <div style="overflow-x:auto;">
+      <table class="res-table">
+        <thead>
+          <tr>
+            <th style="width:30%">Cliente</th>
+            <th style="width:12%">Packs</th>
+            <th style="width:12%">Sobres sueltos</th>
+            <th style="width:13%">Total sobres</th>
+            <th style="width:12%">Álbumes</th>
+            <th style="width:10%">Estado</th>
+            <th style="width:11%"></th>
+          </tr>
+        </thead>
+        <tbody id="res-tbody">
+          <tr><td colspan="7" class="empty-row">Sin reservas aún.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <script>
-const PACKS_POR_BULTO  = 40;
-const SOBRES_POR_PACK  = 25;
+const PACKS_POR_BULTO   = 40;
+const SOBRES_POR_PACK   = 25;
 const ALBUMES_POR_BULTO = 25;
 
 let sobB = 1, albB = 1;
@@ -306,113 +328,255 @@ let stock = {
   sobRes: 0, albRes: 0
 };
 
-function save() { try { localStorage.setItem('figstock', JSON.stringify(stock)); } catch(e) {} }
-function load() { try { const d = localStorage.getItem('figstock'); if (d) stock = { ...stock, ...JSON.parse(d) }; } catch(e) {} }
+let reservas = [];
+let nextId = 1;
+
+function save() {
+  try {
+    localStorage.setItem('figstock', JSON.stringify(stock));
+    localStorage.setItem('figreservas', JSON.stringify(reservas));
+    localStorage.setItem('fignextid', nextId);
+  } catch(e) {}
+}
+function load() {
+  try {
+    const s = localStorage.getItem('figstock');
+    if (s) stock = { ...stock, ...JSON.parse(s) };
+    const r = localStorage.getItem('figreservas');
+    if (r) reservas = JSON.parse(r);
+    const n = localStorage.getItem('fignextid');
+    if (n) nextId = parseInt(n);
+  } catch(e) {}
+}
 load();
 
-function set(id, val) { const e = document.getElementById(id); if (e) e.textContent = val; }
-function setV(id, val) { const e = document.getElementById(id); if (e) e.value = val; }
+function g(id) { return document.getElementById(id); }
+function set(id, val) { const e = g(id); if (e) e.textContent = val; }
+function setV(id, val) { const e = g(id); if (e) e.value = val; }
 
 function flashEl(id) {
-  const e = document.getElementById(id);
-  if (!e) return;
+  const e = g(id); if (!e) return;
   e.classList.remove('flash');
   void e.offsetWidth;
   e.classList.add('flash');
 }
 
 function renderMetrics() {
-  set('m-sobres',  stock.sobres.toLocaleString('es-AR'));
+  set('m-sobres',     stock.sobres.toLocaleString('es-AR'));
   set('m-sobres-sub', `${stock.sobBultos} bulto${stock.sobBultos!==1?'s':''} · ${stock.sobPacks} packs`);
-  set('m-albumes', stock.albumes.toLocaleString('es-AR'));
-  set('m-albumes-sub', `${stock.albBultos} bulto${stock.albBultos!==1?'s':''}`);
-  set('m-sob-res', stock.sobRes.toLocaleString('es-AR'));
-  set('m-alb-res', stock.albRes.toLocaleString('es-AR'));
+  set('m-albumes',    stock.albumes.toLocaleString('es-AR'));
+  set('m-albumes-sub',`${stock.albBultos} bulto${stock.albBultos!==1?'s':''}`);
+
+  const activeRes = reservas.filter(r => r.estado === 'pendiente');
+  const totalSobRes = activeRes.reduce((s, r) => s + r.totalSobres, 0);
+  const totalAlbRes = activeRes.reduce((s, r) => s + r.albumes, 0);
+
+  set('m-sob-res',     totalSobRes.toLocaleString('es-AR'));
+  set('m-sob-res-sub', `${activeRes.length} reserva${activeRes.length!==1?'s':''}`);
+  set('m-alb-res',     totalAlbRes.toLocaleString('es-AR'));
+  set('m-alb-res-sub', `${activeRes.length} reserva${activeRes.length!==1?'s':''}`);
 }
 
+/* ---- CAJAS ---- */
 function drawBox(color) {
   const ns = 'http://www.w3.org/2000/svg';
   const s = document.createElementNS(ns, 'svg');
-  s.setAttribute('width', '42'); s.setAttribute('height', '42');
-  s.setAttribute('viewBox', '0 0 72 72');
-  s.style.display = 'block';
-  const isTeal = color === 'teal';
-  const f  = isTeal ? '#1D9E75' : '#7F77DD';
-  const tp = isTeal ? '#5DCAA5' : '#AFA9EC';
-  const sd = isTeal ? '#0F6E56' : '#534AB7';
-  const sk = isTeal ? '#085041' : '#3C3489';
-  const fl = isTeal ? '#9FE1CB' : '#CECBF6';
-  s.innerHTML = `
-    <rect x="10" y="26" width="48" height="36" rx="3" fill="${f}" stroke="${sk}" stroke-width="0.8"/>
+  s.setAttribute('width','42'); s.setAttribute('height','42'); s.setAttribute('viewBox','0 0 72 72'); s.style.display='block';
+  const iT = color==='teal';
+  const f=iT?'#1D9E75':'#7F77DD', tp=iT?'#5DCAA5':'#AFA9EC', sd=iT?'#0F6E56':'#534AB7', sk=iT?'#085041':'#3C3489', fl=iT?'#9FE1CB':'#CECBF6';
+  s.innerHTML=`<rect x="10" y="26" width="48" height="36" rx="3" fill="${f}" stroke="${sk}" stroke-width="0.8"/>
     <polygon points="10,26 34,16 58,26 34,36" fill="${tp}" stroke="${sk}" stroke-width="0.8"/>
     <polygon points="58,26 66,30 66,62 58,58" fill="${sd}" stroke="${sk}" stroke-width="0.8"/>
     <line x1="34" y1="16" x2="34" y2="36" stroke="${sk}" stroke-width="0.6" stroke-dasharray="2,2"/>
-    <rect x="14" y="28" width="40" height="6" rx="2" fill="${fl}" opacity="0.6"/>
-  `;
+    <rect x="14" y="28" width="40" height="6" rx="2" fill="${fl}" opacity="0.6"/>`;
   return s;
 }
-
 function renderBoxes(cid, count, color) {
-  const el = document.getElementById(cid); if (!el) return;
-  el.innerHTML = '';
-  const mx = Math.min(count, 20);
-  for (let i = 0; i < mx; i++) el.appendChild(drawBox(color));
-  if (count > 20) {
-    const m = document.createElement('div');
-    m.style.cssText = 'display:flex;align-items:center;justify-content:center;width:42px;height:42px;font-size:12px;color:var(--muted);border:1px dashed var(--border2);border-radius:8px;font-family:"DM Mono",monospace;';
-    m.textContent = `+${(count - 20).toLocaleString('es-AR')}`;
-    el.appendChild(m);
+  const el = g(cid); if(!el) return; el.innerHTML='';
+  const mx = Math.min(count,20);
+  for(let i=0;i<mx;i++) el.appendChild(drawBox(color));
+  if(count>20){const m=document.createElement('div');m.style.cssText='display:flex;align-items:center;justify-content:center;width:42px;height:42px;font-size:12px;color:var(--muted);border:1px dashed var(--border2);border-radius:8px;';m.textContent=`+${count-20}`;el.appendChild(m);}
+}
+
+/* ---- CALCULADORAS ---- */
+function renderSobCalc() {
+  const packs=sobB*PACKS_POR_BULTO, sobres=packs*SOBRES_POR_PACK;
+  set('sob-n',sobB); setV('sob-i',sobB);
+  set('sob-rb',sobB.toLocaleString('es-AR'));
+  set('sob-rp',packs.toLocaleString('es-AR'));
+  set('sob-rs',sobres.toLocaleString('es-AR'));
+  set('sob-fm',`${sobB} bulto${sobB!==1?'s':''} × ${PACKS_POR_BULTO} packs × ${SOBRES_POR_PACK} sobres = ${sobres.toLocaleString('es-AR')} sobres`);
+  renderBoxes('sob-bx',sobB,'purple');
+}
+function renderAlbCalc() {
+  const albs=albB*ALBUMES_POR_BULTO;
+  set('alb-n',albB); setV('alb-i',albB);
+  set('alb-rb',albB.toLocaleString('es-AR'));
+  set('alb-ra',albs.toLocaleString('es-AR'));
+  set('alb-fm',`${albB} bulto${albB!==1?'s':''} × ${ALBUMES_POR_BULTO} álbumes = ${albs.toLocaleString('es-AR')} álbumes`);
+  renderBoxes('alb-bx',albB,'teal');
+}
+function sobCh(d){sobB=Math.max(1,sobB+d);renderSobCalc();}
+function sobSt(v){const n=parseInt(v);if(!isNaN(n)&&n>=1){sobB=n;renderSobCalc();}}
+function albCh(d){albB=Math.max(1,albB+d);renderAlbCalc();}
+function albSt(v){const n=parseInt(v);if(!isNaN(n)&&n>=1){albB=n;renderAlbCalc();}}
+
+function agregarSobres() {
+  const packs=sobB*PACKS_POR_BULTO, sobres=packs*SOBRES_POR_PACK;
+  stock.sobres+=sobres; stock.sobBultos+=sobB; stock.sobPacks+=packs;
+  save(); renderMetrics(); flashEl('m-sobres');
+}
+function agregarAlbumes() {
+  const albs=albB*ALBUMES_POR_BULTO;
+  stock.albumes+=albs; stock.albBultos+=albB;
+  save(); renderMetrics(); flashEl('m-albumes');
+}
+
+/* ---- PREVIEW NUEVA RESERVA ---- */
+function calcNR() {
+  const packs  = parseInt(g('nr-packs').value)  || 0;
+  const sobres = parseInt(g('nr-sobres').value) || 0;
+  const total  = packs * SOBRES_POR_PACK + sobres;
+  const prev   = g('nr-preview');
+  if (total > 0) {
+    g('nr-preview-val').textContent = total.toLocaleString('es-AR');
+    prev.style.display = 'block';
+  } else {
+    prev.style.display = 'none';
   }
 }
 
-function renderSobCalc() {
-  const packs  = sobB * PACKS_POR_BULTO;
-  const sobres = packs * SOBRES_POR_PACK;
-  set('sob-n', sobB); setV('sob-i', sobB);
-  set('sob-rb', sobB.toLocaleString('es-AR'));
-  set('sob-rp', packs.toLocaleString('es-AR'));
-  set('sob-rs', sobres.toLocaleString('es-AR'));
-  set('sob-fm', `${sobB} bulto${sobB!==1?'s':''} × ${PACKS_POR_BULTO} packs × ${SOBRES_POR_PACK} sobres = ${sobres.toLocaleString('es-AR')} sobres`);
-  renderBoxes('sob-bx', sobB, 'purple');
+/* ---- CONFIRMAR RESERVA ---- */
+function confirmarReserva() {
+  const nombre  = g('nr-nombre').value.trim();
+  const packs   = parseInt(g('nr-packs').value)   || 0;
+  const sobres  = parseInt(g('nr-sobres').value)  || 0;
+  const albumes = parseInt(g('nr-albumes').value) || 0;
+  const totalSobres = packs * SOBRES_POR_PACK + sobres;
+
+  if (!nombre)       return alert('Ingresá el nombre del cliente.');
+  if (totalSobres === 0 && albumes === 0) return alert('Ingresá al menos una cantidad.');
+  if (totalSobres > stock.sobres - stock.sobRes) return alert(`Stock insuficiente. Sobres disponibles: ${(stock.sobres - stock.sobRes).toLocaleString('es-AR')}`);
+  if (albumes > stock.albumes - stock.albRes)    return alert(`Stock insuficiente. Álbumes disponibles: ${(stock.albumes - stock.albRes).toLocaleString('es-AR')}`);
+
+  reservas.push({ id: nextId++, nombre, packs, sobres, totalSobres, albumes, estado: 'pendiente', fecha: new Date().toLocaleDateString('es-AR') });
+
+  stock.sobRes += totalSobres;
+  stock.albRes += albumes;
+
+  g('nr-nombre').value  = '';
+  g('nr-packs').value   = '0';
+  g('nr-sobres').value  = '0';
+  g('nr-albumes').value = '0';
+  g('nr-preview').style.display = 'none';
+
+  save(); renderMetrics(); renderReservas();
+  flashEl('m-sob-res'); flashEl('m-alb-res');
 }
 
-function renderAlbCalc() {
-  const albs = albB * ALBUMES_POR_BULTO;
-  set('alb-n', albB); setV('alb-i', albB);
-  set('alb-rb', albB.toLocaleString('es-AR'));
-  set('alb-ra', albs.toLocaleString('es-AR'));
-  set('alb-fm', `${albB} bulto${albB!==1?'s':''} × ${ALBUMES_POR_BULTO} álbumes = ${albs.toLocaleString('es-AR')} álbumes`);
-  renderBoxes('alb-bx', albB, 'teal');
+/* ---- TABLA RESERVAS ---- */
+function renderReservas() {
+  const tb = g('res-tbody');
+  if (!reservas.length) {
+    tb.innerHTML = '<tr><td colspan="7" class="empty-row">Sin reservas aún.</td></tr>';
+    return;
+  }
+  tb.innerHTML = [...reservas].reverse().map(r => buildRow(r)).join('');
 }
 
-function sobCh(d) { sobB = Math.max(1, sobB + d); renderSobCalc(); }
-function sobSt(v) { const n = parseInt(v); if (!isNaN(n) && n >= 1) { sobB = n; renderSobCalc(); } }
-function albCh(d) { albB = Math.max(1, albB + d); renderAlbCalc(); }
-function albSt(v) { const n = parseInt(v); if (!isNaN(n) && n >= 1) { albB = n; renderAlbCalc(); } }
-
-function agregarSobres() {
-  const packs  = sobB * PACKS_POR_BULTO;
-  const sobres = packs * SOBRES_POR_PACK;
-  stock.sobres    += sobres;
-  stock.sobBultos += sobB;
-  stock.sobPacks  += packs;
-  save();
-  renderMetrics();
-  flashEl('m-sobres');
+function buildRow(r) {
+  const badgeCls = r.estado === 'pendiente' ? 'badge-orange' : 'badge-green';
+  const badgeTxt = r.estado === 'pendiente' ? 'Pendiente' : 'Completada';
+  return `<tr id="row-${r.id}">
+    <td><span class="client-name">${esc(r.nombre)}</span></td>
+    <td>${r.packs}</td>
+    <td>${r.sobres}</td>
+    <td><strong>${r.totalSobres.toLocaleString('es-AR')}</strong></td>
+    <td>${r.albumes}</td>
+    <td><span class="badge ${badgeCls}">${badgeTxt}</span></td>
+    <td style="display:flex;gap:6px">
+      <button class="btn-icon" onclick="editarReserva(${r.id})" title="Editar">✎</button>
+      <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar">✕</button>
+    </td>
+  </tr>`;
 }
 
-function agregarAlbumes() {
-  const albs = albB * ALBUMES_POR_BULTO;
-  stock.albumes   += albs;
-  stock.albBultos += albB;
-  save();
-  renderMetrics();
-  flashEl('m-albumes');
+function buildEditRow(r) {
+  return `<tr id="row-${r.id}" class="editing">
+    <td><input class="edit-input name" id="e-nombre-${r.id}" value="${esc(r.nombre)}" /></td>
+    <td><input class="edit-input" id="e-packs-${r.id}"   type="number" min="0" value="${r.packs}"   style="width:60px" oninput="updateEditTotal(${r.id})" /></td>
+    <td><input class="edit-input" id="e-sobres-${r.id}"  type="number" min="0" value="${r.sobres}"  style="width:60px" oninput="updateEditTotal(${r.id})" /></td>
+    <td><strong id="e-total-${r.id}">${r.totalSobres.toLocaleString('es-AR')}</strong></td>
+    <td><input class="edit-input" id="e-albumes-${r.id}" type="number" min="0" value="${r.albumes}" style="width:60px" /></td>
+    <td><span class="badge badge-orange">Editando</span></td>
+    <td style="display:flex;gap:6px">
+      <button class="btn-icon" onclick="guardarEdicion(${r.id})" title="Guardar" style="color:var(--green);border-color:rgba(76,175,125,0.3)">✓</button>
+      <button class="btn-icon del" onclick="cancelarEdicion(${r.id})" title="Cancelar">✕</button>
+    </td>
+  </tr>`;
 }
 
+function updateEditTotal(id) {
+  const packs  = parseInt(g(`e-packs-${id}`).value)  || 0;
+  const sobres = parseInt(g(`e-sobres-${id}`).value) || 0;
+  const total  = packs * SOBRES_POR_PACK + sobres;
+  const el = g(`e-total-${id}`); if(el) el.textContent = total.toLocaleString('es-AR');
+}
+
+function editarReserva(id) {
+  const r = reservas.find(x => x.id===id); if(!r) return;
+  const row = g(`row-${id}`); if(!row) return;
+  row.outerHTML = buildEditRow(r);
+}
+
+function guardarEdicion(id) {
+  const r = reservas.find(x => x.id===id); if(!r) return;
+  const nombre  = g(`e-nombre-${id}`).value.trim();
+  const packs   = parseInt(g(`e-packs-${id}`).value)   || 0;
+  const sobres  = parseInt(g(`e-sobres-${id}`).value)  || 0;
+  const albumes = parseInt(g(`e-albumes-${id}`).value) || 0;
+  const totalSobres = packs * SOBRES_POR_PACK + sobres;
+  if (!nombre) return alert('Ingresá el nombre.');
+
+  const diffSob = totalSobres - r.totalSobres;
+  const diffAlb = albumes - r.albumes;
+  const dispSob = stock.sobres - stock.sobRes;
+  const dispAlb = stock.albumes - stock.albRes;
+
+  if (diffSob > dispSob) return alert(`Stock insuficiente. Sobres disponibles: ${dispSob.toLocaleString('es-AR')}`);
+  if (diffAlb > dispAlb) return alert(`Stock insuficiente. Álbumes disponibles: ${dispAlb.toLocaleString('es-AR')}`);
+
+  stock.sobRes += diffSob;
+  stock.albRes += diffAlb;
+
+  r.nombre = nombre; r.packs = packs; r.sobres = sobres;
+  r.totalSobres = totalSobres; r.albumes = albumes;
+
+  save(); renderMetrics(); renderReservas();
+}
+
+function cancelarEdicion(id) { renderReservas(); }
+
+function eliminarReserva(id) {
+  const r = reservas.find(x => x.id===id); if(!r) return;
+  if (!confirm(`¿Eliminar la reserva de ${r.nombre}?`)) return;
+  if (r.estado === 'pendiente') {
+    stock.sobRes -= r.totalSobres;
+    stock.albRes -= r.albumes;
+  }
+  reservas = reservas.filter(x => x.id!==id);
+  save(); renderMetrics(); renderReservas();
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ---- INIT ---- */
 renderMetrics();
 renderSobCalc();
 renderAlbCalc();
+renderReservas();
 </script>
 </body>
 </html>
