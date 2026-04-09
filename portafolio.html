@@ -393,24 +393,16 @@ tr:hover td{background:var(--surface2)}
     <div class="page" id="page-tracker">
 
       <!-- PIN overlay -->
-      <div id="trk-pin-overlay" class="pin-overlay" style="display:none">
-        <div class="pin-title" id="trk-pin-title">Ingresá tu PIN</div>
-        <p class="pin-sub" id="trk-pin-sub">Accedé al tracker de dividendos</p>
-        <div class="pin-dots" id="trk-pin-dots"></div>
-        <div class="pin-pad" id="trk-pin-pad"></div>
-        <div class="pin-error" id="trk-pin-error"></div>
-        <span class="pin-action" id="trk-pin-action"></span>
-      </div>
 
       <!-- App content -->
-      <div id="trk-app" style="display:none">
+      <div id="trk-app">
 
         <div class="pin-lock-bar">
           <button class="trk-eye-btn" id="trk-eye-btn">
             <svg id="trk-eye-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             <span id="trk-eye-label">Ocultar valores</span>
           </button>
-          <button class="btn btn-d btn-sm" id="trk-lock-btn">⎋ Bloquear</button>
+          
         </div>
 
         <!-- CCL bar -->
@@ -678,14 +670,15 @@ function tcRender(){
       return db-da;
     });
     body.innerHTML = keys.map(function(k){
+      var t=tipo, f=k;
       return '<tr>'+
-        '<td class="mono">'+k+'</td>'+
+        '<td class="mono">'+f+'</td>'+
         '<td class="mono" style="text-align:right">'+
-          '<input type="number" step="0.01" value="'+table[k]+'"'+
+          '<input type="number" step="0.01" value="'+table[f]+'"'+
           ' style="width:80px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.72rem;padding:2px 5px;height:24px;text-align:right"'+
-          ' onchange="tcEdit(''+tipo+'',''+k+'',this.value)">'+
+          ' onchange="tcEdit(\''+t+'\',\''+f+'\',this.value)">'+
         '</td>'+
-        '<td><button class="btn btn-d btn-sm" onclick="tcDel(''+tipo+'',''+k+'')">✕</button></td>'+
+        '<td><button class="btn btn-d btn-sm" onclick="tcDel(\''+t+'\',\''+f+'\')">✕</button></td>'+
       '</tr>';
     }).join('');
   });
@@ -1816,7 +1809,6 @@ function initTracker(){
   if(TRK.inited) return;
   TRK.inited=true;
   trkLoad();
-  document.getElementById('trk-lock-btn').addEventListener('click',function(){trkClearSession();trkShowPin();});
   document.getElementById('trk-eye-btn').addEventListener('click',trkToggleEye);
   document.getElementById('trk-ccl-toggle').addEventListener('click',function(){
     var r=document.getElementById('trk-manual-row');
@@ -1834,7 +1826,7 @@ function initTracker(){
   trkImpInit();
   ['trk-calc-ars','trk-calc-usd','trk-calc-activo'].forEach(function(id){document.getElementById(id).addEventListener('input',trkCalcCCL);});
   document.getElementById('trk-fecha').value=new Date().toISOString().split('T')[0];
-  if(trkHasSession()){trkShowApp();}else{trkShowPin();}
+  trkShowApp();
 }
 
 function trkSetCCL(v,src){
@@ -1857,78 +1849,26 @@ async function trkFetchCCL(){
   else{document.getElementById('trk-ccl-display').textContent='No disponible';document.getElementById('trk-ccl-src').textContent='— ingresá manualmente';}
 }
 
-function trkShowPin(){
-  document.getElementById('trk-pin-overlay').style.display='flex';
-  document.getElementById('trk-app').style.display='none';
-  TRK.pinBuf='';
-  if(!trkGetPin()){
-    TRK.pinMode='set-new';
-    document.getElementById('trk-pin-title').textContent='Creá tu PIN (4-6 dígitos)';
-    document.getElementById('trk-pin-sub').textContent='Elegí un PIN para proteger el tracker';
-  } else {
-    TRK.pinMode='login';
-    document.getElementById('trk-pin-title').textContent='Ingresá tu PIN';
-    document.getElementById('trk-pin-sub').textContent='Accedé al tracker de dividendos';
-  }
-  trkBuildPad();
-}
+function trkShowPin(){ trkShowApp(); }
 
 function trkShowApp(){
-  document.getElementById('trk-pin-overlay').style.display='none';
-  document.getElementById('trk-app').style.display='block';
+  var app=document.getElementById('trk-app');
+  if(app) app.style.display='block';
   trkFetchCCL();
   trkRender();
 }
 
-function trkBuildPad(){
-  var dots=document.getElementById('trk-pin-dots');
-  dots.innerHTML='';
-  for(var i=0;i<TRK.MAX_LEN;i++){var d=document.createElement('div');d.className='pin-dot';d.id='trkdot'+i;dots.appendChild(d);}
-  trkUpdateDots();
-  var pad=document.getElementById('trk-pin-pad');
-  pad.innerHTML='';
-  [1,2,3,4,5,6,7,8,9,'','0','del'].forEach(function(k){
-    var btn=document.createElement('button');btn.className='pin-key'+(k==='del'?' del':'');
-    btn.textContent=k==='del'?'⌫':k===''?'':k;
-    if(k==='')btn.style.visibility='hidden';
-    btn.addEventListener('click',function(){trkHandleKey(k);});
-    pad.appendChild(btn);
-  });
-  var action=document.getElementById('trk-pin-action');
-  if(TRK.pinMode==='login'&&trkGetPin()){action.textContent='Olvidé el PIN (resetear datos)';action.onclick=trkResetAll;}
-  else{action.textContent='';}
-}
+function trkBuildPad(){}
 
-function trkUpdateDots(){
-  for(var i=0;i<TRK.MAX_LEN;i++){var d=document.getElementById('trkdot'+i);if(d)d.className='pin-dot'+(i<TRK.pinBuf.length?' filled':'');}
-}
+function trkUpdateDots(){}
 
-function trkHandleKey(k){
-  if(k==='del'){TRK.pinBuf=TRK.pinBuf.slice(0,-1);trkUpdateDots();document.getElementById('trk-pin-error').textContent='';return;}
-  if(k===''||TRK.pinBuf.length>=TRK.MAX_LEN)return;
-  TRK.pinBuf+=k;trkUpdateDots();
-  if(TRK.pinMode==='set-new'&&TRK.pinBuf.length>=4){setTimeout(trkConfirmNew,120);return;}
-  if(TRK.pinMode==='confirm'&&TRK.pinBuf.length>=4){setTimeout(trkDoConfirm,120);return;}
-  if(TRK.pinMode==='login'&&TRK.pinBuf.length>=4){setTimeout(trkTryLogin,120);}
-}
+function trkHandleKey(k){}
 
-function trkTryLogin(){
-  if(trkCheckPin(TRK.pinBuf)){trkSetSession();trkShowApp();}
-  else{document.getElementById('trk-pin-error').textContent='PIN incorrecto. Intentá de nuevo.';TRK.pinBuf='';trkUpdateDots();}
-}
+function trkTryLogin(){ trkShowApp(); }
 
-function trkConfirmNew(){
-  TRK.pendingPin=TRK.pinBuf;TRK.pinBuf='';
-  document.getElementById('trk-pin-title').textContent='Confirmá tu PIN';
-  document.getElementById('trk-pin-sub').textContent='Ingresá el mismo PIN nuevamente';
-  document.getElementById('trk-pin-error').textContent='';
-  TRK.pinMode='confirm';trkUpdateDots();
-}
+function trkConfirmNew(){}
 
-function trkDoConfirm(){
-  if(TRK.pinBuf===TRK.pendingPin){trkSavePin(TRK.pinBuf);trkSetSession();trkShowApp();}
-  else{document.getElementById('trk-pin-error').textContent='Los PINs no coinciden. Empezá de nuevo.';TRK.pinBuf='';TRK.pendingPin='';TRK.pinMode='set-new';document.getElementById('trk-pin-title').textContent='Creá tu PIN (4-6 dígitos)';trkUpdateDots();}
-}
+function trkDoConfirm(){}
 
 function trkResetAll(){
   if(!confirm('Esto borrará todos los dividendos del tracker y el PIN. ¿Seguro?'))return;
