@@ -306,6 +306,94 @@
 
   .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
 
+  /* CALCULADORA BULTOS */
+  .bultos-calc {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-lg);
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.2rem;
+  }
+  .bultos-calc-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+  .bultos-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .bultos-counter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-cnt {
+    width: 32px; height: 32px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 18px; line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace;
+    transition: all 0.12s;
+  }
+  .btn-cnt:hover { background: var(--accent-dim); color: var(--accent); border-color: rgba(232,197,71,0.3); }
+  .cnt-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 36px;
+    text-align: center;
+  }
+  .bultos-results {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .bres {
+    flex: 1; min-width: 90px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .bres-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px; }
+  .bres-val { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+  .bres-val.ac { color: var(--accent); }
+  .bres-val.gr { color: var(--green); }
+  .bres-val.bl { color: var(--blue); }
+  .bultos-boxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 44px;
+    align-items: flex-end;
+  }
+  .bultos-formula {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 0.6rem;
+    letter-spacing: 0.02em;
+  }
+  .divider-h {
+    height: 1px;
+    background: var(--border);
+    margin: 1.2rem 0;
+  }
+
   @media (max-width: 640px) {
     .container { padding: 1rem; }
     .header { padding: 0 1rem; }
@@ -381,31 +469,61 @@
       <div class="section-heading">Paquetes</div>
     </div>
     <div class="metrics" id="metrics-paquetes"></div>
+
+    <!-- CALCULADORA DE BULTOS -->
+    <div class="bultos-calc">
+      <div class="bultos-calc-title">Calculadora de ingreso por bulto</div>
+      <div class="bultos-row">
+        <div class="bultos-counter">
+          <button class="btn-cnt" onclick="cntChange(-1)">−</button>
+          <span class="cnt-val" id="cnt-val">1</span>
+          <button class="btn-cnt" onclick="cntChange(1)">+</button>
+        </div>
+        <div class="form-group narrow" style="max-width:90px;flex:none;">
+          <label>Bultos</label>
+          <input type="number" id="cnt-input" value="1" min="1" oninput="cntSet(this.value)" />
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);">
+          <span>×40 packs</span>
+          <span style="color:var(--border2)">|</span>
+          <span>×25 sobres/pack</span>
+        </div>
+        <button class="btn btn-accent" style="margin-left:auto" onclick="cargarBultos()">+ Agregar al stock</button>
+      </div>
+      <div class="bultos-results">
+        <div class="bres"><div class="bres-label">Bultos</div><div class="bres-val ac" id="br-bultos">1</div></div>
+        <div class="bres"><div class="bres-label">Packs (sobres)</div><div class="bres-val bl" id="br-packs">40</div></div>
+        <div class="bres"><div class="bres-label">Sobres totales</div><div class="bres-val gr" id="br-sobres">1.000</div></div>
+      </div>
+      <div class="bultos-boxes" id="bultos-boxes"></div>
+      <div class="bultos-formula" id="bultos-formula">1 bulto × 40 packs × 25 sobres = 1.000 sobres totales</div>
+    </div>
+
     <div class="card">
-      <div class="card-title">Definir tipo de paquete</div>
+      <div class="card-title">Definir tipo de paquete / sobre</div>
       <div class="form-grid">
-        <div class="form-group"><label>Nombre del paquete</label><input type="text" id="paq-nombre" placeholder="Ej: Paquete x5, Sobre Premium..." /></div>
-        <div class="form-group narrow"><label>Figuritas/paquete</label><input type="number" id="paq-figs" placeholder="5" min="1" /></div>
+        <div class="form-group"><label>Nombre del paquete</label><input type="text" id="paq-nombre" placeholder="Ej: Sobre x5, Pack premium..." /></div>
+        <div class="form-group narrow"><label>Sobres/pack</label><input type="number" id="paq-figs" placeholder="25" min="1" /></div>
         <div class="form-group narrow"><label>Precio</label><input type="number" id="paq-precio" placeholder="500" min="0" step="0.01" /></div>
         <div class="form-group medium"><label>Álbum</label><select id="paq-album"></select></div>
-        <div class="form-group narrow"><label>Stock inicial</label><input type="number" id="paq-stock" placeholder="100" min="0" /></div>
+        <div class="form-group narrow"><label>Stock inicial</label><input type="number" id="paq-stock" placeholder="0" min="0" /></div>
         <button class="btn btn-accent" onclick="agregarPaquete()">+ Crear</button>
       </div>
     </div>
     <div class="card">
-      <div class="card-title">Paquetes disponibles</div>
+      <div class="card-title">Stock de paquetes</div>
       <div class="table-wrap">
         <table>
           <thead><tr>
             <th>Paquete</th>
             <th>Álbum</th>
-            <th style="width:80px">Figs/sobre</th>
+            <th style="width:80px">Sobres/pack</th>
             <th style="width:80px">Precio</th>
             <th style="width:70px">Stock</th>
             <th style="width:80px">Reservado</th>
             <th style="width:70px">Vendido</th>
             <th style="width:85px">Disponible</th>
-            <th style="width:40px"></th>
+            <th style="width:60px"></th>
           </tr></thead>
           <tbody id="tabla-paquetes"></tbody>
         </table>
@@ -511,7 +629,82 @@
 </div>
 
 <script>
-let state = {
+const PACKS_POR_BULTO = 40;
+const SOBRES_POR_PACK = 25;
+let cntBultos = 1;
+
+function cntRender() {
+  const packs = cntBultos * PACKS_POR_BULTO;
+  const sobres = packs * SOBRES_POR_PACK;
+  const el = document.getElementById('cnt-val');
+  const elInput = document.getElementById('cnt-input');
+  const elBultos = document.getElementById('br-bultos');
+  const elPacks = document.getElementById('br-packs');
+  const elSobres = document.getElementById('br-sobres');
+  const elFormula = document.getElementById('bultos-formula');
+  const elBoxes = document.getElementById('bultos-boxes');
+  if (el) el.textContent = cntBultos;
+  if (elInput) elInput.value = cntBultos;
+  if (elBultos) elBultos.textContent = cntBultos.toLocaleString('es-AR');
+  if (elPacks) elPacks.textContent = packs.toLocaleString('es-AR');
+  if (elSobres) elSobres.textContent = sobres.toLocaleString('es-AR');
+  if (elFormula) elFormula.textContent = `${cntBultos} bulto${cntBultos !== 1 ? 's' : ''} × ${PACKS_POR_BULTO} packs × ${SOBRES_POR_PACK} sobres = ${sobres.toLocaleString('es-AR')} sobres totales`;
+  if (elBoxes) {
+    elBoxes.innerHTML = '';
+    const maxDraw = Math.min(cntBultos, 24);
+    for (let i = 0; i < maxDraw; i++) {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', '44'); svg.setAttribute('height', '44');
+      svg.setAttribute('viewBox', '0 0 72 72');
+      svg.style.display = 'block';
+      svg.innerHTML = `
+        <rect x="10" y="26" width="48" height="36" rx="3" fill="#7F77DD" stroke="#534AB7" stroke-width="0.8"/>
+        <polygon points="10,26 34,16 58,26 34,36" fill="#AFA9EC" stroke="#534AB7" stroke-width="0.8"/>
+        <polygon points="58,26 66,30 66,62 58,58" fill="#534AB7" stroke="#3C3489" stroke-width="0.8"/>
+        <line x1="34" y1="16" x2="34" y2="36" stroke="#534AB7" stroke-width="0.6" stroke-dasharray="2,2"/>
+        <rect x="14" y="28" width="40" height="6" rx="2" fill="#CECBF6" opacity="0.6"/>
+        <text x="34" y="52" text-anchor="middle" font-size="10" font-weight="600" fill="#EEEDFE" font-family="sans-serif">${i + 1}</text>
+      `;
+      elBoxes.appendChild(svg);
+    }
+    if (cntBultos > 24) {
+      const more = document.createElement('div');
+      more.style.cssText = 'display:flex;align-items:center;justify-content:center;width:44px;height:44px;font-size:12px;color:var(--muted);border:1px dashed var(--border2);border-radius:8px;font-family:"DM Mono",monospace;';
+      more.textContent = `+${(cntBultos - 24).toLocaleString('es-AR')}`;
+      elBoxes.appendChild(more);
+    }
+  }
+}
+
+function cntChange(delta) {
+  cntBultos = Math.max(1, cntBultos + delta);
+  cntRender();
+}
+
+function cntSet(val) {
+  const n = parseInt(val);
+  if (!isNaN(n) && n >= 1) { cntBultos = n; cntRender(); }
+}
+
+function cargarBultos() {
+  const totalSobres = cntBultos * PACKS_POR_BULTO * SOBRES_POR_PACK;
+  const paqId = parseInt(document.getElementById('paq-album') ? document.getElementById('paq-album').value : 0);
+  const p = state.paquetes.find(x => x.albumId == paqId);
+  if (state.paquetes.length === 0) {
+    alert(`Se calcularán ${totalSobres.toLocaleString('es-AR')} sobres.\nPrimero creá un tipo de paquete para asignarle el stock.`);
+    return;
+  }
+  const nombres = state.paquetes.map((p, i) => `${i + 1}. ${p.nombre} (${getAlbumName(p.albumId)})`).join('\n');
+  const idx = prompt(`¿A qué paquete sumamos los ${totalSobres.toLocaleString('es-AR')} sobres?\n\n${nombres}\n\nIngresá el número:`);
+  const num = parseInt(idx);
+  if (!num || num < 1 || num > state.paquetes.length) return;
+  const target = state.paquetes[num - 1];
+  target.stock += totalSobres;
+  alert(`✓ Se agregaron ${totalSobres.toLocaleString('es-AR')} sobres al paquete "${target.nombre}"\nNuevo stock: ${target.stock.toLocaleString('es-AR')}`);
+  save(); renderAll();
+}
+
+
   albumes: [{ id: 1, nombre: 'Mundial 2026', total: 680 }],
   figuritas: [],
   paquetes: [],
@@ -901,6 +1094,7 @@ function renderAll() {
   renderReservas();
   renderVentas();
   renderAlbumes();
+  cntRender();
 }
 
 renderAll();
