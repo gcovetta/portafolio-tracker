@@ -1649,68 +1649,71 @@ function renderDivsCard(){
 }
 
 
+// fetchWithTimeout: fetch con AbortController, timeout en ms
+function fetchWithTimeout(url, opts, ms){
+  ms=ms||7000;
+  var ctrl=new AbortController();
+  var tid=setTimeout(function(){ctrl.abort();},ms);
+  return fetch(url,Object.assign({},opts||{},{signal:ctrl.signal}))
+    .finally(function(){clearTimeout(tid);});
+}
+
+// Parsea respuesta Yahoo chart/meta
+function parseYahooChart(j){
+  var meta=j&&j.chart&&j.chart.result&&j.chart.result[0]&&j.chart.result[0].meta;
+  if(!meta||!meta.regularMarketPrice)return null;
+  var price=meta.regularMarketPrice;
+  var prev=meta.chartPreviousClose||meta.previousClose||price;
+  return{price:price,prevClose:prev,changePct:prev?(price-prev)/prev*100:0};
+}
+
 async function fetchYahooAR(ticker){
   var symbol=ticker+'.BA';
-  var innerUrl='https://query2.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?interval=1d&range=2d';
+  var chartUrl='https://query2.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?interval=1d&range=2d';
+  var quoteUrl='https://query2.finance.yahoo.com/v7/finance/quote?symbols='+encodeURIComponent(symbol)+'&corsDomain=finance.yahoo.com&formatted=false&lang=en-US&region=AR';
 
-  // Intento 1: directo con headers
-  try{
-    var r0=await fetch('https://query2.finance.yahoo.com/v7/finance/quote?symbols='+encodeURIComponent(symbol)+'&corsDomain=finance.yahoo.com&formatted=false&lang=en-US&region=AR',
-      {headers:{'Accept':'application/json','Origin':'https://finance.yahoo.com'}});
-    if(r0.ok){
-      var j0=await r0.json();
-      var res0=j0&&j0.quoteResponse&&j0.quoteResponse.result&&j0.quoteResponse.result[0];
-      if(res0&&res0.regularMarketPrice){
-        var p0=res0.regularMarketPrice,pc0=res0.regularMarketPreviousClose||p0;
-        return{price:p0,prevClose:pc0,changePct:pc0?(p0-pc0)/pc0*100:0};
-      }
-    }
-  }catch(e0){}
+  // Lanzar todos los proxies en PARALELO y tomar el primero que responda bien
+  var proxies=[
+    // directo v7
+    fetchWithTimeout(quoteUrl,{headers:{'Accept':'application/json','Origin':'https://finance.yahoo.com'}},6000)
+      .then(function(r){return r.ok?r.json():Promise.reject('!ok');})
+      .then(function(j){
+        var res=j&&j.quoteResponse&&j.quoteResponse.result&&j.quoteResponse.result[0];
+        if(res&&res.regularMarketPrice){
+          var p=res.regularMarketPrice,pc=res.regularMarketPreviousClose||p;
+          return{price:p,prevClose:pc,changePct:pc?(p-pc)/pc*100:0};
+        }
+        return Promise.reject('no price');
+      }),
+    // allorigins
+    fetchWithTimeout('https://api.allorigins.win/get?url='+encodeURIComponent(chartUrl),{},7000)
+      .then(function(r){return r.ok?r.json():Promise.reject('!ok');})
+      .then(function(j){var d=JSON.parse(j.contents||'{}');var q=parseYahooChart(d);return q||Promise.reject('no price');}),
+    // corsproxy.io
+    fetchWithTimeout('https://corsproxy.io/?url='+encodeURIComponent(chartUrl),{},7000)
+      .then(function(r){return r.ok?r.json():Promise.reject('!ok');})
+      .then(function(j){var q=parseYahooChart(j);return q||Promise.reject('no price');}),
+    // thingproxy
+    fetchWithTimeout('https://thingproxy.freeboard.io/fetch/'+chartUrl,{},7000)
+      .then(function(r){return r.ok?r.json():Promise.reject('!ok');})
+      .then(function(j){var q=parseYahooChart(j);return q||Promise.reject('no price');}),
+    // jsonp.afeld.me
+    fetchWithTimeout('https://jsonp.afeld.me/?url='+encodeURIComponent(chartUrl),{},7000)
+      .then(function(r){return r.ok?r.json():Promise.reject('!ok');})
+      .then(function(j){var q=parseYahooChart(j);return q||Promise.reject('no price');})
+  ];
 
-  // Intento 2: allorigins proxy
-  try{
-    var r2=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(innerUrl));
-    if(r2.ok){
-      var j2=await r2.json();
-      var d2=JSON.parse(j2.contents||'{}');
-      var meta2=d2&&d2.chart&&d2.chart.result&&d2.chart.result[0]&&d2.chart.result[0].meta;
-      if(meta2&&meta2.regularMarketPrice){
-        var price2=meta2.regularMarketPrice;
-        var prev2=meta2.chartPreviousClose||meta2.previousClose||price2;
-        return{price:price2,prevClose:prev2,changePct:prev2?(price2-prev2)/prev2*100:0};
-      }
-    }
-  }catch(e2){}
-
-  // Intento 3: corsproxy.io
-  try{
-    var r3=await fetch('https://corsproxy.io/?url='+encodeURIComponent(innerUrl));
-    if(r3.ok){
-      var j3=await r3.json();
-      var meta3=j3&&j3.chart&&j3.chart.result&&j3.chart.result[0]&&j3.chart.result[0].meta;
-      if(meta3&&meta3.regularMarketPrice){
-        var price3=meta3.regularMarketPrice;
-        var prev3=meta3.chartPreviousClose||meta3.previousClose||price3;
-        return{price:price3,prevClose:prev3,changePct:prev3?(price3-prev3)/prev3*100:0};
-      }
-    }
-  }catch(e3){}
-
-  // Intento 4: thingproxy
-  try{
-    var r4=await fetch('https://thingproxy.freeboard.io/fetch/'+innerUrl);
-    if(r4.ok){
-      var j4=await r4.json();
-      var meta4=j4&&j4.chart&&j4.chart.result&&j4.chart.result[0]&&j4.chart.result[0].meta;
-      if(meta4&&meta4.regularMarketPrice){
-        var price4=meta4.regularMarketPrice;
-        var prev4=meta4.chartPreviousClose||meta4.previousClose||price4;
-        return{price:price4,prevClose:prev4,changePct:prev4?(price4-prev4)/prev4*100:0};
-      }
-    }
-  }catch(e4){}
-
-  throw new Error('Sin datos para '+ticker);
+  // Promise.any: primer éxito gana
+  if(typeof Promise.any==='function'){
+    return Promise.any(proxies).catch(function(){throw new Error('Sin datos para '+ticker);});
+  }
+  // Fallback para browsers viejos: manual race de éxitos
+  return new Promise(function(resolve,reject){
+    var remaining=proxies.length;
+    proxies.forEach(function(p){
+      p.then(resolve).catch(function(){if(--remaining===0)reject(new Error('Sin datos para '+ticker));});
+    });
+  });
 }
 async function fetchFinnhub(ticker){
   var res=await fetch(FBASE+'/quote?symbol='+encodeURIComponent(ticker)+'&token='+FKEY);
@@ -1756,32 +1759,22 @@ async function fetchAllQuotes(){
     }
   }
 
-  // ── Yahoo AR: lotes de 3 en paralelo ────────────────────────────────
+  // ── Yahoo AR: todos en paralelo (cada uno con su propio race de proxies) ──
   async function fetchYahooAll(){
-    var batchSize=3;
-    for(var i=0;i<yahooPos.length;i+=batchSize){
-      var batch=yahooPos.slice(i,i+batchSize);
-      await Promise.all(batch.map(async function(p){
-        try{quotes[p.ticker]=await fetchYahooAR(p.ticker);}
-        catch(e){errors++;}
-        updateProgress();
-      }));
-      if(i+batchSize<yahooPos.length)await delay(500);
-    }
+    await Promise.all(yahooPos.map(async function(p){
+      try{quotes[p.ticker]=await fetchYahooAR(p.ticker);}
+      catch(e){errors++;}
+      updateProgress();
+    }));
   }
 
-  // ── Bonos/ON: Yahoo Finance .BA en lotes de 3 ──────────────────────────
+  // ── Bonos/ON: Yahoo Finance .BA — todos en paralelo (Promise.any por ticker) ──
   async function fetchBonosAll(){
-    var batchSize=3;
-    for(var i=0;i<bonosPos.length;i+=batchSize){
-      var batch=bonosPos.slice(i,i+batchSize);
-      await Promise.all(batch.map(async function(p){
-        try{quotes[p.ticker]=await fetchYahooAR(p.ticker);}
-        catch(e){errors++;}
-        updateProgress();
-      }));
-      if(i+batchSize<bonosPos.length)await delay(400);
-    }
+    await Promise.all(bonosPos.map(async function(p){
+      try{quotes[p.ticker]=await fetchYahooAR(p.ticker);}
+      catch(e){errors++;}
+      updateProgress();
+    }));
   }
 
   // Los tres grupos corren en paralelo
