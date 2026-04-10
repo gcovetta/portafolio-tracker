@@ -934,7 +934,57 @@ function renderBalance() {
     '<div style="'+cs+'margin-bottom:0;"><div style="'+hs+'"><span style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);">Ingresos proyectados</span><button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+ths+'text-align:left;">Descripción</th><th style="'+ths+'text-align:center;">Frecuencia</th><th style="'+ths+'text-align:right;">Monto / ocurr.</th><th style="'+ths+'"></th></tr></thead><tbody>'+ingRows+'</tbody></table></div><div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);display:flex;justify-content:flex-end;"><span style="font-size:11px;color:var(--text3);">Total proyectado <strong style="font-family:DM Mono,monospace;color:var(--text);">'+fmtUSD(ingProy)+'</strong></span></div></div>'+
     '<div style="'+cs+'margin-bottom:0;"><div style="'+hs+'"><span style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);">Deudas</span><button class="btn btn-sm btn-danger" style="background:var(--red-dim);border-color:rgba(245,101,101,.3);" onclick="openNewBal(\'deuda\')">+ Nueva</button></div><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+ths+'text-align:left;">Deuda</th><th style="'+ths+'text-align:center;">Avance</th><th style="'+ths+'text-align:right;">Saldo</th><th style="'+ths+'"></th></tr></thead><tbody>'+dRows+'</tbody></table></div><div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);display:flex;justify-content:flex-end;"><span style="font-size:11px;color:var(--text3);">Total saldo <strong style="font-family:DM Mono,monospace;color:var(--red);">'+fmtUSD(deu)+'</strong></span></div></div>'+
     '</div>'+
-    '<div style="'+cs+'margin-top:12px;margin-bottom:0;"><div style="'+hs+'"><span style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);">Flujo mensual y neto acumulado</span><div style="display:flex;gap:14px;font-size:11px;color:var(--text3);"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(62,207,142,.5);margin-right:4px;vertical-align:middle;"></span>Acreditado</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(76,142,245,.3);margin-right:4px;vertical-align:middle;"></span>Proyectado</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(245,101,101,.45);margin-right:4px;vertical-align:middle;"></span>Deuda</span><span><span style="display:inline-block;width:24px;height:2px;background:#F5A623;margin-right:4px;vertical-align:middle;"></span>Neto acum.</span></div></div><div style="padding:14px 18px;"><div style="position:relative;width:100%;height:220px;"><canvas id="chartBal"></canvas></div></div></div>';
+    '<div style="'+cs+'margin-top:12px;margin-bottom:0;"><div style="'+hs+'"><span style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);">Flujo mensual y neto acumulado</span><div style="display:flex;gap:14px;font-size:11px;color:var(--text3);"><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(62,207,142,.5);margin-right:4px;vertical-align:middle;"></span>Acreditado</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(76,142,245,.3);margin-right:4px;vertical-align:middle;"></span>Proyectado</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(245,101,101,.45);margin-right:4px;vertical-align:middle;"></span>Deuda</span><span><span style="display:inline-block;width:24px;height:2px;background:#F5A623;margin-right:4px;vertical-align:middle;"></span>Neto acum.</span></div></div><div style="padding:14px 18px;"><div style="position:relative;width:100%;height:220px;"><canvas id="chartBal"></canvas></div></div></div>'+
+    // ── TABLA ACREDITADOS ──
+    (function(){
+        var acRows = S.ingresos.filter(function(x){ return x.realizado; })
+            .sort(function(a,b){ return b.fecha.localeCompare(a.fecha); })
+            .map(function(x){
+                var per = x.periodicidad||'unico';
+                var PLABELS={'unico':'Único','mensual':'Mensual','bimestral':'Bimestral','trimestral':'Trimestral','semestral':'Semestral','anual':'Anual'};
+                return '<tr>'
+                    +'<td style="padding:9px 14px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:12px;color:var(--text3);">'+x.fecha+'</td>'
+                    +'<td style="padding:9px 14px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:500;color:var(--text);">'+x.desc+'</div></td>'
+                    +'<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;background:var(--blue-dim);color:var(--blue);">'+(PLABELS[per]||per)+'</span></td>'
+                    +'<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--green);">'+fmtUSD(x.montoARS)+'</td>'
+                    +'<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;"><div style="display:flex;gap:4px;justify-content:flex-end;">'
+                    +'<button class="btn btn-sm" onclick="openEditBal('ingreso','+x.id+')">✎</button>'
+                    +'<button class="btn btn-sm btn-danger" onclick="deleteBal('ingreso','+x.id+')">✕</button>'
+                    +'</div></td>'
+                    +'</tr>';
+            }).join('');
+        var totalAcr = S.ingresos.filter(function(x){ return x.realizado; }).reduce(function(s,x){ return s+x.montoARS; }, 0);
+        var ths2 = 'padding:7px 14px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap;';
+        var cs2 = 'background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;';
+        var hs2 = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2);';
+        return '<div style="'+cs2+'margin-top:12px;">'
+            +'<div style="'+hs2+'">'
+            +'<div style="display:flex;align-items:center;gap:10px;">'
+            +'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--green);"></span>'
+            +'<span style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);">Ingresos acreditados</span>'
+            +'<span style="font-size:11px;color:var(--text3);">'+S.ingresos.filter(function(x){return x.realizado;}).length+' registro'+(S.ingresos.filter(function(x){return x.realizado;}).length!==1?'s':'')+'</span>'
+            +'</div>'
+            +'<button class="btn btn-sm btn-green" onclick="openNewBal('ingreso')">+ Nuevo</button>'
+            +'</div>'
+            +(acRows
+                ? '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">'
+                  +'<thead><tr>'
+                  +'<th style="'+ths2+'text-align:left;">Fecha</th>'
+                  +'<th style="'+ths2+'text-align:left;">Descripción</th>'
+                  +'<th style="'+ths2+'text-align:center;">Frecuencia</th>'
+                  +'<th style="'+ths2+'text-align:right;">Monto / ocurr.</th>'
+                  +'<th style="'+ths2+'"></th>'
+                  +'</tr></thead>'
+                  +'<tbody>'+acRows+'</tbody>'
+                  +'</table></div>'
+                  +'<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">'
+                  +'<span style="font-size:11px;color:var(--text3);">Hacé clic en ✎ para editar o ✕ para eliminar · El toggle ● en la tabla de proyectados mueve el registro aquí</span>'
+                  +'<span style="font-size:11px;color:var(--text3);">Total acreditado <strong style="font-family:DM Mono,monospace;color:var(--green);">'+fmtUSD(totalAcr)+'</strong></span>'
+                  +'</div>'
+                : '<div style="text-align:center;padding:2rem 1rem;color:var(--text3);font-size:13px;">Sin ingresos acreditados todavía · Marcá un ingreso proyectado como acreditado haciendo clic en su fila</div>'
+            )
+            +'</div>';
+    })();
 
     if(chartBal)chartBal.destroy();
     var labelsB=Array.from({length:18},function(_,i){return mLabel(i);});
