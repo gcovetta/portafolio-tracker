@@ -539,22 +539,19 @@ function connectSupabase() {
             }
             return;
         }
-        // Guardar credenciales en localStorage solo para comodidad
-        localStorage.setItem('sb_url', url);
-        localStorage.setItem('sb_key', key);
         launchApp();
     });
 }
 
 // Auto-connect si hay credenciales guardadas
+// ── Credenciales hardcodeadas ──
+var SB_URL = 'https://wwenbjngzgdpchmhxrkc.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3ZW5iam5nemdkcGNobWh4cmtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NzE0NzcsImV4cCI6MjA5MTM0NzQ3N30.gXv_-ys9ly4-h0Eh2ioKNXKEvgnQRP6-FJUIRqLvU98';
+
 (function autoConnect() {
-    var url = localStorage.getItem('sb_url');
-    var key = localStorage.getItem('sb_key');
-    if (url && key) {
-        document.getElementById('sbUrl').value = url;
-        document.getElementById('sbKey').value = key;
-        connectSupabase();
-    }
+    document.getElementById('sbUrl').value = SB_URL;
+    document.getElementById('sbKey').value = SB_KEY;
+    connectSupabase();
 })();
 
 // ═══════════════════════════════════════
@@ -1080,11 +1077,7 @@ async function saveTCNfromConfig(){
     updateTCN(v);
 }
 
-function desconectar(){
-    localStorage.removeItem('sb_url');
-    localStorage.removeItem('sb_key');
-    location.reload();
-}
+function desconectar(){ location.reload(); }
 
 // ═══════════════════════════════════════
 // DRAG & DROP
