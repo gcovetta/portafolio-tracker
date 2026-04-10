@@ -511,6 +511,7 @@ async function launchApp() {
 }
 
 async function loadAllData() {
+    console.log('[loadAllData] iniciando...');
     var [cfg, rubros, pagos, etapas, ingresos, deudas, ajustes] = await Promise.all([
         sb.from('obra_config').select('*').eq('id','main').single(),
         sb.from('obra_rubros').select('*').order('orden'),
@@ -521,10 +522,17 @@ async function loadAllData() {
         sb.from('obra_ajustes').select('*').order('fecha'),
     ]);
 
+    console.log('[cfg]', cfg.data, cfg.error);
+    console.log('[rubros]', rubros.data, rubros.error);
+    console.log('[pagos]', pagos.data, pagos.error);
+    console.log('[etapas]', etapas.data, etapas.error);
+
+    if (cfg.error) { console.error('[cfg error]', cfg.error); }
     if (cfg.data) {
         S.startDate = cfg.data.start_date;
         S.tcn = parseFloat(cfg.data.tcn);
-        document.getElementById('tcnInput').value = S.tcn;
+        var inp = document.getElementById('tcnInput');
+        if (inp) inp.value = S.tcn;
         updateSidebar();
     }
 
@@ -534,6 +542,7 @@ async function loadAllData() {
     S.ingresos = (ingresos.data || []).map(function(x){ return { id: x.id, fecha: x.fecha, desc: x.descripcion, montoARS: x.monto_usd * S.tcn, montoUSD: x.monto_usd, realizado: x.realizado, periodicidad: x.periodicidad, fechaHasta: x.fecha_hasta || '' }; });
     S.deudas = (deudas.data || []).map(function(x){ return { id: x.id, desc: x.descripcion, montoARS: x.monto_usd * S.tcn, montoUSD: x.monto_usd, cuotas: x.cuotas, pagadas: x.pagadas, fechaInicio: x.fecha_inicio }; });
     S.ajustes = (ajustes.data || []).map(function(x){ return { id: x.id, fecha: x.fecha, desc: x.descripcion, montoARS: x.monto_usd * S.tcn, montoUSD: x.monto_usd }; });
+    console.log('[loadAllData] completado. rubros:', S.rubros.length, 'pagos:', S.pagos.length);
 }
 
 // ═══════════════════════════════════════
@@ -863,8 +872,8 @@ function renderBalance() {
                     +'<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;background:var(--blue-dim);color:var(--blue);">'+(PLABELS[per]||per)+'</span></td>'
                     +'<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--green);">'+fmtUSD(x.montoARS)+'</td>'
                     +'<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;"><div style="display:flex;gap:4px;justify-content:flex-end;">'
-                    +'<button class="btn btn-sm" onclick="openEditBal('ingreso','+x.id+')">✎</button>'
-                    +'<button class="btn btn-sm btn-danger" onclick="deleteBal('ingreso','+x.id+')">✕</button>'
+                    +'<button class="btn btn-sm" onclick="openEditBal(\'ingreso\','+x.id+')">✎</button>'
+                    +'<button class="btn btn-sm btn-danger" onclick="deleteBal(\'ingreso\','+x.id+')">✕</button>'
                     +'</div></td>'
                     +'</tr>';
             }).join('');
@@ -879,7 +888,7 @@ function renderBalance() {
             +'<span style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);">Ingresos acreditados</span>'
             +'<span style="font-size:11px;color:var(--text3);">'+S.ingresos.filter(function(x){return x.realizado;}).length+' registro'+(S.ingresos.filter(function(x){return x.realizado;}).length!==1?'s':'')+'</span>'
             +'</div>'
-            +'<button class="btn btn-sm btn-green" onclick="openNewBal('ingreso')">+ Nuevo</button>'
+            +'<button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button>'
             +'</div>'
             +(acRows
                 ? '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">'
