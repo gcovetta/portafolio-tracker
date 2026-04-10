@@ -543,16 +543,9 @@ function connectSupabase() {
     });
 }
 
-// Auto-connect si hay credenciales guardadas
 // ── Credenciales hardcodeadas ──
 var SB_URL = 'https://wwenbjngzgdpchmhxrkc.supabase.co';
 var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3ZW5iam5nemdkcGNobWh4cmtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NzE0NzcsImV4cCI6MjA5MTM0NzQ3N30.gXv_-ys9ly4-h0Eh2ioKNXKEvgnQRP6-FJUIRqLvU98';
-
-(function autoConnect() {
-    document.getElementById('sbUrl').value = SB_URL;
-    document.getElementById('sbKey').value = SB_KEY;
-    connectSupabase();
-})();
 
 // ═══════════════════════════════════════
 // STATE
@@ -1206,6 +1199,13 @@ function updateSidebar(){
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
+
+// ── Auto-connect al cargar la página ──
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('sbUrl').value = SB_URL;
+    document.getElementById('sbKey').value = SB_KEY;
+    connectSupabase();
+});
 </script>
 </body>
 </html>
