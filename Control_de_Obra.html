@@ -455,9 +455,9 @@ function showSQLHelper() {
 // ═══════════════════════════════════════
 var sb = null;
 
-function connectSupabase() {
+async function connectSupabase() {
     sb = supabase.createClient(SB_URL, SB_KEY);
-    launchApp();
+    await launchApp();
 }
 
 // ── Credenciales hardcodeadas ──
@@ -499,7 +499,14 @@ function setSaveStatus(state, txt) {
 // LOAD DATA FROM SUPABASE
 // ═══════════════════════════════════════
 async function launchApp() {
-    await loadAllData();
+    document.getElementById('page-resumen').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;padding:4rem;gap:12px;color:var(--text3);"><span class="spinner" style="width:18px;height:18px;border-width:2px;"></span>Cargando datos...</div>';
+    document.getElementById('page-resumen').classList.add('active');
+    try {
+        await loadAllData();
+    } catch(e) {
+        document.getElementById('page-resumen').innerHTML = '<div style="text-align:center;padding:4rem;color:var(--red);">Error al cargar datos: ' + e.message + '</div>';
+        return;
+    }
     renderCurrent();
 }
 
@@ -1117,7 +1124,7 @@ document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListen
 
 // ── Auto-connect al cargar la página ──
 document.addEventListener('DOMContentLoaded', function() {
-    connectSupabase();
+    connectSupabase().catch(function(e){ console.error('Error de conexion:', e); });
 });
 </script>
 </body>
