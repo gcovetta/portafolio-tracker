@@ -412,8 +412,12 @@ input:checked+.slider.green-sw:before{transform:translateX(13px);background:var(
 // ══════════════════════════════════════════
 // SUPABASE CONFIG
 // ══════════════════════════════════════════
-let SUPA_URL = localStorage.getItem('gt_supa_url') || '';
-let SUPA_KEY = localStorage.getItem('gt_supa_key') || '';
+// ─── PEGÁ TUS CREDENCIALES ACÁ ──────────────────────────────
+const SUPA_URL_DEFAULT = 'https://gcovetta.github.io/portafolio-tracker/GastoTrack_6.html';
+const SUPA_KEY_DEFAULT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3anpodnJ2aXp0c2l6Z3VzbW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjEzMTgsImV4cCI6MjA5MTI5NzMxOH0.RnlAgZQE5XCJ_7GPI6Zn2O_PzQdbg80Zh3ATWaX5kzQ';
+// ─────────────────────────────────────────────────────────────
+let SUPA_URL = SUPA_URL_DEFAULT.includes('TU-PROYECTO') ? (localStorage.getItem('gt_supa_url') || '') : SUPA_URL_DEFAULT;
+let SUPA_KEY = SUPA_KEY_DEFAULT === 'TU-ANON-KEY' ? (localStorage.getItem('gt_supa_key') || '') : SUPA_KEY_DEFAULT;
 
 function supaHeaders() {
   return {
