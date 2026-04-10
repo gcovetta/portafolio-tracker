@@ -7,7 +7,7 @@
 <link href="./Portafolio Tracker — NYSE_files/css2" rel="stylesheet">
 <style>
 :root{--bg:#0e0f11;--surface:#16181c;--surface2:#1e2026;--border:#2a2d35;--border2:#363a45;--text:#e8eaf0;--text2:#8b8fa8;--text3:#555870;--accent:#7ee8a2;--accent2:#4ade80;--red:#f87171;--amber:#fbbf24;--blue:#60a5fa;--mono:'DM Mono',monospace;--sans:'Syne',sans-serif;--radius:10px;--rsm:6px}
-*{box-sizing:border-box;margin:0;padding:0}html{font-size:14px}
+*{box-sizing:border-box;margin:0;padding:0}html{font-size:15.5px}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.5}
 .app{display:grid;grid-template-rows:auto 1fr;min-height:100vh}
 header{padding:.85rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--surface);flex-wrap:wrap}
@@ -18,7 +18,7 @@ header{padding:.85rem 1.5rem;border-bottom:1px solid var(--border);display:flex;
 .lupd{font-family:var(--mono);font-size:.68rem;color:var(--text3)}
 .main{display:grid;grid-template-columns:200px 1fr;height:calc(100vh - 49px)}
 .sidebar{background:var(--surface);border-right:1px solid var(--border);padding:1rem 0;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
-.nav-item{padding:.52rem 1.1rem;cursor:pointer;display:flex;align-items:center;gap:9px;font-size:.83rem;color:var(--text2);border:none;background:none;width:100%;text-align:left;transition:background .12s,color .12s;font-family:var(--sans)}
+.nav-item{padding:.52rem 1.1rem;cursor:pointer;display:flex;align-items:center;gap:9px;font-size:.9rem;color:var(--text2);border:none;background:none;width:100%;text-align:left;transition:background .12s,color .12s;font-family:var(--sans)}
 .nav-item:hover{background:var(--surface2);color:var(--text)}
 .nav-item.active{background:var(--surface2);color:var(--accent)}
 .nav-sec{font-size:.6rem;font-family:var(--mono);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;padding:.85rem 1.1rem .3rem}
@@ -28,14 +28,14 @@ header{padding:.85rem 1.5rem;border-bottom:1px solid var(--border);display:flex;
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px;margin-bottom:1.2rem}
 .metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.85rem 1rem}
 .metric-label{font-size:.62rem;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
-.metric-value{font-size:1.2rem;font-weight:600;letter-spacing:-.02em;font-family:var(--mono)}
+.metric-value{font-size:1.35rem;font-weight:600;letter-spacing:-.02em;font-family:var(--mono)}
 .metric-sub{font-size:.62rem;font-family:var(--mono);color:var(--text3);margin-top:2px}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1rem;overflow:hidden}
 .card-header{padding:.75rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .card-title{font-weight:600;font-size:.83rem}
 .card-body{padding:1rem}
 .tw{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:.75rem}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
 th{text-align:left;padding:.5rem .85rem;color:var(--text3);font-weight:400;font-family:var(--mono);font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
 td{padding:.55rem .85rem;border-bottom:1px solid var(--border);color:var(--text);white-space:nowrap}
 tr:last-child td{border-bottom:none}
@@ -77,8 +77,8 @@ tr:hover td{background:var(--surface2)}
 .panels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;align-items:start}
 .panels-grid .card{margin-bottom:0}
 .panel-table table{width:auto;min-width:100%}
-.panel-table th{padding:.35rem .6rem;font-size:.58rem}
-.panel-table td{padding:.38rem .6rem;font-size:.72rem}
+.panel-table th{padding:.35rem .6rem;font-size:.64rem}
+.panel-table td{padding:.4rem .65rem;font-size:.8rem}
 
 /* ── TRACKER DIVIDENDOS ── */
 .trk-section{margin-bottom:1rem}
@@ -207,9 +207,9 @@ tr:hover td{background:var(--surface2)}
       <div id="port-content" class="">
       <div class="mgrid">
         <div class="metric"><div class="metric-label">Rendimiento</div><div class="metric-value" id="m-rend"><span style="color:var(--red);font-weight:700">-54%</span></div></div>
-        <div class="metric"><div class="metric-label">Valor total USD</div><div class="metric-value" id="m-val">$94.314</div></div>
-        <div class="metric"><div class="metric-label">Costo USD (al CCL compra)</div><div class="metric-value" id="m-cost">$224.378</div></div>
-        <div class="metric"><div class="metric-label">Dividendos USD</div><div class="metric-value" id="m-divs">$2.458</div></div>
+        <div class="metric"><div class="metric-label">Valor total USD</div><div class="metric-value port-sensitive" id="m-val">$94.314</div></div>
+        <div class="metric"><div class="metric-label">Costo USD (al CCL compra)</div><div class="metric-value port-sensitive" id="m-cost">$224.378</div></div>
+        <div class="metric"><div class="metric-label">Dividendos USD</div><div class="metric-value port-sensitive" id="m-divs">$2.458</div></div>
         <div class="metric"><div class="metric-label">Posiciones</div><div class="metric-value" id="m-count">77</div></div>
         <div class="metric port-sensitive" style="cursor:default">
           <div class="metric-label">Inversión inicial USD</div>
@@ -1455,7 +1455,7 @@ function renderPortfolio(){
       '<td class="mono">'+(mktARS?mktARS:'<span style="color:var(--text3)">—</span>')+'</td>'+
       '<td class="mono muted">'+ppcARS+'</td>'+
       '<td class="mono">'+targetCell+'</td>'+
-      '<td class="mono">'+(p.qty%1===0?p.qty.toFixed(0):p.qty.toFixed(2))+'</td>'+
+      '<td class="mono port-sensitive">'+(p.qty%1===0?p.qty.toFixed(0):p.qty.toFixed(2))+'</td>'+
     '</tr>';
     sectors[sector].push(row);
   });
