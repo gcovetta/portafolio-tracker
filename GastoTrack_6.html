@@ -572,12 +572,10 @@ async function saveExRow(row) {
     delete row._isNew;
     const res = await supaInsert('gastos', row);
     const saved = Array.isArray(res) ? res[0] : res;
-    // update cache id
-    const arr = cacheGet('gastos', row.year, row.month);
-    const idx = arr.findIndex(r => r._tempId === row._tempId);
-    if (idx !== -1) arr[idx] = saved;
-    else arr.push(saved);
-    cacheSet('gastos', row.year, row.month, arr);
+    // add to cache only here, once
+    const arr = cacheGet('gastos', saved.year, saved.month);
+    arr.push(saved);
+    cacheSet('gastos', saved.year, saved.month, arr);
     return saved;
   } else {
     const id = row.id;
@@ -821,9 +819,6 @@ async function submitExpense() {
       cacheSet('gastos', curYear, curMonth, arr);
     } else {
       const newRow = { ...base, pagado: false, fecha: new Date().toISOString(), source_id: null, _isNew: true };
-      const arr = cacheGet('gastos', curYear, curMonth);
-      arr.push(newRow);
-      cacheSet('gastos', curYear, curMonth, arr);
       await saveExRow(newRow);
     }
   } catch(e) { alert('Error al guardar: ' + e.message); }
