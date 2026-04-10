@@ -412,19 +412,13 @@ input:checked+.slider.green-sw:before{transform:translateX(13px);background:var(
 // ══════════════════════════════════════════
 // SUPABASE CONFIG
 // ══════════════════════════════════════════
-// ═══════════════════════════════════════════════════
-// PEGÁ TUS CREDENCIALES DE SUPABASE ACÁ ABAJO
-// Las encontrás en: tu proyecto → Settings → API
-// ═══════════════════════════════════════════════════
-const SUPA_URL_HARD = 'https://gcovetta.github.io/portafolio-tracker/GastoTrack_6.html'; // <-- reemplazá esto
-const SUPA_KEY_HARD = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3anpodnJ2aXp0c2l6Z3VzbW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjEzMTgsImV4cCI6MjA5MTI5NzMxOH0.RnlAgZQE5XCJ_7GPI6Zn2O_PzQdbg80Zh3ATWaX5kzQ';                     // <-- reemplazá esto
-// ═══════════════════════════════════════════════════
-
-// Usa las hardcodeadas si están completas, sino cae al localStorage
-const _urlOk = SUPA_URL_HARD && !SUPA_URL_HARD.includes('TU-PROYECTO');
-const _keyOk = SUPA_KEY_HARD && SUPA_KEY_HARD !== 'TU-ANON-KEY';
-let SUPA_URL = _urlOk ? SUPA_URL_HARD : (localStorage.getItem('gt_supa_url') || '');
-let SUPA_KEY = _keyOk ? SUPA_KEY_HARD : (localStorage.getItem('gt_supa_key') || '');
+// Las credenciales se leen de la URL:
+// archivo.html?url=https://xxx.supabase.co&key=eyJ...
+// O del localStorage si ya fueron guardadas antes.
+// ⬇️ PEGÁ TUS CREDENCIALES DE SUPABASE ACÁ
+let SUPA_URL = 'https://gwjzhvrviztsizgusmou.supabase.co';
+let SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3anpodnJ2aXp0c2l6Z3VzbW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjEzMTgsImV4cCI6MjA5MTI5NzMxOH0.RnlAgZQE5XCJ_7GPI6Zn2O_PzQdbg80Zh3ATWaX5kzQ';
+// ⬆️ FIN CREDENCIALES
 
 function supaHeaders() {
   return {
@@ -510,7 +504,8 @@ async function checkConnection() {
     dot.className = 'db-dot ok'; lbl.textContent = 'Supabase ✓';
     return true;
   } catch(e) {
-    dot.className = 'db-dot err'; lbl.textContent = 'Error de conexión';
+    dot.className = 'db-dot err'; lbl.textContent = 'Error · clic para reconfigurar';
+    console.error('Supabase error:', e);
     return false;
   }
 }
@@ -1324,14 +1319,20 @@ function render() {
 // ══════════════════════════════════════════
 async function init() {
   render(); // render vacío inmediato
-  const ok = await checkConnection();
-  if (!ok) {
+  if (!SUPA_URL || !SUPA_KEY) {
+    // Sin credenciales: abrir config
     openConfig();
     return;
   }
-  await loadAllData();
-  await injectRecurring(curYear, curMonth);
-  render();
+  // Con credenciales: intentar conectar, nunca abrir config automáticamente
+  const ok = await checkConnection();
+  if (ok) {
+    await loadAllData();
+    await injectRecurring(curYear, curMonth);
+    render();
+  }
+  // Si falla la conexión, el error se muestra en el indicador de estado (arriba a la derecha)
+  // El usuario puede hacer clic en él para reconfigurar si lo necesita
 }
 
 init();
