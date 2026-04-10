@@ -16,12 +16,12 @@ header{padding:.85rem 1.5rem;border-bottom:1px solid var(--border);display:flex;
 .hright{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .tag{font-family:var(--mono);font-size:.65rem;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;color:var(--text3)}
 .lupd{font-family:var(--mono);font-size:.68rem;color:var(--text3)}
-.main{display:grid;grid-template-columns:200px 1fr;height:calc(100vh - 49px)}
+.main{display:grid;grid-template-columns:172px 1fr;height:calc(100vh - 49px)}
 .sidebar{background:var(--surface);border-right:1px solid var(--border);padding:1rem 0;display:flex;flex-direction:column;gap:1px;overflow-y:auto}
-.nav-item{padding:.52rem 1.1rem;cursor:pointer;display:flex;align-items:center;gap:9px;font-size:.9rem;color:var(--text2);border:none;background:none;width:100%;text-align:left;transition:background .12s,color .12s;font-family:var(--sans)}
+.nav-item{padding:.42rem .85rem;cursor:pointer;display:flex;align-items:center;gap:7px;font-size:.8rem;color:var(--text2);border:none;background:none;width:100%;text-align:left;transition:background .12s,color .12s;font-family:var(--sans)}
 .nav-item:hover{background:var(--surface2);color:var(--text)}
 .nav-item.active{background:var(--surface2);color:var(--accent)}
-.nav-sec{font-size:.6rem;font-family:var(--mono);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;padding:.85rem 1.1rem .3rem}
+.nav-sec{font-size:.57rem;font-family:var(--mono);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;padding:.6rem .85rem .25rem}
 .content{overflow-y:auto}
 .page{display:none;padding:1.2rem}
 .page.active{display:block}
@@ -151,26 +151,35 @@ tr:hover td{background:var(--surface2)}
     <button class="nav-item active" onclick="showPage(&#39;portafolio&#39;,this)"><span>◈</span>Portafolio</button>
     <button class="nav-item" onclick="showPage(&#39;movimientos&#39;,this)"><span>↕</span>Movimientos</button>
     <div class="nav-sec">R. Variable</div>
-    <div style="padding:.4rem 1.1rem .6rem;display:flex;flex-direction:column;gap:6px">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-        <label style="font-size:.65rem;font-family:var(--mono);color:#eab308;font-weight:700">2%</label>
-        <input id="rv-naranja" type="number" min="0" step="1" placeholder="$ ARS" style="width:80px;background:var(--bg);border:1px solid #eab308;border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.72rem;padding:2px 6px;height:24px;text-align:right;outline:none" oninput="renderPortfolio()">
+    <div style="padding:.3rem .85rem .5rem;display:flex;flex-direction:column;gap:5px">
+      <div style="display:flex;align-items:center;gap:4px">
+        <label style="font-size:.62rem;font-family:var(--mono);color:#eab308;font-weight:700;min-width:20px">2%</label>
+        <input id="rv-naranja" type="number" min="0" step="1" placeholder="$ ARS" style="flex:1;min-width:0;background:var(--bg);border:1px solid #eab308;border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:22px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')rvConfirm()">
+        <button onclick="rvConfirm()" title="Aplicar" style="flex-shrink:0;width:22px;height:22px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--accent);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✓</button>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-        <label style="font-size:.65rem;font-family:var(--mono);color:var(--red);font-weight:700">3%</label>
-        <input id="rv-rojo" type="number" min="0" step="1" placeholder="$ ARS" style="width:80px;background:var(--bg);border:1px solid var(--red);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.72rem;padding:2px 6px;height:24px;text-align:right;outline:none" oninput="renderPortfolio()">
+      <div style="display:flex;align-items:center;gap:4px">
+        <label style="font-size:.62rem;font-family:var(--mono);color:var(--red);font-weight:700;min-width:20px">3%</label>
+        <input id="rv-rojo" type="number" min="0" step="1" placeholder="$ ARS" style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--red);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:22px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')rvConfirm()">
+        <button onclick="rvConfirm()" title="Aplicar" style="flex-shrink:0;width:22px;height:22px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--accent);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✓</button>
       </div>
     </div>
     <div class="nav-sec">Liquidez</div>
-    <div style="padding:.4rem 1.1rem .6rem;display:flex;flex-direction:column;gap:6px">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-        <label style="font-size:.62rem;font-family:var(--mono);color:var(--text3)">ARS $</label>
-        <input id="liq-ars" type="number" min="0" step="1" placeholder="0" style="width:80px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.72rem;padding:2px 6px;height:24px;text-align:right;outline:none" oninput="saveLiquidez()">
+    <div style="padding:.3rem .85rem .5rem;display:flex;flex-direction:column;gap:5px">
+      <div style="display:flex;align-items:center;gap:4px">
+        <label style="font-size:.62rem;font-family:var(--mono);color:var(--text3);min-width:28px">ARS</label>
+        <input id="liq-ars" type="number" min="0" step="1" placeholder="0" style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:22px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')liqConfirm()">
+        <button onclick="liqConfirm()" title="Guardar" style="flex-shrink:0;width:22px;height:22px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--accent);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✓</button>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-        <label style="font-size:.62rem;font-family:var(--mono);color:var(--text3)">USD $</label>
-        <input id="liq-usd" type="number" min="0" step="0.01" placeholder="0" style="width:80px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.72rem;padding:2px 6px;height:24px;text-align:right;outline:none" oninput="saveLiquidez()">
+      <div style="display:flex;align-items:center;gap:4px">
+        <label style="font-size:.62rem;font-family:var(--mono);color:var(--text3);min-width:28px">USD</label>
+        <input id="liq-usd" type="number" min="0" step="0.01" placeholder="0" style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:22px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')liqConfirm()">
+        <button onclick="liqConfirm()" title="Guardar" style="flex-shrink:0;width:22px;height:22px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--accent);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✓</button>
       </div>
+    </div>
+    <div class="nav-sec">Inv. Inicial USD</div>
+    <div style="padding:.3rem .85rem .5rem;display:flex;align-items:center;gap:4px">
+      <input id="inv-sidebar-usd" type="number" min="0" step="1" placeholder="Base USD" style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:22px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')invConfirm()">
+      <button onclick="invConfirm()" title="Guardar" style="flex-shrink:0;width:22px;height:22px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--accent);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✓</button>
     </div>
     <div class="nav-sec">Herramientas</div>
     <button class="nav-item" onclick="showPage(&#39;tracker&#39;,this)"><span>◎</span>Dividendos</button>
@@ -212,8 +221,8 @@ tr:hover td{background:var(--surface2)}
         <div class="metric"><div class="metric-label">Dividendos USD</div><div class="metric-value port-sensitive" id="m-divs">$2.458</div></div>
         <div class="metric"><div class="metric-label">Posiciones</div><div class="metric-value" id="m-count">77</div></div>
         <div class="metric port-sensitive" style="cursor:default">
-          <div class="metric-label">Inversión inicial USD</div>
-          <input id="inv-inicial-usd" type="number" min="0" step="1" placeholder="Base USD" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:.95rem;font-weight:700;padding:2px 0;outline:none;text-align:left" oninput="saveInvInicial();renderPortfolio()">
+          <div class="metric-label">Inv. inicial USD</div>
+          <div class="metric-value" id="inv-inicial-usd-display" style="font-size:1.1rem">—</div>
         </div>
 
       </div>
@@ -871,18 +880,31 @@ function reduceMov(id){
   saveAndRender();
 }
 
-function saveInvInicial(){
+function saveInvInicial(v){
   try{
-    var v=document.getElementById('inv-inicial-usd').value;
+    if(v===undefined){
+      // fallback: leer del campo viejo si existe
+      var el=document.getElementById('inv-sidebar-usd');
+      v=el?el.value:'';
+    }
     localStorage.setItem('ptNYSE_inv_inicial',v);
     sbSetConfig('inv_inicial', v);
+    // actualizar display en metric card
+    var disp=document.getElementById('inv-inicial-usd-display');
+    if(disp) disp.textContent=v?'$'+parseFloat(v).toLocaleString('es-AR'):'—';
+    // sincronizar campo sidebar
+    var sb=document.getElementById('inv-sidebar-usd');
+    if(sb && sb.value!==String(v)) sb.value=v;
+    renderPortfolio();
   }catch(e){}
 }
 function loadInvInicial(){
   try{
     var v=localStorage.getItem('ptNYSE_inv_inicial');
-    var el=document.getElementById('inv-inicial-usd');
-    if(el&&v)el.value=v;
+    var sb=document.getElementById('inv-sidebar-usd');
+    var disp=document.getElementById('inv-inicial-usd-display');
+    if(sb&&v){sb.value=v;}
+    if(disp){disp.textContent=v?'$'+parseFloat(v).toLocaleString('es-AR'):'—';}
   }catch(e){}
 }
 function saveLiquidez(){
@@ -892,6 +914,29 @@ function saveLiquidez(){
     localStorage.setItem('ptNYSE_liq',JSON.stringify({ars:ars,usd:usd}));
     sbSetConfig('liquidez', {ars:ars,usd:usd});
   }catch(e){}
+}
+function liqConfirm(){
+  saveLiquidez();
+  renderPortfolio();
+  var btns=document.querySelectorAll('[onclick="liqConfirm()"]');
+  btns.forEach(function(b){
+    var orig=b.textContent;b.textContent='✓';b.style.color='var(--accent)';
+    setTimeout(function(){b.textContent=orig;},1000);
+  });
+}
+function rvConfirm(){
+  renderPortfolio();
+  var btns=document.querySelectorAll('[onclick="rvConfirm()"]');
+  btns.forEach(function(b){
+    b.style.color='var(--accent)';
+    setTimeout(function(){b.style.color='';},1000);
+  });
+}
+function invConfirm(){
+  var v=document.getElementById('inv-sidebar-usd').value;
+  saveInvInicial(v);
+  var btn=document.querySelector('[onclick="invConfirm()"]');
+  if(btn){var orig=btn.textContent;btn.textContent='✓';btn.style.color='var(--accent)';setTimeout(function(){btn.textContent=orig;},1000);}
 }
 function loadLiquidez(){
   try{
@@ -1488,7 +1533,7 @@ function renderPortfolio(){
 
   // Rendimiento = (ValTotal - CostoTotal) / CostoTotal * 100
   // Rendimiento: usa inversión inicial si está cargada, si no usa costUSD
-  var invInicialEl=document.getElementById('inv-inicial-usd');
+  var invInicialEl=document.getElementById('inv-sidebar-usd');
   var invInicial=invInicialEl?parseFloat(invInicialEl.value)||0:0;
   var baseRend=invInicial>0?invInicial:totalCost;
   var rendPct=baseRend>0?(valConLiq-baseRend)/baseRend*100:null;
@@ -2320,7 +2365,7 @@ function trkCalcCCL(){
 
     // 8. Inversión inicial
     var sbInv = await sbGetConfig('inv_inicial');
-    if(sbInv){var ei=document.getElementById('inv-inicial-usd');if(ei)ei.value=sbInv;try{localStorage.setItem('ptNYSE_inv_inicial',String(sbInv));}catch(e){}}
+    if(sbInv){var ei=document.getElementById('inv-sidebar-usd');if(ei)ei.value=sbInv;var di=document.getElementById('inv-inicial-usd-display');if(di)di.textContent='$'+parseFloat(sbInv).toLocaleString('es-AR');try{localStorage.setItem('ptNYSE_inv_inicial',String(sbInv));}catch(e){}}
     else{loadInvInicial();}
 
     // 9. Quotes cache (solo localStorage - datos volátiles)
