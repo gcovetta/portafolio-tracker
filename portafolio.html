@@ -1414,9 +1414,10 @@ function renderPortfolio(){
     var q=quotes[p.ticker];var price=q?q.price:null;
     var ratio=getRatio(p.ticker);var sector=getSector(p.ticker);
     // Para Argentina: price ya viene en ARS (Rava). Para NYSE: price en USD → convertir
-    var mercadoCedearARS=price!=null?(getSector(p.ticker)==='argentina'?price:(price/ratio)*CCL_HOY):null;
+    var _sectorIsARS=(getSector(p.ticker)==='argentina'||getSector(p.ticker)==='bonos'||getSector(p.ticker)==='on');
+    var mercadoCedearARS=price!=null?(_sectorIsARS?price:(price/ratio)*CCL_HOY):null;
     var inversionCedearARS=mercadoCedearARS!=null?mercadoCedearARS*p.qty:p.costARS;
-    var valueUSD=price!=null?(getSector(p.ticker)==='argentina'?(price/CCL_HOY)*p.qty:(price/ratio)*p.qty):null;
+    var valueUSD=price!=null?(_sectorIsARS?(price/CCL_HOY)*p.qty:(price/ratio)*p.qty):null;
     if(valueUSD!=null){totalVal+=valueUSD;sectorVal[sector]=(sectorVal[sector]||0)+valueUSD;}
     totalCost+=p.costUSDpuro;
     sectorCost[sector]=(sectorCost[sector]||0)+p.costUSDpuro;
@@ -1462,9 +1463,10 @@ function renderPortfolio(){
   open.forEach(function(p){
     var q=quotes[p.ticker];var price=q?q.price:null;
     var ratio=getRatio(p.ticker);var sector=getSector(p.ticker);
+    var _isARS2=(sector==='argentina'||sector==='bonos'||sector==='on');
     var ppcUSD=p.qty>0?p.costUSDpuro/p.qty:0;
-    var ppcMult=sector==='bonos'?100:1;  // bonos cotizan en % de VN
-    var ppcCedearARS=ppcUSD*CCL_HOY*ppcMult;
+    var ppcMult=sector==='bonos'?100:1;  // bonos cotizan en % de VN (legacy, ahora precio real ARS)
+    var ppcCedearARS=_isARS2?(ppcUSD*CCL_HOY):ppcUSD*CCL_HOY*ppcMult;
     var mercadoCedearARS=p._mktARS;
     var inversionCedearARS=p._invARS;
     var pnlPct=mercadoCedearARS!=null&&ppcCedearARS>0?(mercadoCedearARS-ppcCedearARS)/ppcCedearARS*100:null;
@@ -1649,32 +1651,66 @@ function renderDivsCard(){
 
 async function fetchYahooAR(ticker){
   var symbol=ticker+'.BA';
-  // Intentar v7/quote con corsDomain (a veces pasa CORS sin cookie)
-  var url1='https://query2.finance.yahoo.com/v7/finance/quote?symbols='+encodeURIComponent(symbol)+'&corsDomain=finance.yahoo.com&formatted=false&lang=en-US&region=AR';
+  var innerUrl='https://query2.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?interval=1d&range=2d';
+
+  // Intento 1: directo con headers
   try{
-    var r1=await fetch(url1,{headers:{'Accept':'application/json','Origin':'https://finance.yahoo.com'}});
-    if(r1.ok){
-      var j1=await r1.json();
-      var res1=j1&&j1.quoteResponse&&j1.quoteResponse.result&&j1.quoteResponse.result[0];
-      if(res1&&res1.regularMarketPrice){
-        var p1=res1.regularMarketPrice;
-        var pc1=res1.regularMarketPreviousClose||p1;
-        return{price:p1,prevClose:pc1,changePct:pc1?(p1-pc1)/pc1*100:0};
+    var r0=await fetch('https://query2.finance.yahoo.com/v7/finance/quote?symbols='+encodeURIComponent(symbol)+'&corsDomain=finance.yahoo.com&formatted=false&lang=en-US&region=AR',
+      {headers:{'Accept':'application/json','Origin':'https://finance.yahoo.com'}});
+    if(r0.ok){
+      var j0=await r0.json();
+      var res0=j0&&j0.quoteResponse&&j0.quoteResponse.result&&j0.quoteResponse.result[0];
+      if(res0&&res0.regularMarketPrice){
+        var p0=res0.regularMarketPrice,pc0=res0.regularMarketPreviousClose||p0;
+        return{price:p0,prevClose:pc0,changePct:pc0?(p0-pc0)/pc0*100:0};
       }
     }
-  }catch(e1){}
-  // Fallback: allorigins proxy sobre el chart endpoint
-  var innerUrl='https://query2.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?interval=1d&range=1d';
-  var proxyUrl='https://api.allorigins.win/get?url='+encodeURIComponent(innerUrl);
-  var r2=await fetch(proxyUrl);
-  if(!r2.ok)throw new Error('HTTP '+r2.status);
-  var j2=await r2.json();
-  var d2=JSON.parse(j2.contents||'{}');
-  var meta=d2&&d2.chart&&d2.chart.result&&d2.chart.result[0]&&d2.chart.result[0].meta;
-  if(!meta||!meta.regularMarketPrice)throw new Error('Sin datos');
-  var price=meta.regularMarketPrice;
-  var prev=meta.chartPreviousClose||meta.previousClose||price;
-  return{price:price,prevClose:prev,changePct:prev?(price-prev)/prev*100:0};
+  }catch(e0){}
+
+  // Intento 2: allorigins proxy
+  try{
+    var r2=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(innerUrl));
+    if(r2.ok){
+      var j2=await r2.json();
+      var d2=JSON.parse(j2.contents||'{}');
+      var meta2=d2&&d2.chart&&d2.chart.result&&d2.chart.result[0]&&d2.chart.result[0].meta;
+      if(meta2&&meta2.regularMarketPrice){
+        var price2=meta2.regularMarketPrice;
+        var prev2=meta2.chartPreviousClose||meta2.previousClose||price2;
+        return{price:price2,prevClose:prev2,changePct:prev2?(price2-prev2)/prev2*100:0};
+      }
+    }
+  }catch(e2){}
+
+  // Intento 3: corsproxy.io
+  try{
+    var r3=await fetch('https://corsproxy.io/?url='+encodeURIComponent(innerUrl));
+    if(r3.ok){
+      var j3=await r3.json();
+      var meta3=j3&&j3.chart&&j3.chart.result&&j3.chart.result[0]&&j3.chart.result[0].meta;
+      if(meta3&&meta3.regularMarketPrice){
+        var price3=meta3.regularMarketPrice;
+        var prev3=meta3.chartPreviousClose||meta3.previousClose||price3;
+        return{price:price3,prevClose:prev3,changePct:prev3?(price3-prev3)/prev3*100:0};
+      }
+    }
+  }catch(e3){}
+
+  // Intento 4: thingproxy
+  try{
+    var r4=await fetch('https://thingproxy.freeboard.io/fetch/'+innerUrl);
+    if(r4.ok){
+      var j4=await r4.json();
+      var meta4=j4&&j4.chart&&j4.chart.result&&j4.chart.result[0]&&j4.chart.result[0].meta;
+      if(meta4&&meta4.regularMarketPrice){
+        var price4=meta4.regularMarketPrice;
+        var prev4=meta4.chartPreviousClose||meta4.previousClose||price4;
+        return{price:price4,prevClose:prev4,changePct:prev4?(price4-prev4)/prev4*100:0};
+      }
+    }
+  }catch(e4){}
+
+  throw new Error('Sin datos para '+ticker);
 }
 async function fetchFinnhub(ticker){
   var res=await fetch(FBASE+'/quote?symbol='+encodeURIComponent(ticker)+'&token='+FKEY);
@@ -1692,11 +1728,11 @@ async function fetchAllQuotes(){
   var icon=document.getElementById('ref-icon');var status=document.getElementById('ref-status');var prog=document.getElementById('pos-prog');var pfill=document.getElementById('pfill');
   icon.innerHTML='<span class="spinner"></span>';prog.style.display='';pfill.style.width='0%';
 
-  // Separar por fuente: Finnhub (NYSE/Brasil/etc), Yahoo (Argentina), skip (Bonos/ON)
-  var skipSectors={bonos:1,on:1};
-  var finnhubPos=pos.filter(function(p){var s=getSector(p.ticker);return s!=='argentina'&&!skipSectors[s];});
+  // Separar por fuente: Finnhub (NYSE/Brasil/etc), Yahoo AR (Argentina + Bonos + ON)
+  var bonosSectors={bonos:1,on:1};
+  var finnhubPos=pos.filter(function(p){var s=getSector(p.ticker);return s!=='argentina'&&!bonosSectors[s];});
   var yahooPos=pos.filter(function(p){return getSector(p.ticker)==='argentina';});
-  var skipPos=pos.filter(function(p){return !!skipSectors[getSector(p.ticker)];});
+  var bonosPos=pos.filter(function(p){return !!bonosSectors[getSector(p.ticker)];});
 
   var total=pos.length,done=0,errors=0;
 
@@ -1734,13 +1770,22 @@ async function fetchAllQuotes(){
     }
   }
 
-  // ── Bonos/ON: se saltean (no tienen API disponible), cuentan en progreso
-  async function fetchSkipAll(){
-    skipPos.forEach(function(){updateProgress();});
+  // ── Bonos/ON: Yahoo Finance .BA en lotes de 3 ──────────────────────────
+  async function fetchBonosAll(){
+    var batchSize=3;
+    for(var i=0;i<bonosPos.length;i+=batchSize){
+      var batch=bonosPos.slice(i,i+batchSize);
+      await Promise.all(batch.map(async function(p){
+        try{quotes[p.ticker]=await fetchYahooAR(p.ticker);}
+        catch(e){errors++;}
+        updateProgress();
+      }));
+      if(i+batchSize<bonosPos.length)await delay(400);
+    }
   }
 
   // Los tres grupos corren en paralelo
-  await Promise.all([fetchFinnhubAll(),fetchYahooAll(),fetchSkipAll()]);
+  await Promise.all([fetchFinnhubAll(),fetchYahooAll(),fetchBonosAll()]);
 
   icon.textContent='⟳';prog.style.display='none';
   status.className=errors>0?'emsg':'smsg';
