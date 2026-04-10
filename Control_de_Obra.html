@@ -41,31 +41,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh; }
 
-    /* ── SETUP SCREEN ── */
-    #setupScreen {
-        position: fixed; inset: 0; background: var(--bg); z-index: 999;
-        display: flex; align-items: center; justify-content: center;
-    }
-    .setup-box {
-        background: var(--surface); border: 1px solid var(--border2);
-        border-radius: 14px; padding: 36px 40px; width: 480px; max-width: 96vw;
-        box-shadow: var(--shadow-lg);
-    }
-    .setup-logo {
-        width: 44px; height: 44px; background: var(--blue-dim); border-radius: 10px;
-        display: flex; align-items: center; justify-content: center; margin-bottom: 18px;
-    }
-    .setup-logo svg { fill: var(--blue); }
-    .setup-box h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
-    .setup-box p { font-size: 13px; color: var(--text3); margin-bottom: 24px; }
-    .setup-field { margin-bottom: 14px; }
-    .setup-field label { display: block; font-size: 10px; font-weight: 600; color: var(--text3); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 5px; }
-    .setup-field input { width: 100%; }
-    .setup-hint { font-size: 11px; color: var(--text3); margin-top: 16px; line-height: 1.6; }
-    .setup-hint code { background: var(--surface3); padding: 1px 5px; border-radius: 3px; font-family: 'DM Mono', monospace; font-size: 11px; }
-    .setup-error { font-size: 12px; color: var(--red); margin-top: 10px; min-height: 18px; }
-    .setup-actions { display: flex; gap: 8px; margin-top: 20px; }
-    .connecting-msg { font-size: 12px; color: var(--text3); margin-top: 10px; display: none; }
 
     /* ── SPINNER ── */
     .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border2); border-top-color: var(--blue); border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 6px; }
@@ -218,35 +193,6 @@
 </head>
 <body>
 
-<!-- ══ SETUP SCREEN ══ -->
-<div id="setupScreen">
-    <div class="setup-box">
-        <div class="setup-logo">
-            <svg viewBox="0 0 20 20" width="22" height="22"><path d="M3 5a2 2 0 012-2h10a2 2 0 012 2v2H3V5zm0 4h14v8a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg>
-        </div>
-        <h1>Control de Obra</h1>
-        <p>Ingresá tus credenciales de Supabase para continuar. Se guardan solo en este navegador.</p>
-        <div class="setup-field">
-            <label>Supabase URL</label>
-            <input type="text" id="sbUrl" placeholder="https://xxxxxxxxxxxx.supabase.co">
-        </div>
-        <div class="setup-field">
-            <label>Anon Key</label>
-            <input type="text" id="sbKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5c...">
-        </div>
-        <div class="setup-error" id="setupError"></div>
-        <div class="setup-actions">
-            <button class="btn btn-primary" onclick="connectSupabase()" style="flex:1;">Conectar</button>
-            <button class="btn" onclick="showSQLHelper()">Ver SQL</button>
-        </div>
-        <div class="connecting-msg" id="connectingMsg"><span class="spinner"></span>Conectando con Supabase...</div>
-        <div class="setup-hint" id="setupHint">
-            Encontrá tu URL y anon key en <strong>Supabase → Project Settings → API</strong>.<br>
-            Si es la primera vez, hacé clic en <strong>"Ver SQL"</strong> para crear las tablas necesarias.
-        </div>
-    </div>
-</div>
-
 <!-- ══ SQL HELPER MODAL ══ -->
 <div class="modal-overlay" id="modalSQL">
     <div class="modal" style="width:640px;">
@@ -263,7 +209,7 @@
 </div>
 
 <!-- ══ MAIN APP ══ -->
-<div class="layout" id="appLayout" style="display:none;">
+<div class="layout" id="appLayout">
     <aside class="sidebar">
         <div class="sb-brand">
             <div class="sb-icon">
@@ -510,37 +456,8 @@ function showSQLHelper() {
 var sb = null;
 
 function connectSupabase() {
-    var url = document.getElementById('sbUrl').value.trim();
-    var key = document.getElementById('sbKey').value.trim();
-    var errEl = document.getElementById('setupError');
-    var connEl = document.getElementById('connectingMsg');
-    errEl.textContent = '';
-
-    if (!url || !url.startsWith('https://')) { errEl.textContent = 'URL inválida. Debe empezar con https://'; return; }
-    if (!key || key.length < 20) { errEl.textContent = 'Anon key inválida.'; return; }
-
-    connEl.style.display = 'flex';
-    try {
-        sb = supabase.createClient(url, key);
-    } catch(e) {
-        errEl.textContent = 'Error al inicializar Supabase: ' + e.message;
-        connEl.style.display = 'none';
-        return;
-    }
-
-    // Test connection
-    sb.from('obra_config').select('id').limit(1).then(function(res) {
-        connEl.style.display = 'none';
-        if (res.error) {
-            if (res.error.code === '42P01') {
-                errEl.textContent = 'Tablas no encontradas. Ejecutá el SQL primero (botón "Ver SQL").';
-            } else {
-                errEl.textContent = 'Error: ' + res.error.message;
-            }
-            return;
-        }
-        launchApp();
-    });
+    sb = supabase.createClient(SB_URL, SB_KEY);
+    launchApp();
 }
 
 // ── Credenciales hardcodeadas ──
@@ -582,8 +499,6 @@ function setSaveStatus(state, txt) {
 // LOAD DATA FROM SUPABASE
 // ═══════════════════════════════════════
 async function launchApp() {
-    document.getElementById('setupScreen').style.display = 'none';
-    document.getElementById('appLayout').style.display = 'flex';
     await loadAllData();
     renderCurrent();
 }
@@ -1094,7 +1009,7 @@ function renderConfig(){
     '<div class="grid2"><div>'+
     '<div class="card"><div class="card-hdr"><h3>Datos de la obra</h3></div><div class="card-body"><div class="form-row full"><div class="fg"><label>Fecha de inicio</label><input type="date" id="cfgStart" value="'+S.startDate+'"></div></div><button class="btn btn-primary" style="margin-top:4px;" onclick="saveConfigDB()">Guardar</button></div></div>'+
     '<div class="card" style="margin-top:14px;"><div class="card-hdr"><h3>Tipo de cambio</h3></div><div class="card-body"><p style="font-size:12px;color:var(--text3);margin-bottom:12px;">Actualizá el TCN para convertir todos los montos.</p><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:13px;color:var(--text2);">$</span><input type="number" id="cfgTCN" value="'+S.tcn+'" min="1" step="50" style="width:120px;"><span style="font-size:13px;color:var(--text2);">/ USD</span><button class="btn btn-primary" onclick="saveTCNfromConfig()">Aplicar</button></div></div></div>'+
-    '<div class="card" style="margin-top:14px;"><div class="card-hdr"><h3>Conexión Supabase</h3></div><div class="card-body"><p style="font-size:12px;color:var(--text3);margin-bottom:12px;">URL: <code style="font-family:DM Mono,monospace;font-size:11px;background:var(--surface3);padding:2px 6px;border-radius:3px;">'+document.getElementById('sbUrl').value.substring(0,40)+'...</code></p><div style="display:flex;gap:8px;"><button class="btn btn-danger" onclick="desconectar()">Cambiar credenciales</button></div></div></div>'+
+    '<div class="card" style="margin-top:14px;"><div class="card-hdr"><h3>Conexión Supabase</h3></div><div class="card-body"><p style="font-size:12px;color:var(--text3);margin-bottom:12px;">URL: <code style="font-family:DM Mono,monospace;font-size:11px;background:var(--surface3);padding:2px 6px;border-radius:3px;">'+SB_URL.substring(0,40)+'...</code></p><div style="display:flex;gap:8px;"><button class="btn btn-danger" onclick="desconectar()">Cambiar credenciales</button></div></div></div>'+
     '</div><div>'+
     '<div class="card"><div class="card-hdr"><h3>Exportar Excel</h3></div><div class="card-body"><p style="font-size:12px;color:var(--text3);margin-bottom:12px;">Descargá todas las hojas con montos en USD.</p><button class="btn btn-excel" onclick="exportarExcel()"><svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.415l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.415z" clip-rule="evenodd"/></svg>Exportar Excel completo</button></div></div>'+
     '<div class="card" style="margin-top:14px;"><div class="card-hdr"><h3>Estadísticas</h3></div><div class="card-body">'+
@@ -1202,8 +1117,6 @@ document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListen
 
 // ── Auto-connect al cargar la página ──
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('sbUrl').value = SB_URL;
-    document.getElementById('sbKey').value = SB_KEY;
     connectSupabase();
 });
 </script>
