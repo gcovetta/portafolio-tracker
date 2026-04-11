@@ -10,6 +10,31 @@
 *{box-sizing:border-box;margin:0;padding:0}html{font-size:15.5px}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.5}
 .app{display:grid;grid-template-rows:auto 1fr;min-height:100vh}
+.arb-wrap{margin-bottom:18px}
+.arb-pair-header{display:grid;grid-template-columns:52px 1fr 1fr 110px 38px 100px 80px 110px;gap:0;background:linear-gradient(135deg,#2d1b5a,#1a1040);border-radius:var(--rsm) var(--rsm) 0 0;border:1px solid #6b3fa0}
+.arb-row{display:grid;grid-template-columns:52px 1fr 1fr 110px 38px 100px 80px 110px;gap:0;border-left:1px solid var(--border2);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2)}
+.arb-row:last-child{border-radius:0 0 var(--rsm) var(--rsm)}
+.arb-cell{padding:7px 10px;font-size:.76rem;font-family:var(--mono);display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);text-align:center}
+.arb-cell:last-child{border-right:none}
+.arb-cell.left{justify-content:flex-start}
+.arb-label{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.55);padding:5px 10px;display:flex;align-items:center;justify-content:center}
+.arb-plazo{background:rgba(0,0,0,.35);font-weight:700;font-size:.75rem;color:var(--text3);min-width:52px}
+.arb-ratio-green{background:#1a4d1a;color:#5dde5d;font-weight:700;border-radius:4px;padding:3px 8px;font-size:.78rem;text-align:center}
+.arb-ratio-amber{background:#3d2a00;color:#f0a800;font-weight:700;border-radius:4px;padding:3px 8px;font-size:.78rem;text-align:center}
+.arb-ratio-red{background:#3d0e0e;color:#e05555;font-weight:700;border-radius:4px;padding:3px 8px;font-size:.78rem;text-align:center}
+.arb-op{font-size:1.1rem;font-weight:900;color:var(--text3)}
+.arb-op.buy{color:var(--green)}
+.arb-op.sell{color:var(--red)}
+.arb-input{background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:.76rem;width:100%;text-align:center;outline:none;padding:2px 4px}
+.arb-input:focus{border-bottom-color:var(--accent);background:rgba(255,255,255,.04)}
+.arb-input-name{font-weight:700;font-size:.8rem;color:var(--text);text-align:center}
+.topbar{display:flex;align-items:center;gap:1.2rem;padding:.28rem 1.5rem;background:var(--bg);border-bottom:1px solid var(--border);font-size:.68rem;font-family:var(--mono);color:var(--text3);flex-wrap:wrap}
+.topbar-item{display:flex;align-items:center;gap:.35rem}
+.topbar-label{color:var(--text3);font-size:.63rem;letter-spacing:.03em;text-transform:uppercase}
+.topbar-val{color:var(--text);font-weight:600;font-size:.72rem}
+.topbar-sub{color:var(--text3);font-size:.62rem}
+.topbar-dot{width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 header{padding:.85rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--surface);flex-wrap:wrap}
 .logo{font-weight:700;font-size:1.05rem;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
 .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
@@ -136,6 +161,23 @@ tr:hover td{background:var(--surface2)}
 </head>
 <body>
 <div class="app">
+<div class="topbar">
+  <div class="topbar-item">
+    <span class="topbar-dot"></span>
+    <span class="topbar-label">CCL</span>
+    <span class="topbar-val" id="tb-ccl">—</span>
+    <span class="topbar-sub" id="tb-ccl-src"></span>
+  </div>
+  <div class="topbar-item">
+    <span class="topbar-label">MEP</span>
+    <span class="topbar-val" id="tb-mep">—</span>
+    <span class="topbar-sub" id="tb-mep-src"></span>
+  </div>
+  <div class="topbar-item" id="tb-blue-wrap" style="display:none">
+    <span class="topbar-label">Blue</span>
+    <span class="topbar-val" id="tb-blue">—</span>
+  </div>
+</div>
 <header>
   <div class="logo"><div class="logo-dot"></div>Portafolio Tracker<span style="font-size:.68rem;font-weight:400;color:var(--text3);margin-left:6px">NYSE / ETF</span></div>
   <div class="hright">
@@ -185,6 +227,7 @@ tr:hover td{background:var(--surface2)}
     <button class="nav-item" onclick="showPage(&#39;tracker&#39;,this)"><span>◎</span>Dividendos</button>
     <button class="nav-item" onclick="showPage(&#39;cotizador&#39;,this)"><span>◎</span>Cotizador</button>
     <button class="nav-item" onclick="showPage(&#39;ratios&#39;,this)"><span>⚙</span>Ratios</button>
+    <button class="nav-item" onclick="showPage(&#39;arbitraje&#39;,this)"><span>⇄</span>Arbitraje</button>
     <button class="nav-item" onclick="showPage(&#39;targets&#39;,this)"><span>◎</span>P. de Venta</button>
     <button class="nav-item" onclick="showPage(&#39;tipocambio&#39;,this)"><span>$</span>Tipo de Cambio</button>
   </nav>
@@ -513,6 +556,73 @@ tr:hover td{background:var(--surface2)}
 
     <!-- COTIZADOR -->
     <div class="page" id="page-cotizador">
+
+      <!-- ══ CALCULADORA DE RATIOS CEDEAR ══ -->
+      <div class="card" style="margin-bottom:0">
+        <div class="card-header" style="gap:10px">
+          <span class="card-title">🧮 Calculadora de Ratios CEDEAR</span>
+          <span class="tag" id="rc-ccl-tag" style="font-family:var(--mono);font-size:.68rem">CCL: cargando...</span>
+        </div>
+        <div class="card-body">
+          <div class="ibox" style="margin-bottom:14px;font-size:.72rem">
+            Fórmula: <code style="color:var(--accent)">Precio NYSE (USD) = Precio CEDEAR (ARS) × Ratio ÷ CCL</code> &nbsp;·&nbsp; <code style="color:var(--accent)">Precio CEDEAR (ARS) = Precio NYSE × Ratio ÷ CCL × CCL</code>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;align-items:end">
+            <div class="fgrp">
+              <label>Ticker CEDEAR</label>
+              <input type="text" id="rc-ticker" placeholder="NVDA, MELI..." style="text-transform:uppercase;font-weight:600" oninput="rcAutoFill()">
+            </div>
+            <div class="fgrp">
+              <label>Ratio (CEDEARs / acción)</label>
+              <input type="number" id="rc-ratio" min="0.001" step="any" placeholder="Ej: 24" oninput="rcCalc()">
+            </div>
+            <div class="fgrp">
+              <label>CCL ($/USD)</label>
+              <input type="number" id="rc-ccl" min="1" step="any" placeholder="Auto" oninput="rcCalc()">
+            </div>
+            <div class="fgrp">
+              <label>Precio CEDEAR (ARS)</label>
+              <input type="number" id="rc-ars" min="0" step="any" placeholder="Precio en $" oninput="rcFromARS()">
+            </div>
+            <div class="fgrp">
+              <label>Precio NYSE (USD)</label>
+              <input type="number" id="rc-usd" min="0" step="any" placeholder="Precio en USD" oninput="rcFromUSD()">
+            </div>
+          </div>
+
+          <!-- RESULTADO -->
+          <div id="rc-result" style="display:none;margin-top:14px">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
+              <div class="metric" style="padding:.7rem 1rem;border:1px solid var(--accent);border-radius:var(--radius)">
+                <div class="metric-label">Precio NYSE equivalente</div>
+                <div class="metric-value" id="rc-out-usd" style="font-size:1.15rem;color:var(--accent)">—</div>
+                <div class="metric-sub" id="rc-out-usd-sub"></div>
+              </div>
+              <div class="metric" style="padding:.7rem 1rem;border:1px solid var(--green);border-radius:var(--radius)">
+                <div class="metric-label">Precio CEDEAR equivalente</div>
+                <div class="metric-value" id="rc-out-ars" style="font-size:1.15rem;color:var(--green)">—</div>
+                <div class="metric-sub" id="rc-out-ars-sub"></div>
+              </div>
+              <div class="metric" style="padding:.7rem 1rem">
+                <div class="metric-label">Precio ARS por acción NYSE</div>
+                <div class="metric-value" id="rc-out-pxaccion" style="font-size:1.15rem">—</div>
+                <div class="metric-sub" id="rc-out-pxaccion-sub"></div>
+              </div>
+              <div class="metric" style="padding:.7rem 1rem">
+                <div class="metric-label">Ratio usado</div>
+                <div class="metric-value" id="rc-out-ratio" style="font-size:1.15rem">—</div>
+                <div class="metric-sub">CEDEARs por 1 acción</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COMPARADOR: Precio justo -->
+          <div id="rc-compare" style="display:none;margin-top:10px;padding:10px 14px;background:var(--surface2);border-radius:var(--rsm);font-size:.73rem;font-family:var(--mono)">
+            <span id="rc-compare-text"></span>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header"><span class="card-title">Cotizador NYSE / ETF</span></div>
         <div class="card-body">
@@ -559,6 +669,23 @@ tr:hover td{background:var(--surface2)}
     </div>
 
     <!-- TIPO DE CAMBIO -->
+    <!-- ══ ARBITRAJE ══ -->
+    <div class="page" id="page-arbitraje">
+      <div class="card">
+        <div class="card-header" style="gap:10px;flex-wrap:wrap">
+          <span class="card-title">⇄ Calculadora de Arbitraje</span>
+          <span class="smsg" style="font-size:.68rem;color:var(--text3)">Editá tickers, precios, % objetivo y nominales — todo en tiempo real</span>
+          <button class="btn btn-sm" onclick="arbAddPair()" style="margin-left:auto">+ Par</button>
+        </div>
+        <div class="card-body">
+          <div class="ibox" style="margin-bottom:14px;font-size:.72rem">
+            <b>Ratio</b> = Precio A ÷ Precio B × 100 &nbsp;·&nbsp; El color indica si el ratio está <span style="color:#5dde5d">por encima</span>, en zona <span style="color:#f0a800">neutral</span> o <span style="color:#e05555">por debajo</span> del % objetivo. Editá cualquier celda directamente.
+          </div>
+          <div id="arb-container"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="page" id="page-tipocambio">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start">
 
@@ -2032,6 +2159,13 @@ function trkSetCCL(v,src){
   TRK.ccl=v;trkSaveCCL(v);
   document.getElementById('trk-ccl-display').textContent='$'+v.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('trk-ccl-src').textContent='('+src+')';
+  // actualizar topbar si no viene de dolarapi (para no sobreescribir el live)
+  var tbCcl=document.getElementById('tb-ccl');
+  if(tbCcl&&tbCcl.textContent==='—'){
+    tbCcl.textContent='$'+Math.round(v).toLocaleString('es-AR');
+    var tbSrc=document.getElementById('tb-ccl-src');
+    if(tbSrc)tbSrc.textContent=src;
+  }
   trkRender();trkCalcCCL();
 }
 
@@ -2048,12 +2182,324 @@ async function trkFetchCCL(){
   else{document.getElementById('trk-ccl-display').textContent='No disponible';document.getElementById('trk-ccl-src').textContent='— ingresá manualmente';}
 }
 
+
+// ════════════════════════════════════════════════════════
+// CALCULADORA DE RATIOS CEDEAR
+// ════════════════════════════════════════════════════════
+var RC_LOCK = false; // evitar loop ARS→USD→ARS
+
+function rcAutoFill(){
+  var t=(document.getElementById('rc-ticker').value||'').trim().toUpperCase();
+  var r=getRatio(t);
+  var ri=document.getElementById('rc-ratio');
+  if(r&&r!==1||Object.keys(RATIOS_TABLE).indexOf(t)>-1){
+    ri.value=r;
+  }
+  rcCalc();
+}
+
+function rcGetCCL(){
+  var manual=parseFloat(document.getElementById('rc-ccl').value);
+  return manual>0?manual:(typeof CCL_HOY!=='undefined'?CCL_HOY:1486);
+}
+
+function rcCalc(){
+  var tag=document.getElementById('rc-ccl-tag');
+  var cclUsed=rcGetCCL();
+  if(tag) tag.textContent='CCL: $'+Math.round(cclUsed).toLocaleString('es-AR');
+}
+
+function rcFromARS(){
+  if(RC_LOCK)return;
+  var ars=parseFloat(document.getElementById('rc-ars').value);
+  var ratio=parseFloat(document.getElementById('rc-ratio').value)||1;
+  var ccl=rcGetCCL();
+  if(!isNaN(ars)&&ars>0&&ccl>0){
+    RC_LOCK=true;
+    var usd=(ars*ratio)/ccl;
+    document.getElementById('rc-usd').value=usd.toFixed(4);
+    RC_LOCK=false;
+  }
+  rcRender();
+}
+
+function rcFromUSD(){
+  if(RC_LOCK)return;
+  var usd=parseFloat(document.getElementById('rc-usd').value);
+  var ratio=parseFloat(document.getElementById('rc-ratio').value)||1;
+  var ccl=rcGetCCL();
+  if(!isNaN(usd)&&usd>0&&ccl>0&&ratio>0){
+    RC_LOCK=true;
+    var ars=(usd*ccl)/ratio;
+    document.getElementById('rc-ars').value=ars.toFixed(2);
+    RC_LOCK=false;
+  }
+  rcRender();
+}
+
+function rcRender(){
+  var ars=parseFloat(document.getElementById('rc-ars').value);
+  var usd=parseFloat(document.getElementById('rc-usd').value);
+  var ratio=parseFloat(document.getElementById('rc-ratio').value)||1;
+  var ccl=rcGetCCL();
+  var ticker=(document.getElementById('rc-ticker').value||'').trim().toUpperCase();
+
+  var result=document.getElementById('rc-result');
+  var compare=document.getElementById('rc-compare');
+  if((!ars&&!usd)||!ccl){result.style.display='none';compare.style.display='none';return;}
+
+  var usdCalc=ars>0?((ars*ratio)/ccl):usd;
+  var arsCalc=usd>0?((usd*ccl)/ratio):ars;
+  var pxAccion=usd>0?(usd*ccl):((ars/ratio)*ccl);
+
+  document.getElementById('rc-out-usd').textContent='USD '+usdCalc.toFixed(4);
+  document.getElementById('rc-out-usd-sub').textContent='por 1 CEDEAR ÷ ratio '+ratio;
+  document.getElementById('rc-out-ars').textContent='$'+arsCalc.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('rc-out-ars-sub').textContent='precio CEDEAR a CCL $'+Math.round(ccl).toLocaleString('es-AR');
+  document.getElementById('rc-out-pxaccion').textContent='$'+pxAccion.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
+  document.getElementById('rc-out-pxaccion-sub').textContent='1 acción NYSE = '+ratio+' CEDEARs';
+  document.getElementById('rc-out-ratio').textContent='1 : '+ratio;
+  result.style.display='block';
+
+  // Comparador con precio live de quotes si hay ticker
+  if(ticker&&typeof quotes!=='undefined'&&quotes[ticker]){
+    var liveUSD=quotes[ticker];
+    var impliedARS=(liveUSD*ccl)/ratio;
+    var diffPct=arsCalc>0?((arsCalc-impliedARS)/impliedARS*100):null;
+    if(liveUSD&&diffPct!==null){
+      var sg=diffPct>=0?'+':'';
+      var color=Math.abs(diffPct)>3?(diffPct>0?'var(--red)':'var(--green)'):'var(--text2)';
+      document.getElementById('rc-compare-text').innerHTML=
+        '<b>'+ticker+'</b> cotiza USD '+liveUSD.toFixed(2)+' en NYSE · '+
+        'Precio ARS justo: <b>$'+impliedARS.toFixed(2)+'</b> · '+
+        'Tu precio vs. justo: <span style="color:'+color+'">'+sg+diffPct.toFixed(2)+'%</span>';
+      compare.style.display='block';
+    }else{compare.style.display='none';}
+  }else{compare.style.display='none';}
+
+  // Update CCL tag
+  var tag=document.getElementById('rc-ccl-tag');
+  if(tag) tag.textContent='CCL: $'+Math.round(ccl).toLocaleString('es-AR');
+}
+
+
+// ════════════════════════════════════════════════════════
+// CALCULADORA DE ARBITRAJE
+// ════════════════════════════════════════════════════════
+var ARB_PAIRS = [
+  { a:'GD29', b:'AL30', pctObj:104.5,
+    rows:[
+      { plazo:'CI',  precioA:92310, precioB:88600, condicion:'$1.025', voy:'GD29', nominales:'' },
+      { plazo:'24',  precioA:91390, precioB:88660, condicion:'$1.040', voy:'AL30', nominales:'1.213' }
+    ]
+  },
+  { a:'GD41', b:'AE38', pctObj:107.0,
+    rows:[
+      { plazo:'CI',  precioA:104540, precioB:112720, condicion:'$1.085', voy:'GD41', nominales:'' },
+      { plazo:'24',  precioA:104350, precioB:112900, condicion:'$1.080', voy:'AE38', nominales:'934' }
+    ]
+  },
+  { a:'TXAR', b:'ALUA', pctObj:130.0,
+    rows:[
+      { plazo:'CI',  precioA:873, precioB:668, condicion:'$1.033', voy:'AE38', nominales:'284.40' },
+      { plazo:'24',  precioA:878, precioB:674, condicion:'$1.270', voy:'ALUAR', nominales:'' }
+    ]
+  },
+  { a:'GD38', b:'AE38', pctObj:104.3,
+    rows:[
+      { plazo:'CI',  precioA:116620, precioB:111790, condicion:'', voy:'', nominales:'' },
+      { plazo:'24',  precioA:116690, precioB:111870, condicion:'$1.044', voy:'GD38', nominales:'1.000' }
+    ]
+  }
+];
+
+function arbSave(){ try{localStorage.setItem('ptNYSE_arb_pairs',JSON.stringify(ARB_PAIRS));}catch(e){} }
+function arbLoad(){
+  try{
+    var s=localStorage.getItem('ptNYSE_arb_pairs');
+    if(s){ ARB_PAIRS=JSON.parse(s); }
+  }catch(e){}
+}
+
+function arbAddPair(){
+  ARB_PAIRS.push({
+    a:'TICKER_A', b:'TICKER_B', pctObj:100,
+    rows:[
+      { plazo:'CI', precioA:0, precioB:0, condicion:'', voy:'', nominales:'' },
+      { plazo:'24', precioA:0, precioB:0, condicion:'', voy:'', nominales:'' }
+    ]
+  });
+  arbSave();
+  arbRender();
+}
+
+function arbRemovePair(pi){
+  if(!confirm('¿Eliminar este par?'))return;
+  ARB_PAIRS.splice(pi,1);
+  arbSave();
+  arbRender();
+}
+
+function arbUpdate(pi, ri, field, val){
+  if(ri===-1){
+    // par-level field
+    if(field==='a'||field==='b') ARB_PAIRS[pi][field]=val.trim().toUpperCase();
+    else if(field==='pctObj') ARB_PAIRS[pi].pctObj=parseFloat(val)||100;
+  } else {
+    var r=ARB_PAIRS[pi].rows[ri];
+    if(field==='precioA'||field==='precioB') r[field]=parseFloat(val)||0;
+    else r[field]=val;
+  }
+  arbSave();
+  // Re-render just the ratio cells
+  arbRenderRatios(pi);
+}
+
+function arbRatioClass(ratio, target){
+  if(!target) return 'arb-ratio-green';
+  var diff=ratio-target;
+  if(Math.abs(diff)<0.5) return 'arb-ratio-amber';
+  return diff>0?'arb-ratio-green':'arb-ratio-red';
+}
+
+function arbRenderRatios(pi){
+  var pair=ARB_PAIRS[pi];
+  pair.rows.forEach(function(row, ri){
+    var ratio=row.precioB>0?(row.precioA/row.precioB*100):0;
+    var cls=arbRatioClass(ratio, pair.pctObj);
+    var el=document.getElementById('arb-ratio-'+pi+'-'+ri);
+    if(el){
+      el.innerHTML='<span class="'+cls+'">'+ratio.toFixed(2)+'%</span>';
+    }
+    // arrow direction
+    var arr=document.getElementById('arb-arrow-'+pi+'-'+ri);
+    if(arr){
+      var above=ratio>=(pair.pctObj||100);
+      arr.textContent=above?'>':'<';
+      arr.className='arb-cell arb-op '+(above?'sell':'buy');
+    }
+  });
+}
+
+function arbRender(){
+  arbLoad();
+  var container=document.getElementById('arb-container');
+  if(!container)return;
+  var html='';
+  ARB_PAIRS.forEach(function(pair, pi){
+    html+='<div class="arb-wrap">';
+    // Header row - ticker names + obj editable
+    html+='<div class="arb-pair-header">';
+    html+='<div class="arb-label" style="border-radius:var(--rsm) 0 0 0"></div>';
+    html+='<div class="arb-label" style="flex-direction:column;gap:2px">';
+    html+='<input class="arb-input arb-input-name" value="'+pair.a+'" onchange="arbUpdate('+pi+',-1,\'a\',this.value)" style="color:#a78bfa;width:90px" oninput="arbUpdate('+pi+',-1,\'a\',this.value)">';
+    html+='</div>';
+    html+='<div class="arb-label" style="flex-direction:column;gap:2px">';
+    html+='<input class="arb-input arb-input-name" value="'+pair.b+'" onchange="arbUpdate('+pi+',-1,\'b\',this.value)" style="color:#60a5fa;width:90px" oninput="arbUpdate('+pi+',-1,\'b\',this.value)">';
+    html+='</div>';
+    html+='<div class="arb-label" style="flex-direction:column;gap:2px">Ratio<br><input class="arb-input" value="'+pair.pctObj+'%" style="width:72px;color:#f0a800;font-weight:700" oninput="arbUpdate('+pi+',-1,\'pctObj\',this.value.replace(\'%\',\'\'))"></div>';
+    html+='<div class="arb-label"></div>';
+    html+='<div class="arb-label">Condición</div>';
+    html+='<div class="arb-label">Voy</div>';
+    html+='<div class="arb-label" style="border-radius:0 var(--rsm) 0 0;gap:4px">Nominales<button class="btn btn-d btn-sm" onclick="arbRemovePair('+pi+')" style="padding:1px 5px;font-size:.6rem;margin-left:4px" title="Eliminar par">✕</button></div>';
+    html+='</div>'; // end header
+
+    // Data rows
+    pair.rows.forEach(function(row, ri){
+      var ratio=row.precioB>0?(row.precioA/row.precioB*100):0;
+      var cls=arbRatioClass(ratio, pair.pctObj);
+      var above=ratio>=(pair.pctObj||100);
+      var isLast=(ri===pair.rows.length-1)&&true;
+      var rowBg=ri%2===0?'':'background:rgba(255,255,255,.025)';
+      html+='<div class="arb-row" style="'+rowBg+'">';
+      // Plazo
+      html+='<div class="arb-cell arb-plazo"><input class="arb-input" value="'+row.plazo+'" style="width:36px;font-weight:700;color:var(--text2)" oninput="arbUpdate('+pi+','+ri+',\'plazo\',this.value)"></div>';
+      // Precio A
+      html+='<div class="arb-cell"><input class="arb-input" value="'+(row.precioA||'')+'" placeholder="$0" oninput="arbUpdate('+pi+','+ri+',\'precioA\',this.value)" style="color:#a78bfa"></div>';
+      // Precio B
+      html+='<div class="arb-cell"><input class="arb-input" value="'+(row.precioB||'')+'" placeholder="$0" oninput="arbUpdate('+pi+','+ri+',\'precioB\',this.value)" style="color:#60a5fa"></div>';
+      // Ratio calculado
+      html+='<div class="arb-cell" id="arb-ratio-'+pi+'-'+ri+'"><span class="'+cls+'">'+(ratio>0?ratio.toFixed(2)+'%':'—')+'</span></div>';
+      // Flecha
+      html+='<div class="arb-cell arb-op '+(above?'sell':'buy')+'" id="arb-arrow-'+pi+'-'+ri+'">'+(ratio>0?(above?'>':'<'):'')+'</div>';
+      // Condición
+      html+='<div class="arb-cell"><input class="arb-input" value="'+(row.condicion||'')+'" placeholder="$1.00" oninput="arbUpdate('+pi+','+ri+',\'condicion\',this.value)"></div>';
+      // Voy
+      html+='<div class="arb-cell"><input class="arb-input" value="'+(row.voy||'')+'" placeholder="ticker" oninput="arbUpdate('+pi+','+ri+',\'voy\',this.value)" style="text-transform:uppercase;font-weight:600"></div>';
+      // Nominales
+      html+='<div class="arb-cell"><input class="arb-input" value="'+(row.nominales||'')+'" placeholder="—" oninput="arbUpdate('+pi+','+ri+',\'nominales\',this.value)"></div>';
+      html+='</div>'; // end row
+    });
+
+    // Add row button
+    html+='<div style="text-align:right;margin-top:3px;margin-bottom:2px">';
+    html+='<button class="btn btn-sm" onclick="arbAddRow('+pi+')" style="font-size:.6rem;padding:2px 8px">+ plazo</button>';
+    html+='</div>';
+
+    html+='</div>'; // end arb-wrap
+  });
+  container.innerHTML=html;
+}
+
+function arbAddRow(pi){
+  ARB_PAIRS[pi].rows.push({ plazo:'?', precioA:0, precioB:0, condicion:'', voy:'', nominales:'' });
+  arbSave();
+  arbRender();
+}
+
+// Init on page show
+var _origShowPage=showPage;
+function showPage(id,btn){
+  _origShowPage(id,btn);
+  if(id==='arbitraje') arbRender();
+}
+
+async function fetchTopbarRates(){
+  // Update RC CCL tag
+  var rcTag=document.getElementById('rc-ccl-tag');
+  if(rcTag&&typeof CCL_HOY!=='undefined') rcTag.textContent='CCL: $'+Math.round(CCL_HOY).toLocaleString('es-AR');
+  // CCL
+  try{
+    var rc=await fetch('https://dolarapi.com/v1/dolares/contadoconliqui');
+    var dc=await rc.json();
+    var vc=parseFloat(dc.venta);
+    if(vc>0){
+      document.getElementById('tb-ccl').textContent='$'+vc.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
+      document.getElementById('tb-ccl-src').textContent='venta';
+      var rcTag2=document.getElementById('rc-ccl-tag');
+      if(rcTag2) rcTag2.textContent='CCL: $'+Math.round(vc).toLocaleString('es-AR');
+    }
+  }catch(e){}
+  // MEP
+  try{
+    var rm=await fetch('https://dolarapi.com/v1/dolares/bolsa');
+    var dm=await rm.json();
+    var vm=parseFloat(dm.venta);
+    if(vm>0){
+      document.getElementById('tb-mep').textContent='$'+vm.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
+      document.getElementById('tb-mep-src').textContent='venta';
+    }
+  }catch(e){
+    // fallback bluelytics
+    try{
+      var rm2=await fetch('https://api.bluelytics.com.ar/v2/latest');
+      var dm2=await rm2.json();
+      var vm2=parseFloat(dm2.oficial&&dm2.oficial.value_sell);
+      if(vm2>0){
+        document.getElementById('tb-mep').textContent='$'+vm2.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
+        document.getElementById('tb-mep-src').textContent='oficial ref';
+      }
+    }catch(e2){}
+  }
+}
+
 function trkShowPin(){ trkShowApp(); }
 
 function trkShowApp(){
   var app=document.getElementById('trk-app');
   if(app) app.style.display='block';
   trkFetchCCL();
+  fetchTopbarRates();
   trkRender();
 }
 
