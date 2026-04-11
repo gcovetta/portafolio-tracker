@@ -1092,6 +1092,9 @@ function movModalOpen(id){
     '<div class="fgrp"><label>Tipo</label><select id="me-tipo">'+
       ['compra','venta','dividendo','aporte'].map(function(t){return '<option value="'+t+'"'+(m.tipo===t?' selected':'')+'>'+t+'</option>';}).join('')+
     '</select></div>'+
+    '<div class="fgrp"><label>Mercado</label><select id="me-mkt">'+
+      ['USA','BONOS','ON','ARGENTINA','BRASIL','ETF'].map(function(mk){return '<option value="'+mk+'"'+(m.mercado===mk?' selected':'')+'>'+mk+'</option>';}).join('')+
+    '</select></div>'+
     '<div class="fgrp"><label>Ticker</label><input type="text" id="me-ticker" value="'+(m.ticker||'')+'" style="text-transform:uppercase"></div>'+
     '<div class="fgrp"><label>Cantidad</label><input type="number" id="me-qty" value="'+(m.qty||'')+'" min="0" step="any"></div>'+
     '<div class="fgrp"><label>Precio ARS</label><input type="number" id="me-ars" value="'+(m.precioARS||'')+'" min="0" step="any"></div>'+
@@ -1133,6 +1136,8 @@ function movModalSave(){
   if(!fechaVal){flash(sel,'Ingresá la fecha',true);return;}
   m.fecha=fechaVal.split('-').reverse().join('/');
   m.tipo=tipo;
+  var mkt=document.getElementById('me-mkt');
+  if(mkt&&mkt.value)m.mercado=mkt.value;
   if(ticker)m.ticker=ticker;
   if(!isNaN(qty)&&qty>=0)m.qty=qty;
   if(!isNaN(ars)&&ars>=0)m.precioARS=ars;
@@ -1300,6 +1305,7 @@ function simCalc(){
         '<td class="mono '+cl+'">'+sg+pnlLinea.toFixed(2)+'</td>'+
         '<td class="mono '+cl+'">'+sg+(pctLinea?pctLinea.toFixed(1):'0.0')+'%</td>'
         :'<td class="muted">—</td><td class="muted">—</td>')+
+      '<td style="white-space:nowrap"><button class="btn btn-sm" onclick="movModalOpen(\'' + l.id + '\')" title="Editar">✎</button></td>'+
     '</tr>';
   }).join('');
 
@@ -1316,6 +1322,7 @@ function simCalc(){
         '<th>Ingreso USD</th>'+
         '<th>G/P USD</th>'+
         '<th>G/P %</th>'+
+        '<th></th>'+
       '</tr></thead>'+
       '<tbody>'+filas+'</tbody>'+
     '</table></div>';
