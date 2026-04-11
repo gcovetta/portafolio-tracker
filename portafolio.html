@@ -1483,9 +1483,10 @@ function renderPortfolio(){
     var q=quotes[p.ticker];var price=q?q.price:null;
     var ratio=getRatio(p.ticker);var sector=getSector(p.ticker);
     var _isARS2=(sector==='argentina'||sector==='bonos'||sector==='on');
+    var _isBonoON=(sector==='bonos'||sector==='on');
     var ppcUSD=p.qty>0?p.costUSDpuro/p.qty:0;
-    var ppcMult=sector==='bonos'?100:1;  // bonos cotizan en % de VN (legacy, ahora precio real ARS)
-    var ppcCedearARS=_isARS2?(ppcUSD*CCL_HOY):ppcUSD*CCL_HOY*ppcMult;
+    // Para bonos/ONs: precio cargado es por 1 nominal, cotización de mercado es por 100 nominales → x100
+    var ppcCedearARS=_isARS2?(ppcUSD*CCL_HOY*(_isBonoON?100:1)):ppcUSD*CCL_HOY;
     var mercadoCedearARS=p._mktARS;
     var inversionCedearARS=p._invARS;
     var pnlPct=mercadoCedearARS!=null&&ppcCedearARS>0?(mercadoCedearARS-ppcCedearARS)/ppcCedearARS*100:null;
