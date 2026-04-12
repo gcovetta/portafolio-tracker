@@ -192,7 +192,18 @@ tr:hover td{background:var(--surface2)}
     <span class="topbar-val" id="tb-imv">—</span>
     <span class="topbar-sub" id="tb-imv-chg" style="font-size:.6rem"></span>
   </div>
-<header>
+  <div class="topbar-item" style="gap:6px;border-left:1px solid var(--border);padding-left:1.2rem;margin-left:.4rem">
+    <span class="topbar-label">Liquidez</span>
+    <div style="display:flex;align-items:center;gap:3px">
+      <span class="topbar-sub">$</span>
+      <input id="liq-ars" type="number" min="0" step="1" placeholder="0" title="Liquidez ARS" style="width:80px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:20px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')liqConfirm()" onblur="liqConfirm()">
+    </div>
+    <div style="display:flex;align-items:center;gap:3px">
+      <span class="topbar-sub">USD</span>
+      <input id="liq-usd" type="number" min="0" step="0.01" placeholder="0" title="Liquidez USD" style="width:64px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:20px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')liqConfirm()" onblur="liqConfirm()">
+    </div>
+  </div>
+</div>
   <div class="logo"><div class="logo-dot"></div>Portafolio Tracker<span style="font-size:.68rem;font-weight:400;color:var(--text3);margin-left:6px">NYSE / ETF</span></div>
   <div class="hright">
     <div class="tag">Finnhub API</div>
@@ -217,19 +228,6 @@ tr:hover td{background:var(--surface2)}
         <label style="font-size:.62rem;font-family:var(--mono);color:var(--red);font-weight:700;min-width:20px">3%</label>
         <input id="rv-rojo" type="number" min="0" step="1" placeholder="$ ARS" style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--red);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:22px;text-align:right;outline:none" onkeydown="if(event.key===&#39;Enter&#39;)rvConfirm()">
         <button onclick="rvConfirm()" title="Aplicar" style="flex-shrink:0;width:22px;height:22px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--accent);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✓</button>
-      </div>
-    </div>
-    <div class="nav-sec">Liquidez</div>
-    <div style="padding:.3rem .85rem .5rem;display:flex;flex-direction:column;gap:5px">
-      <div style="display:flex;align-items:center;gap:4px">
-        <label style="font-size:.62rem;font-family:var(--mono);color:var(--text3);min-width:28px">ARS</label>
-        <input id="liq-ars" type="number" min="0" step="1" placeholder="0" style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:22px;text-align:right;outline:none" onkeydown="if(event.key===&#39;Enter&#39;)liqConfirm()">
-        <button onclick="liqConfirm()" title="Guardar" style="flex-shrink:0;width:22px;height:22px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--accent);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✓</button>
-      </div>
-      <div style="display:flex;align-items:center;gap:4px">
-        <label style="font-size:.62rem;font-family:var(--mono);color:var(--text3);min-width:28px">USD</label>
-        <input id="liq-usd" type="number" min="0" step="0.01" placeholder="0" style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:22px;text-align:right;outline:none" onkeydown="if(event.key===&#39;Enter&#39;)liqConfirm()">
-        <button onclick="liqConfirm()" title="Guardar" style="flex-shrink:0;width:22px;height:22px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--accent);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✓</button>
       </div>
     </div>
     <div class="nav-sec">Inv. Inicial USD</div>
