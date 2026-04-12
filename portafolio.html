@@ -203,6 +203,14 @@ tr:hover td{background:var(--surface2)}
       <input id="liq-usd" type="number" min="0" step="0.01" placeholder="0" title="Liquidez USD" style="width:64px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:20px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')liqConfirm()" onblur="liqConfirm()">
     </div>
   </div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:6px;padding-left:1.2rem;border-left:1px solid var(--border)">
+    <span class="topbar-label">Inv. Inicial</span>
+    <div style="display:flex;align-items:center;gap:3px">
+      <span class="topbar-sub">USD</span>
+      <input id="inv-sidebar-usd" type="number" min="0" step="1" placeholder="0" title="Inversión inicial USD" style="width:80px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:20px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')invConfirm()" onblur="invConfirm()">
+    </div>
+    <span class="topbar-sub" id="inv-inicial-usd-display" style="color:var(--accent);font-weight:600"></span>
+  </div>
 </div>
   <div class="logo"><div class="logo-dot"></div>Portafolio Tracker<span style="font-size:.68rem;font-weight:400;color:var(--text3);margin-left:6px">NYSE / ETF</span></div>
   <div class="hright">
@@ -229,11 +237,6 @@ tr:hover td{background:var(--surface2)}
         <input id="rv-rojo" type="number" min="0" step="1" placeholder="$ ARS" style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--red);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:22px;text-align:right;outline:none" onkeydown="if(event.key===&#39;Enter&#39;)rvConfirm()">
         <button onclick="rvConfirm()" title="Aplicar" style="flex-shrink:0;width:22px;height:22px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--accent);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✓</button>
       </div>
-    </div>
-    <div class="nav-sec">Inv. Inicial USD</div>
-    <div style="padding:.3rem .85rem .5rem;display:flex;align-items:center;gap:4px">
-      <input id="inv-sidebar-usd" type="number" min="0" step="1" placeholder="Base USD" style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:22px;text-align:right;outline:none" onkeydown="if(event.key===&#39;Enter&#39;)invConfirm()">
-      <button onclick="invConfirm()" title="Guardar" style="flex-shrink:0;width:22px;height:22px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--accent);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✓</button>
     </div>
     <div class="nav-sec">Herramientas</div>
     <button class="nav-item" onclick="showPage(&#39;tracker&#39;,this)"><span>◎</span>Dividendos</button>
@@ -399,8 +402,27 @@ tr:hover td{background:var(--surface2)}
       <div class="card">
         <div class="card-header">
           <span class="card-title">Historial (<span id="mov-count">538</span> movimientos)</span>
-          <div class="gap-row">
-            <input id="mov-filter" type="text" placeholder="Filtrar ticker..." style="text-transform:uppercase;background:var(--bg);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:4px 8px;height:28px;width:130px;outline:none" oninput="renderMovimientos()">
+          <div class="gap-row" style="flex-wrap:wrap;gap:6px">
+            <input id="mov-filter" type="text" placeholder="Ticker..." style="text-transform:uppercase;background:var(--bg);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:4px 8px;height:28px;width:90px;outline:none" oninput="renderMovimientos()" title="Filtrar por ticker">
+            <select id="mov-filter-tipo" style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:4px 6px;height:28px;outline:none" onchange="renderMovimientos()">
+              <option value="">Todos los tipos</option>
+              <option value="compra">Compra</option>
+              <option value="venta">Venta</option>
+              <option value="dividendo">Dividendo</option>
+              <option value="aporte">Aporte</option>
+            </select>
+            <select id="mov-filter-mkt" style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:4px 6px;height:28px;outline:none" onchange="renderMovimientos()">
+              <option value="">Todos los mercados</option>
+              <option value="NYSE">NYSE</option>
+              <option value="ETF">ETF</option>
+              <option value="ARGENTINA">Argentina</option>
+              <option value="BONOS">Bonos</option>
+              <option value="BRASIL">Brasil</option>
+              <option value="ON">ON</option>
+            </select>
+            <input id="mov-filter-fecha" type="text" placeholder="Fecha (ej: 2026)..." style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:4px 8px;height:28px;width:100px;outline:none" oninput="renderMovimientos()" title="Filtrar por fecha">
+            <input id="mov-filter-notas" type="text" placeholder="Notas..." style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:4px 8px;height:28px;width:100px;outline:none" oninput="renderMovimientos()" title="Filtrar por notas">
+            <button class="btn btn-sm" onclick="(function(){document.getElementById('mov-filter').value='';document.getElementById('mov-filter-tipo').value='';document.getElementById('mov-filter-mkt').value='';document.getElementById('mov-filter-fecha').value='';document.getElementById('mov-filter-notas').value='';renderMovimientos();})()" title="Limpiar filtros" style="color:var(--text3)">✕</button>
             <button class="btn" onclick="exportCSV()">↓ CSV</button>
           </div>
         </div>
@@ -1477,11 +1499,23 @@ function renderMovimientos(){
   var wrap=document.getElementById('mov-wrap');
   var filterEl=document.getElementById('mov-filter');
   var filterVal=filterEl?(filterEl.value||'').trim().toUpperCase():'';
+  var filterTipo=(document.getElementById('mov-filter-tipo')||{value:''}).value.toLowerCase();
+  var filterMkt=(document.getElementById('mov-filter-mkt')||{value:''}).value.toUpperCase();
+  var filterFecha=(document.getElementById('mov-filter-fecha')||{value:''}).value.trim();
+  var filterNotas=(document.getElementById('mov-filter-notas')||{value:''}).value.trim().toLowerCase();
 
   var lista=movimientos.slice().reverse();
   if(filterVal) lista=lista.filter(function(m){return (m.ticker||'').toUpperCase().indexOf(filterVal)>=0;});
+  if(filterTipo) lista=lista.filter(function(m){return (m.tipo||'').toLowerCase()===filterTipo;});
+  if(filterMkt) lista=lista.filter(function(m){
+    var mLabel=(m.mercado==='USA'?'NYSE':m.mercado==='ETF'?'ETF':(m.mercado||'')).toUpperCase();
+    return mLabel===filterMkt;
+  });
+  if(filterFecha) lista=lista.filter(function(m){return (m.fecha||'').indexOf(filterFecha)>=0;});
+  if(filterNotas) lista=lista.filter(function(m){return (m.notas||'').toLowerCase().indexOf(filterNotas)>=0;});
 
-  document.getElementById('mov-count').textContent=movimientos.length+(filterVal?' ('+lista.length+' filtrados)':'');
+  var anyFilter=filterVal||filterTipo||filterMkt||filterFecha||filterNotas;
+  document.getElementById('mov-count').textContent=movimientos.length+(anyFilter?' ('+lista.length+' filtrados)':'');
   if(!lista.length){empty.style.display='';wrap.style.display='none';return;}
   empty.style.display='none';wrap.style.display='';
 
