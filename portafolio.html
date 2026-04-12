@@ -1693,8 +1693,9 @@ function renderPortfolio(){
     var pnlPct=mercadoCedearARS!=null&&ppcCedearARS>0?(mercadoCedearARS-ppcCedearARS)/ppcCedearARS*100:null;
     var targetUSD=getTarget(p.ticker);
     var targetARS=targetUSD!=null?(targetUSD/ratio)*CCL_HOY:null;
-    // ΔUP en USD directo: (targetUSD - precioNYSE) / precioNYSE * 100
-    var upside=targetUSD!=null&&price!=null&&price>0?(targetUSD-price)/price*100:null;
+    // ΔUP: (P.Venta USD - Precio mercado USD) / Precio mercado USD
+    var priceUSD=q?q.price:null;
+    var upside=targetUSD!=null&&priceUSD!=null&&priceUSD>0?(targetUSD-priceUSD)/priceUSD*100:null;
 
     // Color Δ%
     var deltaCell=deltaCellFn(pnlPct);
