@@ -215,13 +215,14 @@ tr:hover td{background:var(--surface2)}
     </div>
   </div>
 </div>
+<header>
   <div class="hright">
     <button class="btn-sidebar-toggle" id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Menú">☰</button>
     <div class="lupd" style="font-size: 0.65rem; color: var(--accent);" id="sb-status">🟢 Supabase conectado</div>
     <div class="lupd" id="lupd" data-lastupd="09:52 p. m.">09:52 p.&nbsp;m. · próx. 4:52</div>
   </div>
 </header>
-<div class="main">
+<div class="main" id="main">
   <nav class="sidebar">
     <div class="nav-sec">Vistas</div>
     <button class="nav-item active" onclick="showPage(&#39;portafolio&#39;,this)"><span>◈</span>Portafolio</button>
@@ -3083,8 +3084,8 @@ function trkCalcCCL(){
 
   // ── Sidebar toggle ────────────────────────────────────────────────────────
   function toggleSidebar(){
-    var main=document.querySelector('.main');
-    main.classList.toggle('sidebar-open');
+    var main = document.getElementById('main') || document.querySelector('.main');
+    if(main) main.classList.toggle('sidebar-open');
   }
 })();
 </script>
