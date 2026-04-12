@@ -3094,7 +3094,11 @@ function trkCalcCCL(){
 // Sidebar toggle — global scope so onclick can reach it
 function toggleSidebar(){
   var main = document.getElementById('main') || document.querySelector('.main');
-  if(main) main.classList.toggle('sidebar-open');
+  if(!main) return;
+  var activePage = document.querySelector('.page.active');
+  var activeId = activePage ? activePage.id : '';
+  if(activeId !== 'page-portafolio' && main.classList.contains('sidebar-open')) return;
+  main.classList.toggle('sidebar-open');
 }
 </script>
 
