@@ -933,6 +933,7 @@ function showPage(id,btn){
   if(btn)btn.classList.add('active');
   if(id==='tracker') initTracker();
   if(id==='movimientos') simPopulateSelect();
+  if(id==='arbitraje') arbRender();
 }
 
 function onTipo(){
@@ -2445,13 +2446,6 @@ function arbAddRow(pi){
   ARB_PAIRS[pi].rows.push({ plazo:'?', precioA:0, precioB:0, condicion:'', voy:'', nominales:'' });
   arbSave();
   arbRender();
-}
-
-// Init on page show
-var _origShowPage=showPage;
-function showPage(id,btn){
-  _origShowPage(id,btn);
-  if(id==='arbitraje') arbRender();
 }
 
 async function fetchTopbarRates(){
