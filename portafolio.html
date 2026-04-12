@@ -1714,7 +1714,8 @@ function renderPortfolio(){
     if(!rows||!rows.length){panel.style.display='none';return;}
     panel.style.display='';body.innerHTML=rows.join('');
     var val=sectorVal[def.key];
-    meta.textContent=rows.length+' posiciones'+(val>0?' · $'+Math.round(val).toLocaleString('es-AR')+' USD':'');
+    var valARS=val>0&&CCL_HOY>0?Math.round(val*CCL_HOY):null;
+    meta.textContent=rows.length+' posiciones'+(valARS?' · $'+valARS.toLocaleString('es-AR'):'');
   });
   // Liquidez del sidebar
   var liqARS=getRawNum('liq-ars');
