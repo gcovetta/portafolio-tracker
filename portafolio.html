@@ -196,26 +196,23 @@ tr:hover td{background:var(--surface2)}
     <span class="topbar-label">Liquidez</span>
     <div style="display:flex;align-items:center;gap:3px">
       <span class="topbar-sub">$</span>
-      <input id="liq-ars" type="number" min="0" step="1" placeholder="0" title="Liquidez ARS" style="width:80px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:20px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')liqConfirm()" onblur="liqConfirm()">
+      <input id="liq-ars" type="text" inputmode="numeric" placeholder="0" title="Liquidez ARS" style="width:80px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:20px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')liqConfirm()" onblur="liqConfirm()" oninput="fmtNumInput(this,0)">
     </div>
     <div style="display:flex;align-items:center;gap:3px">
       <span class="topbar-sub">USD</span>
-      <input id="liq-usd" type="number" min="0" step="0.01" placeholder="0" title="Liquidez USD" style="width:64px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:20px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')liqConfirm()" onblur="liqConfirm()">
+      <input id="liq-usd" type="text" inputmode="numeric" placeholder="0" title="Liquidez USD" style="width:64px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:20px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')liqConfirm()" onblur="liqConfirm()" oninput="fmtNumInput(this,2)">
     </div>
   </div>
   <div style="margin-left:auto;display:flex;align-items:center;gap:6px;padding-left:1.2rem;border-left:1px solid var(--border)">
     <span class="topbar-label">Inv. Inicial</span>
     <div style="display:flex;align-items:center;gap:3px">
       <span class="topbar-sub">USD</span>
-      <input id="inv-sidebar-usd" type="number" min="0" step="1" placeholder="0" title="Inversión inicial USD" style="width:80px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:20px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')invConfirm()" onblur="invConfirm()">
+      <input id="inv-sidebar-usd" type="text" inputmode="numeric" placeholder="0" title="Inversión inicial USD" style="width:80px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:20px;text-align:right;outline:none" onkeydown="if(event.key==='Enter')invConfirm()" onblur="invConfirm()" oninput="fmtNumInput(this,0)">
     </div>
-    <span class="topbar-sub" id="inv-inicial-usd-display" style="color:var(--accent);font-weight:600"></span>
   </div>
 </div>
   <div class="logo"><div class="logo-dot"></div>Portafolio Tracker<span style="font-size:.68rem;font-weight:400;color:var(--text3);margin-left:6px">NYSE / ETF</span></div>
   <div class="hright">
-    <div class="tag">Finnhub API</div>
-    <div class="tag">Supabase DB</div>
     <div class="lupd" style="font-size: 0.65rem; color: var(--accent);" id="sb-status">🟢 Supabase conectado</div>
     <div class="lupd" id="lupd" data-lastupd="09:52 p. m.">09:52 p.&nbsp;m. · próx. 4:52</div>
   </div>
@@ -1045,34 +1042,64 @@ function reduceMov(id){
 function saveInvInicial(v){
   try{
     if(v===undefined){
-      // fallback: leer del campo viejo si existe
-      var el=document.getElementById('inv-sidebar-usd');
-      v=el?el.value:'';
+      v=getRawNum('inv-sidebar-usd');
     }
-    localStorage.setItem('ptNYSE_inv_inicial',v);
-    sbSetConfig('inv_inicial', v);
+    // v may come in already as raw number or as formatted string — normalize
+    var raw = typeof v === 'string' ? (parseFloat(v.replace(/\./g,'').replace(/,/g,'.'))||0) : (parseFloat(v)||0);
+    localStorage.setItem('ptNYSE_inv_inicial', raw);
+    sbSetConfig('inv_inicial', raw);
     // actualizar display en metric card
     var disp=document.getElementById('inv-inicial-usd-display');
-    if(disp) disp.textContent=v?'$'+parseFloat(v).toLocaleString('es-AR'):'—';
-    // sincronizar campo sidebar
-    var sb=document.getElementById('inv-sidebar-usd');
-    if(sb && sb.value!==String(v)) sb.value=v;
+    if(disp) disp.textContent=raw?'$'+Math.round(raw).toLocaleString('es-AR'):'—';
+    // sincronizar campo topbar con formato
+    setFmtNum('inv-sidebar-usd', raw, 0);
     renderPortfolio();
   }catch(e){}
 }
 function loadInvInicial(){
   try{
     var v=localStorage.getItem('ptNYSE_inv_inicial');
-    var sb=document.getElementById('inv-sidebar-usd');
     var disp=document.getElementById('inv-inicial-usd-display');
-    if(sb&&v){sb.value=v;}
-    if(disp){disp.textContent=v?'$'+parseFloat(v).toLocaleString('es-AR'):'—';}
+    if(v){ setFmtNum('inv-sidebar-usd', v, 0); }
+    if(disp){disp.textContent=v?'$'+Math.round(parseFloat(v)).toLocaleString('es-AR'):'—';}
   }catch(e){}
 }
+// ── Thousand-separator formatting for text inputs ──────────────────────────
+function fmtNumInput(el, decimals){
+  var raw = el.value.replace(/\./g,'').replace(/,/g,'.'); // strip dots, normalize comma
+  var num = parseFloat(raw);
+  if(isNaN(num)){ return; }
+  var pos = el.selectionStart;
+  var oldLen = el.value.length;
+  if(decimals>0){
+    el.value = num.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:decimals});
+  } else {
+    el.value = Math.round(num).toLocaleString('es-AR',{maximumFractionDigits:0});
+  }
+  // restore cursor position approximately
+  var newLen = el.value.length;
+  el.selectionStart = el.selectionEnd = Math.max(0, pos + (newLen - oldLen));
+}
+function getRawNum(id){
+  var el = document.getElementById(id);
+  if(!el) return 0;
+  var v = el.value.replace(/\./g,'').replace(/,/g,'.');
+  return parseFloat(v)||0;
+}
+function setFmtNum(id, num, decimals){
+  var el = document.getElementById(id);
+  if(!el) return;
+  if(num===null||num===undefined||num==='') { el.value=''; return; }
+  var n = parseFloat(num)||0;
+  el.value = decimals>0
+    ? n.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:decimals})
+    : Math.round(n).toLocaleString('es-AR',{maximumFractionDigits:0});
+}
+
 function saveLiquidez(){
   try{
-    var ars=document.getElementById('liq-ars').value;
-    var usd=document.getElementById('liq-usd').value;
+    var ars=getRawNum('liq-ars');
+    var usd=getRawNum('liq-usd');
     localStorage.setItem('ptNYSE_liq',JSON.stringify({ars:ars,usd:usd}));
     sbSetConfig('liquidez', {ars:ars,usd:usd});
   }catch(e){}
@@ -1114,7 +1141,7 @@ function rvConfirm(){
   });
 }
 function invConfirm(){
-  var v=document.getElementById('inv-sidebar-usd').value;
+  var v=getRawNum('inv-sidebar-usd');
   saveInvInicial(v);
   var btn=document.querySelector('[onclick="invConfirm()"]');
   if(btn){var orig=btn.textContent;btn.textContent='✓';btn.style.color='var(--accent)';setTimeout(function(){btn.textContent=orig;},1000);}
@@ -1124,10 +1151,8 @@ function loadLiquidez(){
     var l=localStorage.getItem('ptNYSE_liq');
     if(l){
       var d=JSON.parse(l);
-      var ea=document.getElementById('liq-ars');
-      var eu=document.getElementById('liq-usd');
-      if(ea&&d.ars)ea.value=d.ars;
-      if(eu&&d.usd)eu.value=d.usd;
+      if(d.ars) setFmtNum('liq-ars', d.ars, 0);
+      if(d.usd) setFmtNum('liq-usd', d.usd, 2);
     }
   }catch(e){}
 }
@@ -1716,8 +1741,8 @@ function renderPortfolio(){
     meta.textContent=rows.length+' posiciones'+(val>0?' · $'+Math.round(val).toLocaleString('es-AR')+' USD':'');
   });
   // Liquidez del sidebar
-  var liqARS=parseFloat((document.getElementById('liq-ars')||{value:0}).value)||0;
-  var liqUSD=parseFloat((document.getElementById('liq-usd')||{value:0}).value)||0;
+  var liqARS=getRawNum('liq-ars');
+  var liqUSD=getRawNum('liq-usd');
   var liqTotalUSD=liqUSD+(CCL_HOY>0?liqARS/CCL_HOY:0);
   var valConLiq=totalVal+liqTotalUSD;
 
@@ -1737,7 +1762,7 @@ function renderPortfolio(){
   // Rendimiento = (ValTotal - CostoTotal) / CostoTotal * 100
   // Rendimiento: usa inversión inicial si está cargada, si no usa costUSD
   var invInicialEl=document.getElementById('inv-sidebar-usd');
-  var invInicial=invInicialEl?parseFloat(invInicialEl.value)||0:0;
+  var invInicial=getRawNum('inv-sidebar-usd');
   var baseRend=invInicial>0?invInicial:totalCost;
   var rendPct=baseRend>0?(valConLiq-baseRend)/baseRend*100:null;
   var rendEl=document.getElementById('m-rend');
@@ -2918,15 +2943,19 @@ function trkCalcCCL(){
     // 7. Liquidez
     var sbLiq = await sbGetConfig('liquidez');
     if(sbLiq){
-      var ea=document.getElementById('liq-ars');var eu=document.getElementById('liq-usd');
-      if(ea&&sbLiq.ars)ea.value=sbLiq.ars;if(eu&&sbLiq.usd)eu.value=sbLiq.usd;
+      if(sbLiq.ars) setFmtNum('liq-ars', sbLiq.ars, 0);
+      if(sbLiq.usd) setFmtNum('liq-usd', sbLiq.usd, 2);
       try{localStorage.setItem('ptNYSE_liq',JSON.stringify(sbLiq));}catch(e){}
     } else { loadLiquidez(); }
 
     // 8. Inversión inicial
     var sbInv = await sbGetConfig('inv_inicial');
-    if(sbInv){var ei=document.getElementById('inv-sidebar-usd');if(ei)ei.value=sbInv;var di=document.getElementById('inv-inicial-usd-display');if(di)di.textContent='$'+parseFloat(sbInv).toLocaleString('es-AR');try{localStorage.setItem('ptNYSE_inv_inicial',String(sbInv));}catch(e){}}
-    else{loadInvInicial();}
+    if(sbInv){
+      setFmtNum('inv-sidebar-usd', sbInv, 0);
+      var di=document.getElementById('inv-inicial-usd-display');
+      if(di)di.textContent='$'+Math.round(parseFloat(sbInv)).toLocaleString('es-AR');
+      try{localStorage.setItem('ptNYSE_inv_inicial',String(sbInv));}catch(e){}
+    } else{loadInvInicial();}
 
     // 9. Quotes cache (solo localStorage - datos volátiles)
     try{
