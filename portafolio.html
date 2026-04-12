@@ -10,24 +10,24 @@
 *{box-sizing:border-box;margin:0;padding:0}html{font-size:15.5px}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.5}
 .app{display:grid;grid-template-rows:auto 1fr;min-height:100vh}
-.arb-wrap{margin-bottom:10px}
-.arb-pair-header{display:grid;grid-template-columns:40px 1fr 1fr 90px 30px 84px 66px 90px;gap:0;background:linear-gradient(135deg,#2d1b5a,#1a1040);border-radius:var(--rsm) var(--rsm) 0 0;border:1px solid #6b3fa0}
-.arb-row{display:grid;grid-template-columns:40px 1fr 1fr 90px 30px 84px 66px 90px;gap:0;border-left:1px solid var(--border2);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2)}
+.arb-wrap{margin-bottom:6px}
+.arb-pair-header{display:grid;grid-template-columns:32px 1fr 1fr 76px 24px 72px 56px 76px;gap:0;background:linear-gradient(135deg,#2d1b5a,#1a1040);border-radius:var(--rsm) var(--rsm) 0 0;border:1px solid #6b3fa0}
+.arb-row{display:grid;grid-template-columns:32px 1fr 1fr 76px 24px 72px 56px 76px;gap:0;border-left:1px solid var(--border2);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2)}
 .arb-row:last-child{border-radius:0 0 var(--rsm) var(--rsm)}
-.arb-cell{padding:4px 6px;font-size:.68rem;font-family:var(--mono);display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);text-align:center}
+.arb-cell{padding:3px 4px;font-size:.61rem;font-family:var(--mono);display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);text-align:center}
 .arb-cell:last-child{border-right:none}
 .arb-cell.left{justify-content:flex-start}
-.arb-label{font-size:.56rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.55);padding:4px 6px;display:flex;align-items:center;justify-content:center}
-.arb-plazo{background:rgba(0,0,0,.35);font-weight:700;font-size:.66rem;color:var(--text3);min-width:40px}
-.arb-ratio-green{background:#1a4d1a;color:#5dde5d;font-weight:700;border-radius:4px;padding:2px 5px;font-size:.68rem;text-align:center}
-.arb-ratio-amber{background:#3d2a00;color:#f0a800;font-weight:700;border-radius:4px;padding:2px 5px;font-size:.68rem;text-align:center}
-.arb-ratio-red{background:#3d0e0e;color:#e05555;font-weight:700;border-radius:4px;padding:2px 5px;font-size:.68rem;text-align:center}
-.arb-op{font-size:.9rem;font-weight:900;color:var(--text3)}
+.arb-label{font-size:.5rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.5);padding:3px 4px;display:flex;align-items:center;justify-content:center}
+.arb-plazo{background:rgba(0,0,0,.35);font-weight:700;font-size:.59rem;color:var(--text3);min-width:32px}
+.arb-ratio-green{background:#1a4d1a;color:#5dde5d;font-weight:700;border-radius:3px;padding:1px 4px;font-size:.6rem;text-align:center}
+.arb-ratio-amber{background:#3d2a00;color:#f0a800;font-weight:700;border-radius:3px;padding:1px 4px;font-size:.6rem;text-align:center}
+.arb-ratio-red{background:#3d0e0e;color:#e05555;font-weight:700;border-radius:3px;padding:1px 4px;font-size:.6rem;text-align:center}
+.arb-op{font-size:.78rem;font-weight:900;color:var(--text3)}
 .arb-op.buy{color:var(--green)}
 .arb-op.sell{color:var(--red)}
-.arb-input{background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:.67rem;width:100%;text-align:center;outline:none;padding:1px 3px}
+.arb-input{background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:.59rem;width:100%;text-align:center;outline:none;padding:1px 2px}
 .arb-input:focus{border-bottom-color:var(--accent);background:rgba(255,255,255,.04)}
-.arb-input-name{font-weight:700;font-size:.7rem;color:var(--text);text-align:center}
+.arb-input-name{font-weight:700;font-size:.62rem;color:var(--text);text-align:center}
 .topbar{display:flex;align-items:center;gap:1.2rem;padding:.28rem 1.5rem;background:var(--bg);border-bottom:1px solid var(--border);font-size:.68rem;font-family:var(--mono);color:var(--text3);flex-wrap:wrap}
 .topbar-item{display:flex;align-items:center;gap:.35rem}
 .topbar-label{color:var(--text3);font-size:.63rem;letter-spacing:.03em;text-transform:uppercase}
@@ -177,7 +177,21 @@ tr:hover td{background:var(--surface2)}
     <span class="topbar-label">Blue</span>
     <span class="topbar-val" id="tb-blue">—</span>
   </div>
-</div>
+  <div class="topbar-item" id="tb-btc-wrap">
+    <span class="topbar-label">BTC</span>
+    <span class="topbar-val" id="tb-btc">—</span>
+    <span class="topbar-sub" id="tb-btc-chg" style="font-size:.6rem"></span>
+  </div>
+  <div class="topbar-item" id="tb-ewz-wrap">
+    <span class="topbar-label">EWZ</span>
+    <span class="topbar-val" id="tb-ewz">—</span>
+    <span class="topbar-sub" id="tb-ewz-chg" style="font-size:.6rem"></span>
+  </div>
+  <div class="topbar-item" id="tb-imv-wrap">
+    <span class="topbar-label">IMV/CCL</span>
+    <span class="topbar-val" id="tb-imv">—</span>
+    <span class="topbar-sub" id="tb-imv-chg" style="font-size:.6rem"></span>
+  </div>
 <header>
   <div class="logo"><div class="logo-dot"></div>Portafolio Tracker<span style="font-size:.68rem;font-weight:400;color:var(--text3);margin-left:6px">NYSE / ETF</span></div>
   <div class="hright">
@@ -677,8 +691,8 @@ tr:hover td{background:var(--surface2)}
           <span class="smsg" style="font-size:.68rem;color:var(--text3)">Editá tickers, precios, % objetivo y nominales — todo en tiempo real</span>
           <button class="btn btn-sm" onclick="arbAddPair()" style="margin-left:auto">+ Par</button>
         </div>
-        <div class="card-body" style="padding:.65rem">
-          <div class="ibox" style="margin-bottom:8px;font-size:.64rem;padding:.4rem .7rem">
+        <div class="card-body" style="padding:.45rem">
+          <div class="ibox" style="margin-bottom:6px;font-size:.6rem;padding:.3rem .6rem">
             <b>Ratio</b> = Precio A ÷ Precio B × 100 &nbsp;·&nbsp; El color indica si el ratio está <span style="color:#5dde5d">por encima</span>, en zona <span style="color:#f0a800">neutral</span> o <span style="color:#e05555">por debajo</span> del % objetivo. Editá cualquier celda directamente.
           </div>
           <div id="arb-container"><div class="arb-wrap"><div class="arb-pair-header"><div class="arb-label" style="border-radius:var(--rsm) 0 0 0"></div><div class="arb-label" style="flex-direction:column;gap:2px"><input class="arb-input arb-input-name" value="GD29" onchange="arbUpdate(0,-1,&#39;a&#39;,this.value)" style="color:#a78bfa;width:90px" oninput="arbUpdate(0,-1,&#39;a&#39;,this.value)"></div><div class="arb-label" style="flex-direction:column;gap:2px"><input class="arb-input arb-input-name" value="AL30" onchange="arbUpdate(0,-1,&#39;b&#39;,this.value)" style="color:#60a5fa;width:90px" oninput="arbUpdate(0,-1,&#39;b&#39;,this.value)"></div><div class="arb-label" style="flex-direction:column;gap:2px">Ratio<br><input class="arb-input" value="104.5%" style="width:72px;color:#f0a800;font-weight:700" oninput="arbUpdate(0,-1,&#39;pctObj&#39;,this.value.replace(&#39;%&#39;,&#39;&#39;))"></div><div class="arb-label"></div><div class="arb-label">Condición</div><div class="arb-label">Voy</div><div class="arb-label" style="border-radius:0 var(--rsm) 0 0;gap:4px">Nominales<button class="btn btn-d btn-sm" onclick="arbRemovePair(0)" style="padding:1px 5px;font-size:.6rem;margin-left:4px" title="Eliminar par">✕</button></div></div><div class="arb-row" style=""><div class="arb-cell arb-plazo"><input class="arb-input" value="CI" style="width:36px;font-weight:700;color:var(--text2)" oninput="arbUpdate(0,0,&#39;plazo&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="92310" placeholder="$0" oninput="arbUpdate(0,0,&#39;precioA&#39;,this.value)" style="color:#a78bfa"></div><div class="arb-cell"><input class="arb-input" value="88600" placeholder="$0" oninput="arbUpdate(0,0,&#39;precioB&#39;,this.value)" style="color:#60a5fa"></div><div class="arb-cell" id="arb-ratio-0-0"><span class="arb-ratio-amber">104.19%</span></div><div class="arb-cell arb-op buy" id="arb-arrow-0-0">&lt;</div><div class="arb-cell"><input class="arb-input" value="$1.025" placeholder="$1.00" oninput="arbUpdate(0,0,&#39;condicion&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="GD29" placeholder="ticker" oninput="arbUpdate(0,0,&#39;voy&#39;,this.value)" style="text-transform:uppercase;font-weight:600"></div><div class="arb-cell"><input class="arb-input" value="" placeholder="—" oninput="arbUpdate(0,0,&#39;nominales&#39;,this.value)"></div></div><div class="arb-row" style="background:rgba(255,255,255,.025)"><div class="arb-cell arb-plazo"><input class="arb-input" value="24" style="width:36px;font-weight:700;color:var(--text2)" oninput="arbUpdate(0,1,&#39;plazo&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="91390" placeholder="$0" oninput="arbUpdate(0,1,&#39;precioA&#39;,this.value)" style="color:#a78bfa"></div><div class="arb-cell"><input class="arb-input" value="88660" placeholder="$0" oninput="arbUpdate(0,1,&#39;precioB&#39;,this.value)" style="color:#60a5fa"></div><div class="arb-cell" id="arb-ratio-0-1"><span class="arb-ratio-red">103.08%</span></div><div class="arb-cell arb-op buy" id="arb-arrow-0-1">&lt;</div><div class="arb-cell"><input class="arb-input" value="$1.040" placeholder="$1.00" oninput="arbUpdate(0,1,&#39;condicion&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="AL30" placeholder="ticker" oninput="arbUpdate(0,1,&#39;voy&#39;,this.value)" style="text-transform:uppercase;font-weight:600"></div><div class="arb-cell"><input class="arb-input" value="1.213" placeholder="—" oninput="arbUpdate(0,1,&#39;nominales&#39;,this.value)"></div></div><div style="text-align:right;margin-top:3px;margin-bottom:2px"><button class="btn btn-sm" onclick="arbAddRow(0)" style="font-size:.6rem;padding:2px 8px">+ plazo</button></div></div><div class="arb-wrap"><div class="arb-pair-header"><div class="arb-label" style="border-radius:var(--rsm) 0 0 0"></div><div class="arb-label" style="flex-direction:column;gap:2px"><input class="arb-input arb-input-name" value="GD41" onchange="arbUpdate(1,-1,&#39;a&#39;,this.value)" style="color:#a78bfa;width:90px" oninput="arbUpdate(1,-1,&#39;a&#39;,this.value)"></div><div class="arb-label" style="flex-direction:column;gap:2px"><input class="arb-input arb-input-name" value="AE38" onchange="arbUpdate(1,-1,&#39;b&#39;,this.value)" style="color:#60a5fa;width:90px" oninput="arbUpdate(1,-1,&#39;b&#39;,this.value)"></div><div class="arb-label" style="flex-direction:column;gap:2px">Ratio<br><input class="arb-input" value="107%" style="width:72px;color:#f0a800;font-weight:700" oninput="arbUpdate(1,-1,&#39;pctObj&#39;,this.value.replace(&#39;%&#39;,&#39;&#39;))"></div><div class="arb-label"></div><div class="arb-label">Condición</div><div class="arb-label">Voy</div><div class="arb-label" style="border-radius:0 var(--rsm) 0 0;gap:4px">Nominales<button class="btn btn-d btn-sm" onclick="arbRemovePair(1)" style="padding:1px 5px;font-size:.6rem;margin-left:4px" title="Eliminar par">✕</button></div></div><div class="arb-row" style=""><div class="arb-cell arb-plazo"><input class="arb-input" value="CI" style="width:36px;font-weight:700;color:var(--text2)" oninput="arbUpdate(1,0,&#39;plazo&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="104540" placeholder="$0" oninput="arbUpdate(1,0,&#39;precioA&#39;,this.value)" style="color:#a78bfa"></div><div class="arb-cell"><input class="arb-input" value="112720" placeholder="$0" oninput="arbUpdate(1,0,&#39;precioB&#39;,this.value)" style="color:#60a5fa"></div><div class="arb-cell" id="arb-ratio-1-0"><span class="arb-ratio-red">92.74%</span></div><div class="arb-cell arb-op buy" id="arb-arrow-1-0">&lt;</div><div class="arb-cell"><input class="arb-input" value="$1.085" placeholder="$1.00" oninput="arbUpdate(1,0,&#39;condicion&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="GD41" placeholder="ticker" oninput="arbUpdate(1,0,&#39;voy&#39;,this.value)" style="text-transform:uppercase;font-weight:600"></div><div class="arb-cell"><input class="arb-input" value="" placeholder="—" oninput="arbUpdate(1,0,&#39;nominales&#39;,this.value)"></div></div><div class="arb-row" style="background:rgba(255,255,255,.025)"><div class="arb-cell arb-plazo"><input class="arb-input" value="24" style="width:36px;font-weight:700;color:var(--text2)" oninput="arbUpdate(1,1,&#39;plazo&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="104350" placeholder="$0" oninput="arbUpdate(1,1,&#39;precioA&#39;,this.value)" style="color:#a78bfa"></div><div class="arb-cell"><input class="arb-input" value="112900" placeholder="$0" oninput="arbUpdate(1,1,&#39;precioB&#39;,this.value)" style="color:#60a5fa"></div><div class="arb-cell" id="arb-ratio-1-1"><span class="arb-ratio-red">92.43%</span></div><div class="arb-cell arb-op buy" id="arb-arrow-1-1">&lt;</div><div class="arb-cell"><input class="arb-input" value="$1.080" placeholder="$1.00" oninput="arbUpdate(1,1,&#39;condicion&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="AE38" placeholder="ticker" oninput="arbUpdate(1,1,&#39;voy&#39;,this.value)" style="text-transform:uppercase;font-weight:600"></div><div class="arb-cell"><input class="arb-input" value="934" placeholder="—" oninput="arbUpdate(1,1,&#39;nominales&#39;,this.value)"></div></div><div style="text-align:right;margin-top:3px;margin-bottom:2px"><button class="btn btn-sm" onclick="arbAddRow(1)" style="font-size:.6rem;padding:2px 8px">+ plazo</button></div></div><div class="arb-wrap"><div class="arb-pair-header"><div class="arb-label" style="border-radius:var(--rsm) 0 0 0"></div><div class="arb-label" style="flex-direction:column;gap:2px"><input class="arb-input arb-input-name" value="TXAR" onchange="arbUpdate(2,-1,&#39;a&#39;,this.value)" style="color:#a78bfa;width:90px" oninput="arbUpdate(2,-1,&#39;a&#39;,this.value)"></div><div class="arb-label" style="flex-direction:column;gap:2px"><input class="arb-input arb-input-name" value="ALUA" onchange="arbUpdate(2,-1,&#39;b&#39;,this.value)" style="color:#60a5fa;width:90px" oninput="arbUpdate(2,-1,&#39;b&#39;,this.value)"></div><div class="arb-label" style="flex-direction:column;gap:2px">Ratio<br><input class="arb-input" value="130%" style="width:72px;color:#f0a800;font-weight:700" oninput="arbUpdate(2,-1,&#39;pctObj&#39;,this.value.replace(&#39;%&#39;,&#39;&#39;))"></div><div class="arb-label"></div><div class="arb-label">Condición</div><div class="arb-label">Voy</div><div class="arb-label" style="border-radius:0 var(--rsm) 0 0;gap:4px">Nominales<button class="btn btn-d btn-sm" onclick="arbRemovePair(2)" style="padding:1px 5px;font-size:.6rem;margin-left:4px" title="Eliminar par">✕</button></div></div><div class="arb-row" style=""><div class="arb-cell arb-plazo"><input class="arb-input" value="CI" style="width:36px;font-weight:700;color:var(--text2)" oninput="arbUpdate(2,0,&#39;plazo&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="873" placeholder="$0" oninput="arbUpdate(2,0,&#39;precioA&#39;,this.value)" style="color:#a78bfa"></div><div class="arb-cell"><input class="arb-input" value="668" placeholder="$0" oninput="arbUpdate(2,0,&#39;precioB&#39;,this.value)" style="color:#60a5fa"></div><div class="arb-cell" id="arb-ratio-2-0"><span class="arb-ratio-green">130.69%</span></div><div class="arb-cell arb-op sell" id="arb-arrow-2-0">&gt;</div><div class="arb-cell"><input class="arb-input" value="$1.033" placeholder="$1.00" oninput="arbUpdate(2,0,&#39;condicion&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="AE38" placeholder="ticker" oninput="arbUpdate(2,0,&#39;voy&#39;,this.value)" style="text-transform:uppercase;font-weight:600"></div><div class="arb-cell"><input class="arb-input" value="284.40" placeholder="—" oninput="arbUpdate(2,0,&#39;nominales&#39;,this.value)"></div></div><div class="arb-row" style="background:rgba(255,255,255,.025)"><div class="arb-cell arb-plazo"><input class="arb-input" value="24" style="width:36px;font-weight:700;color:var(--text2)" oninput="arbUpdate(2,1,&#39;plazo&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="878" placeholder="$0" oninput="arbUpdate(2,1,&#39;precioA&#39;,this.value)" style="color:#a78bfa"></div><div class="arb-cell"><input class="arb-input" value="674" placeholder="$0" oninput="arbUpdate(2,1,&#39;precioB&#39;,this.value)" style="color:#60a5fa"></div><div class="arb-cell" id="arb-ratio-2-1"><span class="arb-ratio-amber">130.27%</span></div><div class="arb-cell arb-op sell" id="arb-arrow-2-1">&gt;</div><div class="arb-cell"><input class="arb-input" value="$1.270" placeholder="$1.00" oninput="arbUpdate(2,1,&#39;condicion&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="ALUAR" placeholder="ticker" oninput="arbUpdate(2,1,&#39;voy&#39;,this.value)" style="text-transform:uppercase;font-weight:600"></div><div class="arb-cell"><input class="arb-input" value="" placeholder="—" oninput="arbUpdate(2,1,&#39;nominales&#39;,this.value)"></div></div><div style="text-align:right;margin-top:3px;margin-bottom:2px"><button class="btn btn-sm" onclick="arbAddRow(2)" style="font-size:.6rem;padding:2px 8px">+ plazo</button></div></div><div class="arb-wrap"><div class="arb-pair-header"><div class="arb-label" style="border-radius:var(--rsm) 0 0 0"></div><div class="arb-label" style="flex-direction:column;gap:2px"><input class="arb-input arb-input-name" value="GD38" onchange="arbUpdate(3,-1,&#39;a&#39;,this.value)" style="color:#a78bfa;width:90px" oninput="arbUpdate(3,-1,&#39;a&#39;,this.value)"></div><div class="arb-label" style="flex-direction:column;gap:2px"><input class="arb-input arb-input-name" value="AE38" onchange="arbUpdate(3,-1,&#39;b&#39;,this.value)" style="color:#60a5fa;width:90px" oninput="arbUpdate(3,-1,&#39;b&#39;,this.value)"></div><div class="arb-label" style="flex-direction:column;gap:2px">Ratio<br><input class="arb-input" value="104.3%" style="width:72px;color:#f0a800;font-weight:700" oninput="arbUpdate(3,-1,&#39;pctObj&#39;,this.value.replace(&#39;%&#39;,&#39;&#39;))"></div><div class="arb-label"></div><div class="arb-label">Condición</div><div class="arb-label">Voy</div><div class="arb-label" style="border-radius:0 var(--rsm) 0 0;gap:4px">Nominales<button class="btn btn-d btn-sm" onclick="arbRemovePair(3)" style="padding:1px 5px;font-size:.6rem;margin-left:4px" title="Eliminar par">✕</button></div></div><div class="arb-row" style=""><div class="arb-cell arb-plazo"><input class="arb-input" value="CI" style="width:36px;font-weight:700;color:var(--text2)" oninput="arbUpdate(3,0,&#39;plazo&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="116620" placeholder="$0" oninput="arbUpdate(3,0,&#39;precioA&#39;,this.value)" style="color:#a78bfa"></div><div class="arb-cell"><input class="arb-input" value="111790" placeholder="$0" oninput="arbUpdate(3,0,&#39;precioB&#39;,this.value)" style="color:#60a5fa"></div><div class="arb-cell" id="arb-ratio-3-0"><span class="arb-ratio-amber">104.32%</span></div><div class="arb-cell arb-op sell" id="arb-arrow-3-0">&gt;</div><div class="arb-cell"><input class="arb-input" value="" placeholder="$1.00" oninput="arbUpdate(3,0,&#39;condicion&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="" placeholder="ticker" oninput="arbUpdate(3,0,&#39;voy&#39;,this.value)" style="text-transform:uppercase;font-weight:600"></div><div class="arb-cell"><input class="arb-input" value="" placeholder="—" oninput="arbUpdate(3,0,&#39;nominales&#39;,this.value)"></div></div><div class="arb-row" style="background:rgba(255,255,255,.025)"><div class="arb-cell arb-plazo"><input class="arb-input" value="24" style="width:36px;font-weight:700;color:var(--text2)" oninput="arbUpdate(3,1,&#39;plazo&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="116690" placeholder="$0" oninput="arbUpdate(3,1,&#39;precioA&#39;,this.value)" style="color:#a78bfa"></div><div class="arb-cell"><input class="arb-input" value="111870" placeholder="$0" oninput="arbUpdate(3,1,&#39;precioB&#39;,this.value)" style="color:#60a5fa"></div><div class="arb-cell" id="arb-ratio-3-1"><span class="arb-ratio-amber">104.31%</span></div><div class="arb-cell arb-op sell" id="arb-arrow-3-1">&gt;</div><div class="arb-cell"><input class="arb-input" value="$1.044" placeholder="$1.00" oninput="arbUpdate(3,1,&#39;condicion&#39;,this.value)"></div><div class="arb-cell"><input class="arb-input" value="GD38" placeholder="ticker" oninput="arbUpdate(3,1,&#39;voy&#39;,this.value)" style="text-transform:uppercase;font-weight:600"></div><div class="arb-cell"><input class="arb-input" value="1.000" placeholder="—" oninput="arbUpdate(3,1,&#39;nominales&#39;,this.value)"></div></div><div style="text-align:right;margin-top:3px;margin-bottom:2px"><button class="btn btn-sm" onclick="arbAddRow(3)" style="font-size:.6rem;padding:2px 8px">+ plazo</button></div></div></div>
@@ -2951,7 +2965,80 @@ function trkCalcCCL(){
   };
 
   _startCycle();
-})();
+
+  // ── Market data: BTC, EWZ, IMV/CCL ──────────────────────────────────────
+  async function fetchMarketExtras(){
+    // BTC via CoinGecko (no key needed)
+    try {
+      var r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+      if(r.ok){
+        var d = await r.json();
+        var price = d.bitcoin.usd;
+        var chg = d.bitcoin.usd_24h_change;
+        var el = document.getElementById('tb-btc');
+        var ec = document.getElementById('tb-btc-chg');
+        if(el) el.textContent = '$' + price.toLocaleString('en-US',{maximumFractionDigits:0});
+        if(ec){
+          ec.textContent = (chg>=0?'+':'')+chg.toFixed(2)+'%';
+          ec.style.color = chg>=0?'var(--accent)':'var(--red)';
+        }
+      }
+    }catch(e){}
+
+    // EWZ via Yahoo Finance proxy
+    try {
+      var r2 = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/EWZ?interval=1d&range=2d');
+      if(r2.ok){
+        var d2 = await r2.json();
+        var q = d2.chart.result[0];
+        var closes = q.indicators.quote[0].close;
+        var prev = closes[closes.length-2];
+        var last = closes[closes.length-1];
+        var chg2 = ((last-prev)/prev)*100;
+        var el2 = document.getElementById('tb-ewz');
+        var ec2 = document.getElementById('tb-ewz-chg');
+        if(el2) el2.textContent = '$'+last.toFixed(2);
+        if(ec2){
+          ec2.textContent = (chg2>=0?'+':'')+chg2.toFixed(2)+'%';
+          ec2.style.color = chg2>=0?'var(--accent)':'var(--red)';
+        }
+      }
+    }catch(e){}
+
+    // IMV (MERVAL index, via Yahoo Finance ^MERV) / CCL
+    try {
+      var r3 = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/%5EMERV?interval=1d&range=2d');
+      if(r3.ok){
+        var d3 = await r3.json();
+        var q3 = d3.chart.result[0];
+        var cls3 = q3.indicators.quote[0].close;
+        var last3 = cls3[cls3.length-1];
+        var prev3 = cls3[cls3.length-2];
+        var chg3 = ((last3-prev3)/prev3)*100;
+        // Get CCL from topbar
+        var cclEl = document.getElementById('tb-ccl');
+        var cclVal = cclEl ? parseFloat(cclEl.textContent.replace('$','').replace('.','').replace(',','.')) : null;
+        var el3 = document.getElementById('tb-imv');
+        var ec3 = document.getElementById('tb-imv-chg');
+        if(el3){
+          if(cclVal && cclVal>1){
+            var imvUsd = last3/cclVal;
+            el3.textContent = '$'+imvUsd.toLocaleString('es-AR',{maximumFractionDigits:0});
+          } else {
+            el3.textContent = (last3/1000).toFixed(0)+'k';
+          }
+        }
+        if(ec3){
+          ec3.textContent = (chg3>=0?'+':'')+chg3.toFixed(2)+'%';
+          ec3.style.color = chg3>=0?'var(--accent)':'var(--red)';
+        }
+      }
+    }catch(e){}
+  }
+
+  fetchMarketExtras();
+  setInterval(fetchMarketExtras, 5*60*1000);
+
 </script>
 
 
