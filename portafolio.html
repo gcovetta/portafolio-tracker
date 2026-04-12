@@ -3082,12 +3082,13 @@ function trkCalcCCL(){
   fetchMarketExtras();
   setInterval(fetchMarketExtras, 5*60*1000);
 
-  // ── Sidebar toggle ────────────────────────────────────────────────────────
-  function toggleSidebar(){
-    var main = document.getElementById('main') || document.querySelector('.main');
-    if(main) main.classList.toggle('sidebar-open');
-  }
 })();
+
+// Sidebar toggle — global scope so onclick can reach it
+function toggleSidebar(){
+  var main = document.getElementById('main') || document.querySelector('.main');
+  if(main) main.classList.toggle('sidebar-open');
+}
 </script>
 
 
