@@ -222,16 +222,13 @@ tr:hover td{background:var(--surface2)}
     <button class="nav-item active" onclick="showPage(&#39;portafolio&#39;,this)"><span>◈</span>Portafolio</button>
     <button class="nav-item" onclick="showPage(&#39;movimientos&#39;,this)"><span>↕</span>Movimientos</button>
     <div class="nav-sec">R. Variable</div>
-    <div style="padding:.3rem .85rem .5rem;display:flex;flex-direction:column;gap:5px">
-      <div style="display:flex;align-items:center;gap:4px">
-        <label style="font-size:.62rem;font-family:var(--mono);color:#eab308;font-weight:700;min-width:20px">2%</label>
-        <input id="rv-naranja" type="number" min="0" step="1" placeholder="$ ARS" style="flex:1;min-width:0;background:var(--bg);border:1px solid #eab308;border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:22px;text-align:right;outline:none" onkeydown="if(event.key===&#39;Enter&#39;)rvConfirm()">
-        <button onclick="rvConfirm()" title="Aplicar" style="flex-shrink:0;width:22px;height:22px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--accent);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✓</button>
-      </div>
-      <div style="display:flex;align-items:center;gap:4px">
-        <label style="font-size:.62rem;font-family:var(--mono);color:var(--red);font-weight:700;min-width:20px">3%</label>
-        <input id="rv-rojo" type="number" min="0" step="1" placeholder="$ ARS" style="flex:1;min-width:0;background:var(--bg);border:1px solid var(--red);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.68rem;padding:2px 5px;height:22px;text-align:right;outline:none" onkeydown="if(event.key===&#39;Enter&#39;)rvConfirm()">
-        <button onclick="rvConfirm()" title="Aplicar" style="flex-shrink:0;width:22px;height:22px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);color:var(--accent);font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✓</button>
+    <div style="padding:.2rem .85rem .1rem">
+      <div style="font-size:.58rem;font-family:var(--mono);color:var(--text3);margin-bottom:2px">Total RV invertido (USD):</div>
+      <div style="font-size:.72rem;font-family:var(--mono);color:var(--text);font-weight:600" id="rv-total-usd">—</div>
+      <div style="font-size:.58rem;font-family:var(--mono);color:var(--text3);margin-top:4px;margin-bottom:1px">Sugerido en $ARS:</div>
+      <div style="display:flex;gap:8px;margin-bottom:4px">
+        <span style="font-size:.65rem;font-family:var(--mono);color:#eab308;font-weight:700">2% → <span id="rv-auto-naranja">—</span></span>
+        <span style="font-size:.65rem;font-family:var(--mono);color:var(--red);font-weight:700">3% → <span id="rv-auto-rojo">—</span></span>
       </div>
     </div>
     <div class="nav-sec">Herramientas</div>
@@ -1108,33 +1105,9 @@ function liqConfirm(){
     setTimeout(function(){b.textContent=orig;},1000);
   });
 }
-function rvSave(){
-  var n=document.getElementById('rv-naranja').value;
-  var r=document.getElementById('rv-rojo').value;
-  try{localStorage.setItem('ptNYSE_rv',JSON.stringify({naranja:n,rojo:r}));}catch(e){}
-  sbSetConfig('rv_umbrales',{naranja:n,rojo:r});
-}
-function rvLoad(){
-  try{
-    var s=localStorage.getItem('ptNYSE_rv');
-    if(s){
-      var d=JSON.parse(s);
-      var en=document.getElementById('rv-naranja');
-      var er=document.getElementById('rv-rojo');
-      if(en&&d.naranja)en.value=d.naranja;
-      if(er&&d.rojo)er.value=d.rojo;
-    }
-  }catch(e){}
-}
-function rvConfirm(){
-  rvSave();
-  renderPortfolio();
-  var btns=document.querySelectorAll('[onclick="rvConfirm()"]');
-  btns.forEach(function(b){
-    b.style.color='var(--accent)';
-    setTimeout(function(){b.style.color='';},1000);
-  });
-}
+function rvSave(){}
+function rvLoad(){}
+function rvConfirm(){ renderPortfolio(); }
 function invConfirm(){
   var v=getRawNum('inv-sidebar-usd');
   saveInvInicial(v);
@@ -1652,10 +1625,18 @@ function renderPortfolio(){
     sectorTotalMktARS[sec]=(sectorTotalMktARS[sec]||0)+(p._invARS||0);
   });
 
-  // Umbrales RVariable
-  // RVariable: umbrales en ARS absolutos (0 = desactivado)
-  var rvNaranja=parseFloat((document.getElementById('rv-naranja')||{value:''}).value)||0;
-  var rvRojo=parseFloat((document.getElementById('rv-rojo')||{value:''}).value)||0;
+  // ── Auto-cálculo RV (NYSE + Argentina + Brasil + Europa + China + Cripto) ──
+  var rvSectors=['nyse','argentina','brasil','europa','china','cripto'];
+  var totalRVusd=rvSectors.reduce(function(s,sec){return s+(sectorCost[sec]||0);},0);
+  var cclHoyRV=CCL_HOY>0?CCL_HOY:1;
+  var rv2pctARS=Math.round(totalRVusd*cclHoyRV*0.02);
+  var rv3pctARS=Math.round(totalRVusd*cclHoyRV*0.03);
+  var elRVtotal=document.getElementById('rv-total-usd');
+  var elRV2=document.getElementById('rv-auto-naranja');
+  var elRV3=document.getElementById('rv-auto-rojo');
+  if(elRVtotal) elRVtotal.textContent='$'+Math.round(totalRVusd).toLocaleString('es-AR');
+  if(elRV2) elRV2.textContent='$'+rv2pctARS.toLocaleString('es-AR');
+  if(elRV3) elRV3.textContent='$'+rv3pctARS.toLocaleString('es-AR');
 
   // Función color % — <0 rojo, 0-10 naranja, >10 verde
   function pctColor(pct){
@@ -1707,9 +1688,9 @@ function renderPortfolio(){
 
     // Inversión $ con color por concentración en el sector
     var sectorTotal=sectorTotalMktARS[sector]||0;
-    // Comparación directa: inversionCedearARS vs umbrales en ARS
-    var invColor=(rvRojo>0&&inversionCedearARS>rvRojo)?'var(--red)':
-                 (rvNaranja>0&&inversionCedearARS>rvNaranja)?'#eab308':'var(--text)';
+    // Comparación directa: inversionCedearARS vs umbrales en ARS auto-calculados
+    var invColor=(rv3pctARS>0&&inversionCedearARS>rv3pctARS)?'var(--red)':
+                 (rv2pctARS>0&&inversionCedearARS>rv2pctARS)?'#eab308':'var(--text)';
     var invARS='<span class="port-sensitive" style="color:'+invColor+'">$'+Math.round(inversionCedearARS).toLocaleString('es-AR')+'</span>';
 
     var mktARS=mercadoCedearARS!=null?'$'+Math.round(mercadoCedearARS).toLocaleString('es-AR'):null;
@@ -2918,14 +2899,6 @@ function trkCalcCCL(){
     if(sbTargets){Object.assign(TARGET_TABLE, sbTargets);try{localStorage.setItem('ptNYSE_targets',JSON.stringify(TARGET_TABLE));}catch(e){}}
     else{try{var st=localStorage.getItem('ptNYSE_targets');if(st){Object.assign(TARGET_TABLE,JSON.parse(st));}}catch(e){}}
 
-    // RV umbrales
-    var sbRv = await sbGetConfig('rv_umbrales');
-    if(sbRv){
-      try{localStorage.setItem('ptNYSE_rv',JSON.stringify(sbRv));}catch(e){}
-      var en=document.getElementById('rv-naranja');var er=document.getElementById('rv-rojo');
-      if(en&&sbRv.naranja)en.value=sbRv.naranja;
-      if(er&&sbRv.rojo)er.value=sbRv.rojo;
-    } else { rvLoad(); }
 
     // 6. CCL/MEP override
     var sbCclOvr = await sbGetConfig('ccl_override');
