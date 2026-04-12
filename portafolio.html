@@ -970,6 +970,12 @@ function showPage(id,btn){
   if(id==='tracker') initTracker();
   if(id==='movimientos') simPopulateSelect();
   if(id==='arbitraje') arbRender();
+  // Sidebar: colapsado en portafolio, abierto en el resto
+  var main=document.getElementById('main');
+  if(main){
+    if(id==='portafolio') main.classList.remove('sidebar-open');
+    else main.classList.add('sidebar-open');
+  }
 }
 
 function onTipo(){
