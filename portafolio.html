@@ -865,6 +865,7 @@ function fmtKey(fecha){var p=fecha.split('/');return p[0].padStart(2,'0')+'/'+p[
 function getCCL(fecha){return CCL_TABLE[fmtKey(fecha)]||null;}
 function getMEP(fecha){return MEP_TABLE[fmtKey(fecha)]||null;}
 var CCL_HOY = CCL_TABLE['06/04/2026'] || 1483;
+var MEP_HOY = MEP_TABLE['06/04/2026'] || CCL_HOY; // se actualiza al hacer fetch
 
 var movimientos = [];
 var quotes = {};
@@ -1631,7 +1632,7 @@ function renderPortfolio(){
     var _isBonoON=(sector==='bonos'||sector==='on');
     var mercadoCedearARS=price!=null?(_sectorIsARS?price:(price/ratio)*CCL_HOY):null;
     var inversionCedearARS=mercadoCedearARS!=null?(_isBonoON?mercadoCedearARS*p.qty/100:mercadoCedearARS*p.qty):p.costARS;
-    var valueUSD=price!=null?(_sectorIsARS?(_isBonoON?(price/CCL_HOY)*p.qty/100:(price/CCL_HOY)*p.qty):(price/ratio)*p.qty):null;
+    var valueUSD=price!=null?(_sectorIsARS?(_isBonoON?(price/MEP_HOY)*p.qty/100:(price/CCL_HOY)*p.qty):(price/ratio)*p.qty):null;
     if(valueUSD!=null){totalVal+=valueUSD;sectorVal[sector]=(sectorVal[sector]||0)+valueUSD;}
     totalCost+=p.costUSDpuro;
     sectorCost[sector]=(sectorCost[sector]||0)+p.costUSDpuro;
@@ -1688,8 +1689,9 @@ function renderPortfolio(){
     var _isARS2=(sector==='argentina'||sector==='bonos'||sector==='on');
     var _isBonoON=(sector==='bonos'||sector==='on');
     var ppcUSD=p.qty>0?p.costUSDpuro/p.qty:0;
-    // Para bonos/ONs: precio cargado es por 1 nominal, cotización de mercado es por 100 nominales → x100
-    var ppcCedearARS=_isARS2?(ppcUSD*CCL_HOY*(_isBonoON?100:1)):ppcUSD*CCL_HOY;
+    // Para bonos/ONs: PPC en ARS por 100 nominales directo desde costARS (evita distorsión por movimiento de CCL)
+    // Para el resto: convertir desde USD con CCL de hoy
+    var ppcCedearARS=_isBonoON?(p.qty>0?p.costARS/p.qty*100:0):(_isARS2?ppcUSD*CCL_HOY:ppcUSD*CCL_HOY);
     var mercadoCedearARS=p._mktARS;
     var inversionCedearARS=p._invARS;
     var pnlPct=mercadoCedearARS!=null&&ppcCedearARS>0?(mercadoCedearARS-ppcCedearARS)/ppcCedearARS*100:null;
@@ -1735,7 +1737,8 @@ function renderPortfolio(){
     if(!rows||!rows.length){panel.style.display='none';return;}
     panel.style.display='';body.innerHTML=rows.join('');
     var val=sectorVal[def.key];
-    var valARS=val>0&&CCL_HOY>0?Math.round(val*CCL_HOY):null;
+    var _tc=(def.key==='bonos'||def.key==='on')?MEP_HOY:CCL_HOY;
+    var valARS=val>0&&_tc>0?Math.round(val*_tc):null;
     meta.innerHTML=rows.length+' posiciones'+(valARS?' · <span class="port-sensitive">$'+valARS.toLocaleString('es-AR')+'</span>':'');
   });
   // Liquidez del sidebar
@@ -2591,6 +2594,7 @@ async function fetchTopbarRates(){
     var dm=await rm.json();
     var vm=parseFloat(dm.venta);
     if(vm>0){
+      MEP_HOY=vm;
       document.getElementById('tb-mep').textContent='$'+vm.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
       document.getElementById('tb-mep-src').textContent='venta';
     }
