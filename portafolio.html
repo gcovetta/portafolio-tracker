@@ -1991,37 +1991,37 @@ async function fetchAllQuotes(){
     }));
   }
 
-  // ── Bonos/ON: data912.com primero; fallback Yahoo para ONs privadas no encontradas ──
+  // ── Bonos/ON: data912.com — arg_bonds + arg_ons en paralelo ──
   async function fetchBonosAll(){
-    // 1) Intentar data912 (bonos públicos + algunas ONs como TZV27)
     var d912map={};
-    try{
-      var r=await fetchWithTimeout('https://data912.com/live/arg_bonds',{},8000);
-      if(r.ok){
-        var arr=await r.json();
-        arr.forEach(function(b){ if(b.symbol&&b.c>0) d912map[b.symbol]=b; });
-      }
-    }catch(e){}
 
-    // 2) Clasificar: resueltos por data912 vs fallback a Yahoo
-    var fallbackList=[];
+    // Llamar arg_bonds y arg_ons simultáneamente
+    async function fetchEndpoint(url){
+      try{
+        var r=await fetchWithTimeout(url,{},8000);
+        if(r.ok){
+          var arr=await r.json();
+          arr.forEach(function(b){ if(b.symbol&&b.c>0) d912map[b.symbol]=b; });
+        }
+      }catch(e){}
+    }
+
+    await Promise.all([
+      fetchEndpoint('https://data912.com/live/arg_bonds'),
+      fetchEndpoint('https://data912.com/live/arg_ons')
+    ]);
+
+    // Procesar todas las posiciones contra el mapa combinado
     bonosPos.forEach(function(p){
       var b=d912map[p.ticker];
       if(b){
         var prev=b.c/(1+(b.pct_change||0)/100);
         quotes[p.ticker]={price:b.c,prevClose:prev,changePct:b.pct_change||0};
-        updateProgress();
       } else {
-        fallbackList.push(p);
+        errors++;
       }
-    });
-
-    // 3) Fallback Yahoo para ONs privadas (LECAO, LECHO, MRCAO, etc.)
-    await Promise.all(fallbackList.map(async function(p){
-      try{quotes[p.ticker]=await fetchYahooAR(p.ticker);}
-      catch(e){errors++;}
       updateProgress();
-    }));
+    });
   }
 
   // Los tres grupos corren en paralelo
