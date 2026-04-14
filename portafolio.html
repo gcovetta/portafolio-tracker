@@ -170,6 +170,7 @@ tr:hover td{background:var(--surface2)}
     <span class="topbar-dot"></span>
     <span class="topbar-label">CCL</span>
     <span class="topbar-val" id="tb-ccl">$1.471</span>
+    <span class="topbar-sub" id="tb-ccl-chg" style="font-size:.6rem"></span>
     <span class="topbar-sub" id="tb-ccl-src">venta</span>
   </div>
   <div class="topbar-item">
@@ -2586,6 +2587,27 @@ async function fetchTopbarRates(){
       document.getElementById('tb-ccl-src').textContent='venta';
       var rcTag2=document.getElementById('rc-ccl-tag');
       if(rcTag2) rcTag2.textContent='CCL: $'+Math.round(vc).toLocaleString('es-AR');
+      // Variación: buscar día hábil anterior en CCL_TABLE, fallback a argentinadatos
+      try{
+        var prevCCL=null;
+        var d=new Date();d.setDate(d.getDate()-1);
+        for(var i=0;i<5;i++){
+          var wd=d.getDay();if(wd!==0&&wd!==6){
+            var k=(d.getDate()<10?'0':'')+d.getDate()+'/'+(d.getMonth()<9?'0':'')+(d.getMonth()+1)+'/'+d.getFullYear();
+            prevCCL=CCL_TABLE[k]||null;if(prevCCL)break;
+          }
+          d.setDate(d.getDate()-1);
+        }
+        if(!prevCCL){
+          var rh=await fetchWithTimeout('https://api.argentinadatos.com/v1/cotizaciones/dolares/ccl',{},5000);
+          if(rh.ok){var dh=await rh.json();if(dh&&dh.length>=2)prevCCL=parseFloat(dh[dh.length-2].venta);}
+        }
+        if(prevCCL&&prevCCL>0){
+          var chgCCL=(vc-prevCCL)/prevCCL*100;
+          var ec=document.getElementById('tb-ccl-chg');
+          if(ec){ec.textContent=(chgCCL>=0?'+':'')+chgCCL.toFixed(2)+'%';ec.style.color=chgCCL>=0?'var(--accent)':'var(--red)';}
+        }
+      }catch(e2){}
     }
   }catch(e){}
   // MEP
