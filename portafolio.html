@@ -3092,53 +3092,61 @@ function trkCalcCCL(){
       }
     }catch(e){}
 
-    // EWZ via Yahoo Finance proxy
+    // EWZ via Finnhub (con fallback a Yahoo proxies)
     try {
-      var r2 = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/EWZ?interval=1d&range=2d');
-      if(r2.ok){
-        var d2 = await r2.json();
-        var q = d2.chart.result[0];
-        var closes = q.indicators.quote[0].close;
-        var prev = closes[closes.length-2];
-        var last = closes[closes.length-1];
-        var chg2 = ((last-prev)/prev)*100;
-        var el2 = document.getElementById('tb-ewz');
-        var ec2 = document.getElementById('tb-ewz-chg');
-        if(el2) el2.textContent = '$'+last.toFixed(2);
-        if(ec2){
-          ec2.textContent = (chg2>=0?'+':'')+chg2.toFixed(2)+'%';
-          ec2.style.color = chg2>=0?'var(--accent)':'var(--red)';
-        }
+      var ewzQ;
+      try {
+        ewzQ = await fetchFinnhub('EWZ');
+      } catch(e1) {
+        // fallback: Yahoo con proxies (mismo mecanismo que fetchYahooAR)
+        var ewzUrl = 'https://query2.finance.yahoo.com/v8/finance/chart/EWZ?interval=1d&range=2d';
+        var ewzProxies = [
+          fetchWithTimeout('https://api.allorigins.win/get?url='+encodeURIComponent(ewzUrl),{},7000)
+            .then(function(r){return r.ok?r.json():Promise.reject();})
+            .then(function(j){return parseYahooChart(JSON.parse(j.contents||'{}'))||Promise.reject();}),
+          fetchWithTimeout('https://corsproxy.io/?url='+encodeURIComponent(ewzUrl),{},7000)
+            .then(function(r){return r.ok?r.json():Promise.reject();})
+            .then(function(j){return parseYahooChart(j)||Promise.reject();})
+        ];
+        ewzQ = await (typeof Promise.any==='function' ? Promise.any(ewzProxies) : new Promise(function(res,rej){var n=ewzProxies.length;ewzProxies.forEach(function(p){p.then(res).catch(function(){if(--n===0)rej();});});}));
+      }
+      var el2 = document.getElementById('tb-ewz');
+      var ec2 = document.getElementById('tb-ewz-chg');
+      if(el2) el2.textContent = '$'+ewzQ.price.toFixed(2);
+      if(ec2){
+        ec2.textContent = (ewzQ.changePct>=0?'+':'')+ewzQ.changePct.toFixed(2)+'%';
+        ec2.style.color = ewzQ.changePct>=0?'var(--accent)':'var(--red)';
       }
     }catch(e){}
 
-    // IMV (MERVAL index, via Yahoo Finance ^MERV) / CCL
+    // IMV/CCL (MERVAL ÷ CCL) — Yahoo ^MERV con proxies
     try {
-      var r3 = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/%5EMERV?interval=1d&range=2d');
-      if(r3.ok){
-        var d3 = await r3.json();
-        var q3 = d3.chart.result[0];
-        var cls3 = q3.indicators.quote[0].close;
-        var last3 = cls3[cls3.length-1];
-        var prev3 = cls3[cls3.length-2];
-        var chg3 = ((last3-prev3)/prev3)*100;
-        // Get CCL from topbar
-        var cclEl = document.getElementById('tb-ccl');
-        var cclVal = cclEl ? parseFloat(cclEl.textContent.replace('$','').replace('.','').replace(',','.')) : null;
-        var el3 = document.getElementById('tb-imv');
-        var ec3 = document.getElementById('tb-imv-chg');
-        if(el3){
-          if(cclVal && cclVal>1){
-            var imvUsd = last3/cclVal;
-            el3.textContent = '$'+imvUsd.toLocaleString('es-AR',{maximumFractionDigits:0});
-          } else {
-            el3.textContent = (last3/1000).toFixed(0)+'k';
-          }
-        }
-        if(ec3){
-          ec3.textContent = (chg3>=0?'+':'')+chg3.toFixed(2)+'%';
-          ec3.style.color = chg3>=0?'var(--accent)':'var(--red)';
-        }
+      var mervUrl = 'https://query2.finance.yahoo.com/v8/finance/chart/%5EMERV?interval=1d&range=2d';
+      var mervProxies = [
+        fetchWithTimeout('https://api.allorigins.win/get?url='+encodeURIComponent(mervUrl),{},7000)
+          .then(function(r){return r.ok?r.json():Promise.reject();})
+          .then(function(j){return parseYahooChart(JSON.parse(j.contents||'{}'))||Promise.reject();}),
+        fetchWithTimeout('https://corsproxy.io/?url='+encodeURIComponent(mervUrl),{},7000)
+          .then(function(r){return r.ok?r.json():Promise.reject();})
+          .then(function(j){return parseYahooChart(j)||Promise.reject();}),
+        fetchWithTimeout('https://thingproxy.freeboard.io/fetch/'+mervUrl,{},7000)
+          .then(function(r){return r.ok?r.json():Promise.reject();})
+          .then(function(j){return parseYahooChart(j)||Promise.reject();})
+      ];
+      var mervQ = await (typeof Promise.any==='function'
+        ? Promise.any(mervProxies)
+        : new Promise(function(res,rej){var n=mervProxies.length;mervProxies.forEach(function(p){p.then(res).catch(function(){if(--n===0)rej();});});}));
+
+      var el3 = document.getElementById('tb-imv');
+      var ec3 = document.getElementById('tb-imv-chg');
+      var ccl = (typeof CCL_HOY!=='undefined'&&CCL_HOY>1) ? CCL_HOY : 1;
+      var imvUsd = mervQ.price / ccl;
+      var imvUsdPrev = mervQ.prevClose / ccl;
+      var chg3 = imvUsdPrev>0 ? (imvUsd-imvUsdPrev)/imvUsdPrev*100 : mervQ.changePct;
+      if(el3) el3.textContent = '$'+Math.round(imvUsd).toLocaleString('es-AR');
+      if(ec3){
+        ec3.textContent = (chg3>=0?'+':'')+chg3.toFixed(2)+'%';
+        ec3.style.color = chg3>=0?'var(--accent)':'var(--red)';
       }
     }catch(e){}
   }
