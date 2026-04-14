@@ -1625,11 +1625,13 @@ function renderPortfolio(){
   open.forEach(function(p){
     var q=quotes[p.ticker];var price=q?q.price:null;
     var ratio=getRatio(p.ticker);var sector=getSector(p.ticker);
-    // Para Argentina: price ya viene en ARS (Rava). Para NYSE: price en USD → convertir
+    // Para Argentina: price ya viene en ARS. Para NYSE: price en USD → convertir
+    // Para Bonos/ON: price es por 100 nominales → qty se divide por 100 para el total
     var _sectorIsARS=(getSector(p.ticker)==='argentina'||getSector(p.ticker)==='bonos'||getSector(p.ticker)==='on');
+    var _isBonoON=(sector==='bonos'||sector==='on');
     var mercadoCedearARS=price!=null?(_sectorIsARS?price:(price/ratio)*CCL_HOY):null;
-    var inversionCedearARS=mercadoCedearARS!=null?mercadoCedearARS*p.qty:p.costARS;
-    var valueUSD=price!=null?(_sectorIsARS?(price/CCL_HOY)*p.qty:(price/ratio)*p.qty):null;
+    var inversionCedearARS=mercadoCedearARS!=null?(_isBonoON?mercadoCedearARS*p.qty/100:mercadoCedearARS*p.qty):p.costARS;
+    var valueUSD=price!=null?(_sectorIsARS?(_isBonoON?(price/CCL_HOY)*p.qty/100:(price/CCL_HOY)*p.qty):(price/ratio)*p.qty):null;
     if(valueUSD!=null){totalVal+=valueUSD;sectorVal[sector]=(sectorVal[sector]||0)+valueUSD;}
     totalCost+=p.costUSDpuro;
     sectorCost[sector]=(sectorCost[sector]||0)+p.costUSDpuro;
