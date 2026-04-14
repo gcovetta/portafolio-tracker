@@ -197,6 +197,16 @@ tr:hover td{background:var(--surface2)}
     <span class="topbar-val" id="tb-imv">—</span>
     <span class="topbar-sub" id="tb-imv-chg" style="font-size:.6rem"></span>
   </div>
+  <div class="topbar-item" id="tb-spy-wrap">
+    <span class="topbar-label">S&amp;P</span>
+    <span class="topbar-val" id="tb-spy">—</span>
+    <span class="topbar-sub" id="tb-spy-chg" style="font-size:.6rem"></span>
+  </div>
+  <div class="topbar-item" id="tb-qqq-wrap">
+    <span class="topbar-label">QQQ</span>
+    <span class="topbar-val" id="tb-qqq">—</span>
+    <span class="topbar-sub" id="tb-qqq-chg" style="font-size:.6rem"></span>
+  </div>
   <div class="topbar-item" style="gap:6px;border-left:1px solid var(--border);padding-left:1.2rem;margin-left:.4rem">
     <span class="topbar-label">Liquidez</span>
     <div style="display:flex;align-items:center;gap:3px">
@@ -3171,6 +3181,32 @@ function trkCalcCCL(){
         ec3.style.color = chg3>=0?'var(--accent)':'var(--red)';
       }
     }catch(e){}
+
+    // S&P (SPY) y QQQ — Finnhub con fallback Yahoo proxies
+    async function fetchTopbarTicker(symbol, elId, chgId){
+      try{
+        var q;
+        try{ q=await fetchFinnhub(symbol); }
+        catch(e1){
+          var url='https://query2.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(symbol)+'?interval=1d&range=2d';
+          var proxies=[
+            fetchWithTimeout('https://api.allorigins.win/get?url='+encodeURIComponent(url),{},7000)
+              .then(function(r){return r.ok?r.json():Promise.reject();})
+              .then(function(j){return parseYahooChart(JSON.parse(j.contents||'{}'))||Promise.reject();}),
+            fetchWithTimeout('https://corsproxy.io/?url='+encodeURIComponent(url),{},7000)
+              .then(function(r){return r.ok?r.json():Promise.reject();})
+              .then(function(j){return parseYahooChart(j)||Promise.reject();})
+          ];
+          q=await(typeof Promise.any==='function'?Promise.any(proxies):new Promise(function(res,rej){var n=proxies.length;proxies.forEach(function(p){p.then(res).catch(function(){if(--n===0)rej();});});}));
+        }
+        var el=document.getElementById(elId);
+        var ec=document.getElementById(chgId);
+        if(el) el.textContent='$'+q.price.toFixed(2);
+        if(ec){ec.textContent=(q.changePct>=0?'+':'')+q.changePct.toFixed(2)+'%';ec.style.color=q.changePct>=0?'var(--accent)':'var(--red)';}
+      }catch(e){}
+    }
+    fetchTopbarTicker('SPY','tb-spy','tb-spy-chg');
+    fetchTopbarTicker('QQQ','tb-qqq','tb-qqq-chg');
   }
 
   fetchMarketExtras();
