@@ -1889,12 +1889,8 @@ function parseYahooChart(j){
   return{price:price,prevClose:prev,changePct:prev?(price-prev)/prev*100:0};
 }
 
-// ── data912: trae todos los bonos/ON de una vez ──────────────────────────
-async function fetchBonosAPI(){
-  var url='https://data912.com/live/arg_bonds';
-  var r=await fetchWithTimeout(url,{headers:{'Accept':'application/json'}},8000);
-  if(!r.ok)throw new Error('HTTP '+r.status);
-  var data=await r.json();
+// ── data912: helper genérico para parsear respuesta de la API ────────────
+function parseData912Response(data){
   var map={};
   function parseItem(ticker,item){
     if(!item||typeof item!=='object')return;
@@ -1912,6 +1908,18 @@ async function fetchBonosAPI(){
     Object.keys(data).forEach(function(t){parseItem(t,data[t]);});
   }
   return map;
+}
+// Bonos soberanos: arg_bonds
+async function fetchBonosAPI(){
+  var r=await fetchWithTimeout('https://data912.com/live/arg_bonds',{headers:{'Accept':'application/json'}},8000);
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  return parseData912Response(await r.json());
+}
+// ONs corporativas: arg_corp
+async function fetchONsAPI(){
+  var r=await fetchWithTimeout('https://data912.com/live/arg_corp',{headers:{'Accept':'application/json'}},8000);
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  return parseData912Response(await r.json());
 }
 
 async function fetchYahooAR(ticker){
@@ -1978,11 +1986,11 @@ async function fetchAllQuotes(){
   var icon=document.getElementById('ref-icon');var status=document.getElementById('ref-status');var prog=document.getElementById('pos-prog');var pfill=document.getElementById('pfill');
   icon.innerHTML='<span class="spinner"></span>';prog.style.display='';pfill.style.width='0%';
 
-  // Separar por fuente: Finnhub (NYSE/Brasil/etc), Yahoo AR (Argentina + Bonos + ON)
-  var bonosSectors={bonos:1,on:1};
-  var finnhubPos=pos.filter(function(p){var s=getSector(p.ticker);return s!=='argentina'&&!bonosSectors[s];});
+  // Separar por fuente: Finnhub (NYSE/Brasil/etc), Yahoo AR (Argentina), data912 (Bonos/ON)
+  var finnhubPos=pos.filter(function(p){var s=getSector(p.ticker);return s!=='argentina'&&s!=='bonos'&&s!=='on';});
   var yahooPos=pos.filter(function(p){return getSector(p.ticker)==='argentina';});
-  var bonosPos=pos.filter(function(p){return !!bonosSectors[getSector(p.ticker)];});
+  var bonosPos=pos.filter(function(p){return getSector(p.ticker)==='bonos';});
+  var onPos=pos.filter(function(p){return getSector(p.ticker)==='on';});
 
   var total=pos.length,done=0,errors=0;
 
@@ -2015,13 +2023,13 @@ async function fetchAllQuotes(){
     }));
   }
 
-  // ── Bonos/ON: data912.com (un fetch para todos) → fallback Yahoo por ticker ──
+  // ── Bonos soberanos: data912 arg_bonds → fallback Yahoo ──
   async function fetchBonosAll(){
-    var bonosMap={};
-    try{bonosMap=await fetchBonosAPI();}catch(e){bonosMap={};}
+    var map={};
+    try{map=await fetchBonosAPI();}catch(e){}
     await Promise.all(bonosPos.map(async function(p){
       try{
-        var q=bonosMap[p.ticker.toUpperCase()];
+        var q=map[p.ticker.toUpperCase()];
         if(q&&q.price>0){quotes[p.ticker]=q;}
         else{quotes[p.ticker]=await fetchYahooAR(p.ticker);}
       }catch(e){errors++;}
@@ -2029,8 +2037,22 @@ async function fetchAllQuotes(){
     }));
   }
 
-  // Los tres grupos corren en paralelo
-  await Promise.all([fetchFinnhubAll(),fetchYahooAll(),fetchBonosAll()]);
+  // ── ONs corporativas: data912 arg_corp → fallback Yahoo ──
+  async function fetchONsAll(){
+    var map={};
+    try{map=await fetchONsAPI();}catch(e){}
+    await Promise.all(onPos.map(async function(p){
+      try{
+        var q=map[p.ticker.toUpperCase()];
+        if(q&&q.price>0){quotes[p.ticker]=q;}
+        else{quotes[p.ticker]=await fetchYahooAR(p.ticker);}
+      }catch(e){errors++;}
+      updateProgress();
+    }));
+  }
+
+  // Los cuatro grupos corren en paralelo
+  await Promise.all([fetchFinnhubAll(),fetchYahooAll(),fetchBonosAll(),fetchONsAll()]);
 
   icon.textContent='⟳';prog.style.display='none';
   status.className=errors>0?'emsg':'smsg';
