@@ -1704,7 +1704,7 @@ function renderPortfolio(){
     // Bono peso (CUAP, DICP, TX31…): PPC/mercado ≈ 0.4-1.0 (precio en ARS real)
     var ppcFromARS=p.qty>0?p.costARS/p.qty*100:0;
     var ppcFromUSD=ppcUSD*CCL_HOY*100;
-    var mkt=mercadoCedearARS||0;
+    var mkt=p._mktARS||0;  // usar _mktARS de Pasada 1 (mercadoCedearARS aún no está declarada)
     var ppcCedearARS=_isBonoON
       ?(mkt>0&&ppcFromARS/mkt<0.15?ppcFromUSD:ppcFromARS)
       :(_isARS2?ppcUSD*CCL_HOY:ppcUSD*CCL_HOY);
