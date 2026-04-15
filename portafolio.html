@@ -1699,9 +1699,15 @@ function renderPortfolio(){
     var _isARS2=(sector==='argentina'||sector==='bonos'||sector==='on');
     var _isBonoON=(sector==='bonos'||sector==='on');
     var ppcUSD=p.qty>0?p.costUSDpuro/p.qty:0;
-    // Para bonos/ONs: PPC en ARS por 100 nominales directo desde costARS (evita distorsión por movimiento de CCL)
-    // Para el resto: convertir desde USD con CCL de hoy
-    var ppcCedearARS=_isBonoON?(p.qty>0?p.costARS/p.qty*100:0):(_isARS2?ppcUSD*CCL_HOY:ppcUSD*CCL_HOY);
+    // Para bonos/ONs: auto-detectar bono dólar vs bono peso comparando PPC vs precio de mercado
+    // Bono dólar (BC37D, GD29…): costARS guardado a CCL histórico muy bajo → PPC/mercado << 0.15
+    // Bono peso (CUAP, DICP, TX31…): PPC/mercado ≈ 0.4-1.0 (precio en ARS real)
+    var ppcFromARS=p.qty>0?p.costARS/p.qty*100:0;
+    var ppcFromUSD=ppcUSD*CCL_HOY*100;
+    var mkt=mercadoCedearARS||0;
+    var ppcCedearARS=_isBonoON
+      ?(mkt>0&&ppcFromARS/mkt<0.15?ppcFromUSD:ppcFromARS)
+      :(_isARS2?ppcUSD*CCL_HOY:ppcUSD*CCL_HOY);
     var mercadoCedearARS=p._mktARS;
     var inversionCedearARS=p._invARS;
     var pnlPct=mercadoCedearARS!=null&&ppcCedearARS>0?(mercadoCedearARS-ppcCedearARS)/ppcCedearARS*100:null;
