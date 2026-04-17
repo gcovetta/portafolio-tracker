@@ -280,6 +280,8 @@ tr:hover td{background:var(--surface2)}
     <button class="nav-item" onclick="showPage(&#39;arbitraje&#39;,this)"><span>⇄</span>Arbitraje</button>
     <button class="nav-item" onclick="showPage(&#39;targets&#39;,this)"><span>◎</span>P. de Venta</button>
     <button class="nav-item" onclick="showPage(&#39;tipocambio&#39;,this)"><span>$</span>Tipo de Cambio</button>
+    <div class="nav-sec">Laboratorio</div>
+    <button class="nav-item" onclick="showPage(&#39;vetamovim&#39;,this)"><span>🧪</span>VetaMovim</button>
   </nav>
   <div class="content">
 
@@ -802,6 +804,46 @@ tr:hover td{background:var(--surface2)}
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- VETA MOVIM (WIP - no impacta portafolio) -->
+    <div class="page" id="page-vetamovim">
+      <div class="card">
+        <div class="card-header" style="gap:10px;flex-wrap:wrap">
+          <span class="card-title">🧪 VetaMovim</span>
+          <span class="smsg" style="font-size:.68rem;color:var(--text3)">Tabla de prueba para importar movimientos — aislada del portafolio principal</span>
+          <div class="gap-row" style="margin-left:auto">
+            <button class="btn btn-sm" onclick="vmAddRow()">+ Fila</button>
+            <button class="btn btn-sm btn-d" onclick="vmClearAll()" title="Vaciar tabla">🗑</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:.6rem 1rem">
+          <div class="ibox" style="margin-bottom:10px;font-size:.68rem">
+            ⚠️ Esta pestaña está en <b>modo borrador</b>. Los datos cargados acá <u>no se suman</u> al portafolio ni a los cálculos. Cuando tengamos la estructura mapeada, la conectamos.
+          </div>
+        </div>
+        <div class="tw">
+          <table id="vm-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Ticker</th>
+                <th>Tipo</th>
+                <th>Cant.</th>
+                <th>Precio</th>
+                <th>Moneda</th>
+                <th>Total</th>
+                <th>Notas</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="vm-body">
+              <tr><td colspan="10" class="empty-state" style="padding:1.5rem">Sin movimientos cargados — usá "+ Fila" o esperá a que mapeemos la estructura de importación</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -1971,6 +2013,54 @@ function renderNearTarget(){
     '</div>';
   }).join('');
   grid.innerHTML=html;
+}
+
+// ─── VetaMovim (laboratorio de importación de movimientos, NO impacta portafolio) ───
+var VM_ROWS=[];
+function vmAddRow(){
+  VM_ROWS.push({fecha:'',ticker:'',tipo:'',cant:'',precio:'',moneda:'USD',total:'',notas:''});
+  vmRender();
+}
+function vmDelRow(i){
+  if(i<0||i>=VM_ROWS.length)return;
+  VM_ROWS.splice(i,1);
+  vmRender();
+}
+function vmEditRow(i,field,val){
+  if(!VM_ROWS[i])return;
+  VM_ROWS[i][field]=val;
+}
+function vmClearAll(){
+  if(!VM_ROWS.length)return;
+  if(!confirm('¿Vaciar toda la tabla VetaMovim?'))return;
+  VM_ROWS=[];
+  vmRender();
+}
+function vmRender(){
+  var body=document.getElementById('vm-body');
+  if(!body)return;
+  if(!VM_ROWS.length){
+    body.innerHTML='<tr><td colspan="10" class="empty-state" style="padding:1.5rem">Sin movimientos cargados — usá "+ Fila" o esperá a que mapeemos la estructura de importación</td></tr>';
+    return;
+  }
+  var inp=function(i,field,val,w){
+    return '<input class="arb-input" style="width:'+(w||'100%')+';text-align:left;padding:3px 5px;font-size:.72rem" value="'+(val||'')+'" oninput="vmEditRow('+i+',\''+field+'\',this.value)">';
+  };
+  var html=VM_ROWS.map(function(r,i){
+    return '<tr>'+
+      '<td class="mono muted" style="font-size:.7rem">'+(i+1)+'</td>'+
+      '<td>'+inp(i,'fecha',r.fecha,'95px')+'</td>'+
+      '<td>'+inp(i,'ticker',r.ticker,'80px')+'</td>'+
+      '<td>'+inp(i,'tipo',r.tipo,'90px')+'</td>'+
+      '<td>'+inp(i,'cant',r.cant,'80px')+'</td>'+
+      '<td>'+inp(i,'precio',r.precio,'90px')+'</td>'+
+      '<td>'+inp(i,'moneda',r.moneda,'65px')+'</td>'+
+      '<td>'+inp(i,'total',r.total,'100px')+'</td>'+
+      '<td>'+inp(i,'notas',r.notas,'140px')+'</td>'+
+      '<td><button class="btn btn-d btn-sm" onclick="vmDelRow('+i+')" title="Eliminar">✕</button></td>'+
+    '</tr>';
+  }).join('');
+  body.innerHTML=html;
 }
 
 function renderDivsCard(){
