@@ -1738,6 +1738,27 @@ function renderPortfolio(){
     var bg=pct<0?'rgba(248,113,113,.13)':pct<10?'rgba(249,115,22,.13)':'rgba(126,232,162,.13)';
     return '<span style="display:inline-block;color:'+col+';background:'+bg+';border:1px solid '+col+';border-radius:5px;padding:2px 7px;font-size:.82rem;font-weight:700;letter-spacing:-.01em;font-family:var(--mono)">'+s+val+'</span>';
   }
+  // Recuadro combinado Δ% / ΔUP — fondo y borde según Δ%, texto interno con color propio
+  function deltaUpCellFn(pnlPct, upside){
+    var hasPnl=pnlPct!==null&&!isNaN(pnlPct);
+    var hasUp=upside!==null&&!isNaN(upside);
+    if(!hasPnl&&!hasUp) return '<span style="color:var(--text3);font-size:.75rem">—</span>';
+    // Color del recuadro basado en Δ% (si existe), si no en ΔUP
+    var baseRef=hasPnl?pnlPct:upside;
+    var baseCol=pctColor(baseRef);
+    var baseBg=baseRef<0?'rgba(248,113,113,.13)':baseRef<10?'rgba(249,115,22,.13)':'rgba(126,232,162,.13)';
+    var pnlInner=hasPnl
+      ?'<span style="color:'+pctColor(pnlPct)+';font-size:.82rem;font-weight:700">'+(pnlPct>0?'+':'')+Math.round(pnlPct)+'%</span>'
+      :'<span style="color:var(--text3);font-size:.82rem">—</span>';
+    var upInner=hasUp
+      ?'<span style="color:'+pctColor(upside)+';font-size:.7rem;font-weight:700">'+(upside>0?'+':'')+Math.round(upside)+'%</span>'
+      :'<span style="color:var(--text3);font-size:.7rem">—</span>';
+    return '<span style="display:inline-block;background:'+baseBg+';border:1px solid '+baseCol+';border-radius:5px;padding:2px 7px;font-family:var(--mono);letter-spacing:-.01em">'
+      +pnlInner
+      +'<span style="color:var(--text3);font-size:.65rem;margin:0 3px">/</span>'
+      +upInner
+      +'</span>';
+  }
 
   // Pasada 2: construir filas
   open.forEach(function(p){
@@ -1766,11 +1787,8 @@ function renderPortfolio(){
     var priceUSD=q?q.price:null;
     var upside=targetUSD!=null&&priceUSD!=null&&priceUSD>0?(targetUSD-priceUSD)/priceUSD*100:null;
 
-    // Color Δ%
-    var deltaCell=deltaCellFn(pnlPct);
-
-    // Color ΔUP
-    var upsideCell=upside!=null?pctCell(upside,true):'<span style="color:var(--text3)">—</span>';
+    // Recuadro combinado Δ% / ΔUP (mismo badge, colores internos independientes)
+    var deltaCell=deltaUpCellFn(pnlPct,upside);
 
     // P. Venta
     var targetCell=targetARS!=null?'$'+Math.round(targetARS).toLocaleString('es-AR'):'<span style="color:var(--text3)">—</span>';
@@ -1787,7 +1805,7 @@ function renderPortfolio(){
 
     var row='<tr>'+
       '<td style="font-weight:700">'+p.ticker+'</td>'+
-      '<td style="text-align:center;padding:.38rem .5rem">'+deltaCell+'<span style="color:var(--text3);font-size:.65rem;margin:0 3px">/</span><span style="font-size:.7rem">'+upsideCell+'</span></td>'+
+      '<td style="text-align:center;padding:.38rem .5rem">'+deltaCell+'</td>'+
       '<td class="mono">'+invARS+'</td>'+
       '<td class="mono">'+(mktARS?mktARS:'<span style="color:var(--text3)">—</span>')+'</td>'+
       '<td class="mono muted">'+ppcARS+'</td>'+
