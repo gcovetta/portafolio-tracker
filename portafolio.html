@@ -1628,7 +1628,10 @@ function getPositions(){
     if(m.tipo==='dividendo'){p.dividendsUSD+=priceUSD;}
     else if(m.tipo==='compra'){
       // Bonos y ONs: dividir por MEP del día; resto: por CCL
-      var _tc=(m.mercado==='BONOS'||m.mercado==='ON')?(getMEP(m.fecha)||m.ccl||1):(m.ccl||1);
+      // Fallback: si m.ccl está vacío, usar CCL/MEP histórico de la fecha
+      var _tc=(m.mercado==='BONOS'||m.mercado==='ON')
+        ?(getMEP(m.fecha)||m.ccl||getCCL(m.fecha)||1)
+        :(m.ccl||getCCL(m.fecha)||1);
       var usdPuro=_tc>0?(m.precioARS||0)*m.qty/_tc:priceUSD*m.qty;
       p.costUSD+=priceUSD*m.qty+comUSD;
       p.costARS+=(m.precioARS||0)*m.qty;
@@ -1640,7 +1643,9 @@ function getPositions(){
       var avgARS=p.qty>0?p.costARS/p.qty:0;
       var avgUSDpuro=p.qty>0?p.costUSDpuro/p.qty:0;
       // G/P realizada en USD puro (MEP para bonos/ON, CCL para el resto)
-      var _tcV=(m.mercado==='BONOS'||m.mercado==='ON')?(getMEP(m.fecha)||m.ccl||1):(m.ccl||1);
+      var _tcV=(m.mercado==='BONOS'||m.mercado==='ON')
+        ?(getMEP(m.fecha)||m.ccl||getCCL(m.fecha)||1)
+        :(m.ccl||getCCL(m.fecha)||1);
       var ventaUSDpuro=_tcV>0?(m.precioARS||0)/_tcV:(m.precioUSD||0);
       var costBasisPuro=avgUSDpuro*m.qty;
       var proceedsPuro=ventaUSDpuro*m.qty-comUSD;
@@ -3116,6 +3121,33 @@ function trkCalcCCL(){
         console.log('Migración bonos/ONs → MEP: '+_migCount+' movimientos actualizados');
       } else {
         try{localStorage.setItem(MIG_KEY,'1');}catch(e){}
+      }
+    }
+
+    // 10b. Migración una-sola-vez: rellenar CCL y precioUSD faltantes en cualquier movimiento
+    var MIG_KEY_FILL='ptNYSE_mig_fillCCL_v1';
+    var _fillDone=false;
+    try{if(localStorage.getItem(MIG_KEY_FILL)==='1')_fillDone=true;}catch(e){}
+    if(!_fillDone){
+      var _fillCount=0;
+      movimientos.forEach(function(m){
+        if(!m||m.tipo==='aporte'||!m.ticker||!m.fecha)return;
+        if(m.ccl&&m.ccl>0)return; // ya tiene CCL
+        var esBonoON=(m.mercado==='BONOS'||m.mercado==='ON');
+        var tcFecha=esBonoON?(getMEP(m.fecha)||getCCL(m.fecha)):getCCL(m.fecha);
+        if(tcFecha&&tcFecha>0){
+          m.ccl=tcFecha;
+          var rt=getRatio(m.ticker)||1;
+          if(m.precioARS){m.precioUSD=Math.round(m.precioARS*rt/tcFecha*1000000)/1000000;}
+          _fillCount++;
+        }
+      });
+      if(_fillCount>0){
+        try{localStorage.setItem(MIG_KEY_FILL,'1');}catch(e){}
+        saveAndRender();
+        console.log('Migración fill CCL/USD: '+_fillCount+' movimientos completados');
+      } else {
+        try{localStorage.setItem(MIG_KEY_FILL,'1');}catch(e){}
       }
     }
 
