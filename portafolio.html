@@ -151,6 +151,21 @@ tr:hover td{background:var(--surface2)}
 /* page-tracker layout */
 #page-tracker{position:relative;min-height:200px}
 
+/* ── Filtro Tickers cerca del objetivo ── */
+.upside-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:1;min-width:200px}
+.upside-row input[type=range]{flex:1;min-width:120px;max-width:300px;accent-color:var(--amber);height:4px}
+.upside-row input[type=number]{background:var(--bg);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:4px 6px;height:28px;width:60px;outline:none}
+#upside-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.upside-card{background:var(--surface2);border:1px solid var(--amber);border-radius:var(--radius);padding:10px 12px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.upside-ticker{font-family:var(--mono);font-weight:700;font-size:.95rem;color:var(--text);letter-spacing:-.02em}
+.upside-body{display:flex;flex-direction:column;gap:3px;min-width:0}
+.upside-prices{display:flex;justify-content:space-between;gap:6px;font-family:var(--mono);font-size:.68rem;color:var(--text2)}
+.upside-prices .obj{color:var(--text2)}
+.upside-bar{height:3px;background:var(--border2);border-radius:2px;overflow:hidden}
+.upside-fill{height:100%;background:var(--amber);transition:width .3s}
+.upside-falta-lbl{font-family:var(--mono);font-size:.66rem;font-weight:700;color:var(--amber)}
+.upside-badge{background:rgba(251,191,36,.15);color:var(--amber);border:1px solid var(--amber);border-radius:12px;padding:3px 9px;font-size:.62rem;font-family:var(--mono);font-weight:700;white-space:nowrap}
+
 @media(max-width:680px){
   .app{height:100vh}
   .main{grid-template-columns:1fr;grid-template-rows:auto 1fr;flex:1;min-height:0}
@@ -281,6 +296,21 @@ tr:hover td{background:var(--surface2)}
         <div class="metric"><div class="metric-label">Dividendos USD</div><div class="metric-value port-sensitive" id="m-divs">$2.622</div></div>
         <div class="metric"><div class="metric-label">Posiciones</div><div class="metric-value" id="m-count">75</div></div>
 
+      </div>
+      <div class="card" id="card-upside-filter">
+        <div class="card-header" style="flex-wrap:wrap;gap:8px">
+          <span class="card-title">🎯 Tickers cerca del objetivo</span>
+          <div class="upside-row">
+            <span style="font-size:.72rem;color:var(--text2);font-family:var(--mono)">Faltan menos de</span>
+            <input type="range" id="f-upside" min="0.5" max="50" step="0.5" value="4" oninput="renderUpsideFilter()">
+            <input type="number" id="f-upside-num" min="0" max="50" step="0.5" value="4" oninput="syncUpsideFilter(this)">
+            <span style="font-size:.75rem;color:var(--amber);font-family:var(--mono);font-weight:700" id="f-upside-lbl">4%</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="upside-cards"></div>
+          <div id="upside-empty" class="empty-state" style="display:none">No hay tickers con ΔUP ≤ 4%</div>
+        </div>
       </div>
       <div class="card">
         <div class="card-header">
@@ -1820,6 +1850,71 @@ function renderPortfolio(){
   } else { rendEl.textContent='—'; }
 
   renderDivsCard();
+  renderUpsideFilter();
+}
+
+function syncUpsideFilter(src){
+  var slider=document.getElementById('f-upside');
+  var v=parseFloat(String(src.value).replace(',','.'));
+  if(isNaN(v)){ renderUpsideFilter(); return; }
+  if(slider){
+    var mn=parseFloat(slider.min), mx=parseFloat(slider.max);
+    if(v<0) v=0;
+    if(!isNaN(mn)&&v<mn) v=mn;
+    if(!isNaN(mx)&&v>mx) v=mx;
+    slider.value=v;
+  }
+  renderUpsideFilter();
+}
+
+function renderUpsideFilter(){
+  var slider=document.getElementById('f-upside');
+  var num=document.getElementById('f-upside-num');
+  var lbl=document.getElementById('f-upside-lbl');
+  var container=document.getElementById('upside-cards');
+  var empty=document.getElementById('upside-empty');
+  if(!slider||!container||!empty) return;
+  var val=parseFloat(slider.value);
+  if(isNaN(val)) val=4;
+  if(num && document.activeElement!==num) num.value=val;
+  if(lbl) lbl.textContent=(val%1===0?val.toFixed(0):val.toFixed(1))+'%';
+  var all=getPositions().filter(function(p){return p.qty>0.000001;});
+  var items=[];
+  all.forEach(function(p){
+    var q=quotes[p.ticker];
+    var priceUSD=q?q.price:null;
+    var targetUSD=getTarget(p.ticker);
+    if(targetUSD==null||priceUSD==null||priceUSD<=0) return;
+    var upside=(targetUSD-priceUSD)/priceUSD*100;
+    if(upside<0||upside>val) return;
+    var ratio=getRatio(p.ticker);
+    var sector=getSector(p.ticker);
+    var _isARS=(sector==='argentina'||sector==='bonos'||sector==='on');
+    var mercadoARS=_isARS?priceUSD:(priceUSD/ratio)*CCL_HOY;
+    var targetARS=_isARS?targetUSD:(targetUSD/ratio)*CCL_HOY;
+    items.push({ticker:p.ticker,upside:upside,mktARS:mercadoARS,tgtARS:targetARS});
+  });
+  items.sort(function(a,b){return a.upside-b.upside;});
+  if(!items.length){
+    container.innerHTML='';
+    empty.style.display='';
+    empty.textContent='No hay tickers con ΔUP ≤ '+(val%1===0?val.toFixed(0):val.toFixed(1))+'%';
+    return;
+  }
+  empty.style.display='none';
+  container.innerHTML=items.map(function(it){
+    var fillPct=val>0?Math.max(0,Math.min(100,100-(it.upside/val*100))):0;
+    var faltaTxt='Falta '+it.upside.toFixed(1)+'%';
+    return '<div class="upside-card">'+
+      '<div class="upside-ticker">'+it.ticker+'</div>'+
+      '<div class="upside-body">'+
+        '<div class="upside-prices"><span>$'+Math.round(it.mktARS).toLocaleString('es-AR')+'</span><span class="obj">Obj: $'+Math.round(it.tgtARS).toLocaleString('es-AR')+'</span></div>'+
+        '<div class="upside-bar"><div class="upside-fill" style="width:'+fillPct.toFixed(0)+'%"></div></div>'+
+        '<div class="upside-falta-lbl">'+faltaTxt+'</div>'+
+      '</div>'+
+      '<span class="upside-badge">'+faltaTxt+'</span>'+
+    '</div>';
+  }).join('');
 }
 
 function renderDivsCard(){
