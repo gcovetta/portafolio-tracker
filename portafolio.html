@@ -7,9 +7,9 @@
 <link href="./Portafolio Tracker — NYSE_files/css2" rel="stylesheet">
 <style>
 :root{--bg:#0e0f11;--surface:#16181c;--surface2:#1e2026;--border:#2a2d35;--border2:#363a45;--text:#e8eaf0;--text2:#8b8fa8;--text3:#555870;--accent:#7ee8a2;--accent2:#4ade80;--red:#f87171;--amber:#fbbf24;--blue:#60a5fa;--mono:'DM Mono',monospace;--sans:'Syne',sans-serif;--radius:10px;--rsm:6px}
-*{box-sizing:border-box;margin:0;padding:0}html{font-size:15.5px}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.5}
-.app{display:flex;flex-direction:column;height:100vh}
+*{box-sizing:border-box;margin:0;padding:0}html{font-size:15.5px;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);height:100%;overflow:hidden;line-height:1.5}
+.app{display:flex;flex-direction:column;height:100%}
 .arb-wrap{margin-bottom:6px}
 .arb-pair-header{display:grid;grid-template-columns:32px 1fr 1fr 76px 24px 72px 56px 76px;gap:0;background:linear-gradient(135deg,#2d1b5a,#1a1040);border-radius:var(--rsm) var(--rsm) 0 0;border:1px solid #6b3fa0}
 .arb-row{display:grid;grid-template-columns:32px 1fr 1fr 76px 24px 72px 56px 76px;gap:0;border-left:1px solid var(--border2);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2)}
@@ -102,7 +102,7 @@ tr:hover td{background:var(--surface2)}
 .pfill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
 .ibox{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:.65rem .9rem;font-size:.7rem;font-family:var(--mono);color:var(--text2)}
 .ibox b{color:var(--text)}
-::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:var(--surface)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:var(--text3)}
 .panels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;align-items:start}
 .panels-grid .card{margin-bottom:0}
 .panel-table table{width:auto;min-width:100%}
