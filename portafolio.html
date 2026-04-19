@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portafolio Tracker — NYSE</title>
 <link href="./Portafolio Tracker — NYSE_files/css2" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{--bg:#0e0f11;--surface:#16181c;--surface2:#1e2026;--border:#2a2d35;--border2:#363a45;--text:#e8eaf0;--text2:#8b8fa8;--text3:#555870;--accent:#7ee8a2;--accent2:#4ade80;--red:#f87171;--amber:#fbbf24;--blue:#60a5fa;--mono:'DM Mono',monospace;--sans:'Syne',sans-serif;--radius:10px;--rsm:6px}
 *{box-sizing:border-box;margin:0;padding:0}html{font-size:15.5px}
@@ -290,6 +291,7 @@ tr:hover td{background:var(--surface2)}
     <button class="nav-item" onclick="showPage(&#39;targets&#39;,this)"><span>◎</span>P. de Venta</button>
     <button class="nav-item" onclick="showPage(&#39;tipocambio&#39;,this)"><span>$</span>Tipo de Cambio</button>
     <div class="nav-sec">Laboratorio</div>
+    <button class="nav-item" onclick="showPage(&#39;dashboard&#39;,this)"><span>📊</span>DashBoard</button>
     <button class="nav-item" onclick="showPage(&#39;vetamovim&#39;,this)"><span>🧪</span>VetaMovim</button>
   </nav>
   <div class="content">
@@ -321,7 +323,7 @@ tr:hover td{background:var(--surface2)}
       <div class="mgrid">
         <div class="metric"><div class="metric-label">Rendimiento</div><div class="metric-value" id="m-rend"><span style="color:var(--accent);font-weight:700">+32%</span></div></div>
         <div class="metric"><div class="metric-label">Valor total USD</div><div class="metric-value port-sensitive" id="m-val">$257.255</div></div>
-        <div class="metric"><div class="metric-label">Ganancia Neta USD</div><div class="metric-value port-sensitive" id="m-ganancia">—</div><div class="metric-sub" id="m-ganancia-pct"></div></div>
+        <div class="metric"><div class="metric-label">Ganancia Neta USD</div><div class="metric-value port-sensitive" id="m-ganancia">—</div></div>
         <div class="metric"><div class="metric-label">Dividendos USD</div><div class="metric-value port-sensitive" id="m-divs">$2.652</div></div>
         <div class="metric"><div class="metric-label">Posiciones</div><div class="metric-value" id="m-count">74</div></div>
 
@@ -755,6 +757,35 @@ tr:hover td{background:var(--surface2)}
     </div>
 
     <!-- VETA MOVIM (WIP - no impacta portafolio) -->
+    <div class="page" id="page-dashboard">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+        <span style="font-size:1.1rem;font-weight:700">📊 DashBoard</span>
+        <span style="font-size:.68rem;font-family:var(--mono);color:var(--text3)">Análisis visual del portafolio</span>
+      </div>
+      <!-- Fila 1: Sector + Top Holdings -->
+      <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:1rem;margin-bottom:1rem">
+        <div class="card" style="padding:1rem">
+          <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Distribución por sector</div>
+          <div style="position:relative;height:260px"><canvas id="db-chart-sector"></canvas></div>
+        </div>
+        <div class="card" style="padding:1rem">
+          <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 posiciones por valor (USD)</div>
+          <div style="position:relative;height:260px"><canvas id="db-chart-top"></canvas></div>
+        </div>
+      </div>
+      <!-- Fila 2: Ganancia por posición -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+        <div class="card" style="padding:1rem">
+          <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 ganancias (USD)</div>
+          <div style="position:relative;height:280px"><canvas id="db-chart-gains"></canvas></div>
+        </div>
+        <div class="card" style="padding:1rem">
+          <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 pérdidas (USD)</div>
+          <div style="position:relative;height:280px"><canvas id="db-chart-losses"></canvas></div>
+        </div>
+      </div>
+    </div>
+
     <div class="page" id="page-vetamovim">
       <div class="card">
         <div class="card-header" style="gap:10px;flex-wrap:wrap">
@@ -1024,6 +1055,7 @@ function showPage(id,btn){
   if(id==='movimientos') simPopulateSelect();
   if(id==='dividendos') divPopulateSelect();
   if(id==='arbitraje') arbRender();
+  if(id==='dashboard') renderDashboard();
   // Sidebar: colapsado en portafolio, abierto en el resto
   var main=document.getElementById('main');
   if(main){
@@ -1754,7 +1786,7 @@ function renderPortfolio(){
     empty.style.display='';
     document.getElementById('panels-grid').style.display='none';
     ['panel-nyse','panel-bonos','panel-argentina','panel-brasil','panel-europa','panel-on','panel-china','panel-cripto'].forEach(function(id){document.getElementById(id).style.display='none';});
-    ['m-val','m-ganancia','m-divs','m-count'].forEach(function(id){document.getElementById(id).textContent='—';});document.getElementById('m-ganancia-pct').textContent='';document.getElementById('m-rend').innerHTML='—';
+    ['m-val','m-ganancia','m-divs','m-count'].forEach(function(id){document.getElementById(id).textContent='—';});document.getElementById('m-rend').innerHTML='—';
     renderDivsCard();
     return;
   }
@@ -1943,7 +1975,6 @@ function renderPortfolio(){
 
   // Ganancia Neta = Valor Total USD - Inv. Inicial USD
   var gananciaEl=document.getElementById('m-ganancia');
-  var gananciaPctEl=document.getElementById('m-ganancia-pct');
   var invInicialG=getRawNum('inv-sidebar-usd');
   if(invInicialG>0){
     var gananciaNeta=valConLiq-invInicialG;
@@ -1951,10 +1982,8 @@ function renderPortfolio(){
     var gananciaColor=gananciaPct<0?'var(--red)':gananciaPct<=10?'#f97316':'var(--accent)';
     var gananciaSign=gananciaNeta>=0?'+':'';
     gananciaEl.innerHTML='<span style="color:'+gananciaColor+';font-weight:700">'+gananciaSign+'$'+Math.round(Math.abs(gananciaNeta)).toLocaleString('es-AR')+'</span>';
-    gananciaPctEl.innerHTML='<span style="color:'+gananciaColor+'">'+gananciaSign+gananciaPct.toFixed(1)+'%</span>';
   } else {
     gananciaEl.textContent='—';
-    gananciaPctEl.textContent='(cargá Inv. Inicial)';
   }
 
   renderDivsCard();
@@ -3616,6 +3645,173 @@ function trkCalcCCL(){
 function toggleSidebar(){
   var main = document.getElementById('main') || document.querySelector('.main');
   if(main) main.classList.toggle('sidebar-open');
+}
+
+// ─── DashBoard ───────────────────────────────────────────────
+var DB_CHARTS={};
+
+function dbDestroyAll(){
+  Object.keys(DB_CHARTS).forEach(function(k){
+    try{DB_CHARTS[k].destroy();}catch(e){}
+    delete DB_CHARTS[k];
+  });
+}
+
+function dbMakeChart(id,config){
+  var canvas=document.getElementById(id);
+  if(!canvas)return;
+  var ctx=canvas.getContext('2d');
+  DB_CHARTS[id]=new Chart(ctx,config);
+}
+
+var DB_SECTOR_LABEL={
+  nyse:'NYSE / ETF',bonos:'Bonos',on:'ONs',
+  argentina:'Argentina',brasil:'Brasil',
+  europa:'Europa',china:'China',cripto:'Cripto'
+};
+var DB_SECTOR_COLOR={
+  nyse:'#60a5fa',bonos:'#a78bfa',on:'#f472b6',
+  argentina:'#34d399',brasil:'#fbbf24',
+  europa:'#fb923c',china:'#f87171',cripto:'#38bdf8'
+};
+
+function renderDashboard(){
+  if(typeof Chart==='undefined'){
+    setTimeout(renderDashboard,400);
+    return;
+  }
+  dbDestroyAll();
+
+  var positions=getPositions();
+  var open=positions.filter(function(p){return p.qty>0;});
+  var tcHoy=CCL_HOY||1;
+  var mepHoy=MEP_HOY||tcHoy;
+
+  // Construir datos por posición con valor USD y ganancia USD
+  var posData=[];
+  open.forEach(function(p){
+    var q=QUOTES[p.ticker];
+    if(!q||!q.price)return;
+    var sector=getSector(p.ticker);
+    var isBonoON=(sector==='bonos'||sector==='on');
+    var ratio=RATIOS_TABLE[p.ticker]||1;
+    var tc=isBonoON?mepHoy:tcHoy;
+    var priceUSD=isBonoON?(q.price*ratio/tc):q.price;
+    var valUSD=priceUSD*p.qty;
+    // costo promedio en USD
+    var costUSD=isBonoON?((p.avgCost||0)*ratio/tc):(p.avgCost||0);
+    var gainUSD=(priceUSD-costUSD)*p.qty;
+    posData.push({ticker:p.ticker,sector:sector,valUSD:valUSD,gainUSD:gainUSD});
+  });
+
+  // ── Gráfico 1: Donut por sector ──────────────────────────
+  var sectorMap={};
+  posData.forEach(function(d){
+    sectorMap[d.sector]=(sectorMap[d.sector]||0)+d.valUSD;
+  });
+  var sectorKeys=Object.keys(sectorMap).sort(function(a,b){return sectorMap[b]-sectorMap[a];});
+  var sectorLabels=sectorKeys.map(function(k){return DB_SECTOR_LABEL[k]||k;});
+  var sectorVals=sectorKeys.map(function(k){return Math.round(sectorMap[k]);});
+  var sectorColors=sectorKeys.map(function(k){return DB_SECTOR_COLOR[k]||'#8b8fa8';});
+  var totalValSector=sectorVals.reduce(function(a,b){return a+b;},0);
+
+  dbMakeChart('db-chart-sector',{
+    type:'doughnut',
+    data:{labels:sectorLabels,datasets:[{data:sectorVals,backgroundColor:sectorColors,borderColor:'#16181c',borderWidth:2,hoverOffset:6}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{
+        legend:{position:'right',labels:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:10},padding:10,boxWidth:10}},
+        tooltip:{callbacks:{label:function(ctx){
+          var v=ctx.parsed;
+          var pct=(totalValSector>0?(v/totalValSector*100):0).toFixed(1);
+          return ' $'+v.toLocaleString('es-AR')+' ('+pct+'%)';
+        }}}
+      }
+    }
+  });
+
+  // ── Gráfico 2: Top 10 posiciones por valor ───────────────
+  var sorted=[].concat(posData).sort(function(a,b){return b.valUSD-a.valUSD;}).slice(0,10);
+  var topColors=sorted.map(function(d){return DB_SECTOR_COLOR[d.sector]||'#60a5fa';});
+
+  dbMakeChart('db-chart-top',{
+    type:'bar',
+    data:{
+      labels:sorted.map(function(d){return d.ticker;}),
+      datasets:[{
+        label:'Valor USD',
+        data:sorted.map(function(d){return Math.round(d.valUSD);}),
+        backgroundColor:topColors.map(function(c){return c+'cc';}),
+        borderColor:topColors,
+        borderWidth:1,borderRadius:4
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ' $'+ctx.parsed.y.toLocaleString('es-AR');}}}},
+      scales:{
+        x:{ticks:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:10}},grid:{color:'#2a2d35'}},
+        y:{ticks:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:10},callback:function(v){return '$'+Math.round(v/1000)+'k';}},grid:{color:'#2a2d35'}}
+      }
+    }
+  });
+
+  // ── Gráfico 3: Top 10 ganancias ──────────────────────────
+  var gainsSorted=[].concat(posData).sort(function(a,b){return b.gainUSD-a.gainUSD;}).slice(0,10);
+
+  dbMakeChart('db-chart-gains',{
+    type:'bar',
+    data:{
+      labels:gainsSorted.map(function(d){return d.ticker;}),
+      datasets:[{
+        label:'Ganancia USD',
+        data:gainsSorted.map(function(d){return Math.round(d.gainUSD);}),
+        backgroundColor:'rgba(126,232,162,.25)',
+        borderColor:'#7ee8a2',
+        borderWidth:1,borderRadius:4
+      }]
+    },
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){
+        var v=ctx.parsed.x;
+        return ' '+(v>=0?'+':'')+'$'+Math.round(v).toLocaleString('es-AR');
+      }}}},
+      scales:{
+        x:{ticks:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:10},callback:function(v){return '$'+Math.round(v/1000)+'k';}},grid:{color:'#2a2d35'}},
+        y:{ticks:{color:'#e8eaf0',font:{family:'DM Mono, monospace',size:10}},grid:{color:'#2a2d35'}}
+      }
+    }
+  });
+
+  // ── Gráfico 4: Top 10 pérdidas ───────────────────────────
+  var lossesSorted=[].concat(posData).sort(function(a,b){return a.gainUSD-b.gainUSD;}).slice(0,10);
+
+  dbMakeChart('db-chart-losses',{
+    type:'bar',
+    data:{
+      labels:lossesSorted.map(function(d){return d.ticker;}),
+      datasets:[{
+        label:'Pérdida USD',
+        data:lossesSorted.map(function(d){return Math.round(d.gainUSD);}),
+        backgroundColor:'rgba(248,113,113,.2)',
+        borderColor:'#f87171',
+        borderWidth:1,borderRadius:4
+      }]
+    },
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){
+        var v=ctx.parsed.x;
+        return ' '+(v>=0?'+':'')+'$'+Math.round(v).toLocaleString('es-AR');
+      }}}},
+      scales:{
+        x:{ticks:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:10},callback:function(v){return '$'+Math.round(v/1000)+'k';}},grid:{color:'#2a2d35'}},
+        y:{ticks:{color:'#e8eaf0',font:{family:'DM Mono, monospace',size:10}},grid:{color:'#2a2d35'}}
+      }
+    }
+  });
 }
 </script>
 
