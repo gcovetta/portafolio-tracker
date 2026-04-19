@@ -1835,7 +1835,9 @@ function renderPortfolio(){
     var targetUSD=getTarget(p.ticker);
     var targetARS=targetUSD!=null?(targetUSD/ratio)*_tcHoy:null;
     // ΔUP: (P.Venta USD - Precio mercado USD) / Precio mercado USD
-    var priceUSD=q?q.price:null;
+    // Para bonos/ON q.price viene en ARS → convertir a USD equivalente primero
+    var _rawPrice=q?q.price:null;
+    var priceUSD=_rawPrice!=null?(_isBonoON?_rawPrice*ratio/(_tcHoy||1):_rawPrice):null;
     var upside=targetUSD!=null&&priceUSD!=null&&priceUSD>0?(targetUSD-priceUSD)/priceUSD*100:null;
 
     // Recuadro combinado Δ% / ΔUP (mismo badge, colores internos independientes)
@@ -1946,15 +1948,17 @@ function renderNearTarget(){
   open.forEach(function(p){
     var q=quotes[p.ticker];if(!q||q.price==null)return;
     var targetUSD=getTarget(p.ticker);if(targetUSD==null||!(targetUSD>0))return;
-    var priceUSD=q.price;if(!(priceUSD>0))return;
-    var upside=(targetUSD-priceUSD)/priceUSD*100;
-    if(!(upside>=0)||upside>NT_THRESHOLD)return;
     var ratio=getRatio(p.ticker);
     var sector=getSector(p.ticker);
     var _isBonoON=(sector==='bonos'||sector==='on');
     var _isARS=(sector==='argentina'||sector==='bonos'||sector==='on');
     var _tcHoy=_isBonoON?(MEP_HOY||CCL_HOY):CCL_HOY;
-    var mercadoARS=_isARS?priceUSD:(priceUSD/ratio)*_tcHoy;
+    // Para bonos/ON q.price viene en ARS → convertir a USD equivalente
+    var priceUSD=_isBonoON?(q.price*ratio/(_tcHoy||1)):q.price;
+    if(!(priceUSD>0))return;
+    var upside=(targetUSD-priceUSD)/priceUSD*100;
+    if(!(upside>=0)||upside>NT_THRESHOLD)return;
+    var mercadoARS=_isARS?q.price:(q.price/ratio)*_tcHoy;
     var targetARS=(targetUSD/ratio)*_tcHoy;
     items.push({ticker:p.ticker,priceARS:mercadoARS,targetARS:targetARS,upside:upside});
   });
