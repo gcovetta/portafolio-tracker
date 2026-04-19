@@ -438,7 +438,7 @@ tr:hover td{background:var(--surface2)}
           <div class="fg">
             <div class="fgrp">
               <label>Ticker</label>
-              <input type="text" id="sim-ticker" placeholder="NVDA, META..." style="text-transform:uppercase" oninput="simCalc()">
+              <select id="sim-ticker" onchange="simCalc()" style="text-transform:uppercase"><option value="">— seleccioná ticker —</option></select>
             </div>
             <div class="fgrp">
               <label>Fecha de venta</label>
@@ -499,7 +499,7 @@ tr:hover td{background:var(--surface2)}
         <div class="card-header"><span class="card-title">Registrar dividendo</span></div>
         <div class="card-body">
           <div class="fg">
-            <div class="fgrp"><label>Ticker</label><input id="d-ticker" type="text" placeholder="MSFT, AVGO..." style="text-transform:uppercase"></div>
+            <div class="fgrp"><label>Ticker</label><select id="d-ticker" style="text-transform:uppercase"><option value="">— seleccioná ticker —</option></select></div>
             <div class="fgrp"><label>Fecha cobro</label><input id="d-fecha" type="date"></div>
             <div class="fgrp"><label>Monto ARS</label><input id="d-ars" type="number" min="0" step="any" placeholder="0"></div>
             <div class="fgrp"><label>CCL del día</label><input id="d-ccl" type="number" min="0" step="any" placeholder="auto"></div>
@@ -996,6 +996,7 @@ function showPage(id,btn){
   if(btn)btn.classList.add('active');
   if(id==='tracker') initTracker();
   if(id==='movimientos') simPopulateSelect();
+  if(id==='dividendos') divPopulateSelect();
   if(id==='arbitraje') arbRender();
   // Sidebar: colapsado en portafolio, abierto en el resto
   var main=document.getElementById('main');
@@ -1402,9 +1403,37 @@ function movModalClose(){
 // SIMULADOR DE VENTA
 // ════════════════════════════════════════════════════════
 function simPopulateSelect(){
-  // Ya no hay select, solo inicializar la fecha
   var fEl = document.getElementById('sim-fecha');
   if(fEl && !fEl.value) fEl.value = new Date().toISOString().split('T')[0];
+  var sel = document.getElementById('sim-ticker');
+  if(!sel) return;
+  var current = sel.value;
+  // Tickers con posición actual (qty > 0) + tickers históricos de ventas
+  var tickers = [];
+  var seen = {};
+  getPositions().forEach(function(p){ if(!seen[p.ticker]){seen[p.ticker]=true;tickers.push(p.ticker);} });
+  movimientos.forEach(function(m){ if(m&&m.ticker&&!seen[m.ticker]&&m.tipo!=='aporte'){seen[m.ticker]=true;tickers.push(m.ticker);} });
+  tickers.sort();
+  sel.innerHTML = '<option value="">— seleccioná ticker —</option>' +
+    tickers.map(function(t){
+      var pos = getPositions().find(function(p){return p.ticker===t;});
+      var label = t + (pos && pos.qty > 0 ? ' ('+Math.round(pos.qty)+')' : '');
+      return '<option value="'+t+'"'+(t===current?' selected':'')+'>'+label+'</option>';
+    }).join('');
+}
+
+function divPopulateSelect(){
+  var sel = document.getElementById('d-ticker');
+  if(!sel) return;
+  var current = sel.value;
+  var tickers = [];
+  var seen = {};
+  movimientos.forEach(function(m){ if(m&&m.ticker&&!seen[m.ticker]&&m.tipo!=='aporte'){seen[m.ticker]=true;tickers.push(m.ticker);} });
+  tickers.sort();
+  sel.innerHTML = '<option value="">— seleccioná ticker —</option>' +
+    tickers.map(function(t){
+      return '<option value="'+t+'"'+(t===current?' selected':'')+'>'+t+'</option>';
+    }).join('');
 }
 
 function simCalc(){
@@ -2384,6 +2413,7 @@ document.addEventListener('DOMContentLoaded',function(){
   }
   document.getElementById('d-ars').addEventListener('input',calcDivUSD);
   document.getElementById('d-ccl').addEventListener('input',calcDivUSD);
+  divPopulateSelect();
 });
 
 function calcDivUSD(){
