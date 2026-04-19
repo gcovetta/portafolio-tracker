@@ -108,6 +108,12 @@ tr:hover td{background:var(--surface2)}
 .panel-table table{width:auto;min-width:100%}
 .panel-table th{padding:.35rem .6rem;font-size:.64rem}
 .panel-table td{padding:.4rem .65rem;font-size:.8rem}
+/* Toggle para ocultar columna Cant. en paneles */
+.panels-grid.hide-qty .panel-table th:last-child,
+.panels-grid.hide-qty .panel-table td:last-child{display:none}
+.qty-toggle{display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-family:var(--mono);font-size:.65rem;color:var(--text2);user-select:none}
+.qty-toggle input{accent-color:var(--accent);cursor:pointer;width:12px;height:12px;margin:0}
+.qty-toggle:hover{color:var(--text)}
 
 /* ── TRACKER DIVIDENDOS ── */
 .trk-section{margin-bottom:1rem}
@@ -331,6 +337,9 @@ tr:hover td{background:var(--surface2)}
         <div class="card-header">
           <span class="card-title">Posiciones abiertas</span>
           <div class="gap-row">
+            <label class="qty-toggle" title="Mostrar/ocultar columna Cantidad">
+              <input type="checkbox" id="qty-toggle" onchange="toggleQtyCol(this.checked)"> Mostrar Cant.
+            </label>
             <span id="ref-status" class="emsg">67/74...</span>
             <button class="btn btn-a" onclick="fetchAllQuotes()"><span id="ref-icon"><span class="spinner"></span></span> Actualizar precios</button>
           </div>
@@ -637,88 +646,6 @@ tr:hover td{background:var(--surface2)}
 
       </div><!-- /trk-app -->
     </div><!-- /page-tracker -->
-
-    <!-- COTIZADOR -->
-    <div class="page" id="page-cotizador">
-
-      <!-- ══ CALCULADORA DE RATIOS CEDEAR ══ -->
-      <div class="card" style="margin-bottom:0">
-        <div class="card-header" style="gap:10px">
-          <span class="card-title">🧮 Calculadora de Ratios CEDEAR</span>
-          <span class="tag" id="rc-ccl-tag" style="font-family:var(--mono);font-size:.68rem">CCL: $1.483</span>
-        </div>
-        <div class="card-body">
-          <div class="ibox" style="margin-bottom:14px;font-size:.72rem">
-            Fórmula: <code style="color:var(--accent)">Precio NYSE (USD) = Precio CEDEAR (ARS) × Ratio ÷ CCL</code> &nbsp;·&nbsp; <code style="color:var(--accent)">Precio CEDEAR (ARS) = Precio NYSE × Ratio ÷ CCL × CCL</code>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;align-items:end">
-            <div class="fgrp">
-              <label>Ticker CEDEAR</label>
-              <input type="text" id="rc-ticker" placeholder="NVDA, MELI..." style="text-transform:uppercase;font-weight:600" oninput="rcAutoFill()">
-            </div>
-            <div class="fgrp">
-              <label>Ratio (CEDEARs / acción)</label>
-              <input type="number" id="rc-ratio" min="0.001" step="any" placeholder="Ej: 24" oninput="rcCalc()">
-            </div>
-            <div class="fgrp">
-              <label>CCL ($/USD)</label>
-              <input type="number" id="rc-ccl" min="1" step="any" placeholder="Auto" oninput="rcCalc()">
-            </div>
-            <div class="fgrp">
-              <label>Precio CEDEAR (ARS)</label>
-              <input type="number" id="rc-ars" min="0" step="any" placeholder="Precio en $" oninput="rcFromARS()">
-            </div>
-            <div class="fgrp">
-              <label>Precio NYSE (USD)</label>
-              <input type="number" id="rc-usd" min="0" step="any" placeholder="Precio en USD" oninput="rcFromUSD()">
-            </div>
-          </div>
-
-          <!-- RESULTADO -->
-          <div id="rc-result" style="display: block; margin-top: 14px;">
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
-              <div class="metric" style="padding:.7rem 1rem;border:1px solid var(--accent);border-radius:var(--radius)">
-                <div class="metric-label">Precio NYSE equivalente</div>
-                <div class="metric-value" id="rc-out-usd" style="font-size:1.15rem;color:var(--accent)">USD 62.2454</div>
-                <div class="metric-sub" id="rc-out-usd-sub">por 1 CEDEAR ÷ ratio 1</div>
-              </div>
-              <div class="metric" style="padding:.7rem 1rem;border:1px solid var(--green);border-radius:var(--radius)">
-                <div class="metric-label">Precio CEDEAR equivalente</div>
-                <div class="metric-value" id="rc-out-ars" style="font-size:1.15rem;color:var(--green)">$92.309,93</div>
-                <div class="metric-sub" id="rc-out-ars-sub">precio CEDEAR a CCL $1.483</div>
-              </div>
-              <div class="metric" style="padding:.7rem 1rem">
-                <div class="metric-label">Precio ARS por acción NYSE</div>
-                <div class="metric-value" id="rc-out-pxaccion" style="font-size:1.15rem">$92.310</div>
-                <div class="metric-sub" id="rc-out-pxaccion-sub">1 acción NYSE = 1 CEDEARs</div>
-              </div>
-              <div class="metric" style="padding:.7rem 1rem">
-                <div class="metric-label">Ratio usado</div>
-                <div class="metric-value" id="rc-out-ratio" style="font-size:1.15rem">1 : 1</div>
-                <div class="metric-sub">CEDEARs por 1 acción</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- COMPARADOR: Precio justo -->
-          <div id="rc-compare" style="display:none;margin-top:10px;padding:10px 14px;background:var(--surface2);border-radius:var(--rsm);font-size:.73rem;font-family:var(--mono)">
-            <span id="rc-compare-text"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header"><span class="card-title">Cotizador NYSE / ETF</span></div>
-        <div class="card-body">
-          <div class="fg">
-            <div class="fgrp"><label>Ticker</label><input id="q-ticker" type="text" placeholder="AAPL, NVDA..." style="text-transform:uppercase"></div>
-            <div style="align-self:flex-end"><button class="btn btn-a" onclick="fetchSingle()">Consultar</button></div>
-          </div>
-          <div id="q-result" style="margin-top:12px"></div>
-          <div class="ibox" style="margin-top:14px">Fuente: <b>Finnhub.io</b> — tiempo real NYSE/NASDAQ.</div>
-        </div>
-      </div>
-    </div>
 
     <!-- RATIOS -->
     <div class="page" id="page-ratios">
@@ -2014,6 +1941,24 @@ function renderNearTarget(){
   grid.innerHTML=html;
 }
 
+// ─── Toggle columna Cantidad (oculta por defecto para layout compacto) ───
+function toggleQtyCol(show){
+  var grid=document.getElementById('panels-grid');
+  if(!grid)return;
+  if(show){grid.classList.remove('hide-qty');}else{grid.classList.add('hide-qty');}
+  try{localStorage.setItem('ptNYSE_showQty',show?'1':'0');}catch(e){}
+}
+(function initQtyToggle(){
+  var show='0';
+  try{var s=localStorage.getItem('ptNYSE_showQty');if(s!==null)show=s;}catch(e){}
+  function apply(){
+    var cb=document.getElementById('qty-toggle');var grid=document.getElementById('panels-grid');
+    if(cb)cb.checked=(show==='1');
+    if(grid&&show!=='1')grid.classList.add('hide-qty');
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',apply);}else{apply();}
+})();
+
 // ─── VetaMovim (laboratorio de importación de movimientos, NO impacta portafolio) ───
 var VM_ROWS=[];
 function vmAddRow(){
@@ -2353,18 +2298,6 @@ async function fetchAllQuotes(){
   try{localStorage.setItem('ptNYSE_q2',JSON.stringify(quotes));localStorage.setItem('ptNYSE_q2_ts',Date.now());}catch(e){}
 }
 
-async function fetchSingle(){
-  var ticker=document.getElementById('q-ticker').value.trim().toUpperCase();
-  var el=document.getElementById('q-result');
-  if(!ticker){el.innerHTML='<span class="emsg">Ingresa un ticker</span>';return;}
-  el.innerHTML='<span class="spinner"></span> Consultando...';
-  try{
-    var q=await fetchFinnhub(ticker);
-    var cc=q.changePct>=0?'pos':'neg';
-    el.innerHTML='<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem"><div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px"><span style="font-size:1rem;font-weight:700">'+ticker+'</span><span style="font-size:1.3rem;font-weight:600;font-family:var(--mono)">$'+q.price.toFixed(2)+'</span><span class="mono '+cc+'">'+(q.changePct>=0?'+':'')+q.changePct.toFixed(2)+'% hoy</span></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;font-family:var(--mono);font-size:.72rem"><div><div style="color:var(--text3);font-size:.6rem">Apertura</div>$'+q.open.toFixed(2)+'</div><div><div style="color:var(--text3);font-size:.6rem">Max hoy</div>$'+q.high.toFixed(2)+'</div><div><div style="color:var(--text3);font-size:.6rem">Min hoy</div>$'+q.low.toFixed(2)+'</div><div><div style="color:var(--text3);font-size:.6rem">Cierre ant.</div>$'+q.prevClose.toFixed(2)+'</div></div></div>';
-  }catch(e){el.innerHTML='<span class="emsg">Error: '+e.message+'</span>';}
-}
-
 function exportCSV(){
   if(!movimientos.length)return;
   var h=['Fecha','Tipo','Mercado','Ticker','Cantidad','PrecioARS','CCL','PrecioUSD','Comision','Notas'];
@@ -2591,106 +2524,6 @@ async function trkFetchCCL(){
   var fromTable=CCL_TABLE[k];
   if(fromTable){trkSetCCL(fromTable,'tabla embebida');}
   else{document.getElementById('trk-ccl-display').textContent='No disponible';document.getElementById('trk-ccl-src').textContent='— ingresá manualmente';}
-}
-
-
-// ════════════════════════════════════════════════════════
-// CALCULADORA DE RATIOS CEDEAR
-// ════════════════════════════════════════════════════════
-var RC_LOCK = false; // evitar loop ARS→USD→ARS
-
-function rcAutoFill(){
-  var t=(document.getElementById('rc-ticker').value||'').trim().toUpperCase();
-  var r=getRatio(t);
-  var ri=document.getElementById('rc-ratio');
-  if(r&&r!==1||Object.keys(RATIOS_TABLE).indexOf(t)>-1){
-    ri.value=r;
-  }
-  rcCalc();
-}
-
-function rcGetCCL(){
-  var manual=parseFloat(document.getElementById('rc-ccl').value);
-  return manual>0?manual:(typeof CCL_HOY!=='undefined'?CCL_HOY:1486);
-}
-
-function rcCalc(){
-  var tag=document.getElementById('rc-ccl-tag');
-  var cclUsed=rcGetCCL();
-  if(tag) tag.textContent='CCL: $'+Math.round(cclUsed).toLocaleString('es-AR');
-}
-
-function rcFromARS(){
-  if(RC_LOCK)return;
-  var ars=parseFloat(document.getElementById('rc-ars').value);
-  var ratio=parseFloat(document.getElementById('rc-ratio').value)||1;
-  var ccl=rcGetCCL();
-  if(!isNaN(ars)&&ars>0&&ccl>0){
-    RC_LOCK=true;
-    var usd=(ars*ratio)/ccl;
-    document.getElementById('rc-usd').value=usd.toFixed(4);
-    RC_LOCK=false;
-  }
-  rcRender();
-}
-
-function rcFromUSD(){
-  if(RC_LOCK)return;
-  var usd=parseFloat(document.getElementById('rc-usd').value);
-  var ratio=parseFloat(document.getElementById('rc-ratio').value)||1;
-  var ccl=rcGetCCL();
-  if(!isNaN(usd)&&usd>0&&ccl>0&&ratio>0){
-    RC_LOCK=true;
-    var ars=(usd*ccl)/ratio;
-    document.getElementById('rc-ars').value=ars.toFixed(2);
-    RC_LOCK=false;
-  }
-  rcRender();
-}
-
-function rcRender(){
-  var ars=parseFloat(document.getElementById('rc-ars').value);
-  var usd=parseFloat(document.getElementById('rc-usd').value);
-  var ratio=parseFloat(document.getElementById('rc-ratio').value)||1;
-  var ccl=rcGetCCL();
-  var ticker=(document.getElementById('rc-ticker').value||'').trim().toUpperCase();
-
-  var result=document.getElementById('rc-result');
-  var compare=document.getElementById('rc-compare');
-  if((!ars&&!usd)||!ccl){result.style.display='none';compare.style.display='none';return;}
-
-  var usdCalc=ars>0?((ars*ratio)/ccl):usd;
-  var arsCalc=usd>0?((usd*ccl)/ratio):ars;
-  var pxAccion=usd>0?(usd*ccl):((ars/ratio)*ccl);
-
-  document.getElementById('rc-out-usd').textContent='USD '+usdCalc.toFixed(4);
-  document.getElementById('rc-out-usd-sub').textContent='por 1 CEDEAR ÷ ratio '+ratio;
-  document.getElementById('rc-out-ars').textContent='$'+arsCalc.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  document.getElementById('rc-out-ars-sub').textContent='precio CEDEAR a CCL $'+Math.round(ccl).toLocaleString('es-AR');
-  document.getElementById('rc-out-pxaccion').textContent='$'+pxAccion.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0});
-  document.getElementById('rc-out-pxaccion-sub').textContent='1 acción NYSE = '+ratio+' CEDEARs';
-  document.getElementById('rc-out-ratio').textContent='1 : '+ratio;
-  result.style.display='block';
-
-  // Comparador con precio live de quotes si hay ticker
-  if(ticker&&typeof quotes!=='undefined'&&quotes[ticker]){
-    var liveUSD=quotes[ticker];
-    var impliedARS=(liveUSD*ccl)/ratio;
-    var diffPct=arsCalc>0?((arsCalc-impliedARS)/impliedARS*100):null;
-    if(liveUSD&&diffPct!==null){
-      var sg=diffPct>=0?'+':'';
-      var color=Math.abs(diffPct)>3?(diffPct>0?'var(--red)':'var(--green)'):'var(--text2)';
-      document.getElementById('rc-compare-text').innerHTML=
-        '<b>'+ticker+'</b> cotiza USD '+liveUSD.toFixed(2)+' en NYSE · '+
-        'Precio ARS justo: <b>$'+impliedARS.toFixed(2)+'</b> · '+
-        'Tu precio vs. justo: <span style="color:'+color+'">'+sg+diffPct.toFixed(2)+'%</span>';
-      compare.style.display='block';
-    }else{compare.style.display='none';}
-  }else{compare.style.display='none';}
-
-  // Update CCL tag
-  var tag=document.getElementById('rc-ccl-tag');
-  if(tag) tag.textContent='CCL: $'+Math.round(ccl).toLocaleString('es-AR');
 }
 
 
