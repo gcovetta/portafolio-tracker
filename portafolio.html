@@ -2064,10 +2064,6 @@ function renderNearTarget(){
     return '<div class="nt-ticker-card">'+
       '<span class="nt-tk-sym">'+it.ticker+'</span>'+
       '<div class="nt-tk-body">'+
-        '<div class="nt-tk-prices">'+
-          '<span class="nt-tk-price">'+fmt(it.priceARS)+'</span>'+
-          '<span class="nt-tk-target">Obj: '+fmt(it.targetARS)+'</span>'+
-        '</div>'+
         '<div class="nt-tk-progress">'+
           '<div class="nt-tk-pbar"><div class="nt-tk-pbar-fill" style="width:'+fill.toFixed(1)+'%"></div></div>'+
           '<span class="nt-tk-falta">Falta '+pctStr+'</span>'+
@@ -3695,7 +3691,7 @@ function renderMiniPie(fija,variable,liquidez){
   MINI_PIE_INST=new Chart(canvas.getContext('2d'),{
     type:'doughnut',
     data:{
-      labels:['RF','RV','$'],
+      labels:['RF','RV','u$s'],
       datasets:[{
         data:[Math.round(fija),Math.round(variable),Math.round(liquidez)],
         backgroundColor:['rgba(167,139,250,.8)','rgba(96,165,250,.8)','rgba(251,191,36,.8)'],
