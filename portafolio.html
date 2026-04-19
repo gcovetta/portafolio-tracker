@@ -326,7 +326,7 @@ tr:hover td{background:var(--surface2)}
         <div class="metric"><div class="metric-label">Ganancia Neta USD</div><div class="metric-value port-sensitive" id="m-ganancia">—</div></div>
         <div class="metric"><div class="metric-label">Dividendos USD</div><div class="metric-value port-sensitive" id="m-divs">$2.652</div></div>
         <div class="metric"><div class="metric-label">Posiciones</div><div class="metric-value" id="m-count">74</div></div>
-        <div class="metric" style="flex:0 0 210px;min-width:180px;padding:.7rem .85rem">
+        <div class="metric" style="flex:0 0 210px;min-width:180px;padding:.7rem .85rem;background:transparent;border-color:transparent">
           <div class="metric-label" style="margin-bottom:6px">Distribución</div>
           <div style="position:relative;height:130px"><canvas id="m-pie-chart"></canvas></div>
         </div>
@@ -1955,10 +1955,11 @@ function renderPortfolio(){
   document.getElementById('m-val').textContent='$'+Math.round(valConLiq).toLocaleString('es-AR');
   document.getElementById('m-count').textContent=open.length;
 
-  // Mini pie distribución
+  // Mini pie distribución — liquidez ARS convertida con MEP
+  var _liqMEP=liqUSD+((MEP_HOY||CCL_HOY)>0?liqARS/(MEP_HOY||CCL_HOY):0);
   var _fija=(sectorVal.bonos||0)+(sectorVal.on||0);
-  var _variable=valConLiq-liqTotalUSD-_fija;
-  renderMiniPie(_fija,_variable>0?_variable:0,liqTotalUSD);
+  var _variable=totalVal-_fija;
+  renderMiniPie(_fija,_variable>0?_variable:0,_liqMEP>0?_liqMEP:0);
 
   // Dividendos: leer el total del tracker + movimientos (calculado en renderDivsCard)
   var trkDivsTotal=0;
@@ -3666,27 +3667,53 @@ function renderMiniPie(fija,variable,liquidez){
   var total=fija+variable+liquidez;
   if(total<=0) return;
   var fmt=function(v){return '$'+Math.round(v).toLocaleString('es-AR')+' ('+((v/total)*100).toFixed(1)+'%)';};
+  // Plugin para mostrar % dentro de cada sector
+  var pieLabelPlugin={
+    id:'pieLabels',
+    afterDatasetDraw:function(chart){
+      var ctx2=chart.ctx;
+      chart.data.datasets.forEach(function(_ds,di){
+        var meta=chart.getDatasetMeta(di);
+        meta.data.forEach(function(arc,i){
+          var val=chart.data.datasets[di].data[i];
+          var pct=total>0?(val/total*100):0;
+          if(pct<4) return; // no dibujar si muy chico
+          var angle=(arc.startAngle+arc.endAngle)/2;
+          var r=(arc.innerRadius+arc.outerRadius)/2;
+          var x=arc.x+Math.cos(angle)*r;
+          var y=arc.y+Math.sin(angle)*r;
+          ctx2.save();
+          ctx2.textAlign='center';ctx2.textBaseline='middle';
+          ctx2.font='700 9px DM Mono, monospace';
+          ctx2.fillStyle='#fff';
+          ctx2.fillText(pct.toFixed(0)+'%',x,y);
+          ctx2.restore();
+        });
+      });
+    }
+  };
   MINI_PIE_INST=new Chart(canvas.getContext('2d'),{
     type:'doughnut',
     data:{
-      labels:['R. Fija','R. Variable','Liquidez'],
+      labels:['RF','RV','$'],
       datasets:[{
         data:[Math.round(fija),Math.round(variable),Math.round(liquidez)],
-        backgroundColor:['rgba(167,139,250,.75)','rgba(96,165,250,.75)','rgba(251,191,36,.75)'],
+        backgroundColor:['rgba(167,139,250,.8)','rgba(96,165,250,.8)','rgba(251,191,36,.8)'],
         borderColor:['#a78bfa','#60a5fa','#fbbf24'],
         borderWidth:1.5,hoverOffset:4
       }]
     },
     options:{
-      responsive:true,maintainAspectRatio:false,cutout:'55%',
+      responsive:true,maintainAspectRatio:false,cutout:'48%',
       plugins:{
         legend:{
           position:'right',
-          labels:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:9},padding:7,boxWidth:8}
+          labels:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:10},padding:8,boxWidth:9}
         },
         tooltip:{callbacks:{label:function(ctx){return ' '+fmt(ctx.parsed);}}}
       }
-    }
+    },
+    plugins:[pieLabelPlugin]
   });
 }
 
