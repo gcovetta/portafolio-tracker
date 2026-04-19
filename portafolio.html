@@ -321,6 +321,10 @@ tr:hover td{background:var(--surface2)}
       </div>
       <div id="port-content" class="">
       <div class="mgrid">
+        <div class="metric" style="flex:0 0 210px;min-width:180px;padding:.7rem .85rem;background:transparent;border-color:transparent">
+          <div class="metric-label" style="margin-bottom:6px">Por sector</div>
+          <div style="position:relative;height:130px"><canvas id="m-pie-sector"></canvas></div>
+        </div>
         <div class="metric"><div class="metric-label">Rendimiento</div><div class="metric-value" id="m-rend"><span style="color:var(--accent);font-weight:700">+32%</span></div></div>
         <div class="metric"><div class="metric-label">Valor total USD</div><div class="metric-value port-sensitive" id="m-val">$257.255</div></div>
         <div class="metric"><div class="metric-label">Ganancia Neta USD</div><div class="metric-value port-sensitive" id="m-ganancia">—</div></div>
@@ -1960,6 +1964,8 @@ function renderPortfolio(){
   var _fija=(sectorVal.bonos||0)+(sectorVal.on||0);
   var _variable=totalVal-_fija;
   renderMiniPie(_fija,_variable>0?_variable:0,_liqMEP>0?_liqMEP:0);
+  // Sector pie desglose
+  renderSectorPie(sectorVal);
 
   // Dividendos: leer el total del tracker + movimientos (calculado en renderDivsCard)
   var trkDivsTotal=0;
@@ -3654,6 +3660,84 @@ function toggleSidebar(){
 }
 
 // ─── Mini Pie: distribución portafolio ───────────────────────
+// ─── Sector Pie: desglose por cada sector ────────────────────
+var SECTOR_PIE_INST=null;
+var SECTOR_PIE_COLORS={
+  nyse:'rgba(96,165,250,.85)',
+  bonos:'rgba(167,139,250,.85)',
+  on:'rgba(244,114,182,.85)',
+  argentina:'rgba(52,211,153,.85)',
+  brasil:'rgba(251,191,36,.85)',
+  europa:'rgba(251,146,60,.85)',
+  china:'rgba(248,113,113,.85)',
+  cripto:'rgba(56,189,248,.85)'
+};
+var SECTOR_PIE_BORDER={
+  nyse:'#60a5fa',bonos:'#a78bfa',on:'#f472b6',
+  argentina:'#34d399',brasil:'#fbbf24',
+  europa:'#fb923c',china:'#f87171',cripto:'#38bdf8'
+};
+var SECTOR_PIE_LABEL={
+  nyse:'NYSE',bonos:'Bonos',on:'ON',
+  argentina:'Argentina',brasil:'Brasil',
+  europa:'Europa',china:'China',cripto:'Cripto'
+};
+
+function renderSectorPie(sectorVal){
+  if(typeof Chart==='undefined') return;
+  var canvas=document.getElementById('m-pie-sector');
+  if(!canvas) return;
+  if(SECTOR_PIE_INST){try{SECTOR_PIE_INST.destroy();}catch(e){} SECTOR_PIE_INST=null;}
+  var keys=Object.keys(sectorVal).filter(function(k){return (sectorVal[k]||0)>0;});
+  keys.sort(function(a,b){return sectorVal[b]-sectorVal[a];});
+  var total=keys.reduce(function(s,k){return s+(sectorVal[k]||0);},0);
+  if(total<=0) return;
+  var labels=keys.map(function(k){return SECTOR_PIE_LABEL[k]||k;});
+  var data=keys.map(function(k){return Math.round(sectorVal[k]||0);});
+  var bgColors=keys.map(function(k){return SECTOR_PIE_COLORS[k]||'rgba(139,143,168,.7)';});
+  var bdColors=keys.map(function(k){return SECTOR_PIE_BORDER[k]||'#8b8fa8';});
+  var pieLabelPlugin2={
+    id:'pieLabels2',
+    afterDatasetDraw:function(chart){
+      var ctx2=chart.ctx;
+      chart.data.datasets.forEach(function(_ds,di){
+        var meta=chart.getDatasetMeta(di);
+        meta.data.forEach(function(arc,i){
+          var val=chart.data.datasets[di].data[i];
+          var pct=total>0?(val/total*100):0;
+          if(pct<4) return;
+          var angle=(arc.startAngle+arc.endAngle)/2;
+          var r=(arc.innerRadius+arc.outerRadius)/2;
+          var x=arc.x+Math.cos(angle)*r;
+          var y=arc.y+Math.sin(angle)*r;
+          ctx2.save();
+          ctx2.textAlign='center';ctx2.textBaseline='middle';
+          ctx2.font='700 9px DM Mono, monospace';
+          ctx2.fillStyle='#fff';
+          ctx2.fillText(pct.toFixed(0)+'%',x,y);
+          ctx2.restore();
+        });
+      });
+    }
+  };
+  SECTOR_PIE_INST=new Chart(canvas.getContext('2d'),{
+    type:'doughnut',
+    data:{labels:labels,datasets:[{data:data,backgroundColor:bgColors,borderColor:bdColors,borderWidth:1.5,hoverOffset:4}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,cutout:'48%',
+      plugins:{
+        legend:{position:'right',labels:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:9},padding:6,boxWidth:8}},
+        tooltip:{callbacks:{label:function(ctx){
+          var v=ctx.parsed;
+          var pct=(total>0?(v/total*100):0).toFixed(1);
+          return ' $'+v.toLocaleString('es-AR')+' ('+pct+'%)';
+        }}}
+      }
+    },
+    plugins:[pieLabelPlugin2]
+  });
+}
+
 var MINI_PIE_INST=null;
 function renderMiniPie(fija,variable,liquidez){
   if(typeof Chart==='undefined') return;
