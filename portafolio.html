@@ -677,8 +677,14 @@ tr:hover td{background:var(--surface2)}
       <div class="card">
         <div class="card-header"><span class="card-title">Precios de Venta Objetivo</span><span id="targets-status" class="smsg"></span></div>
         <div class="card-body" style="padding-bottom:8px">
-          <div class="ibox" style="margin-bottom:12px">Ingresá el precio objetivo en <b>USD (NYSE)</b>. La app lo convierte a ARS del CEDEAR: <code style="color:var(--accent)">P_Venta_ARS = precio_USD ÷ ratio × CCL_hoy</code></div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <div class="ibox" style="margin-bottom:10px">Ingresá el precio objetivo en <b>USD</b> o en <b>ARS (CEDEAR)</b> — se calculan automáticamente. Bonos y ONs usan <b>MEP</b>; el resto usa <b>CCL</b>.</div>
+          <div class="fg" style="margin-bottom:6px">
+            <div class="fgrp"><label>Ticker</label><input id="tgt-ticker" type="text" placeholder="AAPL, GD38..." style="text-transform:uppercase" oninput="tgtSyncOnTickerChange()"></div>
+            <div class="fgrp"><label>P. Venta USD</label><input id="tgt-usd" type="number" min="0" step="any" placeholder="0.00" oninput="tgtSyncFromUSD()"></div>
+            <div class="fgrp"><label>P. Venta ARS (CEDEAR)</label><input id="tgt-ars" type="number" min="0" step="any" placeholder="0.00" oninput="tgtSyncFromARS()"></div>
+            <div style="align-self:flex-end;display:flex;flex-direction:column;gap:4px"><button class="btn btn-a" onclick="addTarget()">+ Agregar</button><span id="tgt-tc-label" style="font-size:.6rem;font-family:var(--mono);color:var(--text3);text-align:center"></span></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px">
             <input id="targets-filter" type="text" placeholder="Filtrar ticker..." oninput="renderTargets()" style="text-transform:uppercase;background:var(--bg);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:4px 8px;height:28px;width:140px;outline:none" title="Filtrar por ticker">
             <span id="targets-filter-count" style="font-size:.65rem;font-family:var(--mono);color:var(--text3)"></span>
             <button class="btn btn-sm" onclick="document.getElementById('targets-filter').value='';renderTargets();">✕ Limpiar</button>
@@ -2479,8 +2485,104 @@ function renderTargets(){
   if(countEl){countEl.textContent=tickers.length<allTickers.length?(tickers.length+' de '+allTickers.length+' tickers'):(allTickers.length+' tickers');}
   body.innerHTML=tickers.map(function(t){
     var targetUSD=TARGET_TABLE[t];var ratio=getRatio(t);var sector=getSector(t);var _tcHoyT=(sector==='bonos'||sector==='on')?(MEP_HOY||CCL_HOY):CCL_HOY;var targetARS=targetUSD!=null?(targetUSD/ratio)*_tcHoyT:null;var pos=pos_map[t];var q=quotes[t];var mercadoARS=q?(q.price/ratio)*_tcHoyT:null;var targetPct=targetUSD!=null&&q&&q.price>0?((targetUSD-q.price)/q.price*100):null;var pctHtml=targetPct!=null?'<span class="'+(targetPct>=0?'pos':'neg')+'">'+(targetPct>=0?'+':'')+targetPct.toFixed(1)+'%</span>':'—';
-    return '<tr><td style="font-weight:700">'+t+'</td><td><span class="mkt" style="font-size:.6rem">'+SECTOR_LABELS[sector]+'</span></td><td><input type="number" min="0" step="any" value="'+(targetUSD!=null?targetUSD:'')+'" placeholder="USD NYSE" id="ti-'+t+'" style="width:110px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.75rem;padding:3px 8px;height:26px" onkeydown="if(event.key===\'Enter\')saveTarget(\''+t+'\')"></td><td class="mono">'+(targetARS!=null?'$'+targetARS.toLocaleString('es-AR',{maximumFractionDigits:0}):'<span style="color:var(--text3)">—</span>')+'</td><td>'+pctHtml+'</td><td><button class="btn btn-a btn-sm" onclick="saveTarget(\''+t+'\')">✓</button></td></tr>';
+    var _useMEP=(sector==='bonos'||sector==='on');var _tcLabel=_useMEP?'MEP':'CCL';var _arsColor=_useMEP?'var(--blue)':'var(--text2)';
+    var arsInput='<input type="number" min="0" step="any" value="'+(targetARS!=null?Math.round(targetARS):'')+'" placeholder="ARS ('+_tcLabel+')" id="ta-'+t+'" title="Conversión vía '+_tcLabel+'" style="width:110px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:'+_arsColor+';font-family:var(--mono);font-size:.75rem;padding:3px 8px;height:26px" oninput="tgtSyncRowARS(\''+t+'\')" onkeydown="if(event.key===\'Enter\')saveTarget(\''+t+'\')">';
+    return '<tr><td style="font-weight:700">'+t+'</td><td><span class="mkt" style="font-size:.6rem">'+SECTOR_LABELS[sector]+'</span></td><td><input type="number" min="0" step="any" value="'+(targetUSD!=null?targetUSD:'')+'" placeholder="USD" id="ti-'+t+'" style="width:90px;background:var(--bg);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:.75rem;padding:3px 8px;height:26px" oninput="tgtSyncRowUSD(\''+t+'\')" onkeydown="if(event.key===\'Enter\')saveTarget(\''+t+'\')"></td><td class="mono">'+arsInput+'</td><td>'+pctHtml+'</td><td class="gap-row" style="gap:4px"><button class="btn btn-a btn-sm" onclick="saveTarget(\''+t+'\')">✓</button><button class="btn btn-d btn-sm" onclick="deleteTarget(\''+t+'\')" title="Eliminar">✕</button></td></tr>';
   }).join('');
+  if(tickers.length===0){body.innerHTML='<tr><td colspan="6" class="empty-state">Sin resultados</td></tr>';}
+}
+
+function tgtGetCCL(ticker){
+  var sector=getSector(ticker);
+  var useMEP=(sector==='bonos'||sector==='on');
+  return useMEP?(MEP_HOY||CCL_HOY):CCL_HOY;
+}
+
+function tgtIsMEP(ticker){
+  var sector=getSector(ticker);
+  return (sector==='bonos'||sector==='on');
+}
+
+function tgtUpdateLabel(ticker){
+  var lbl=document.getElementById('tgt-tc-label');
+  if(!lbl)return;
+  if(!ticker){lbl.textContent='';return;}
+  var useMEP=tgtIsMEP(ticker);
+  var val=useMEP?(MEP_HOY||CCL_HOY):CCL_HOY;
+  lbl.textContent=(useMEP?'MEP':'CCL')+': $'+(val?val.toLocaleString('es-AR',{maximumFractionDigits:0}):'—');
+  lbl.style.color=useMEP?'var(--blue)':'var(--text3)';
+}
+
+function tgtSyncOnTickerChange(){
+  var ticker=(document.getElementById('tgt-ticker').value||'').trim().toUpperCase();
+  tgtUpdateLabel(ticker);
+  var usd=parseFloat(document.getElementById('tgt-usd').value);
+  var ars=parseFloat(document.getElementById('tgt-ars').value);
+  // Si hay USD, recalcular ARS; si solo hay ARS, recalcular USD
+  if(usd>0) tgtSyncFromUSD();
+  else if(ars>0) tgtSyncFromARS();
+}
+
+function tgtSyncRowUSD(ticker){
+  var usdEl=document.getElementById('ti-'+ticker);
+  var arsEl=document.getElementById('ta-'+ticker);
+  if(!usdEl||!arsEl)return;
+  var usd=parseFloat(usdEl.value);
+  if(!usd||usd<=0){arsEl.value='';return;}
+  var ratio=getRatio(ticker);var tc=tgtGetCCL(ticker);
+  arsEl.value=tc&&ratio?Math.round(usd/ratio*tc):'';
+}
+
+function tgtSyncRowARS(ticker){
+  var usdEl=document.getElementById('ti-'+ticker);
+  var arsEl=document.getElementById('ta-'+ticker);
+  if(!usdEl||!arsEl)return;
+  var ars=parseFloat(arsEl.value);
+  if(!ars||ars<=0){usdEl.value='';return;}
+  var ratio=getRatio(ticker);var tc=tgtGetCCL(ticker);
+  usdEl.value=tc&&ratio?+(ars*ratio/tc).toFixed(4):'';
+}
+
+function tgtSyncFromUSD(){
+  var ticker=(document.getElementById('tgt-ticker').value||'').trim().toUpperCase();
+  var usd=parseFloat(document.getElementById('tgt-usd').value);
+  var arsEl=document.getElementById('tgt-ars');
+  tgtUpdateLabel(ticker);
+  if(!ticker||!usd||usd<=0){arsEl.value='';return;}
+  var ratio=getRatio(ticker);var tc=tgtGetCCL(ticker);
+  arsEl.value=tc&&ratio?Math.round(usd/ratio*tc):'';
+}
+
+function tgtSyncFromARS(){
+  var ticker=(document.getElementById('tgt-ticker').value||'').trim().toUpperCase();
+  var ars=parseFloat(document.getElementById('tgt-ars').value);
+  var usdEl=document.getElementById('tgt-usd');
+  tgtUpdateLabel(ticker);
+  if(!ticker||!ars||ars<=0){usdEl.value='';return;}
+  var ratio=getRatio(ticker);var tc=tgtGetCCL(ticker);
+  usdEl.value=tc&&ratio?+(ars*ratio/tc).toFixed(4):'';
+}
+
+function addTarget(){
+  var ticker=(document.getElementById('tgt-ticker').value||'').trim().toUpperCase();
+  var usd=parseFloat(document.getElementById('tgt-usd').value);
+  var sel=document.getElementById('targets-status');
+  if(!ticker){flash(sel,'Ingresá un ticker',true);return;}
+  if(!usd||usd<=0){flash(sel,'Ingresá un precio válido',true);return;}
+  TARGET_TABLE[ticker]=usd;
+  try{localStorage.setItem('ptNYSE_targets',JSON.stringify(TARGET_TABLE));}catch(e){}
+  sbSetConfig('targets',TARGET_TABLE);
+  document.getElementById('tgt-ticker').value='';
+  document.getElementById('tgt-usd').value='';
+  document.getElementById('tgt-ars').value='';
+  renderTargets();renderPortfolio();flash(sel,ticker+' agregado',false);
+}
+
+function deleteTarget(ticker){
+  delete TARGET_TABLE[ticker];
+  try{localStorage.setItem('ptNYSE_targets',JSON.stringify(TARGET_TABLE));}catch(e){}
+  sbSetConfig('targets',TARGET_TABLE);
+  renderTargets();renderPortfolio();
 }
 
 function saveTarget(ticker){
