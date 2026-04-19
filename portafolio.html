@@ -7,9 +7,9 @@
 <link href="./Portafolio Tracker — NYSE_files/css2" rel="stylesheet">
 <style>
 :root{--bg:#0e0f11;--surface:#16181c;--surface2:#1e2026;--border:#2a2d35;--border2:#363a45;--text:#e8eaf0;--text2:#8b8fa8;--text3:#555870;--accent:#7ee8a2;--accent2:#4ade80;--red:#f87171;--amber:#fbbf24;--blue:#60a5fa;--mono:'DM Mono',monospace;--sans:'Syne',sans-serif;--radius:10px;--rsm:6px}
-*{box-sizing:border-box;margin:0;padding:0}html{font-size:15.5px;height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);height:100%;overflow:hidden;line-height:1.5}
-.app{display:flex;flex-direction:column;height:100%}
+*{box-sizing:border-box;margin:0;padding:0}html{font-size:15.5px}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.5;overflow:hidden;display:flex;flex-direction:column;height:100vh}
+.app{display:flex;flex-direction:column;flex:1;min-height:0}
 .arb-wrap{margin-bottom:6px}
 .arb-pair-header{display:grid;grid-template-columns:32px 1fr 1fr 76px 24px 72px 56px 76px;gap:0;background:linear-gradient(135deg,#2d1b5a,#1a1040);border-radius:var(--rsm) var(--rsm) 0 0;border:1px solid #6b3fa0}
 .arb-row{display:grid;grid-template-columns:32px 1fr 1fr 76px 24px 72px 56px 76px;gap:0;border-left:1px solid var(--border2);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2)}
@@ -28,14 +28,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);height:100%;
 .arb-input{background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:.59rem;width:100%;text-align:center;outline:none;padding:1px 2px}
 .arb-input:focus{border-bottom-color:var(--accent);background:rgba(255,255,255,.04)}
 .arb-input-name{font-weight:700;font-size:.62rem;color:var(--text);text-align:center}
-.topbar{display:flex;align-items:center;gap:1.2rem;padding:.28rem 1.5rem;background:var(--bg);border-bottom:1px solid var(--border);font-size:.68rem;font-family:var(--mono);color:var(--text3);flex-wrap:wrap}
+.topbar{display:flex;align-items:center;gap:1.2rem;padding:.28rem 1.5rem;background:var(--bg);border-bottom:1px solid var(--border);font-size:.68rem;font-family:var(--mono);color:var(--text3);flex-wrap:wrap;flex-shrink:0}
 .topbar-item{display:flex;align-items:center;gap:.35rem}
 .topbar-label{color:var(--text3);font-size:.63rem;letter-spacing:.03em;text-transform:uppercase}
 .topbar-val{color:var(--text);font-weight:600;font-size:.72rem}
 .topbar-sub{color:var(--text3);font-size:.62rem}
 .topbar-dot{width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-header{padding:.85rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--surface);flex-wrap:wrap}
+header{padding:.85rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--surface);flex-wrap:wrap;flex-shrink:0}
 .logo{font-weight:700;font-size:1.05rem;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
 .logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
 .hright{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
