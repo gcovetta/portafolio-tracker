@@ -326,6 +326,10 @@ tr:hover td{background:var(--surface2)}
         <div class="metric"><div class="metric-label">Ganancia Neta USD</div><div class="metric-value port-sensitive" id="m-ganancia">—</div></div>
         <div class="metric"><div class="metric-label">Dividendos USD</div><div class="metric-value port-sensitive" id="m-divs">$2.652</div></div>
         <div class="metric"><div class="metric-label">Posiciones</div><div class="metric-value" id="m-count">74</div></div>
+        <div class="metric" style="flex:0 0 210px;min-width:180px;padding:.7rem .85rem">
+          <div class="metric-label" style="margin-bottom:6px">Distribución</div>
+          <div style="position:relative;height:130px"><canvas id="m-pie-chart"></canvas></div>
+        </div>
 
       </div>
       <!-- Tickers cerca del objetivo -->
@@ -1950,6 +1954,11 @@ function renderPortfolio(){
 
   document.getElementById('m-val').textContent='$'+Math.round(valConLiq).toLocaleString('es-AR');
   document.getElementById('m-count').textContent=open.length;
+
+  // Mini pie distribución
+  var _fija=(sectorVal.bonos||0)+(sectorVal.on||0);
+  var _variable=valConLiq-liqTotalUSD-_fija;
+  renderMiniPie(_fija,_variable>0?_variable:0,liqTotalUSD);
 
   // Dividendos: leer el total del tracker + movimientos (calculado en renderDivsCard)
   var trkDivsTotal=0;
@@ -3645,6 +3654,40 @@ function trkCalcCCL(){
 function toggleSidebar(){
   var main = document.getElementById('main') || document.querySelector('.main');
   if(main) main.classList.toggle('sidebar-open');
+}
+
+// ─── Mini Pie: distribución portafolio ───────────────────────
+var MINI_PIE_INST=null;
+function renderMiniPie(fija,variable,liquidez){
+  if(typeof Chart==='undefined') return;
+  var canvas=document.getElementById('m-pie-chart');
+  if(!canvas) return;
+  if(MINI_PIE_INST){try{MINI_PIE_INST.destroy();}catch(e){} MINI_PIE_INST=null;}
+  var total=fija+variable+liquidez;
+  if(total<=0) return;
+  var fmt=function(v){return '$'+Math.round(v).toLocaleString('es-AR')+' ('+((v/total)*100).toFixed(1)+'%)';};
+  MINI_PIE_INST=new Chart(canvas.getContext('2d'),{
+    type:'doughnut',
+    data:{
+      labels:['R. Fija','R. Variable','Liquidez'],
+      datasets:[{
+        data:[Math.round(fija),Math.round(variable),Math.round(liquidez)],
+        backgroundColor:['rgba(167,139,250,.75)','rgba(96,165,250,.75)','rgba(251,191,36,.75)'],
+        borderColor:['#a78bfa','#60a5fa','#fbbf24'],
+        borderWidth:1.5,hoverOffset:4
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,cutout:'55%',
+      plugins:{
+        legend:{
+          position:'right',
+          labels:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:9},padding:7,boxWidth:8}
+        },
+        tooltip:{callbacks:{label:function(ctx){return ' '+fmt(ctx.parsed);}}}
+      }
+    }
+  });
 }
 
 // ─── DashBoard ───────────────────────────────────────────────
