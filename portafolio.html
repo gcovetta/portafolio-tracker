@@ -777,12 +777,8 @@ tr:hover td{background:var(--surface2)}
         <span style="font-size:1.1rem;font-weight:700">📊 DashBoard</span>
         <span style="font-size:.68rem;font-family:var(--mono);color:var(--text3)">Análisis visual del portafolio</span>
       </div>
-      <!-- Fila 1: Sector + Top Holdings -->
-      <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:1rem;margin-bottom:1rem">
-        <div class="card" style="padding:1rem">
-          <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Distribución por sector</div>
-          <div style="position:relative;height:260px"><canvas id="db-chart-sector"></canvas></div>
-        </div>
+      <!-- Fila 1: Top Holdings -->
+      <div style="margin-bottom:1rem">
         <div class="card" style="padding:1rem">
           <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 posiciones por valor (USD)</div>
           <div style="position:relative;height:260px"><canvas id="db-chart-top"></canvas></div>
@@ -3679,6 +3675,27 @@ function toggleSidebar(){
   if(main) main.classList.toggle('sidebar-open');
 }
 
+// Reenviar eventos wheel de los canvas del dashboard al .content scrollable
+(function(){
+  function attachDashWheelForward(){
+    var content=document.querySelector('.content');
+    if(!content) return;
+    var page=document.getElementById('page-dashboard');
+    if(!page) return;
+    page.querySelectorAll('canvas').forEach(function(c){
+      c.addEventListener('wheel',function(e){
+        content.scrollTop+=e.deltaY;
+        e.stopPropagation();
+      },{passive:true});
+    });
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',attachDashWheelForward);
+  } else {
+    attachDashWheelForward();
+  }
+})();
+
 // ─── Mini Pie: distribución portafolio ───────────────────────
 // ─── Sector Pie: desglose por cada sector ────────────────────
 var SECTOR_PIE_INST=null;
@@ -4006,34 +4023,7 @@ function renderDashboard(){
     posData.push({ticker:p.ticker,sector:sector,valUSD:valUSD,gainUSD:gainUSD,costUSD:costUSDtotal});
   });
 
-  // ── Gráfico 1: Donut por sector ──────────────────────────
-  var sectorMap={};
-  posData.forEach(function(d){
-    sectorMap[d.sector]=(sectorMap[d.sector]||0)+d.valUSD;
-  });
-  var sectorKeys=Object.keys(sectorMap).sort(function(a,b){return sectorMap[b]-sectorMap[a];});
-  var sectorLabels=sectorKeys.map(function(k){return DB_SECTOR_LABEL[k]||k;});
-  var sectorVals=sectorKeys.map(function(k){return Math.round(sectorMap[k]);});
-  var sectorColors=sectorKeys.map(function(k){return DB_SECTOR_COLOR[k]||'#8b8fa8';});
-  var totalValSector=sectorVals.reduce(function(a,b){return a+b;},0);
-
-  dbMakeChart('db-chart-sector',{
-    type:'doughnut',
-    data:{labels:sectorLabels,datasets:[{data:sectorVals,backgroundColor:sectorColors,borderColor:'#16181c',borderWidth:2,hoverOffset:6}]},
-    options:{
-      responsive:true,maintainAspectRatio:false,cutout:'62%',
-      plugins:{
-        legend:{position:'right',labels:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:10},padding:10,boxWidth:10}},
-        tooltip:{callbacks:{label:function(ctx){
-          var v=ctx.parsed;
-          var pct=(totalValSector>0?(v/totalValSector*100):0).toFixed(1);
-          return ' $'+v.toLocaleString('es-AR')+' ('+pct+'%)';
-        }}}
-      }
-    }
-  });
-
-  // ── Gráfico 2: Top 10 posiciones por valor ───────────────
+  // ── Gráfico 1: Top 10 posiciones por valor ───────────────
   var sorted=[].concat(posData).sort(function(a,b){return b.valUSD-a.valUSD;}).slice(0,10);
   var topColors=sorted.map(function(d){return DB_SECTOR_COLOR[d.sector]||'#60a5fa';});
 
