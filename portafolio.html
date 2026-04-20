@@ -326,9 +326,10 @@ tr:hover td{background:var(--surface2)}
       <div style="display:none"><div id="m-divs"></div></div>
       <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:1.2rem">
         <!-- Izquierda: 2 filas de métricas -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-shrink:0">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex-shrink:0">
           <div class="metric"><div class="metric-label">Valor Total USD</div><div class="metric-value port-sensitive" id="m-val">—</div></div>
           <div class="metric"><div class="metric-label">Rendimiento</div><div class="metric-value" id="m-rend">—</div></div>
+          <div class="metric" id="m-proyeccion-card" style="border-style:dashed"><div class="metric-label">Proyección anual</div><div class="metric-value" id="m-proyeccion">—</div></div>
           <div class="metric"><div class="metric-label">Ganancia Neta USD</div><div class="metric-value port-sensitive" id="m-ganancia">—</div></div>
           <div class="metric"><div class="metric-label">Posiciones</div><div class="metric-value" id="m-count">—</div></div>
         </div>
@@ -2136,6 +2137,32 @@ function renderPortfolio(){
     var rendSign=rendPct>=0?'+':'';
     rendEl.innerHTML='<span style="color:'+rendColor+';font-weight:700">'+rendSign+Math.round(rendPct)+'%</span>';
   } else { rendEl.textContent='—'; }
+
+  // ── Proyección anual ──────────────────────────────────────
+  // Busca la primera compra para calcular días transcurridos
+  var _firstDate=null;
+  movimientos.forEach(function(m){
+    if(!m||m.tipo!=='compra'||!m.fecha)return;
+    var d=new Date(m.fecha);
+    if(!_firstDate||d<_firstDate) _firstDate=d;
+  });
+  var proyEl=document.getElementById('m-proyeccion');
+  var proyCard=document.getElementById('m-proyeccion-card');
+  if(proyEl&&rendPct!==null&&_firstDate){
+    var _days=(Date.now()-_firstDate.getTime())/(1000*60*60*24);
+    if(_days>=30){
+      // Fórmula CAGR: (1+r)^(365/días) - 1
+      var rendAnual=(Math.pow(1+rendPct/100,365/_days)-1)*100;
+      var pColor=rendAnual<0?'var(--red)':rendAnual<10?'#eab308':'var(--accent)';
+      var pSign=rendAnual>=0?'+':'';
+      var _meses=Math.round(_days/30);
+      proyEl.innerHTML='<span style="color:'+pColor+';font-weight:700">'+pSign+rendAnual.toFixed(1)+'%</span>'+
+        '<span style="font-size:.58rem;color:var(--text3);display:block;margin-top:2px">base '+_meses+' meses</span>';
+      if(proyCard) proyCard.title='CAGR sobre '+Math.round(_days)+' días desde '+_firstDate.toLocaleDateString('es-AR');
+    } else {
+      proyEl.innerHTML='<span style="color:var(--text3);font-size:.72rem">menos de 30 días</span>';
+    }
+  } else if(proyEl){ proyEl.textContent='—'; }
 
   // Ganancia Neta = Valor Total USD - Inv. Inicial USD
   var gananciaEl=document.getElementById('m-ganancia');
