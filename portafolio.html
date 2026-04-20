@@ -799,6 +799,17 @@ tr:hover td{background:var(--surface2)}
           <div style="position:relative;height:280px"><canvas id="db-chart-losses"></canvas></div>
         </div>
       </div>
+      <!-- Fila 3: Rendimiento por segmento + Distribución por rubro -->
+      <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:1rem;margin-bottom:1rem">
+        <div class="card" style="padding:1rem">
+          <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Rendimiento % promedio por segmento</div>
+          <div style="position:relative;height:280px"><canvas id="db-chart-segmentos"></canvas></div>
+        </div>
+        <div class="card" style="padding:1rem">
+          <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Distribución por rubro</div>
+          <div style="position:relative;height:280px"><canvas id="db-chart-rubros"></canvas></div>
+        </div>
+      </div>
     </div>
 
     <div class="page" id="page-vetamovim">
@@ -3877,6 +3888,67 @@ function renderMiniPie(fija,variable,liquidez){
 }
 
 // ─── DashBoard ───────────────────────────────────────────────
+var RUBRO_MAP={
+  // Tecnología
+  'AAPL':'Tecnología','MSFT':'Tecnología','NVDA':'Tecnología','GOOGL':'Tecnología','GOOG':'Tecnología',
+  'META':'Tecnología','ADBE':'Tecnología','CRM':'Tecnología','ORCL':'Tecnología','INTC':'Tecnología',
+  'AMD':'Tecnología','QCOM':'Tecnología','AVGO':'Tecnología','SNOW':'Tecnología','SPOT':'Tecnología',
+  'TEAM':'Tecnología','NOW':'Tecnología','INTU':'Tecnología','PANW':'Tecnología','ZS':'Tecnología',
+  'CRWD':'Tecnología','HPQ':'Tecnología','IBM':'Tecnología','CSCO':'Tecnología','AMAT':'Tecnología',
+  'LRCX':'Tecnología','KLAC':'Tecnología','MU':'Tecnología','WDC':'Tecnología','NXPI':'Tecnología',
+  'GLOB':'Tecnología','BIGO':'Tecnología','SAP':'Tecnología','ASML':'Tecnología','SONY':'Tecnología',
+  'TSM':'Tecnología','SSNLF':'Tecnología','BIDU':'Tecnología',
+  // E-commerce / Retail
+  'AMZN':'E-commerce','MELI':'E-commerce','BABA':'E-commerce','JD':'E-commerce','PDD':'E-commerce',
+  'SHOP':'E-commerce','WMT':'E-commerce','TGT':'E-commerce','COST':'E-commerce','EBAY':'E-commerce',
+  // Finanzas
+  'JPM':'Finanzas','GS':'Finanzas','BAC':'Finanzas','C':'Finanzas','WFC':'Finanzas',
+  'MS':'Finanzas','BLK':'Finanzas','V':'Finanzas','MA':'Finanzas','AXP':'Finanzas',
+  'PYPL':'Finanzas','SQ':'Finanzas','NU':'Finanzas','ITUB':'Finanzas','GGAL':'Finanzas',
+  'BMA':'Finanzas','SUPV':'Finanzas','BBAR':'Finanzas','VALO':'Finanzas','BHIP':'Finanzas',
+  'BPAT':'Finanzas','BYMA':'Finanzas','BRIO':'Finanzas',
+  // Energía
+  'XOM':'Energía','CVX':'Energía','SLB':'Energía','COP':'Energía','PBR':'Energía',
+  'YPF':'Energía','CEPU':'Energía','PAM':'Energía','TGS':'Energía','OXY':'Energía',
+  'MPC':'Energía','PSX':'Energía','VLO':'Energía','VISTA':'Energía','VISTD':'Energía',
+  'BP':'Energía','SHEL':'Energía','EOG':'Energía','DVN':'Energía','HAL':'Energía',
+  // Salud
+  'JNJ':'Salud','PFE':'Salud','MRK':'Salud','ABBV':'Salud','LLY':'Salud',
+  'UNH':'Salud','CVS':'Salud','GILD':'Salud','AMGN':'Salud','BMY':'Salud',
+  'ISRG':'Salud','MDT':'Salud','ABT':'Salud','TMO':'Salud','DHR':'Salud',
+  'MRNA':'Salud','BNTX':'Salud','REGN':'Salud','VRTX':'Salud',
+  // Consumo masivo
+  'KO':'Consumo','PEP':'Consumo','MCD':'Consumo','SBUX':'Consumo','NKE':'Consumo',
+  'PM':'Consumo','MO':'Consumo','PG':'Consumo','KHC':'Consumo','GIS':'Consumo',
+  'MDLZ':'Consumo','CL':'Consumo','EL':'Consumo','CRES':'Consumo',
+  // Entretenimiento / Streaming
+  'NFLX':'Entretenimiento','DIS':'Entretenimiento','PARA':'Entretenimiento',
+  'WBD':'Entretenimiento','CMCSA':'Entretenimiento','RBLX':'Entretenimiento',
+  'TTWO':'Entretenimiento','EA':'Entretenimiento',
+  // Telecomunicaciones
+  'T':'Telecomunicaciones','VZ':'Telecomunicaciones','TECO2':'Telecomunicaciones','COME':'Telecomunicaciones',
+  // Automotriz
+  'TSLA':'Automotriz','F':'Automotriz','GM':'Automotriz','STLA':'Automotriz','TM':'Automotriz',
+  // Aerolíneas / Transporte
+  'DAL':'Aerolíneas','UAL':'Aerolíneas','AAL':'Aerolíneas','LUV':'Aerolíneas',
+  'GLOB':'Tecnología',
+  // Industrial / Defensa
+  'CAT':'Industrial','DE':'Industrial','BA':'Industrial','GE':'Industrial',
+  'HON':'Industrial','MMM':'Industrial','RTX':'Industrial','LMT':'Industrial',
+  'NOC':'Industrial','GD':'Industrial','UPS':'Industrial','FDX':'Industrial',
+  // Materiales / Siderurgia
+  'ALUA':'Materiales','TXAR':'Materiales','FCX':'Materiales','NEM':'Materiales',
+  'GOLD':'Materiales','NUE':'Materiales','X':'Materiales',
+  // Construcción / Cemento
+  'LOMA':'Construcción','HARG':'Construcción',
+  // Inmobiliario
+  'IRSA':'Inmobiliario','IRCP':'Inmobiliario',
+  // Agro
+  'BRF':'Agro','BRFS':'Agro',
+  // Cripto / Exchange
+  'COIN':'Cripto'
+};
+
 var DB_CHARTS={};
 
 function dbDestroyAll(){
@@ -3930,7 +4002,7 @@ function renderDashboard(){
     // costo promedio en USD
     var costUSD=isBonoON?((p.avgCost||0)*ratio/tc):(p.avgCost||0);
     var gainUSD=(priceUSD-costUSD)*p.qty;
-    posData.push({ticker:p.ticker,sector:sector,valUSD:valUSD,gainUSD:gainUSD});
+    posData.push({ticker:p.ticker,sector:sector,valUSD:valUSD,gainUSD:gainUSD,costUSD:costUSD*p.qty});
   });
 
   // ── Gráfico 1: Donut por sector ──────────────────────────
@@ -4040,6 +4112,132 @@ function renderDashboard(){
         y:{ticks:{color:'#e8eaf0',font:{family:'DM Mono, monospace',size:10}},grid:{color:'#2a2d35'}}
       }
     }
+  });
+
+  // ── Gráfico 5: Rendimiento % promedio por segmento ────────
+  var segDefs=[
+    {key:'nyse',   label:'USA'},
+    {key:'argentina', label:'Argentina'},
+    {key:'bonos',  label:'Bonos'},
+    {key:'brasil', label:'Brasil'},
+    {key:'on',     label:'ONs'},
+    {key:'cripto', label:'Cripto'},
+    {key:'europa', label:'Europa'},
+    {key:'china',  label:'China'}
+  ];
+  var segCostMap={};var segGainMap={};
+  posData.forEach(function(d){
+    segCostMap[d.sector]=(segCostMap[d.sector]||0)+d.costUSD;
+    segGainMap[d.sector]=(segGainMap[d.sector]||0)+d.gainUSD;
+  });
+  var segLabels=[];var segVals=[];var segColors=[];
+  segDefs.forEach(function(s){
+    var cost=segCostMap[s.key]||0;
+    if(cost<=0) return;
+    var pct=(segGainMap[s.key]||0)/cost*100;
+    segLabels.push(s.label);
+    segVals.push(parseFloat(pct.toFixed(2)));
+    segColors.push(pct>=0?'rgba(126,232,162,.75)':'rgba(248,113,113,.75)');
+  });
+
+  dbMakeChart('db-chart-segmentos',{
+    type:'bar',
+    data:{
+      labels:segLabels,
+      datasets:[{
+        label:'Rendimiento %',
+        data:segVals,
+        backgroundColor:segColors,
+        borderColor:segColors.map(function(c){return c.replace('.75',1);}),
+        borderWidth:1,borderRadius:4
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:function(ctx){
+          var v=ctx.parsed.y;
+          return ' '+(v>=0?'+':'')+v.toFixed(1)+'%';
+        }}}
+      },
+      scales:{
+        x:{ticks:{color:'#e8eaf0',font:{family:'DM Mono, monospace',size:11}},grid:{color:'#2a2d35'}},
+        y:{
+          ticks:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:10},callback:function(v){return v+'%';}},
+          grid:{color:'#2a2d35'},
+          border:{dash:[4,4]}
+        }
+      }
+    }
+  });
+
+  // ── Gráfico 6: Distribución por rubro ────────────────────
+  var rubroVal={};
+  positions.filter(function(p){return p.qty>0;}).forEach(function(p){
+    var q=QUOTES[p.ticker];if(!q||!q.price)return;
+    var sector=getSector(p.ticker);
+    var isBonoON=(sector==='bonos'||sector==='on');
+    var ratio=RATIOS_TABLE[p.ticker]||1;
+    var tc=isBonoON?(MEP_HOY||CCL_HOY||1):(CCL_HOY||1);
+    var valUSD=isBonoON?(q.price*ratio/tc*p.qty/100):(q.price/ratio*p.qty);
+    var rubro;
+    if(sector==='bonos') rubro='Soberanos';
+    else if(sector==='on') rubro='Corporativos';
+    else rubro=RUBRO_MAP[p.ticker]||'Otros';
+    rubroVal[rubro]=(rubroVal[rubro]||0)+valUSD;
+  });
+  var rubroKeys=Object.keys(rubroVal).sort(function(a,b){return rubroVal[b]-rubroVal[a];});
+  var rubroTotal=rubroKeys.reduce(function(s,k){return s+(rubroVal[k]||0);},0);
+  var RUBRO_COLORS=['#60a5fa','#f97316','#4ade80','#f87171','#facc15','#c084fc','#38bdf8',
+    '#fb923c','#a78bfa','#34d399','#fbbf24','#e879f9','#9ca3af','#ef4444','#92400e','#2dd4bf'];
+  var pieLabelPluginRubros={
+    id:'pieLabelsRubros',
+    afterDatasetDraw:function(chart){
+      var ctx2=chart.ctx;
+      chart.data.datasets.forEach(function(_ds,di){
+        var meta=chart.getDatasetMeta(di);
+        meta.data.forEach(function(arc,i){
+          var val=chart.data.datasets[di].data[i];
+          var pct=rubroTotal>0?(val/rubroTotal*100):0;
+          if(pct<4) return;
+          var angle=(arc.startAngle+arc.endAngle)/2;
+          var r=(arc.innerRadius+arc.outerRadius)/2;
+          var x=arc.x+Math.cos(angle)*r;
+          var y=arc.y+Math.sin(angle)*r;
+          ctx2.save();
+          ctx2.textAlign='center';ctx2.textBaseline='middle';
+          ctx2.font='700 9px DM Mono, monospace';
+          ctx2.fillStyle='#fff';
+          ctx2.fillText(pct.toFixed(0)+'%',x,y);
+          ctx2.restore();
+        });
+      });
+    }
+  };
+  dbMakeChart('db-chart-rubros',{
+    type:'doughnut',
+    data:{
+      labels:rubroKeys,
+      datasets:[{
+        data:rubroKeys.map(function(k){return Math.round(rubroVal[k]);}),
+        backgroundColor:rubroKeys.map(function(_,i){return RUBRO_COLORS[i%RUBRO_COLORS.length]+'cc';}),
+        borderColor:rubroKeys.map(function(_,i){return RUBRO_COLORS[i%RUBRO_COLORS.length];}),
+        borderWidth:1.5,hoverOffset:6
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,cutout:'45%',
+      plugins:{
+        legend:{position:'right',labels:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:9},padding:6,boxWidth:9}},
+        tooltip:{callbacks:{label:function(ctx){
+          var v=ctx.parsed;
+          var pct=(rubroTotal>0?(v/rubroTotal*100):0).toFixed(1);
+          return ' $'+v.toLocaleString('es-AR')+' ('+pct+'%)';
+        }}}
+      }
+    },
+    plugins:[pieLabelPluginRubros]
   });
 }
 </script>
