@@ -832,34 +832,59 @@ tr:hover td{background:var(--surface2)}
     </div>
 
     <!-- RUBROS -->
-    <div class="page" id="page-rubros" style="padding:1.2rem">
-      <div class="card">
-        <div class="card-header" style="gap:10px;flex-wrap:wrap">
-          <span class="card-title">🏷 Rubros de activos</span>
-          <span class="smsg" style="font-size:.68rem;color:var(--text3)">Clasificá cada ticker para el gráfico <b>Distribución por rubro</b></span>
-          <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
-            <input id="rubro-filter" type="text" placeholder="Filtrar ticker…" oninput="rubroFilterTable()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:3px 8px;width:130px;outline:none">
-            <button class="btn btn-sm" onclick="rubroSaveAll()" style="background:var(--accent);color:#000;font-weight:700">💾 Guardar todo</button>
+    <div class="page" id="page-rubros" style="padding:0">
+      <div id="rubros-scroll" style="height:calc(100vh - 100px);overflow-y:auto;overflow-x:hidden;padding:1.2rem">
+
+        <!-- Card: Catálogo de rubros -->
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-header" style="gap:10px;flex-wrap:wrap;cursor:pointer" onclick="rubroToggleCatalog()">
+            <span class="card-title">📂 Catálogo de rubros</span>
+            <span style="font-size:.68rem;color:var(--text3)">Agregá o eliminá rubros disponibles en el selector</span>
+            <span id="rubro-catalog-arrow" style="margin-left:auto;font-size:.9rem;color:var(--text3)">▸</span>
+          </div>
+          <div id="rubro-catalog-body" style="display:none;padding:.8rem 1rem">
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="rubro-catalog-tags"></div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="rubro-new-name" type="text" placeholder="Nuevo rubro…" maxlength="40"
+                style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:4px 10px;outline:none;flex:1;max-width:240px"
+                onkeydown="if(event.key==='Enter')rubroCatalogAdd()">
+              <button class="btn btn-sm" onclick="rubroCatalogAdd()" style="background:var(--accent);color:#000;font-weight:700">+ Agregar</button>
+            </div>
           </div>
         </div>
-        <div class="card-body" style="padding:.6rem 1rem">
-          <div class="ibox" style="margin-bottom:10px;font-size:.68rem">
-            Editá el rubro de cada ticker. Los cambios se guardan automáticamente al hacer clic en <b>Guardar</b> de cada fila o en <b>Guardar todo</b>. El gráfico <i>Distribución por rubro</i> del Dashboard usará estos valores.
+
+        <!-- Card: Tabla de tickers -->
+        <div class="card">
+          <div class="card-header" style="gap:10px;flex-wrap:wrap">
+            <span class="card-title">🏷 Rubros de activos</span>
+            <span class="smsg" style="font-size:.68rem;color:var(--text3)">Clasificá cada ticker para el gráfico <b>Distribución por rubro</b></span>
+            <div style="display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap">
+              <input id="rubro-filter" type="text" placeholder="Filtrar por ticker, segmento o rubro…" oninput="rubroFilterTable()"
+                style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:3px 8px;width:240px;outline:none">
+              <button class="btn btn-sm" onclick="rubroSaveAll()" style="background:var(--accent);color:#000;font-weight:700">💾 Guardar todo</button>
+            </div>
           </div>
-          <div style="overflow-x:auto">
-            <table id="rubros-table" style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.72rem">
-              <thead>
-                <tr style="border-bottom:2px solid var(--border2)">
-                  <th style="text-align:left;padding:5px 8px;color:var(--text3);font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;width:100px">Ticker</th>
-                  <th style="text-align:left;padding:5px 8px;color:var(--text3);font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;width:110px">Segmento</th>
-                  <th style="text-align:left;padding:5px 8px;color:var(--text3);font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em">Rubro</th>
-                  <th style="text-align:center;padding:5px 8px;color:var(--text3);font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;width:80px">Acción</th>
-                </tr>
-              </thead>
-              <tbody id="rubros-tbody"></tbody>
-            </table>
+          <div class="card-body" style="padding:.6rem 1rem">
+            <div class="ibox" style="margin-bottom:10px;font-size:.68rem">
+              Editá el rubro de cada ticker. Podés guardar fila por fila o todo junto. Los cambios se usan en el gráfico <i>Distribución por rubro</i> del Dashboard.
+            </div>
+            <div style="overflow-x:auto">
+              <table id="rubros-table" style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.72rem">
+                <thead>
+                  <tr style="border-bottom:2px solid var(--border2)">
+                    <th style="text-align:left;padding:5px 8px;color:var(--text3);font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;width:100px">Ticker</th>
+                    <th style="text-align:left;padding:5px 8px;color:var(--text3);font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;width:120px">Segmento</th>
+                    <th style="text-align:left;padding:5px 8px;color:var(--text3);font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em">Rubro actual</th>
+                    <th style="text-align:left;padding:5px 8px;color:var(--text3);font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em">Cambiar a</th>
+                    <th style="text-align:center;padding:5px 8px;color:var(--text3);font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;width:80px">Guardar</th>
+                  </tr>
+                </thead>
+                <tbody id="rubros-tbody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
 
@@ -4016,18 +4041,73 @@ var RUBRO_MAP={
 // Overrides de rubro por usuario (prevalecen sobre RUBRO_MAP)
 var USER_RUBRO_TABLE={};
 
-var RUBRO_OPTIONS=[
+var RUBRO_OPTIONS_DEFAULT=[
   'Tecnología','E-commerce','Finanzas','Energía','Salud','Consumo',
   'Entretenimiento','Telecomunicaciones','Automotriz','Aerolíneas',
   'Industrial','Materiales','Construcción','Inmobiliario','Agro',
   'Cripto','Bonos','ON','Otros'
 ];
+var RUBRO_OPTIONS=RUBRO_OPTIONS_DEFAULT.slice(); // se puede extender por el usuario
+
+function _rubroLoadCatalog(){
+  try{var s=localStorage.getItem('ptNYSE_rubro_catalog');if(s){RUBRO_OPTIONS=JSON.parse(s);}}catch(e){}
+}
+function _rubroSaveCatalog(){
+  try{localStorage.setItem('ptNYSE_rubro_catalog',JSON.stringify(RUBRO_OPTIONS));}catch(e){}
+}
 
 function getRubro(ticker){
   return USER_RUBRO_TABLE[ticker]||RUBRO_MAP[ticker]||'Otros';
 }
 
+// ── Catálogo ──────────────────────────────────────────────────
+function rubroToggleCatalog(){
+  var body=document.getElementById('rubro-catalog-body');
+  var arrow=document.getElementById('rubro-catalog-arrow');
+  if(!body)return;
+  var open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  if(arrow)arrow.textContent=open?'▾':'▸';
+  if(open) rubroRenderCatalogTags();
+}
+
+function rubroRenderCatalogTags(){
+  var container=document.getElementById('rubro-catalog-tags');
+  if(!container)return;
+  container.innerHTML='';
+  RUBRO_OPTIONS.forEach(function(r){
+    var tag=document.createElement('span');
+    tag.style.cssText='display:inline-flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:2px 10px;font-family:var(--mono);font-size:.7rem;color:var(--text)';
+    tag.innerHTML=r+'<button onclick="rubroCatalogRemove(\''+r.replace(/'/g,"\\'")+'\')" title="Eliminar" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.8rem;padding:0;line-height:1;margin-left:2px">✕</button>';
+    container.appendChild(tag);
+  });
+}
+
+function rubroCatalogAdd(){
+  var inp=document.getElementById('rubro-new-name');
+  if(!inp)return;
+  var val=(inp.value||'').trim();
+  if(!val)return;
+  if(RUBRO_OPTIONS.indexOf(val)>=0){inp.style.borderColor='var(--amber)';setTimeout(function(){inp.style.borderColor='var(--border2)';},800);return;}
+  RUBRO_OPTIONS.push(val);
+  _rubroSaveCatalog();
+  inp.value='';
+  rubroRenderCatalogTags();
+  renderRubros(); // refrescar selects
+}
+
+function rubroCatalogRemove(r){
+  var idx=RUBRO_OPTIONS.indexOf(r);
+  if(idx<0)return;
+  RUBRO_OPTIONS.splice(idx,1);
+  _rubroSaveCatalog();
+  rubroRenderCatalogTags();
+  renderRubros();
+}
+
+// ── Tabla de tickers ──────────────────────────────────────────
 function renderRubros(){
+  _rubroLoadCatalog();
   var positions=getPositions();
   var open=positions.filter(function(p){return p.qty>0;});
   var tbody=document.getElementById('rubros-tbody');
@@ -4035,34 +4115,54 @@ function renderRubros(){
   tbody.innerHTML='';
   open.sort(function(a,b){return a.ticker.localeCompare(b.ticker);}).forEach(function(p){
     var sector=getSector(p.ticker);
-    var segLabel=DB_SECTOR_LABEL[sector]||sector;
-    var segColor=DB_SECTOR_COLOR[sector]||'#8b8fa8';
+    var segLabel=(DB_SECTOR_LABEL&&DB_SECTOR_LABEL[sector])||sector;
+    var segColor=(DB_SECTOR_COLOR&&DB_SECTOR_COLOR[sector])||'#8b8fa8';
     var currentRubro=getRubro(p.ticker);
-    var opts=RUBRO_OPTIONS.map(function(r){
+    // Asegurar que el rubro actual esté en el catálogo (puede ser uno legado)
+    var opts=RUBRO_OPTIONS.slice();
+    if(opts.indexOf(currentRubro)<0) opts.unshift(currentRubro);
+    var optsHtml=opts.map(function(r){
       return '<option value="'+r+'"'+(r===currentRubro?' selected':'')+'>'+r+'</option>';
     }).join('');
     var row=document.createElement('tr');
     row.setAttribute('data-ticker',p.ticker);
+    row.setAttribute('data-seg',segLabel.toLowerCase());
+    row.setAttribute('data-rubro',currentRubro.toLowerCase());
     row.style.borderBottom='1px solid var(--border)';
     row.innerHTML=
       '<td style="padding:5px 8px;font-weight:700;color:var(--text)">'+p.ticker+'</td>'+
       '<td style="padding:5px 8px"><span style="font-size:.65rem;background:'+segColor+'22;color:'+segColor+';border:1px solid '+segColor+'44;border-radius:3px;padding:1px 6px;font-weight:600">'+segLabel+'</span></td>'+
+      '<td style="padding:5px 8px;color:var(--text2)">'+currentRubro+'</td>'+
       '<td style="padding:5px 8px">'+
-        '<select id="rubro-sel-'+p.ticker+'" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:2px 6px;outline:none;width:100%;max-width:200px">'+opts+'</select>'+
+        '<select id="rubro-sel-'+p.ticker+'" onchange="rubroUpdateRowLabel(\''+p.ticker+'\')" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:2px 6px;outline:none;width:100%;max-width:200px">'+optsHtml+'</select>'+
       '</td>'+
       '<td style="padding:5px 8px;text-align:center">'+
-        '<button class="btn btn-sm" onclick="rubroSaveOne(\''+p.ticker+'\')" style="font-size:.62rem;padding:2px 8px">Guardar</button>'+
+        '<button class="btn btn-sm" onclick="rubroSaveOne(\''+p.ticker+'\')" style="font-size:.62rem;padding:2px 8px">✓</button>'+
       '</td>';
     tbody.appendChild(row);
   });
+  // Reaplicar filtro si había texto
+  rubroFilterTable();
+}
+
+function rubroUpdateRowLabel(ticker){
+  // Actualiza el data-rubro para que el filtro funcione en tiempo real
+  var sel=document.getElementById('rubro-sel-'+ticker);
+  if(!sel)return;
+  var row=document.querySelector('#rubros-tbody tr[data-ticker="'+ticker+'"]');
+  if(row) row.setAttribute('data-rubro',sel.value.toLowerCase());
+  rubroFilterTable();
 }
 
 function rubroFilterTable(){
-  var q=(document.getElementById('rubro-filter').value||'').toLowerCase();
+  var q=(document.getElementById('rubro-filter').value||'').toLowerCase().trim();
   var rows=document.querySelectorAll('#rubros-tbody tr');
   rows.forEach(function(r){
-    var t=(r.getAttribute('data-ticker')||'').toLowerCase();
-    r.style.display=(!q||t.indexOf(q)>=0)?'':'none';
+    if(!q){r.style.display='';return;}
+    var ticker=(r.getAttribute('data-ticker')||'').toLowerCase();
+    var seg=(r.getAttribute('data-seg')||'').toLowerCase();
+    var rubro=(r.getAttribute('data-rubro')||'').toLowerCase();
+    r.style.display=(ticker.indexOf(q)>=0||seg.indexOf(q)>=0||rubro.indexOf(q)>=0)?'':'none';
   });
 }
 
@@ -4071,8 +4171,14 @@ function rubroSaveOne(ticker){
   if(!sel)return;
   var rubro=sel.value;
   USER_RUBRO_TABLE[ticker]=rubro;
+  // Actualizar la celda "Rubro actual"
+  var row=document.querySelector('#rubros-tbody tr[data-ticker="'+ticker+'"]');
+  if(row){
+    var td=row.querySelectorAll('td')[2];
+    if(td)td.textContent=rubro;
+    row.setAttribute('data-rubro',rubro.toLowerCase());
+  }
   _rubroPersist();
-  // Feedback visual
   sel.style.borderColor='var(--accent)';
   setTimeout(function(){sel.style.borderColor='var(--border2)';},800);
 }
@@ -4083,11 +4189,15 @@ function rubroSaveAll(){
     var ticker=r.getAttribute('data-ticker');
     if(!ticker)return;
     var sel=document.getElementById('rubro-sel-'+ticker);
-    if(sel) USER_RUBRO_TABLE[ticker]=sel.value;
+    if(!sel)return;
+    USER_RUBRO_TABLE[ticker]=sel.value;
+    var td=r.querySelectorAll('td')[2];
+    if(td)td.textContent=sel.value;
+    r.setAttribute('data-rubro',sel.value.toLowerCase());
   });
   _rubroPersist();
   var btn=document.querySelector('button[onclick="rubroSaveAll()"]');
-  if(btn){var orig=btn.textContent;btn.textContent='✓ Guardado';setTimeout(function(){btn.textContent=orig;},1200);}
+  if(btn){var orig=btn.textContent;btn.textContent='✓ Guardado';setTimeout(function(){btn.textContent=orig;},1400);}
 }
 
 function _rubroPersist(){
