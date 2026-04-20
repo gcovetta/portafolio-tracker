@@ -798,14 +798,25 @@ tr:hover td{background:var(--surface2)}
             </div>
           </div>
         </div>
-        <!-- Fila 2: Top Holdings -->
+        <!-- Fila 2: Rendimiento por segmento -->
         <div style="margin-bottom:1rem">
           <div class="card" style="padding:1rem">
-            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 posiciones por valor (USD)</div>
-            <div style="position:relative;height:260px"><canvas id="db-chart-top"></canvas></div>
+            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Rendimiento % promedio por segmento</div>
+            <div style="position:relative;height:280px"><canvas id="db-chart-segmentos"></canvas></div>
           </div>
         </div>
-        <!-- Fila 3: Ganancias + Pérdidas -->
+        <!-- Fila 3: Top 10 total + Top 10 sin Bonos/ONs -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div class="card" style="padding:1rem">
+            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 posiciones por valor (USD)</div>
+            <div style="position:relative;height:280px"><canvas id="db-chart-top"></canvas></div>
+          </div>
+          <div class="card" style="padding:1rem">
+            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 posiciones RV (sin Bonos / ONs)</div>
+            <div style="position:relative;height:280px"><canvas id="db-chart-top-rv"></canvas></div>
+          </div>
+        </div>
+        <!-- Fila 4: Ganancias + Pérdidas -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
           <div class="card" style="padding:1rem">
             <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 ganancias (USD)</div>
@@ -814,13 +825,6 @@ tr:hover td{background:var(--surface2)}
           <div class="card" style="padding:1rem">
             <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 pérdidas (USD)</div>
             <div style="position:relative;height:280px"><canvas id="db-chart-losses"></canvas></div>
-          </div>
-        </div>
-        <!-- Fila 4: Rendimiento por segmento -->
-        <div style="margin-bottom:1rem">
-          <div class="card" style="padding:1rem">
-            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Rendimiento % promedio por segmento</div>
-            <div style="position:relative;height:280px"><canvas id="db-chart-segmentos"></canvas></div>
           </div>
         </div>
       </div>
@@ -4298,6 +4302,34 @@ function renderDashboard(){
         data:sorted.map(function(d){return Math.round(d.valUSD);}),
         backgroundColor:topColors.map(function(c){return c+'cc';}),
         borderColor:topColors,
+        borderWidth:1,borderRadius:4
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){return ' $'+ctx.parsed.y.toLocaleString('es-AR');}}}},
+      scales:{
+        x:{ticks:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:10}},grid:{color:'#2a2d35'}},
+        y:{ticks:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:10},callback:function(v){return '$'+Math.round(v/1000)+'k';}},grid:{color:'#2a2d35'}}
+      }
+    }
+  });
+
+  // ── Gráfico 2b: Top 10 RV (sin Bonos / ONs) ─────────────
+  var sortedRV=[].concat(posData)
+    .filter(function(d){return d.sector!=='bonos'&&d.sector!=='on';})
+    .sort(function(a,b){return b.valUSD-a.valUSD;}).slice(0,10);
+  var topRVColors=sortedRV.map(function(d){return DB_SECTOR_COLOR[d.sector]||'#60a5fa';});
+
+  dbMakeChart('db-chart-top-rv',{
+    type:'bar',
+    data:{
+      labels:sortedRV.map(function(d){return d.ticker;}),
+      datasets:[{
+        label:'Valor USD',
+        data:sortedRV.map(function(d){return Math.round(d.valUSD);}),
+        backgroundColor:topRVColors.map(function(c){return c+'cc';}),
+        borderColor:topRVColors,
         borderWidth:1,borderRadius:4
       }]
     },
