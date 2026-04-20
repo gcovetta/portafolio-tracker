@@ -4271,9 +4271,14 @@ function renderDashboard(){
     var isBonoON=(sector==='bonos'||sector==='on');
     var isArgentina=(sector==='argentina');
     var ratio=RATIOS_TABLE[p.ticker]||1;
-    var tc=isBonoON?mepHoy:tcHoy;
-    var priceUSD=isBonoON?(q.price*ratio/tc):isArgentina?(q.price/tcHoy):q.price;
-    var valUSD=priceUSD*p.qty;
+    var mep=mepHoy||tcHoy;
+    // Misma lógica que renderPortfolio línea ~1930:
+    // NYSE/Brasil/Europa/China/Cripto: price en USD, qty en CEDEARs → (price/ratio)*qty
+    // Argentina: price en ARS → (price/CCL)*qty
+    // Bonos/ON: price en ARS por 100 nominales → (price/MEP)*qty/100
+    var valUSD=isBonoON ? (q.price/mep)*p.qty/100
+              :isArgentina ? (q.price/tcHoy)*p.qty
+              :(q.price/ratio)*p.qty;
     // costo promedio USD por unidad = costUSDpuro / qty
     var costUSDtotal=p.costUSDpuro; // USD pagado real; para bonos valUSD y costUSDpuro son consistentes entre sí
     var gainUSD=valUSD-costUSDtotal;
