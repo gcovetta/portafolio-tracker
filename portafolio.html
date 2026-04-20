@@ -828,15 +828,18 @@ tr:hover td{background:var(--surface2)}
             <div style="position:relative;height:280px"><canvas id="db-chart-losses" style="display: block; box-sizing: border-box; height: 280px; width: 788px;" width="788" height="280"></canvas></div>
           </div>
         </div>
-        <!-- Mapa Mundial de Inversiones -->
-        <div class="card" style="margin-bottom:1rem;overflow:hidden">
-          <div class="card-header" style="padding:.6rem 1rem">
-            <span class="card-title" style="font-size:.78rem">🌍 Distribución geográfica</span>
-            <div id="world-map-legend" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-left:8px"></div>
+        <!-- Mapa Mundial por Inversión -->
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-header">
+            <span class="card-title">🌍 Distribución geográfica de inversiones</span>
+            <span id="db-map-total" class="tag" style="font-family:var(--mono);font-size:.65rem"></span>
           </div>
-          <div style="position:relative;background:var(--surface2)">
-            <svg id="world-map-svg" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block"></svg>
-            <div id="world-map-tooltip" style="display:none;position:absolute;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:5px 10px;font-family:var(--mono);font-size:.7rem;pointer-events:none;z-index:10;color:var(--text);white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.4)"></div>
+          <div style="padding:1rem">
+            <div id="db-world-map-container" style="position:relative;width:100%;background:var(--surface2);border-radius:8px;overflow:hidden;border:1px solid var(--border)">
+              <!-- SVG del mapa mundial se inyecta por JS -->
+            </div>
+            <!-- Leyenda -->
+            <div id="db-map-legend" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:.85rem;justify-content:center"></div>
           </div>
         </div>
 
@@ -4664,13 +4667,199 @@ function renderDashboard(){
     plugins:[pieLabelPluginRubros]
   });
 
-  // Mapa mundial
-  var sectorValDash = {};
-  posData.forEach(function(d){
-    sectorValDash[d.sector] = (sectorValDash[d.sector]||0) + d.valUSD;
-  });
-  renderWorldMap(sectorValDash);
+  // ── Mapa Mundial por Inversión ────────────────────────────
+  renderWorldMap(posData, tcHoy, mepHoy);
 
+}
+
+// ─── Mapa Mundial ────────────────────────────────────────────
+function renderWorldMap(posData, tcHoy, mepHoy){
+  var container = document.getElementById('db-world-map-container');
+  var legendEl  = document.getElementById('db-map-legend');
+  var totalEl   = document.getElementById('db-map-total');
+  if(!container) return;
+
+  // Acumular valor USD por sector→país
+  var byCountry = {};
+  posData.forEach(function(d){
+    var c = _sectorToCountry(d.sector);
+    byCountry[c] = (byCountry[c]||0) + (d.valUSD||0);
+  });
+
+  var maxVal = Math.max.apply(null, Object.values(byCountry).concat([1]));
+  var grandTotal = Object.values(byCountry).reduce(function(s,v){return s+v;},0);
+
+  // Mostrar total en el tag del header
+  if(totalEl) totalEl.textContent = 'Total: USD ' + Math.round(grandTotal).toLocaleString('es-AR');
+
+  // Paleta: degradé del color base del país → según % del máximo
+  var countryConfig = {
+    'USA':       {label:'USA / ETF',   base:[96,165,250],  accent:'#60a5fa'},
+    'Argentina': {label:'Argentina',   base:[56,189,248],  accent:'#38bdf8'},
+    'Brasil':    {label:'Brasil',      base:[250,204,21],  accent:'#facc15'},
+    'Europa':    {label:'Europa',      base:[251,146,60],  accent:'#fb923c'},
+    'China':     {label:'China / Asia',base:[248,113,113], accent:'#f87171'},
+    'Cripto':    {label:'Cripto',      base:[192,132,252], accent:'#c084fc'}
+  };
+
+  function _sectorToCountry(s){
+    if(s==='nyse')       return 'USA';
+    if(s==='argentina'||s==='bonos'||s==='on') return 'Argentina';
+    if(s==='brasil')     return 'Brasil';
+    if(s==='europa')     return 'Europa';
+    if(s==='china')      return 'China';
+    if(s==='cripto')     return 'Cripto';
+    return 'USA';
+  }
+
+  function _getColor(country, alpha){
+    var cfg = countryConfig[country];
+    if(!cfg) return 'rgba(42,45,53,'+alpha+')';
+    var v   = byCountry[country]||0;
+    var pct = maxVal>0 ? v/maxVal : 0;
+    // mínimo 0.18 para que se vea aunque sea un poco
+    var a   = alpha * (0.18 + 0.82*pct);
+    var r   = cfg.base[0], g=cfg.base[1], b=cfg.base[2];
+    return 'rgba('+r+','+g+','+b+','+a.toFixed(2)+')';
+  }
+
+  // Paths SVG simplificados por región (Natural Earth projection aproximada)
+  var paths = [
+    // ─ USA (continental)
+    {id:'USA', d:'M 130 95 L 265 95 L 270 100 L 278 98 L 283 103 L 280 110 L 270 115 L 265 125 L 255 130 L 250 140 L 240 145 L 225 148 L 215 145 L 205 140 L 190 138 L 175 140 L 165 145 L 155 142 L 140 138 L 132 130 L 128 120 L 126 108 Z'},
+    // ─ Alaska
+    {id:'USA', d:'M 58 68 L 90 62 L 110 68 L 118 78 L 112 86 L 96 90 L 80 88 L 65 80 Z'},
+    // ─ Canada (neutral, no inversión directa)
+    {id:'other', d:'M 100 48 L 265 45 L 272 55 L 274 70 L 270 85 L 255 90 L 200 90 L 150 92 L 130 90 L 118 82 L 110 68 L 98 58 Z'},
+    // ─ México
+    {id:'other', d:'M 130 148 L 165 145 L 175 140 L 182 152 L 178 165 L 168 172 L 155 170 L 142 162 L 132 155 Z'},
+    // ─ América Central (muy pequeña)
+    {id:'other', d:'M 168 172 L 182 165 L 192 172 L 190 180 L 178 183 L 170 178 Z'},
+    // ─ Colombia / Venezuela
+    {id:'other', d:'M 175 192 L 215 188 L 228 195 L 225 210 L 210 215 L 192 210 L 175 205 Z'},
+    // ─ Brasil
+    {id:'Brasil', d:'M 215 195 L 265 192 L 285 200 L 295 215 L 298 235 L 290 260 L 275 275 L 255 278 L 232 272 L 215 258 L 205 238 L 200 220 L 208 205 Z'},
+    // ─ Argentina + Chile (combinado)
+    {id:'Argentina_south', d:'M 218 278 L 255 278 L 262 290 L 258 315 L 248 340 L 238 360 L 228 355 L 220 335 L 215 310 L 212 290 Z'},
+    // ─ Europa (bloque)
+    {id:'Europa', d:'M 430 50 L 510 45 L 530 52 L 535 65 L 525 80 L 510 88 L 490 90 L 468 88 L 448 80 L 435 68 L 428 58 Z'},
+    // ─ UK
+    {id:'Europa', d:'M 415 52 L 428 48 L 432 58 L 428 68 L 420 70 L 413 62 Z'},
+    // ─ Escandinavia
+    {id:'Europa', d:'M 455 28 L 500 22 L 515 35 L 510 48 L 490 52 L 462 50 L 452 38 Z'},
+    // ─ Rusia (neutral)
+    {id:'other', d:'M 510 22 L 720 18 L 740 35 L 735 65 L 700 80 L 640 85 L 580 82 L 535 70 L 530 52 L 510 45 Z'},
+    // ─ Africa del Norte
+    {id:'other', d:'M 420 100 L 580 98 L 590 112 L 585 135 L 565 148 L 480 152 L 430 148 L 415 130 L 415 112 Z'},
+    // ─ Africa subsahariana
+    {id:'other', d:'M 440 152 L 580 150 L 590 175 L 585 210 L 570 235 L 545 250 L 510 255 L 480 250 L 455 238 L 440 210 L 432 185 L 438 162 Z'},
+    // ─ Medio Oriente
+    {id:'other', d:'M 548 95 L 620 92 L 635 108 L 630 128 L 612 140 L 585 142 L 558 135 L 545 118 L 548 102 Z'},
+    // ─ India
+    {id:'other', d:'M 620 108 L 670 105 L 682 120 L 680 145 L 668 162 L 648 170 L 628 165 L 612 148 L 610 128 Z'},
+    // ─ China / Asia
+    {id:'China', d:'M 668 55 L 760 48 L 790 62 L 800 85 L 792 108 L 770 120 L 740 125 L 705 118 L 678 108 L 660 88 L 658 68 Z'},
+    // ─ Japón
+    {id:'China', d:'M 795 72 L 820 65 L 828 78 L 822 92 L 808 95 L 798 85 Z'},
+    // ─ Corea
+    {id:'China', d:'M 775 82 L 792 78 L 795 88 L 785 95 L 775 90 Z'},
+    // ─ Sudeste Asiático
+    {id:'other', d:'M 715 130 L 775 128 L 785 145 L 778 162 L 755 170 L 730 168 L 712 155 L 710 138 Z'},
+    // ─ Australia
+    {id:'other', d:'M 730 220 L 820 215 L 845 235 L 848 268 L 832 292 L 798 300 L 760 295 L 735 275 L 722 250 L 722 232 Z'},
+    // ─ Nueva Zelanda
+    {id:'other', d:'M 850 285 L 865 278 L 872 292 L 868 308 L 855 312 L 848 298 Z'}
+  ];
+
+  // Construir degradé defs + SVG
+  var defs = '<defs>';
+  Object.keys(countryConfig).forEach(function(c){
+    var cfg = countryConfig[c];
+    var v   = byCountry[c]||0;
+    var pct = maxVal>0 ? v/maxVal : 0;
+    var a1  = (0.12 + 0.88*pct).toFixed(2);
+    var a2  = (0.05 + 0.45*pct).toFixed(2);
+    defs += '<radialGradient id="grad-'+c+'" cx="50%" cy="50%" r="60%">';
+    defs += '<stop offset="0%" stop-color="rgba('+cfg.base[0]+','+cfg.base[1]+','+cfg.base[2]+','+a1+')" />';
+    defs += '<stop offset="100%" stop-color="rgba('+cfg.base[0]+','+cfg.base[1]+','+cfg.base[2]+','+a2+')" />';
+    defs += '</radialGradient>';
+  });
+  // Gradiente para continentes sin inversión
+  defs += '<radialGradient id="grad-other" cx="50%" cy="50%" r="60%">';
+  defs += '<stop offset="0%" stop-color="#2a2d35" />';
+  defs += '<stop offset="100%" stop-color="#1e2026" />';
+  defs += '</radialGradient>';
+  defs += '</defs>';
+
+  var pathsSVG = paths.map(function(p){
+    var country = p.id === 'Argentina_south' ? 'Argentina' : p.id;
+    var isInvested = byCountry[country] > 0 && p.id !== 'other';
+    var fillId  = (p.id === 'other') ? 'grad-other' : 'grad-' + country;
+    var stroke  = isInvested ? countryConfig[country].accent : '#363a45';
+    var sw      = isInvested ? '1.2' : '0.5';
+    var opacity = 1;
+    var titleTxt= '';
+    if(isInvested){
+      var v = byCountry[country]||0;
+      var pct = grandTotal>0?(v/grandTotal*100).toFixed(1):'0';
+      titleTxt = '<title>'+countryConfig[country].label+': USD '+Math.round(v).toLocaleString('es-AR')+' ('+pct+'%)</title>';
+    }
+    return '<path d="'+p.d+'" fill="url(#'+fillId+')" stroke="'+stroke+'" stroke-width="'+sw+'" opacity="'+opacity+'" style="cursor:'+(isInvested?'pointer':'default')+'">'+titleTxt+'</path>';
+  }).join('');
+
+  // Etiquetas de países con inversión
+  var labels = [
+    {id:'USA',       x:200, y:120, label:'USA'},
+    {id:'Brasil',    x:252, y:238, label:'BR'},
+    {id:'Argentina', x:237, y:318, label:'AR'},
+    {id:'Europa',    x:480, y:70,  label:'EU'},
+    {id:'China',     x:730, y:88,  label:'CN'},
+  ];
+  var labelsSVG = labels.map(function(l){
+    var v = byCountry[l.id]||0;
+    if(v<=0) return '';
+    var pct = grandTotal>0?(v/grandTotal*100).toFixed(1):'0';
+    var cfg = countryConfig[l.id];
+    return '<text x="'+l.x+'" y="'+l.y+'" fill="'+cfg.accent+'" font-family="DM Mono,monospace" font-size="9" font-weight="700" text-anchor="middle">'+l.label+'</text>'+
+           '<text x="'+l.x+'" y="'+(l.y+11)+'" fill="rgba(232,234,240,0.8)" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle">'+pct+'%</text>';
+  }).join('');
+
+  // Océano de fondo + líneas de latitud sutiles
+  var ocean = '<rect width="900" height="420" fill="#0e1218" rx="0"/>';
+  var gridLines = '';
+  [80,130,175,220,265,310,355].forEach(function(y){
+    gridLines += '<line x1="0" y1="'+y+'" x2="900" y2="'+y+'" stroke="#1a1d24" stroke-width="0.5"/>';
+  });
+  [100,200,300,400,500,600,700,800].forEach(function(x){
+    gridLines += '<line x1="'+x+'" y1="0" x2="'+x+'" y2="420" stroke="#1a1d24" stroke-width="0.5"/>';
+  });
+
+  var svg = '<svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">'+
+    ocean + gridLines + defs + pathsSVG + labelsSVG +
+  '</svg>';
+
+  container.innerHTML = svg;
+
+  // Leyenda
+  if(legendEl){
+    legendEl.innerHTML = '';
+    var sorted = Object.keys(byCountry).sort(function(a,b){return byCountry[b]-byCountry[a];});
+    sorted.forEach(function(c){
+      var v = byCountry[c]||0;
+      if(v<=0) return;
+      var cfg = countryConfig[c];
+      if(!cfg) return;
+      var pct = grandTotal>0?(v/grandTotal*100).toFixed(1):'0';
+      var item = document.createElement('div');
+      item.style.cssText = 'display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.68rem;color:var(--text2)';
+      item.innerHTML =
+        '<span style="width:10px;height:10px;border-radius:2px;background:'+cfg.accent+';flex-shrink:0;display:inline-block"></span>'+
+        '<span style="color:var(--text);font-weight:600">'+cfg.label+'</span>'+
+        '<span>USD '+Math.round(v).toLocaleString('es-AR')+'</span>'+
+        '<span style="color:var(--text3)">('+pct+'%)</span>';
+      legendEl.appendChild(item);
+    });
+  }
 }
 
 // ─── Bonos TIR ───────────────────────────────────────────────
@@ -4688,370 +4877,6 @@ var BTIR_FIELD_LABELS={
   ultimo:'Último', variacion:'Var%', var_pct:'Var%',
   paridad:'Paridad', parity:'Paridad'
 };
-
-// ─── MAPA MUNDIAL ─────────────────────────────────────────────────────────────
-// Proyección Mercator: lon/lat → SVG coords en viewBox 1000x500
-function _wm_proj(lon, lat){
-  var x = (lon + 180) / 360 * 1000;
-  var latR = lat * Math.PI / 180;
-  var mercN = Math.log(Math.tan(Math.PI/4 + latR/2));
-  var y = 250 - (250 * mercN / Math.PI);
-  return [x, y];
-}
-// Convierte array de [lon,lat] pares a string de path SVG
-function _wm_poly(coords){
-  var d = '';
-  for(var i=0;i<coords.length;i++){
-    var p = _wm_proj(coords[i][0], coords[i][1]);
-    d += (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1);
-  }
-  return d + 'Z';
-}
-
-// Países con polígonos simplificados pero geográficamente correctos
-var WM_COUNTRIES = {
-  // ── AMÉRICAS ──
-  US: { name:'EE.UU.', sector:'nyse', polys:[
-    [[-124,49],[-95,49],[-82,45],[-67,47],[-67,44],[-70,41],[-73,40],[-75,35],[-81,30],[-90,29],[-97,26],[-117,32],[-120,34],[-124,37],[-124,49]],
-    // Alaska simplificada
-    [[-168,54],[-140,54],[-140,70],[-168,70]]
-  ]},
-  CA: { name:'Canadá', sector:null, polys:[
-    [[-140,60],[-60,60],[-60,48],[-82,45],[-95,49],[-124,49],[-140,54],[-140,60]],
-    [[-140,60],[-140,70],[-60,70],[-60,60]]
-  ]},
-  MX: { name:'México', sector:null, polys:[
-    [[-118,30],[-97,26],[-90,16],[-88,16],[-90,21],[-87,21],[-92,18],[-95,19],[-97,22],[-105,21],[-110,23],[-117,32],[-118,30]]
-  ]},
-  AR: { name:'Argentina', sector:'argentina', polys:[
-    [[-68,-22],[-53,-34],[-53,-34],[-55,-34],[-57,-38],[-62,-51],[-65,-55],[-70,-55],[-70,-46],[-69,-42],[-70,-38],[-68,-34],[-65,-30],[-65,-22],[-68,-22]]
-  ]},
-  BR: { name:'Brasil', sector:'brasil', polys:[
-    [[-74,-8],[-34,-8],[-35,-10],[-38,-14],[-39,-19],[-42,-22],[-44,-23],[-50,-29],[-53,-33],[-55,-34],[-53,-34],[-60,-28],[-58,-20],[-60,-15],[-60,-4],[-66,-2],[-73,-7],[-74,-8]]
-  ]},
-  CL: { name:'Chile', sector:null, polys:[
-    [[-70,-17],[-68,-22],[-65,-22],[-65,-30],[-68,-34],[-70,-38],[-70,-55],[-74,-52],[-72,-40],[-71,-30],[-70,-17]]
-  ]},
-  CO: { name:'Colombia', sector:null, polys:[
-    [[-78,2],[-66,2],[-66,12],[-74,12],[-78,9],[-78,2]]
-  ]},
-  VE: { name:'Venezuela', sector:null, polys:[
-    [[-74,12],[-60,12],[-60,8],[-66,2],[-66,12],[-74,12]]
-  ]},
-  PE: { name:'Perú', sector:null, polys:[
-    [[-81,-1],[-74,-8],[-73,-7],[-66,-2],[-68,-10],[-75,-14],[-78,-8],[-81,-1]]
-  ]},
-  // ── EUROPA ──
-  GB: { name:'UK', sector:'europa', polys:[
-    [[-5.5,50],[-1.5,50],[-1.5,51.5],[0.5,51.5],[0.5,53],[-2,54],[-2,55.5],[-5,58],[-5,60],[-5.5,50]]
-  ]},
-  FR: { name:'Francia', sector:'europa', polys:[
-    [[-5,43],[8.5,43],[8,47],[7.5,49],[2,51],[-2.5,49],[-5,47],[-5,43]]
-  ]},
-  DE: { name:'Alemania', sector:'europa', polys:[
-    [[6,47],[15,47],[15,51],[13.5,54],[8,55],[6,53],[6,51],[6,47]]
-  ]},
-  ES: { name:'España', sector:'europa', polys:[
-    [[-9.5,36],[3.5,36],[3.5,44],[-2,44],[-9.5,44],[-9.5,36]]
-  ]},
-  IT: { name:'Italia', sector:'europa', polys:[
-    [[7,44],[14,44],[16,38],[15,37],[16,38],[18,40],[16,41],[13.5,43],[12.5,44],[7,44]]
-  ]},
-  PT: { name:'Portugal', sector:'europa', polys:[
-    [[-9.5,37],[-6.5,37],[-6.5,42],[-9.5,42],[-9.5,37]]
-  ]},
-  NL: { name:'Holanda', sector:'europa', polys:[
-    [[3.5,51],[7,51],[7,53],[4,53],[3.5,51]]
-  ]},
-  BE: { name:'Bélgica', sector:'europa', polys:[
-    [[2.5,50],[6,50],[6,51],[3.5,51],[2.5,50]]
-  ]},
-  CH: { name:'Suiza', sector:'europa', polys:[
-    [[6,46],[10.5,46],[10.5,48],[6,48],[6,46]]
-  ]},
-  AT: { name:'Austria', sector:'europa', polys:[
-    [[10,47],[17,47],[17,49],[10.5,49],[10,47]]
-  ]},
-  SE: { name:'Suecia', sector:'europa', polys:[
-    [[11,56],[24,56],[22,66],[17,68],[14,68],[11,63],[11,56]]
-  ]},
-  NO: { name:'Noruega', sector:'europa', polys:[
-    [[5,58],[15,58],[20,66],[28,70],[15,71],[10,63],[5,58]]
-  ]},
-  DK: { name:'Dinamarca', sector:'europa', polys:[
-    [[8,55],[13,55],[13,58],[8,58],[8,55]]
-  ]},
-  FI: { name:'Finlandia', sector:'europa', polys:[
-    [[20,60],[31,60],[31,70],[20,70],[20,60]]
-  ]},
-  IE: { name:'Irlanda', sector:'europa', polys:[
-    [[-10,51],[-6,51],[-6,55],[-10,55],[-10,51]]
-  ]},
-  PL: { name:'Polonia', sector:'europa', polys:[
-    [[14,49],[24,49],[24,55],[14,55],[14,49]]
-  ]},
-  CZ: { name:'R. Checa', sector:'europa', polys:[
-    [[12.5,49],[18.5,49],[18.5,51],[12.5,51],[12.5,49]]
-  ]},
-  HU: { name:'Hungría', sector:'europa', polys:[
-    [[16,46],[23,46],[23,48.5],[16,48.5],[16,46]]
-  ]},
-  GR: { name:'Grecia', sector:'europa', polys:[
-    [[20,37],[27,37],[27,42],[20,42],[20,37]]
-  ]},
-  RO: { name:'Rumania', sector:'europa', polys:[
-    [[22,44],[30,44],[30,48],[22,48],[22,44]]
-  ]},
-  RU: { name:'Rusia', sector:null, polys:[
-    [[28,50],[180,50],[180,72],[28,72],[28,50]]
-  ]},
-  UA: { name:'Ucrania', sector:null, polys:[
-    [[22,44],[38,44],[38,52],[22,52],[22,44]]
-  ]},
-  // ── ÁFRICA ──
-  NG: { name:'Nigeria', sector:null, polys:[
-    [[3,4],[15,4],[15,14],[3,14],[3,4]]
-  ]},
-  ZA: { name:'Sudáfrica', sector:null, polys:[
-    [[16,-35],[33,-35],[33,-22],[16,-22],[16,-35]]
-  ]},
-  EG: { name:'Egipto', sector:null, polys:[
-    [[25,22],[37,22],[37,31],[25,31],[25,22]]
-  ]},
-  ET: { name:'Etiopía', sector:null, polys:[
-    [[33,3],[48,3],[48,15],[33,15],[33,3]]
-  ]},
-  CD: { name:'Congo', sector:null, polys:[
-    [[12,-13],[31,-13],[31,6],[12,6],[12,-13]]
-  ]},
-  MA: { name:'Marruecos', sector:null, polys:[
-    [[-6,28],[0,28],[0,36],[-6,36],[-6,28]]
-  ]},
-  TZ: { name:'Tanzania', sector:null, polys:[
-    [[29,-12],[41,-12],[41,0],[29,0],[29,-12]]
-  ]},
-  // ── ASIA/MEDIO ORIENTE ──
-  CN: { name:'China', sector:'china', polys:[
-    [[73,18],[135,18],[135,54],[100,54],[90,50],[80,45],[73,38],[73,18]]
-  ]},
-  HK: { name:'Hong Kong', sector:'china', polys:[
-    [[113.8,22.1],[114.4,22.1],[114.4,22.6],[113.8,22.6]]
-  ]},
-  IN: { name:'India', sector:null, polys:[
-    [[68,8],[90,8],[97,22],[95,28],[80,35],[72,24],[68,22],[68,8]]
-  ]},
-  JP: { name:'Japón', sector:null, polys:[
-    [[130,31],[145,31],[145,45],[130,45],[130,31]]
-  ]},
-  KR: { name:'Corea del Sur', sector:null, polys:[
-    [[126,34],[130,34],[130,38],[126,38],[126,34]]
-  ]},
-  ID: { name:'Indonesia', sector:null, polys:[
-    [[95,-8],[141,-8],[141,6],[95,6],[95,-8]]
-  ]},
-  SA: { name:'Arabia Saudita', sector:null, polys:[
-    [[36,16],[56,16],[56,32],[36,32],[36,16]]
-  ]},
-  TR: { name:'Turquía', sector:null, polys:[
-    [[26,36],[44,36],[44,42],[26,42],[26,36]]
-  ]},
-  IR: { name:'Irán', sector:null, polys:[
-    [[44,25],[64,25],[64,40],[44,40],[44,25]]
-  ]},
-  PK: { name:'Pakistán', sector:null, polys:[
-    [[61,24],[78,24],[78,36],[61,36],[61,24]]
-  ]},
-  // ── OCEANÍA ──
-  AU: { name:'Australia', sector:null, polys:[
-    [[114,-38],[154,-38],[154,-12],[130,-12],[115,-22],[114,-38]]
-  ]},
-  NZ: { name:'Nueva Zelanda', sector:null, polys:[
-    [[166,-47],[178,-47],[178,-34],[166,-34],[166,-47]]
-  ]}
-};
-
-var WM_SECTOR_COLORS = {
-  nyse:'#60a5fa', argentina:'#fbbf24', brasil:'#34d399',
-  europa:'#a78bfa', china:'#f87171', cripto:'#fb923c'
-};
-
-// Etiquetas cortas para mostrar en el mapa
-var WM_LABELS = {
-  US:[-98,38,'EE.UU.'], AR:[-65,-36,'ARG'], BR:[-52,-12,'BRA'],
-  CN:[105,35,'CHN'], GB:[-2,53,'UK'], DE:[10.5,51,'DEU'],
-  FR:[2,46,'FRA'], ES:[-3,40,'ESP'], IT:[12,42,'ITA'],
-  SE:[17,62,'SWE'], NO:[15,63,'NOR'], FI:[25,64,'FIN'],
-  PL:[19,52,'POL']
-};
-
-function renderWorldMap(sectorVal){
-  var svg = document.getElementById('world-map-svg');
-  var legend = document.getElementById('world-map-legend');
-  if(!svg) return;
-
-  // Mapeo sector → lista de IDs de países
-  var SECTOR_COUNTRIES = {
-    nyse:['US'], argentina:['AR'], brasil:['BR'], china:['CN','HK'],
-    cripto:[], bonos:['AR'], on:['AR'],
-    europa:['GB','FR','DE','ES','IT','PT','NL','BE','CH','AT','SE','NO','DK','FI','IE','PL','CZ','HU','GR','RO']
-  };
-
-  // Calcular valor USD por país (sumando sectores que comparten país)
-  var countryVal = {};
-  Object.keys(SECTOR_COUNTRIES).forEach(function(sec){
-    var v = sectorVal[sec] || 0;
-    if(v <= 0) return;
-    SECTOR_COUNTRIES[sec].forEach(function(cid){
-      countryVal[cid] = (countryVal[cid]||0) + v;
-    });
-  });
-
-  // Color por sector de un país (primero que tenga valor)
-  function countryColor(cid){
-    var def = WM_COUNTRIES[cid];
-    if(!def || !def.sector) return null;
-    return WM_SECTOR_COLORS[def.sector] || '#7ee8a2';
-  }
-  // Para países del sector europa, todos comparten color
-  function resolveColor(cid){
-    var c = countryColor(cid);
-    if(c) return c;
-    // Verificar si está en sector europa
-    if((SECTOR_COUNTRIES.europa||[]).indexOf(cid)>=0 && (sectorVal.europa||0)>0)
-      return WM_SECTOR_COLORS.europa;
-    return null;
-  }
-
-  var maxVal = 1;
-  Object.values(countryVal).forEach(function(v){ if(v>maxVal) maxVal=v; });
-
-  // ── Render SVG ──
-  var ns = 'http://www.w3.org/2000/svg';
-  svg.innerHTML = '';
-
-  // Fondo océano
-  var bg = document.createElementNS(ns,'rect');
-  bg.setAttribute('width','1000'); bg.setAttribute('height','500');
-  bg.setAttribute('fill','#0d1520'); bg.setAttribute('rx','4');
-  svg.appendChild(bg);
-
-  // Graticule lines (meridianos y paralelos sutiles)
-  var grid = document.createElementNS(ns,'g');
-  for(var lon=-180;lon<=180;lon+=30){
-    var p1=_wm_proj(lon,-80), p2=_wm_proj(lon,80);
-    var l=document.createElementNS(ns,'line');
-    l.setAttribute('x1',p1[0].toFixed(1)); l.setAttribute('y1',p1[1].toFixed(1));
-    l.setAttribute('x2',p2[0].toFixed(1)); l.setAttribute('y2',p2[1].toFixed(1));
-    l.setAttribute('stroke','#1a2233'); l.setAttribute('stroke-width','0.5');
-    grid.appendChild(l);
-  }
-  for(var lat=-60;lat<=60;lat+=30){
-    var p1=_wm_proj(-180,lat), p2=_wm_proj(180,lat);
-    var l2=document.createElementNS(ns,'line');
-    l2.setAttribute('x1',p1[0].toFixed(1)); l2.setAttribute('y1',p1[1].toFixed(1));
-    l2.setAttribute('x2',p2[0].toFixed(1)); l2.setAttribute('y2',p2[1].toFixed(1));
-    l2.setAttribute('stroke','#1a2233'); l2.setAttribute('stroke-width','0.5');
-    grid.appendChild(l2);
-  }
-  svg.appendChild(grid);
-
-  var tooltip = document.getElementById('world-map-tooltip');
-
-  // Dibujar todos los países
-  Object.keys(WM_COUNTRIES).forEach(function(cid){
-    var def = WM_COUNTRIES[cid];
-    var val = countryVal[cid] || 0;
-    var col = resolveColor(cid);
-    var hasInv = val > 0 && col;
-
-    def.polys.forEach(function(poly){
-      var pathStr = _wm_poly(poly);
-      var el = document.createElementNS(ns,'path');
-      el.setAttribute('d', pathStr);
-
-      if(hasInv){
-        var opacity = Math.max(0.4, Math.min(0.95, 0.4 + 0.55*(val/maxVal)));
-        el.setAttribute('fill', col);
-        el.setAttribute('fill-opacity', opacity.toFixed(2));
-        el.setAttribute('stroke', col);
-        el.setAttribute('stroke-width', '1');
-        el.setAttribute('stroke-opacity', '0.6');
-        el.style.cursor = 'pointer';
-        el.style.transition = 'fill-opacity .15s';
-        el.addEventListener('mouseenter', function(e){
-          el.setAttribute('fill-opacity','1');
-          el.setAttribute('stroke-width','2');
-          if(tooltip){
-            tooltip.style.display = 'block';
-            var usdStr = '$' + Math.round(val).toLocaleString('es-AR') + ' USD';
-            tooltip.innerHTML = '<b style="color:'+col+'">'+def.name+'</b> &nbsp;'+usdStr;
-          }
-        });
-        el.addEventListener('mousemove', function(e){
-          if(!tooltip) return;
-          var cont = svg.parentElement;
-          var rect = cont.getBoundingClientRect();
-          tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
-          tooltip.style.top  = (e.clientY - rect.top  - 28) + 'px';
-        });
-        el.addEventListener('mouseleave', function(){
-          el.setAttribute('fill-opacity', opacity.toFixed(2));
-          el.setAttribute('stroke-width','1');
-          if(tooltip) tooltip.style.display='none';
-        });
-      } else {
-        el.setAttribute('fill', '#1e2530');
-        el.setAttribute('stroke', '#2a3040');
-        el.setAttribute('stroke-width', '0.5');
-      }
-      svg.appendChild(el);
-    });
-
-    // Etiqueta con valor USD sobre países con inversión
-    if(hasInv && WM_LABELS[cid]){
-      var lc = WM_LABELS[cid];
-      var xy = _wm_proj(lc[0], lc[1]);
-      // Nombre del país
-      var t1 = document.createElementNS(ns,'text');
-      t1.setAttribute('x', xy[0].toFixed(1));
-      t1.setAttribute('y', (xy[1]-4).toFixed(1));
-      t1.setAttribute('text-anchor','middle');
-      t1.setAttribute('font-family','DM Mono,monospace');
-      t1.setAttribute('font-size','8');
-      t1.setAttribute('font-weight','700');
-      t1.setAttribute('fill', col);
-      t1.setAttribute('pointer-events','none');
-      t1.textContent = lc[2];
-      svg.appendChild(t1);
-      // Valor
-      var t2 = document.createElementNS(ns,'text');
-      t2.setAttribute('x', xy[0].toFixed(1));
-      t2.setAttribute('y', (xy[1]+7).toFixed(1));
-      t2.setAttribute('text-anchor','middle');
-      t2.setAttribute('font-family','DM Mono,monospace');
-      t2.setAttribute('font-size','7');
-      t2.setAttribute('fill','rgba(255,255,255,0.75)');
-      t2.setAttribute('pointer-events','none');
-      t2.textContent = '$'+Math.round(val).toLocaleString('es-AR');
-      svg.appendChild(t2);
-    }
-  });
-
-  // Leyenda
-  if(legend){
-    var SECTOR_NAMES = {nyse:'🇺🇸 NYSE/USA',argentina:'🇦🇷 Argentina',brasil:'🇧🇷 Brasil',europa:'🇪🇺 Europa',china:'🇨🇳 China',cripto:'₿ Cripto'};
-    var items = [];
-    ['nyse','argentina','brasil','europa','china','cripto'].forEach(function(sec){
-      var v = sectorVal[sec]||0;
-      if(v<=0) return;
-      var c = WM_SECTOR_COLORS[sec];
-      items.push('<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.6rem;color:var(--text2)">'
-        +'<span style="width:8px;height:8px;border-radius:2px;background:'+c+';display:inline-block;flex-shrink:0"></span>'
-        +SECTOR_NAMES[sec]+' <b style="color:'+c+'">'+'$'+Math.round(v).toLocaleString('es-AR')+'</b></span>');
-    });
-    legend.innerHTML = items.join('');
-  }
-}
 
 function renderBonosTIR(){
   var status=document.getElementById('btir-status');
