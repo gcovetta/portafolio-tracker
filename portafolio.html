@@ -292,6 +292,7 @@ tr:hover td{background:var(--surface2)}
     <button class="nav-item" onclick="showPage(&#39;tipocambio&#39;,this)"><span>$</span>Tipo de Cambio</button>
     <div class="nav-sec">Laboratorio</div>
     <button class="nav-item" onclick="showPage(&#39;dashboard&#39;,this)"><span>📊</span>DashBoard</button>
+    <button class="nav-item" onclick="showPage(&#39;rubros&#39;,this)"><span>🏷</span>Rubros</button>
     <button class="nav-item" onclick="showPage(&#39;vetamovim&#39;,this)"><span>🧪</span>VetaMovim</button>
   </nav>
   <div class="content">
@@ -806,6 +807,38 @@ tr:hover td{background:var(--surface2)}
       </div>
     </div>
 
+    <!-- RUBROS -->
+    <div class="page" id="page-rubros" style="padding:1.2rem">
+      <div class="card">
+        <div class="card-header" style="gap:10px;flex-wrap:wrap">
+          <span class="card-title">🏷 Rubros de activos</span>
+          <span class="smsg" style="font-size:.68rem;color:var(--text3)">Clasificá cada ticker para el gráfico <b>Distribución por rubro</b></span>
+          <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+            <input id="rubro-filter" type="text" placeholder="Filtrar ticker…" oninput="rubroFilterTable()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:3px 8px;width:130px;outline:none">
+            <button class="btn btn-sm" onclick="rubroSaveAll()" style="background:var(--accent);color:#000;font-weight:700">💾 Guardar todo</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:.6rem 1rem">
+          <div class="ibox" style="margin-bottom:10px;font-size:.68rem">
+            Editá el rubro de cada ticker. Los cambios se guardan automáticamente al hacer clic en <b>Guardar</b> de cada fila o en <b>Guardar todo</b>. El gráfico <i>Distribución por rubro</i> del Dashboard usará estos valores.
+          </div>
+          <div style="overflow-x:auto">
+            <table id="rubros-table" style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.72rem">
+              <thead>
+                <tr style="border-bottom:2px solid var(--border2)">
+                  <th style="text-align:left;padding:5px 8px;color:var(--text3);font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;width:100px">Ticker</th>
+                  <th style="text-align:left;padding:5px 8px;color:var(--text3);font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;width:110px">Segmento</th>
+                  <th style="text-align:left;padding:5px 8px;color:var(--text3);font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em">Rubro</th>
+                  <th style="text-align:center;padding:5px 8px;color:var(--text3);font-weight:600;font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;width:80px">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="rubros-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="page" id="page-vetamovim">
       <div class="card">
         <div class="card-header" style="gap:10px;flex-wrap:wrap">
@@ -1076,6 +1109,7 @@ function showPage(id,btn){
   if(id==='dividendos') divPopulateSelect();
   if(id==='arbitraje') arbRender();
   if(id==='dashboard') renderDashboard();
+  if(id==='rubros') renderRubros();
   // Sidebar: colapsado en portafolio, abierto en el resto
   var main=document.getElementById('main');
   if(main){
@@ -3397,6 +3431,11 @@ function trkCalcCCL(){
     if(sbTargets){Object.assign(TARGET_TABLE, sbTargets);try{localStorage.setItem('ptNYSE_targets',JSON.stringify(TARGET_TABLE));}catch(e){}}
     else{try{var st=localStorage.getItem('ptNYSE_targets');if(st){Object.assign(TARGET_TABLE,JSON.parse(st));}}catch(e){}}
 
+    // 5b. Rubros override
+    var sbRubros = await sbGetConfig('rubros');
+    if(sbRubros){Object.assign(USER_RUBRO_TABLE, sbRubros);try{localStorage.setItem('ptNYSE_rubros',JSON.stringify(USER_RUBRO_TABLE));}catch(e){}}
+    else{try{var sru=localStorage.getItem('ptNYSE_rubros');if(sru){Object.assign(USER_RUBRO_TABLE,JSON.parse(sru));}}catch(e){}}
+
 
     // 6. CCL/MEP override
     var sbCclOvr = await sbGetConfig('ccl_override');
@@ -3949,6 +3988,88 @@ var RUBRO_MAP={
   'COIN':'Cripto'
 };
 
+// Overrides de rubro por usuario (prevalecen sobre RUBRO_MAP)
+var USER_RUBRO_TABLE={};
+
+var RUBRO_OPTIONS=[
+  'Tecnología','E-commerce','Finanzas','Energía','Salud','Consumo',
+  'Entretenimiento','Telecomunicaciones','Automotriz','Aerolíneas',
+  'Industrial','Materiales','Construcción','Inmobiliario','Agro',
+  'Cripto','Bonos','ON','Otros'
+];
+
+function getRubro(ticker){
+  return USER_RUBRO_TABLE[ticker]||RUBRO_MAP[ticker]||'Otros';
+}
+
+function renderRubros(){
+  var positions=getPositions();
+  var open=positions.filter(function(p){return p.qty>0;});
+  var tbody=document.getElementById('rubros-tbody');
+  if(!tbody)return;
+  tbody.innerHTML='';
+  open.sort(function(a,b){return a.ticker.localeCompare(b.ticker);}).forEach(function(p){
+    var sector=getSector(p.ticker);
+    var segLabel=DB_SECTOR_LABEL[sector]||sector;
+    var segColor=DB_SECTOR_COLOR[sector]||'#8b8fa8';
+    var currentRubro=getRubro(p.ticker);
+    var opts=RUBRO_OPTIONS.map(function(r){
+      return '<option value="'+r+'"'+(r===currentRubro?' selected':'')+'>'+r+'</option>';
+    }).join('');
+    var row=document.createElement('tr');
+    row.setAttribute('data-ticker',p.ticker);
+    row.style.borderBottom='1px solid var(--border)';
+    row.innerHTML=
+      '<td style="padding:5px 8px;font-weight:700;color:var(--text)">'+p.ticker+'</td>'+
+      '<td style="padding:5px 8px"><span style="font-size:.65rem;background:'+segColor+'22;color:'+segColor+';border:1px solid '+segColor+'44;border-radius:3px;padding:1px 6px;font-weight:600">'+segLabel+'</span></td>'+
+      '<td style="padding:5px 8px">'+
+        '<select id="rubro-sel-'+p.ticker+'" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:2px 6px;outline:none;width:100%;max-width:200px">'+opts+'</select>'+
+      '</td>'+
+      '<td style="padding:5px 8px;text-align:center">'+
+        '<button class="btn btn-sm" onclick="rubroSaveOne(\''+p.ticker+'\')" style="font-size:.62rem;padding:2px 8px">Guardar</button>'+
+      '</td>';
+    tbody.appendChild(row);
+  });
+}
+
+function rubroFilterTable(){
+  var q=(document.getElementById('rubro-filter').value||'').toLowerCase();
+  var rows=document.querySelectorAll('#rubros-tbody tr');
+  rows.forEach(function(r){
+    var t=(r.getAttribute('data-ticker')||'').toLowerCase();
+    r.style.display=(!q||t.indexOf(q)>=0)?'':'none';
+  });
+}
+
+function rubroSaveOne(ticker){
+  var sel=document.getElementById('rubro-sel-'+ticker);
+  if(!sel)return;
+  var rubro=sel.value;
+  USER_RUBRO_TABLE[ticker]=rubro;
+  _rubroPersist();
+  // Feedback visual
+  sel.style.borderColor='var(--accent)';
+  setTimeout(function(){sel.style.borderColor='var(--border2)';},800);
+}
+
+function rubroSaveAll(){
+  var rows=document.querySelectorAll('#rubros-tbody tr');
+  rows.forEach(function(r){
+    var ticker=r.getAttribute('data-ticker');
+    if(!ticker)return;
+    var sel=document.getElementById('rubro-sel-'+ticker);
+    if(sel) USER_RUBRO_TABLE[ticker]=sel.value;
+  });
+  _rubroPersist();
+  var btn=document.querySelector('button[onclick="rubroSaveAll()"]');
+  if(btn){var orig=btn.textContent;btn.textContent='✓ Guardado';setTimeout(function(){btn.textContent=orig;},1200);}
+}
+
+function _rubroPersist(){
+  try{localStorage.setItem('ptNYSE_rubros',JSON.stringify(USER_RUBRO_TABLE));}catch(e){}
+  sbSetConfig('rubros', USER_RUBRO_TABLE);
+}
+
 var DB_CHARTS={};
 
 function dbDestroyAll(){
@@ -4152,7 +4273,7 @@ function renderDashboard(){
   // Solo Renta Variable (excluye Bonos y ONs)
   var rubroVal={};
   posData.filter(function(d){return d.sector!=='bonos'&&d.sector!=='on';}).forEach(function(d){
-    var rubro=RUBRO_MAP[d.ticker]||'Otros';
+    var rubro=getRubro(d.ticker);
     rubroVal[rubro]=(rubroVal[rubro]||0)+d.valUSD;
   });
   var rubroKeys=Object.keys(rubroVal).sort(function(a,b){return rubroVal[b]-rubroVal[a];});
