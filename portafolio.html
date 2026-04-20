@@ -3672,19 +3672,19 @@ function toggleSidebar(){
 // ─── Sector Pie: desglose por cada sector ────────────────────
 var SECTOR_PIE_INST=null;
 var SECTOR_PIE_COLORS={
-  nyse:'rgba(96,165,250,.85)',
-  bonos:'rgba(167,139,250,.85)',
-  on:'rgba(244,114,182,.85)',
-  argentina:'rgba(52,211,153,.85)',
-  brasil:'rgba(251,191,36,.85)',
+  nyse:'rgba(239,68,68,.85)',
+  bonos:'rgba(249,115,22,.85)',
+  on:'rgba(156,163,175,.85)',
+  argentina:'rgba(56,189,248,.85)',
+  brasil:'rgba(250,204,21,.85)',
   europa:'rgba(251,146,60,.85)',
   china:'rgba(248,113,113,.85)',
-  cripto:'rgba(56,189,248,.85)'
+  cripto:'rgba(192,132,252,.85)'
 };
 var SECTOR_PIE_BORDER={
-  nyse:'#60a5fa',bonos:'#a78bfa',on:'#f472b6',
-  argentina:'#34d399',brasil:'#fbbf24',
-  europa:'#fb923c',china:'#f87171',cripto:'#38bdf8'
+  nyse:'#ef4444',bonos:'#f97316',on:'#9ca3af',
+  argentina:'#38bdf8',brasil:'#facc15',
+  europa:'#fb923c',china:'#f87171',cripto:'#c084fc'
 };
 var SECTOR_PIE_LABEL={
   nyse:'USA',bonos:'Bonos',on:'ON',
@@ -3735,7 +3735,7 @@ function renderSectorPie(sectorVal){
     options:{
       responsive:true,maintainAspectRatio:false,cutout:'48%',
       plugins:{
-        legend:{position:'right',labels:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:9},padding:6,boxWidth:8}},
+        legend:{display:false},
         tooltip:{callbacks:{label:function(ctx){
           var v=ctx.parsed;
           var pct=(total>0?(v/total*100):0).toFixed(1);
@@ -3752,13 +3752,13 @@ var RV_PIE_INST=null;
 var RV_SECTORS=['nyse','argentina','brasil','europa','china','cripto'];
 var RV_PIE_LABEL={nyse:'USA',argentina:'Argentina',brasil:'Brasil',europa:'Europa',china:'China',cripto:'Cripto'};
 var RV_PIE_COLORS={
-  nyse:'rgba(96,165,250,.85)',argentina:'rgba(52,211,153,.85)',
-  brasil:'rgba(251,191,36,.85)',europa:'rgba(251,146,60,.85)',
-  china:'rgba(248,113,113,.85)',cripto:'rgba(56,189,248,.85)'
+  nyse:'rgba(239,68,68,.85)',argentina:'rgba(56,189,248,.85)',
+  brasil:'rgba(250,204,21,.85)',europa:'rgba(251,146,60,.85)',
+  china:'rgba(248,113,113,.85)',cripto:'rgba(192,132,252,.85)'
 };
 var RV_PIE_BORDER={
-  nyse:'#60a5fa',argentina:'#34d399',brasil:'#fbbf24',
-  europa:'#fb923c',china:'#f87171',cripto:'#38bdf8'
+  nyse:'#ef4444',argentina:'#38bdf8',brasil:'#facc15',
+  europa:'#fb923c',china:'#f87171',cripto:'#c084fc'
 };
 
 function renderRVPie(sectorVal){
@@ -3808,7 +3808,7 @@ function renderRVPie(sectorVal){
     options:{
       responsive:true,maintainAspectRatio:false,cutout:'48%',
       plugins:{
-        legend:{position:'right',labels:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:9},padding:6,boxWidth:8}},
+        legend:{display:false},
         tooltip:{callbacks:{label:function(ctx){
           var v=ctx.parsed;
           var pct=(total>0?(v/total*100):0).toFixed(1);
@@ -3860,18 +3860,15 @@ function renderMiniPie(fija,variable,liquidez){
       labels:['RF','RV','u$s'],
       datasets:[{
         data:[Math.round(fija),Math.round(variable),Math.round(liquidez)],
-        backgroundColor:['rgba(167,139,250,.8)','rgba(96,165,250,.8)','rgba(251,191,36,.8)'],
-        borderColor:['#a78bfa','#60a5fa','#fbbf24'],
+        backgroundColor:['rgba(120,53,15,.85)','rgba(232,121,249,.85)','rgba(74,222,128,.85)'],
+        borderColor:['#92400e','#e879f9','#4ade80'],
         borderWidth:1.5,hoverOffset:4
       }]
     },
     options:{
       responsive:true,maintainAspectRatio:false,cutout:'48%',
       plugins:{
-        legend:{
-          position:'right',
-          labels:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:10},padding:8,boxWidth:9}
-        },
+        legend:{display:false},
         tooltip:{callbacks:{label:function(ctx){return ' '+fmt(ctx.parsed);}}}
       }
     },
@@ -3902,9 +3899,9 @@ var DB_SECTOR_LABEL={
   europa:'Europa',china:'China',cripto:'Cripto'
 };
 var DB_SECTOR_COLOR={
-  nyse:'#60a5fa',bonos:'#a78bfa',on:'#f472b6',
-  argentina:'#34d399',brasil:'#fbbf24',
-  europa:'#fb923c',china:'#f87171',cripto:'#38bdf8'
+  nyse:'#ef4444',bonos:'#f97316',on:'#9ca3af',
+  argentina:'#38bdf8',brasil:'#facc15',
+  europa:'#fb923c',china:'#f87171',cripto:'#c084fc'
 };
 
 function renderDashboard(){
