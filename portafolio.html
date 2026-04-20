@@ -827,6 +827,29 @@ tr:hover td{background:var(--surface2)}
             <div style="position:relative;height:280px"><canvas id="db-chart-losses"></canvas></div>
           </div>
         </div>
+        <!-- Tabla diagnóstico valores -->
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-header" style="cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+            <span class="card-title" style="font-size:.75rem">🔍 Diagnóstico — valores computados por posición</span>
+            <span style="font-size:.65rem;color:var(--text3);margin-left:8px">clic para ver/ocultar</span>
+          </div>
+          <div style="display:none;padding:.6rem 1rem;overflow-x:auto">
+            <table id="db-debug-table" style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.68rem">
+              <thead>
+                <tr style="border-bottom:1px solid var(--border2)">
+                  <th style="text-align:left;padding:3px 6px;color:var(--text3)">Ticker</th>
+                  <th style="text-align:left;padding:3px 6px;color:var(--text3)">Sector</th>
+                  <th style="text-align:right;padding:3px 6px;color:var(--text3)">Precio quote</th>
+                  <th style="text-align:right;padding:3px 6px;color:var(--text3)">Qty</th>
+                  <th style="text-align:right;padding:3px 6px;color:var(--text3)">Ratio</th>
+                  <th style="text-align:right;padding:3px 6px;color:var(--text3)">Val USD (calc)</th>
+                  <th style="text-align:right;padding:3px 6px;color:var(--text3)">Costo USD</th>
+                </tr>
+              </thead>
+              <tbody id="db-debug-tbody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -4286,8 +4309,30 @@ function renderDashboard(){
     // costo promedio USD por unidad = costUSDpuro / qty
     var costUSDtotal=p.costUSDpuro; // USD pagado real; para bonos valUSD y costUSDpuro son consistentes entre sí
     var gainUSD=valUSD-costUSDtotal;
-    posData.push({ticker:p.ticker,sector:sector,valUSD:valUSD,gainUSD:gainUSD,costUSD:costUSDtotal});
+    posData.push({ticker:p.ticker,sector:sector,valUSD:valUSD,gainUSD:gainUSD,costUSD:costUSDtotal,
+      _rawPrice:q.price,_qty:p.qty,_ratio:RATIOS_TABLE[p.ticker]||1});
   });
+
+  // ── Tabla diagnóstico ─────────────────────────────────────
+  var dbgTbody=document.getElementById('db-debug-tbody');
+  if(dbgTbody){
+    dbgTbody.innerHTML='';
+    var dbgSorted=[].concat(posData).sort(function(a,b){return b.valUSD-a.valUSD;});
+    dbgSorted.forEach(function(d,i){
+      var tr=document.createElement('tr');
+      tr.style.borderBottom='1px solid var(--border)';
+      var isTop=(i<10);
+      tr.innerHTML=
+        '<td style="padding:3px 6px;font-weight:700;color:'+(isTop?'var(--accent)':'var(--text)')+'">'+d.ticker+'</td>'+
+        '<td style="padding:3px 6px;color:var(--text3)">'+d.sector+'</td>'+
+        '<td style="padding:3px 6px;text-align:right;color:var(--text2)">'+d._rawPrice.toLocaleString('es-AR')+'</td>'+
+        '<td style="padding:3px 6px;text-align:right;color:var(--text2)">'+d._qty.toLocaleString('es-AR')+'</td>'+
+        '<td style="padding:3px 6px;text-align:right;color:var(--text2)">'+d._ratio+'</td>'+
+        '<td style="padding:3px 6px;text-align:right;font-weight:700;color:var(--text)">$'+Math.round(d.valUSD).toLocaleString('es-AR')+'</td>'+
+        '<td style="padding:3px 6px;text-align:right;color:var(--text3)">$'+Math.round(d.costUSD).toLocaleString('es-AR')+'</td>';
+      dbgTbody.appendChild(tr);
+    });
+  }
 
   // ── Gráfico 1: Top 10 posiciones por valor ───────────────
   var sorted=[].concat(posData).sort(function(a,b){return b.valUSD-a.valUSD;}).slice(0,10);
