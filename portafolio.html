@@ -772,38 +772,40 @@ tr:hover td{background:var(--surface2)}
     </div>
 
     <!-- VETA MOVIM (WIP - no impacta portafolio) -->
-    <div class="page" id="page-dashboard">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
-        <span style="font-size:1.1rem;font-weight:700">📊 DashBoard</span>
-        <span style="font-size:.68rem;font-family:var(--mono);color:var(--text3)">Análisis visual del portafolio</span>
-      </div>
-      <!-- Fila 1: Top Holdings -->
-      <div style="margin-bottom:1rem">
-        <div class="card" style="padding:1rem">
-          <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 posiciones por valor (USD)</div>
-          <div style="position:relative;height:260px"><canvas id="db-chart-top"></canvas></div>
+    <div class="page" id="page-dashboard" style="padding:0">
+      <div id="db-scroll" style="height:calc(100vh - 100px);overflow-y:auto;overflow-x:hidden;padding:1.2rem">
+        <!-- Fila 1: Sector + Top Holdings -->
+        <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:1rem;margin-bottom:1rem">
+          <div class="card" style="padding:1rem">
+            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Distribución por sector</div>
+            <div style="position:relative;height:260px"><canvas id="db-chart-sector"></canvas></div>
+          </div>
+          <div class="card" style="padding:1rem">
+            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 posiciones por valor (USD)</div>
+            <div style="position:relative;height:260px"><canvas id="db-chart-top"></canvas></div>
+          </div>
         </div>
-      </div>
-      <!-- Fila 2: Ganancia por posición -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
-        <div class="card" style="padding:1rem">
-          <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 ganancias (USD)</div>
-          <div style="position:relative;height:280px"><canvas id="db-chart-gains"></canvas></div>
+        <!-- Fila 2: Ganancias + Pérdidas -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div class="card" style="padding:1rem">
+            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 ganancias (USD)</div>
+            <div style="position:relative;height:280px"><canvas id="db-chart-gains"></canvas></div>
+          </div>
+          <div class="card" style="padding:1rem">
+            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 pérdidas (USD)</div>
+            <div style="position:relative;height:280px"><canvas id="db-chart-losses"></canvas></div>
+          </div>
         </div>
-        <div class="card" style="padding:1rem">
-          <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 pérdidas (USD)</div>
-          <div style="position:relative;height:280px"><canvas id="db-chart-losses"></canvas></div>
-        </div>
-      </div>
-      <!-- Fila 3: Rendimiento por segmento + Distribución por rubro -->
-      <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:1rem;margin-bottom:1rem">
-        <div class="card" style="padding:1rem">
-          <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Rendimiento % promedio por segmento</div>
-          <div style="position:relative;height:280px"><canvas id="db-chart-segmentos"></canvas></div>
-        </div>
-        <div class="card" style="padding:1rem">
-          <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Distribución por rubro</div>
-          <div style="position:relative;height:280px"><canvas id="db-chart-rubros"></canvas></div>
+        <!-- Fila 3: Rendimiento por segmento + Distribución por rubro -->
+        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:1rem;margin-bottom:1rem">
+          <div class="card" style="padding:1rem">
+            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Rendimiento % promedio por segmento</div>
+            <div style="position:relative;height:280px"><canvas id="db-chart-segmentos"></canvas></div>
+          </div>
+          <div class="card" style="padding:1rem">
+            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Distribución por rubro</div>
+            <div style="position:relative;height:280px"><canvas id="db-chart-rubros"></canvas></div>
+          </div>
         </div>
       </div>
     </div>
@@ -3675,21 +3677,6 @@ function toggleSidebar(){
   if(main) main.classList.toggle('sidebar-open');
 }
 
-// Reenviar scroll de canvas del dashboard al contenedor scrollable
-function attachDashScrollForward(){
-  var content=document.querySelector('.content');
-  var page=document.getElementById('page-dashboard');
-  if(!content||!page) return;
-  page.querySelectorAll('canvas').forEach(function(c){
-    if(c._dashScrollAttached) return;
-    c._dashScrollAttached=true;
-    c.addEventListener('wheel',function(e){
-      var dy=e.deltaMode===1?e.deltaY*24:e.deltaMode===2?e.deltaY*window.innerHeight:e.deltaY;
-      content.scrollTop+=dy;
-      e.preventDefault();
-    },{passive:false});
-  });
-}
 
 // ─── Mini Pie: distribución portafolio ───────────────────────
 // ─── Sector Pie: desglose por cada sector ────────────────────
@@ -4226,8 +4213,6 @@ function renderDashboard(){
     plugins:[pieLabelPluginRubros]
   });
 
-  // Adjuntar scroll forwarding a los nuevos canvas
-  attachDashScrollForward();
 }
 </script>
 
