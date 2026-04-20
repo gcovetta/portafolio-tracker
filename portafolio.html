@@ -776,14 +776,21 @@ tr:hover td{background:var(--surface2)}
     <!-- VETA MOVIM (WIP - no impacta portafolio) -->
     <div class="page" id="page-dashboard" style="padding:0">
       <div id="db-scroll" style="height:calc(100vh - 100px);overflow-y:auto;overflow-x:hidden;padding:1.2rem">
-        <!-- Fila 1: Top Holdings -->
+        <!-- Fila 1: Distribución por rubro -->
+        <div style="margin-bottom:1rem">
+          <div class="card" style="padding:1rem">
+            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Distribución por rubro</div>
+            <div style="position:relative;height:280px"><canvas id="db-chart-rubros"></canvas></div>
+          </div>
+        </div>
+        <!-- Fila 2: Top Holdings -->
         <div style="margin-bottom:1rem">
           <div class="card" style="padding:1rem">
             <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 posiciones por valor (USD)</div>
             <div style="position:relative;height:260px"><canvas id="db-chart-top"></canvas></div>
           </div>
         </div>
-        <!-- Fila 2: Ganancias + Pérdidas -->
+        <!-- Fila 3: Ganancias + Pérdidas -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
           <div class="card" style="padding:1rem">
             <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 ganancias (USD)</div>
@@ -794,15 +801,11 @@ tr:hover td{background:var(--surface2)}
             <div style="position:relative;height:280px"><canvas id="db-chart-losses"></canvas></div>
           </div>
         </div>
-        <!-- Fila 3: Rendimiento por segmento + Distribución por rubro -->
-        <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:1rem;margin-bottom:1rem">
+        <!-- Fila 4: Rendimiento por segmento -->
+        <div style="margin-bottom:1rem">
           <div class="card" style="padding:1rem">
             <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Rendimiento % promedio por segmento</div>
             <div style="position:relative;height:280px"><canvas id="db-chart-segmentos"></canvas></div>
-          </div>
-          <div class="card" style="padding:1rem">
-            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Distribución por rubro</div>
-            <div style="position:relative;height:280px"><canvas id="db-chart-rubros"></canvas></div>
           </div>
         </div>
       </div>
@@ -4404,17 +4407,24 @@ function renderDashboard(){
     }
   });
 
-  // ── Gráfico 6: Distribución por rubro ────────────────────
-  // Solo Renta Variable (excluye Bonos y ONs)
+  // ── Gráfico 1: Distribución por rubro ────────────────────
+  // Solo Renta Variable (excluye Bonos y ONs) · Top 10 + Otros
   var rubroVal={};
   posData.filter(function(d){return d.sector!=='bonos'&&d.sector!=='on';}).forEach(function(d){
     var rubro=getRubro(d.ticker);
     rubroVal[rubro]=(rubroVal[rubro]||0)+d.valUSD;
   });
-  var rubroKeys=Object.keys(rubroVal).sort(function(a,b){return rubroVal[b]-rubroVal[a];});
-  var rubroTotal=rubroKeys.reduce(function(s,k){return s+(rubroVal[k]||0);},0);
+  // Ordenar y tomar top 10; el resto va a "Otros"
+  var rubroAllKeys=Object.keys(rubroVal).sort(function(a,b){return rubroVal[b]-rubroVal[a];});
+  var rubroTop=rubroAllKeys.slice(0,10);
+  var rubroOtrosVal=rubroAllKeys.slice(10).reduce(function(s,k){return s+rubroVal[k];},0);
+  var rubroKeys=rubroTop.slice();
+  var rubroFinal={};
+  rubroTop.forEach(function(k){rubroFinal[k]=rubroVal[k];});
+  if(rubroOtrosVal>0){rubroKeys.push('Otros');rubroFinal['Otros']=(rubroFinal['Otros']||0)+rubroOtrosVal;}
+  var rubroTotal=rubroKeys.reduce(function(s,k){return s+(rubroFinal[k]||0);},0);
   var RUBRO_COLORS=['#60a5fa','#f97316','#4ade80','#f87171','#facc15','#c084fc','#38bdf8',
-    '#fb923c','#a78bfa','#34d399','#fbbf24','#e879f9','#9ca3af','#ef4444','#92400e','#2dd4bf'];
+    '#fb923c','#a78bfa','#34d399','#9ca3af'];
   var pieLabelPluginRubros={
     id:'pieLabelsRubros',
     afterDatasetDraw:function(chart){
@@ -4424,7 +4434,7 @@ function renderDashboard(){
         meta.data.forEach(function(arc,i){
           var val=chart.data.datasets[di].data[i];
           var pct=rubroTotal>0?(val/rubroTotal*100):0;
-          if(pct<4) return;
+          if(pct<3) return;
           var angle=(arc.startAngle+arc.endAngle)/2;
           var r=(arc.innerRadius+arc.outerRadius)/2;
           var x=arc.x+Math.cos(angle)*r;
@@ -4433,7 +4443,10 @@ function renderDashboard(){
           ctx2.textAlign='center';ctx2.textBaseline='middle';
           ctx2.font='700 13px DM Mono, monospace';
           ctx2.fillStyle='#fff';
-          ctx2.fillText(pct.toFixed(0)+'%',x,y);
+          // Mostrar label + %
+          var label=chart.data.labels[i]||'';
+          ctx2.fillText(label,x,y-7);
+          ctx2.fillText(pct.toFixed(0)+'%',x,y+7);
           ctx2.restore();
         });
       });
@@ -4444,20 +4457,20 @@ function renderDashboard(){
     data:{
       labels:rubroKeys,
       datasets:[{
-        data:rubroKeys.map(function(k){return Math.round(rubroVal[k]);}),
+        data:rubroKeys.map(function(k){return Math.round(rubroFinal[k]);}),
         backgroundColor:rubroKeys.map(function(_,i){return RUBRO_COLORS[i%RUBRO_COLORS.length]+'cc';}),
         borderColor:rubroKeys.map(function(_,i){return RUBRO_COLORS[i%RUBRO_COLORS.length];}),
-        borderWidth:1.5,hoverOffset:6
+        borderWidth:1.5,hoverOffset:8
       }]
     },
     options:{
-      responsive:true,maintainAspectRatio:false,cutout:'45%',
+      responsive:true,maintainAspectRatio:false,cutout:'40%',
       plugins:{
-        legend:{position:'right',labels:{color:'#8b8fa8',font:{family:'DM Mono, monospace',size:9},padding:6,boxWidth:9}},
+        legend:{display:false},
         tooltip:{callbacks:{label:function(ctx){
           var v=ctx.parsed;
           var pct=(rubroTotal>0?(v/rubroTotal*100):0).toFixed(1);
-          return ' $'+v.toLocaleString('es-AR')+' ('+pct+'%)';
+          return ' $'+Math.round(v).toLocaleString('es-AR')+' ('+pct+'%)';
         }}}
       }
     },
