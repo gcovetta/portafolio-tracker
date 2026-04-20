@@ -774,12 +774,8 @@ tr:hover td{background:var(--surface2)}
     <!-- VETA MOVIM (WIP - no impacta portafolio) -->
     <div class="page" id="page-dashboard" style="padding:0">
       <div id="db-scroll" style="height:calc(100vh - 100px);overflow-y:auto;overflow-x:hidden;padding:1.2rem">
-        <!-- Fila 1: Sector + Top Holdings -->
-        <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:1rem;margin-bottom:1rem">
-          <div class="card" style="padding:1rem">
-            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Distribución por sector</div>
-            <div style="position:relative;height:260px"><canvas id="db-chart-sector"></canvas></div>
-          </div>
+        <!-- Fila 1: Top Holdings -->
+        <div style="margin-bottom:1rem">
           <div class="card" style="padding:1rem">
             <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Top 10 posiciones por valor (USD)</div>
             <div style="position:relative;height:260px"><canvas id="db-chart-top"></canvas></div>
@@ -3999,8 +3995,7 @@ function renderDashboard(){
     var priceUSD=isBonoON?(q.price*ratio/tc):q.price;
     var valUSD=priceUSD*p.qty;
     // costo promedio USD por unidad = costUSDpuro / qty
-    var avgCostUSD=p.qty>0?p.costUSDpuro/p.qty:0;
-    var costUSDtotal=isBonoON?(avgCostUSD*ratio/tc*p.qty):p.costUSDpuro;
+    var costUSDtotal=p.costUSDpuro; // USD pagado real; para bonos valUSD y costUSDpuro son consistentes entre sí
     var gainUSD=valUSD-costUSDtotal;
     posData.push({ticker:p.ticker,sector:sector,valUSD:valUSD,gainUSD:gainUSD,costUSD:costUSDtotal});
   });
