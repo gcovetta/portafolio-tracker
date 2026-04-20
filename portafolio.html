@@ -4269,9 +4269,10 @@ function renderDashboard(){
     if(!q||!q.price)return;
     var sector=getSector(p.ticker);
     var isBonoON=(sector==='bonos'||sector==='on');
+    var isArgentina=(sector==='argentina');
     var ratio=RATIOS_TABLE[p.ticker]||1;
     var tc=isBonoON?mepHoy:tcHoy;
-    var priceUSD=isBonoON?(q.price*ratio/tc):q.price;
+    var priceUSD=isBonoON?(q.price*ratio/tc):isArgentina?(q.price/tcHoy):q.price;
     var valUSD=priceUSD*p.qty;
     // costo promedio USD por unidad = costUSDpuro / qty
     var costUSDtotal=p.costUSDpuro; // USD pagado real; para bonos valUSD y costUSDpuro son consistentes entre sí
