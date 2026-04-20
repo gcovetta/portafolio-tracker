@@ -293,6 +293,7 @@ tr:hover td{background:var(--surface2)}
     <div class="nav-sec">Laboratorio</div>
     <button class="nav-item" onclick="showPage(&#39;dashboard&#39;,this)"><span>📊</span>DashBoard</button>
     <button class="nav-item" onclick="showPage(&#39;rubros&#39;,this)"><span>🏷</span>Rubros</button>
+    <button class="nav-item" onclick="showPage(&#39;bonostir&#39;,this)"><span>📈</span>Bonos TIR</button>
     <button class="nav-item" onclick="showPage(&#39;vetamovim&#39;,this)"><span>🧪</span>VetaMovim</button>
   </nav>
   <div class="content">
@@ -807,6 +808,29 @@ tr:hover td{background:var(--surface2)}
       </div>
     </div>
 
+    <!-- BONOS TIR -->
+    <div class="page" id="page-bonostir" style="padding:1.2rem">
+      <div class="card">
+        <div class="card-header" style="gap:10px;flex-wrap:wrap">
+          <span class="card-title">📈 Bonos — TIR en vivo</span>
+          <span class="smsg" style="font-size:.68rem;color:var(--text3)">Fuente: data912.com/live/arg_bonds</span>
+          <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+            <input id="btir-filter" type="text" placeholder="Filtrar ticker…" oninput="btirFilter()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rsm);color:var(--text);font-family:var(--mono);font-size:.72rem;padding:3px 8px;width:130px;outline:none">
+            <button class="btn btn-sm" onclick="renderBonosTIR()" style="font-size:.7rem">⟳ Actualizar</button>
+          </div>
+        </div>
+        <div class="card-body" style="padding:.6rem 1rem">
+          <div id="btir-status" style="font-size:.72rem;font-family:var(--mono);color:var(--text3);margin-bottom:8px"></div>
+          <div style="overflow-x:auto">
+            <table id="btir-table" style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.73rem">
+              <thead id="btir-thead"></thead>
+              <tbody id="btir-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- RUBROS -->
     <div class="page" id="page-rubros" style="padding:1.2rem">
       <div class="card">
@@ -1110,6 +1134,7 @@ function showPage(id,btn){
   if(id==='arbitraje') arbRender();
   if(id==='dashboard') renderDashboard();
   if(id==='rubros') renderRubros();
+  if(id==='bonostir') renderBonosTIR();
   // Sidebar: colapsado en portafolio, abierto en el resto
   var main=document.getElementById('main');
   if(main){
@@ -4330,6 +4355,121 @@ function renderDashboard(){
   });
 
 }
+
+// ─── Bonos TIR ───────────────────────────────────────────────
+var BTIR_DATA=[];
+var BTIR_HIGHLIGHT=['BC37D','CUAP','DIC','PERF25','GD38','GD41','PARP','PBY26','SA24','DTVP','ATX31','TZX28','TZXS8'];
+
+// Campos que queremos mostrar (en orden), con label legible
+var BTIR_FIELD_LABELS={
+  ticker:'Ticker', nombre:'Nombre', tipo:'Tipo',
+  precio:'Precio', precio_usd:'Precio USD',
+  tir:'TIR', tna:'TNA', tea:'TEA',
+  duracion:'Duración', duration:'Duración',
+  vencimiento:'Vencimiento', maturity:'Vencimiento',
+  moneda:'Moneda', currency:'Moneda',
+  ultimo:'Último', variacion:'Var%', var_pct:'Var%',
+  paridad:'Paridad', parity:'Paridad'
+};
+
+function renderBonosTIR(){
+  var status=document.getElementById('btir-status');
+  var thead=document.getElementById('btir-thead');
+  var tbody=document.getElementById('btir-tbody');
+  if(!status||!thead||!tbody)return;
+  status.innerHTML='<span style="color:var(--text3)">⏳ Cargando datos…</span>';
+  thead.innerHTML=''; tbody.innerHTML='';
+
+  fetch('https://data912.com/live/arg_bonds')
+    .then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    })
+    .then(function(data){
+      // Normalizar: puede ser array directo o {data:[...]} o {bonds:[...]}
+      var rows=Array.isArray(data)?data:(data.data||data.bonds||data.result||Object.values(data));
+      BTIR_DATA=rows;
+      _btirRender(rows);
+    })
+    .catch(function(e){
+      status.innerHTML='<span style="color:var(--red)">⚠ Error al cargar: '+e.message+'</span>';
+    });
+}
+
+function _btirRender(rows){
+  var status=document.getElementById('btir-status');
+  var thead=document.getElementById('btir-thead');
+  var tbody=document.getElementById('btir-tbody');
+  if(!rows||!rows.length){status.innerHTML='<span style="color:var(--amber)">Sin datos</span>';return;}
+
+  // Detectar columnas disponibles
+  var sample=rows[0];
+  var allKeys=Object.keys(sample);
+  // Columnas a mostrar: primero las conocidas en orden, luego el resto
+  var orderedKnown=Object.keys(BTIR_FIELD_LABELS).filter(function(k){return allKeys.indexOf(k)>=0;});
+  var rest=allKeys.filter(function(k){return orderedKnown.indexOf(k)<0;});
+  var cols=orderedKnown.concat(rest);
+
+  // Detectar qué campo es el ticker key (para el highlight)
+  var tickerKey=allKeys.filter(function(k){return /ticker|symbol|especie|codigo/i.test(k);})[0]||cols[0];
+  // Detectar qué campo es TIR
+  var tirKey=allKeys.filter(function(k){return /^tir$|^yield$|rendimiento/i.test(k);})[0]||null;
+
+  // Header
+  var thRow=document.createElement('tr');
+  thRow.style.borderBottom='2px solid var(--border2)';
+  cols.forEach(function(k){
+    var th=document.createElement('th');
+    th.textContent=(BTIR_FIELD_LABELS[k]||k).toUpperCase();
+    th.style.cssText='text-align:left;padding:5px 8px;color:var(--text3);font-weight:600;font-size:.62rem;letter-spacing:.04em;white-space:nowrap';
+    thRow.appendChild(th);
+  });
+  thead.appendChild(thRow);
+
+  // Rows
+  var count=0;
+  rows.forEach(function(row){
+    var tickerVal=String(row[tickerKey]||'').toUpperCase();
+    var isHL=BTIR_HIGHLIGHT.indexOf(tickerVal)>=0;
+    var tr=document.createElement('tr');
+    tr.setAttribute('data-ticker',tickerVal);
+    tr.style.borderBottom='1px solid var(--border)';
+    if(isHL) tr.style.background='rgba(126,232,162,.06)';
+
+    cols.forEach(function(k){
+      var td=document.createElement('td');
+      var val=row[k];
+      var display=val!=null?val:'—';
+
+      // Formatear TIR con color
+      if(k===tirKey&&val!=null){
+        var n=parseFloat(val);
+        var color=isNaN(n)?'var(--text)':(n>0?'var(--accent)':'var(--red)');
+        var sign=n>0?'+':'';
+        td.innerHTML='<span style="color:'+color+';font-weight:700">'+sign+(isNaN(n)?display:n.toFixed(2)+'%')+'</span>';
+      } else if(k===tickerKey){
+        td.innerHTML='<span style="font-weight:700;color:'+(isHL?'var(--accent)':'var(--text)')+'">'+display+'</span>';
+      } else {
+        td.textContent=display;
+      }
+      td.style.cssText='padding:5px 8px;white-space:nowrap;color:var(--text2)';
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+    count++;
+  });
+
+  status.innerHTML='<span style="color:var(--text3)">'+count+' bonos · destacados en verde: tus '+BTIR_HIGHLIGHT.length+' seleccionados · '+new Date().toLocaleTimeString('es-AR')+'</span>';
+}
+
+function btirFilter(){
+  var q=(document.getElementById('btir-filter').value||'').toLowerCase();
+  document.querySelectorAll('#btir-tbody tr').forEach(function(r){
+    var t=(r.getAttribute('data-ticker')||'').toLowerCase();
+    r.style.display=(!q||t.indexOf(q)>=0)?'':'none';
+  });
+}
+
 </script>
 
 
