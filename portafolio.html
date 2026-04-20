@@ -346,6 +346,19 @@ tr:hover td{background:var(--surface2)}
           </div>
         </div>
       </div>
+      <!-- Mapa Mundial de Inversiones -->
+      <div class="card" id="world-map-card" style="margin-bottom:1rem">
+        <div class="card-header">
+          <span class="card-title">🌍 Distribución geográfica</span>
+          <span id="world-map-legend" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"></span>
+        </div>
+        <div class="card-body" style="padding:.75rem 1rem">
+          <div id="world-map-container" style="width:100%;overflow:hidden;border-radius:8px;background:var(--surface2);position:relative">
+            <svg id="world-map-svg" viewBox="0 0 1010 530" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block"></svg>
+            <div id="world-map-tooltip" style="display:none;position:absolute;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;font-family:var(--mono);font-size:.7rem;pointer-events:none;z-index:10;color:var(--text);white-space:nowrap"></div>
+          </div>
+        </div>
+      </div>
       <!-- Tickers cerca del objetivo -->
       <div class="nt-card" id="near-target-card" style="">
         <div class="nt-header">
@@ -828,21 +841,6 @@ tr:hover td{background:var(--surface2)}
             <div style="position:relative;height:280px"><canvas id="db-chart-losses" style="display: block; box-sizing: border-box; height: 280px; width: 788px;" width="788" height="280"></canvas></div>
           </div>
         </div>
-        <!-- Mapa Mundial por Inversión -->
-        <div class="card" style="margin-bottom:1rem">
-          <div class="card-header">
-            <span class="card-title">🌍 Distribución geográfica de inversiones</span>
-            <span id="db-map-total" class="tag" style="font-family:var(--mono);font-size:.65rem"></span>
-          </div>
-          <div style="padding:1rem">
-            <div id="db-world-map-container" style="position:relative;width:100%;background:var(--surface2);border-radius:8px;overflow:hidden;border:1px solid var(--border)">
-              <!-- SVG del mapa mundial se inyecta por JS -->
-            </div>
-            <!-- Leyenda -->
-            <div id="db-map-legend" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:.85rem;justify-content:center"></div>
-          </div>
-        </div>
-
         <!-- Tabla diagnóstico valores -->
         <div class="card" style="margin-bottom:1rem">
           <div class="card-header" style="cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===&#39;none&#39;?&#39;block&#39;:&#39;none&#39;">
@@ -2127,6 +2125,8 @@ function renderPortfolio(){
   renderSectorPie(sectorVal);
   // RV pie por país
   renderRVPie(sectorVal);
+  // Mapa mundial
+  renderWorldMap(sectorVal);
 
   // Dividendos: leer el total del tracker + movimientos (calculado en renderDivsCard)
   var trkDivsTotal=0;
@@ -4667,199 +4667,6 @@ function renderDashboard(){
     plugins:[pieLabelPluginRubros]
   });
 
-  // ── Mapa Mundial por Inversión ────────────────────────────
-  renderWorldMap(posData, tcHoy, mepHoy);
-
-}
-
-// ─── Mapa Mundial ────────────────────────────────────────────
-function renderWorldMap(posData, tcHoy, mepHoy){
-  var container = document.getElementById('db-world-map-container');
-  var legendEl  = document.getElementById('db-map-legend');
-  var totalEl   = document.getElementById('db-map-total');
-  if(!container) return;
-
-  // Acumular valor USD por sector→país
-  var byCountry = {};
-  posData.forEach(function(d){
-    var c = _sectorToCountry(d.sector);
-    byCountry[c] = (byCountry[c]||0) + (d.valUSD||0);
-  });
-
-  var maxVal = Math.max.apply(null, Object.values(byCountry).concat([1]));
-  var grandTotal = Object.values(byCountry).reduce(function(s,v){return s+v;},0);
-
-  // Mostrar total en el tag del header
-  if(totalEl) totalEl.textContent = 'Total: USD ' + Math.round(grandTotal).toLocaleString('es-AR');
-
-  // Paleta: degradé del color base del país → según % del máximo
-  var countryConfig = {
-    'USA':       {label:'USA / ETF',   base:[96,165,250],  accent:'#60a5fa'},
-    'Argentina': {label:'Argentina',   base:[56,189,248],  accent:'#38bdf8'},
-    'Brasil':    {label:'Brasil',      base:[250,204,21],  accent:'#facc15'},
-    'Europa':    {label:'Europa',      base:[251,146,60],  accent:'#fb923c'},
-    'China':     {label:'China / Asia',base:[248,113,113], accent:'#f87171'},
-    'Cripto':    {label:'Cripto',      base:[192,132,252], accent:'#c084fc'}
-  };
-
-  function _sectorToCountry(s){
-    if(s==='nyse')       return 'USA';
-    if(s==='argentina'||s==='bonos'||s==='on') return 'Argentina';
-    if(s==='brasil')     return 'Brasil';
-    if(s==='europa')     return 'Europa';
-    if(s==='china')      return 'China';
-    if(s==='cripto')     return 'Cripto';
-    return 'USA';
-  }
-
-  function _getColor(country, alpha){
-    var cfg = countryConfig[country];
-    if(!cfg) return 'rgba(42,45,53,'+alpha+')';
-    var v   = byCountry[country]||0;
-    var pct = maxVal>0 ? v/maxVal : 0;
-    // mínimo 0.18 para que se vea aunque sea un poco
-    var a   = alpha * (0.18 + 0.82*pct);
-    var r   = cfg.base[0], g=cfg.base[1], b=cfg.base[2];
-    return 'rgba('+r+','+g+','+b+','+a.toFixed(2)+')';
-  }
-
-  // Paths SVG simplificados por región (Natural Earth projection aproximada)
-  var paths = [
-    // ─ USA (continental)
-    {id:'USA', d:'M 130 95 L 265 95 L 270 100 L 278 98 L 283 103 L 280 110 L 270 115 L 265 125 L 255 130 L 250 140 L 240 145 L 225 148 L 215 145 L 205 140 L 190 138 L 175 140 L 165 145 L 155 142 L 140 138 L 132 130 L 128 120 L 126 108 Z'},
-    // ─ Alaska
-    {id:'USA', d:'M 58 68 L 90 62 L 110 68 L 118 78 L 112 86 L 96 90 L 80 88 L 65 80 Z'},
-    // ─ Canada (neutral, no inversión directa)
-    {id:'other', d:'M 100 48 L 265 45 L 272 55 L 274 70 L 270 85 L 255 90 L 200 90 L 150 92 L 130 90 L 118 82 L 110 68 L 98 58 Z'},
-    // ─ México
-    {id:'other', d:'M 130 148 L 165 145 L 175 140 L 182 152 L 178 165 L 168 172 L 155 170 L 142 162 L 132 155 Z'},
-    // ─ América Central (muy pequeña)
-    {id:'other', d:'M 168 172 L 182 165 L 192 172 L 190 180 L 178 183 L 170 178 Z'},
-    // ─ Colombia / Venezuela
-    {id:'other', d:'M 175 192 L 215 188 L 228 195 L 225 210 L 210 215 L 192 210 L 175 205 Z'},
-    // ─ Brasil
-    {id:'Brasil', d:'M 215 195 L 265 192 L 285 200 L 295 215 L 298 235 L 290 260 L 275 275 L 255 278 L 232 272 L 215 258 L 205 238 L 200 220 L 208 205 Z'},
-    // ─ Argentina + Chile (combinado)
-    {id:'Argentina_south', d:'M 218 278 L 255 278 L 262 290 L 258 315 L 248 340 L 238 360 L 228 355 L 220 335 L 215 310 L 212 290 Z'},
-    // ─ Europa (bloque)
-    {id:'Europa', d:'M 430 50 L 510 45 L 530 52 L 535 65 L 525 80 L 510 88 L 490 90 L 468 88 L 448 80 L 435 68 L 428 58 Z'},
-    // ─ UK
-    {id:'Europa', d:'M 415 52 L 428 48 L 432 58 L 428 68 L 420 70 L 413 62 Z'},
-    // ─ Escandinavia
-    {id:'Europa', d:'M 455 28 L 500 22 L 515 35 L 510 48 L 490 52 L 462 50 L 452 38 Z'},
-    // ─ Rusia (neutral)
-    {id:'other', d:'M 510 22 L 720 18 L 740 35 L 735 65 L 700 80 L 640 85 L 580 82 L 535 70 L 530 52 L 510 45 Z'},
-    // ─ Africa del Norte
-    {id:'other', d:'M 420 100 L 580 98 L 590 112 L 585 135 L 565 148 L 480 152 L 430 148 L 415 130 L 415 112 Z'},
-    // ─ Africa subsahariana
-    {id:'other', d:'M 440 152 L 580 150 L 590 175 L 585 210 L 570 235 L 545 250 L 510 255 L 480 250 L 455 238 L 440 210 L 432 185 L 438 162 Z'},
-    // ─ Medio Oriente
-    {id:'other', d:'M 548 95 L 620 92 L 635 108 L 630 128 L 612 140 L 585 142 L 558 135 L 545 118 L 548 102 Z'},
-    // ─ India
-    {id:'other', d:'M 620 108 L 670 105 L 682 120 L 680 145 L 668 162 L 648 170 L 628 165 L 612 148 L 610 128 Z'},
-    // ─ China / Asia
-    {id:'China', d:'M 668 55 L 760 48 L 790 62 L 800 85 L 792 108 L 770 120 L 740 125 L 705 118 L 678 108 L 660 88 L 658 68 Z'},
-    // ─ Japón
-    {id:'China', d:'M 795 72 L 820 65 L 828 78 L 822 92 L 808 95 L 798 85 Z'},
-    // ─ Corea
-    {id:'China', d:'M 775 82 L 792 78 L 795 88 L 785 95 L 775 90 Z'},
-    // ─ Sudeste Asiático
-    {id:'other', d:'M 715 130 L 775 128 L 785 145 L 778 162 L 755 170 L 730 168 L 712 155 L 710 138 Z'},
-    // ─ Australia
-    {id:'other', d:'M 730 220 L 820 215 L 845 235 L 848 268 L 832 292 L 798 300 L 760 295 L 735 275 L 722 250 L 722 232 Z'},
-    // ─ Nueva Zelanda
-    {id:'other', d:'M 850 285 L 865 278 L 872 292 L 868 308 L 855 312 L 848 298 Z'}
-  ];
-
-  // Construir degradé defs + SVG
-  var defs = '<defs>';
-  Object.keys(countryConfig).forEach(function(c){
-    var cfg = countryConfig[c];
-    var v   = byCountry[c]||0;
-    var pct = maxVal>0 ? v/maxVal : 0;
-    var a1  = (0.12 + 0.88*pct).toFixed(2);
-    var a2  = (0.05 + 0.45*pct).toFixed(2);
-    defs += '<radialGradient id="grad-'+c+'" cx="50%" cy="50%" r="60%">';
-    defs += '<stop offset="0%" stop-color="rgba('+cfg.base[0]+','+cfg.base[1]+','+cfg.base[2]+','+a1+')" />';
-    defs += '<stop offset="100%" stop-color="rgba('+cfg.base[0]+','+cfg.base[1]+','+cfg.base[2]+','+a2+')" />';
-    defs += '</radialGradient>';
-  });
-  // Gradiente para continentes sin inversión
-  defs += '<radialGradient id="grad-other" cx="50%" cy="50%" r="60%">';
-  defs += '<stop offset="0%" stop-color="#2a2d35" />';
-  defs += '<stop offset="100%" stop-color="#1e2026" />';
-  defs += '</radialGradient>';
-  defs += '</defs>';
-
-  var pathsSVG = paths.map(function(p){
-    var country = p.id === 'Argentina_south' ? 'Argentina' : p.id;
-    var isInvested = byCountry[country] > 0 && p.id !== 'other';
-    var fillId  = (p.id === 'other') ? 'grad-other' : 'grad-' + country;
-    var stroke  = isInvested ? countryConfig[country].accent : '#363a45';
-    var sw      = isInvested ? '1.2' : '0.5';
-    var opacity = 1;
-    var titleTxt= '';
-    if(isInvested){
-      var v = byCountry[country]||0;
-      var pct = grandTotal>0?(v/grandTotal*100).toFixed(1):'0';
-      titleTxt = '<title>'+countryConfig[country].label+': USD '+Math.round(v).toLocaleString('es-AR')+' ('+pct+'%)</title>';
-    }
-    return '<path d="'+p.d+'" fill="url(#'+fillId+')" stroke="'+stroke+'" stroke-width="'+sw+'" opacity="'+opacity+'" style="cursor:'+(isInvested?'pointer':'default')+'">'+titleTxt+'</path>';
-  }).join('');
-
-  // Etiquetas de países con inversión
-  var labels = [
-    {id:'USA',       x:200, y:120, label:'USA'},
-    {id:'Brasil',    x:252, y:238, label:'BR'},
-    {id:'Argentina', x:237, y:318, label:'AR'},
-    {id:'Europa',    x:480, y:70,  label:'EU'},
-    {id:'China',     x:730, y:88,  label:'CN'},
-  ];
-  var labelsSVG = labels.map(function(l){
-    var v = byCountry[l.id]||0;
-    if(v<=0) return '';
-    var pct = grandTotal>0?(v/grandTotal*100).toFixed(1):'0';
-    var cfg = countryConfig[l.id];
-    return '<text x="'+l.x+'" y="'+l.y+'" fill="'+cfg.accent+'" font-family="DM Mono,monospace" font-size="9" font-weight="700" text-anchor="middle">'+l.label+'</text>'+
-           '<text x="'+l.x+'" y="'+(l.y+11)+'" fill="rgba(232,234,240,0.8)" font-family="DM Mono,monospace" font-size="7.5" text-anchor="middle">'+pct+'%</text>';
-  }).join('');
-
-  // Océano de fondo + líneas de latitud sutiles
-  var ocean = '<rect width="900" height="420" fill="#0e1218" rx="0"/>';
-  var gridLines = '';
-  [80,130,175,220,265,310,355].forEach(function(y){
-    gridLines += '<line x1="0" y1="'+y+'" x2="900" y2="'+y+'" stroke="#1a1d24" stroke-width="0.5"/>';
-  });
-  [100,200,300,400,500,600,700,800].forEach(function(x){
-    gridLines += '<line x1="'+x+'" y1="0" x2="'+x+'" y2="420" stroke="#1a1d24" stroke-width="0.5"/>';
-  });
-
-  var svg = '<svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">'+
-    ocean + gridLines + defs + pathsSVG + labelsSVG +
-  '</svg>';
-
-  container.innerHTML = svg;
-
-  // Leyenda
-  if(legendEl){
-    legendEl.innerHTML = '';
-    var sorted = Object.keys(byCountry).sort(function(a,b){return byCountry[b]-byCountry[a];});
-    sorted.forEach(function(c){
-      var v = byCountry[c]||0;
-      if(v<=0) return;
-      var cfg = countryConfig[c];
-      if(!cfg) return;
-      var pct = grandTotal>0?(v/grandTotal*100).toFixed(1):'0';
-      var item = document.createElement('div');
-      item.style.cssText = 'display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.68rem;color:var(--text2)';
-      item.innerHTML =
-        '<span style="width:10px;height:10px;border-radius:2px;background:'+cfg.accent+';flex-shrink:0;display:inline-block"></span>'+
-        '<span style="color:var(--text);font-weight:600">'+cfg.label+'</span>'+
-        '<span>USD '+Math.round(v).toLocaleString('es-AR')+'</span>'+
-        '<span style="color:var(--text3)">('+pct+'%)</span>';
-      legendEl.appendChild(item);
-    });
-  }
 }
 
 // ─── Bonos TIR ───────────────────────────────────────────────
@@ -4877,6 +4684,216 @@ var BTIR_FIELD_LABELS={
   ultimo:'Último', variacion:'Var%', var_pct:'Var%',
   paridad:'Paridad', parity:'Paridad'
 };
+
+// ─── MAPA MUNDIAL DE INVERSIONES ────────────────────────────────────────────
+function renderWorldMap(sectorVal){
+  var svg=document.getElementById('world-map-svg');
+  var legend=document.getElementById('world-map-legend');
+  if(!svg||!legend)return;
+
+  // Mapeo sector → países (ISO-alpha2) con su nombre
+  var sectorCountries={
+    nyse:    [{id:'US',name:'EE.UU.'}],
+    argentina:[{id:'AR',name:'Argentina'}],
+    brasil:  [{id:'BR',name:'Brasil'}],
+    europa:  [{id:'GB',name:'UK'},{id:'DE',name:'Alemania'},{id:'FR',name:'Francia'},{id:'IT',name:'Italia'},{id:'ES',name:'España'},{id:'NL',name:'Holanda'},{id:'SE',name:'Suecia'},{id:'CH',name:'Suiza'},{id:'BE',name:'Bélgica'},{id:'PT',name:'Portugal'},{id:'AT',name:'Austria'},{id:'DK',name:'Dinamarca'},{id:'FI',name:'Finlandia'},{id:'NO',name:'Noruega'},{id:'IE',name:'Irlanda'},{id:'PL',name:'Polonia'},{id:'CZ',name:'Rep. Checa'},{id:'HU',name:'Hungría'},{id:'GR',name:'Grecia'},{id:'RO',name:'Rumania'}],
+    china:   [{id:'CN',name:'China'},{id:'HK',name:'Hong Kong'}],
+    cripto:  [],
+    bonos:   [{id:'AR',name:'Argentina'}],
+    on:      [{id:'AR',name:'Argentina'}]
+  };
+
+  // Calcular total USD por país (agregar sectores que comparten país)
+  var countryVal={};
+  var countryLabel={};
+  var countryColor={};
+  var SECTOR_COLORS={
+    nyse:'#60a5fa',argentina:'#fbbf24',brasil:'#34d399',
+    europa:'#a78bfa',china:'#f87171',cripto:'#fb923c',
+    bonos:'#fbbf24',on:'#fbbf24'
+  };
+
+  Object.keys(sectorCountries).forEach(function(sec){
+    var val=sectorVal[sec]||0;
+    if(val<=0)return;
+    sectorCountries[sec].forEach(function(c){
+      countryVal[c.id]=(countryVal[c.id]||0)+val;
+      countryLabel[c.id]=c.name;
+      countryColor[c.id]=SECTOR_COLORS[sec];
+    });
+  });
+
+  var maxVal=Math.max.apply(null,Object.values(countryVal).concat([1]));
+
+  // Proyección Mercator simplificada: lon/lat → x,y en viewBox 1010x530
+  function proj(lon,lat){
+    var x=(lon+180)/360*1010;
+    var latRad=lat*Math.PI/180;
+    var mercN=Math.log(Math.tan(Math.PI/4+latRad/2));
+    var y=(530/2)-(530*mercN/(2*Math.PI));
+    return [x,y];
+  }
+
+  // Polígonos simplificados de países clave (path SVG en coordenadas lon/lat)
+  // Usando aproximaciones poligonales para los países del portafolio
+  var COUNTRY_PATHS={
+    US: "M -125,49 L -66,49 L -66,25 L -87,25 L -97,26 L -110,23 L -117,32 L -125,48 Z",
+    AR: "M -73,-22 L -53,-22 L -53,-55 L -65,-55 L -69,-50 L -73,-40 Z",
+    BR: "M -74,-5 L -34,-5 L -34,-34 L -53,-34 L -58,-24 L -74,-10 Z",
+    CN: "M 73,18 L 135,18 L 135,53 L 118,53 L 105,42 L 89,42 L 73,30 Z",
+    HK: "M 113,22 L 115,22 L 115,23 L 113,23 Z",
+    GB: "M -6,50 L 2,50 L 2,59 L -6,59 Z",
+    DE: "M 6,47 L 15,47 L 15,55 L 6,55 Z",
+    FR: "M -5,43 L 8,43 L 8,51 L -5,51 Z",
+    IT: "M 7,37 L 18,37 L 18,47 L 7,47 Z",
+    ES: "M -10,36 L 4,36 L 4,44 L -10,44 Z",
+    NL: "M 3,51 L 7,51 L 7,54 L 3,54 Z",
+    SE: "M 11,56 L 24,56 L 24,69 L 11,69 Z",
+    CH: "M 6,46 L 10,46 L 10,48 L 6,48 Z",
+    BE: "M 2,49 L 6,49 L 6,51 L 2,51 Z",
+    PT: "M -9,37 L -6,37 L -6,42 L -9,42 Z",
+    AT: "M 9,47 L 17,47 L 17,49 L 9,49 Z",
+    DK: "M 8,55 L 13,55 L 13,58 L 8,58 Z",
+    FI: "M 20,60 L 31,60 L 31,70 L 20,70 Z",
+    NO: "M 4,58 L 31,58 L 31,71 L 4,71 Z",
+    IE: "M -10,52 L -6,52 L -6,55 L -10,55 Z",
+    PL: "M 14,49 L 24,49 L 24,55 L 14,55 Z",
+    CZ: "M 12,49 L 19,49 L 19,51 L 12,51 Z",
+    HU: "M 16,46 L 23,46 L 23,49 L 16,49 Z",
+    GR: "M 20,37 L 27,37 L 27,42 L 20,42 Z",
+    RO: "M 22,44 L 30,44 L 30,48 L 22,48 Z"
+  };
+
+  // Mapa base GeoJSON simplificado — paths de países como string de polígono
+  // Convertir polígono lon/lat a path SVG
+  function lonLatPolyToPath(polyStr){
+    var pts=polyStr.trim().replace(/^M\s*/,'').replace(/\s*Z$/,'').split(/\s*L\s*/);
+    var d='';
+    pts.forEach(function(pt,i){
+      var parts=pt.trim().split(',');
+      var lon=parseFloat(parts[0]);
+      var lat=parseFloat(parts[1]);
+      var xy=proj(lon,lat);
+      d+=(i===0?'M':'L')+xy[0].toFixed(1)+','+xy[1].toFixed(1);
+    });
+    return d+'Z';
+  }
+
+  // Fondo del mapa — océano
+  svg.innerHTML='<rect width="1010" height="530" fill="#0d1117" rx="8"/>';
+
+  // Continentes de fondo (fill gris oscuro)
+  var bgContinents=[
+    // América del Norte
+    "M -168,72 L -52,72 L -52,15 L -80,15 L -90,18 L -118,18 L -140,58 L -168,60 Z",
+    // América Central y Caribe
+    "M -92,8 L -60,8 L -60,22 L -92,22 Z",
+    // América del Sur
+    "M -82,12 L -34,12 L -34,-56 L -66,-56 L -80,-28 L -82,8 Z",
+    // Europa
+    "M -12,36 L 32,36 L 32,71 L -12,71 Z",
+    // África
+    "M -18,-35 L 52,-35 L 52,37 L -18,37 Z",
+    // Asia
+    "M 26,10 L 146,10 L 146,72 L 26,72 Z",
+    // Oceanía
+    "M 114,-45 L 154,-45 L 154,-10 L 114,-10 Z",
+    // Rusia/Siberia
+    "M 28,50 L 190,50 L 190,72 L 28,72 Z",
+    // Groenlandia
+    "M -74,60 L -10,60 L -10,84 L -74,84 Z"
+  ];
+
+  bgContinents.forEach(function(poly){
+    var p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d',lonLatPolyToPath(poly));
+    p.setAttribute('fill','#1e2226');
+    p.setAttribute('stroke','#2a2d35');
+    p.setAttribute('stroke-width','0.5');
+    svg.appendChild(p);
+  });
+
+  // Graficar países con inversión
+  var tooltip=document.getElementById('world-map-tooltip');
+  Object.keys(COUNTRY_PATHS).forEach(function(cid){
+    var polyStr=COUNTRY_PATHS[cid];
+    var val=countryVal[cid]||0;
+    var hasInv=val>0;
+    var baseColor=hasInv?(countryColor[cid]||'#7ee8a2'):'#2a3040';
+    var opacity=hasInv?Math.max(0.35,Math.min(1,0.35+0.65*(val/maxVal))):1;
+
+    var p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d',lonLatPolyToPath(polyStr));
+    p.setAttribute('fill',baseColor);
+    p.setAttribute('fill-opacity',opacity.toFixed(2));
+    p.setAttribute('stroke', hasInv ? baseColor : '#363a45');
+    p.setAttribute('stroke-width', hasInv ? '1.5' : '0.5');
+    p.setAttribute('stroke-opacity', hasInv ? '0.8' : '1');
+    p.style.cursor=hasInv?'pointer':'default';
+    p.style.transition='fill-opacity .2s,stroke-width .2s';
+
+    if(hasInv){
+      var label=countryLabel[cid]||cid;
+      p.addEventListener('mouseenter',function(e){
+        p.setAttribute('fill-opacity','1');
+        p.setAttribute('stroke-width','2.5');
+        tooltip.style.display='block';
+        tooltip.innerHTML='<b style="color:'+baseColor+'">'+label+'</b><br>USD '+Math.round(val).toLocaleString('es-AR');
+      });
+      p.addEventListener('mousemove',function(e){
+        var rect=svg.closest('#world-map-container').getBoundingClientRect();
+        tooltip.style.left=(e.clientX-rect.left+12)+'px';
+        tooltip.style.top=(e.clientY-rect.top-20)+'px';
+      });
+      p.addEventListener('mouseleave',function(){
+        p.setAttribute('fill-opacity',opacity.toFixed(2));
+        p.setAttribute('stroke-width','1.5');
+        tooltip.style.display='none';
+      });
+    }
+    svg.appendChild(p);
+  });
+
+  // Etiquetas de países con inversión
+  var COUNTRY_CENTERS={
+    US:[-98,38],AR:[-64,-35],BR:[-52,-14],CN:[105,35],
+    GB:[-2,54],DE:[10,51],FR:[2,46],IT:[12,42],ES:[-3,40],
+    SE:[18,62],NO:[14,65],FI:[26,65],PL:[19,52],
+    HK:[114.15,22.3]
+  };
+  Object.keys(COUNTRY_CENTERS).forEach(function(cid){
+    var val=countryVal[cid]||0;
+    if(!val)return;
+    var c=COUNTRY_CENTERS[cid];
+    var xy=proj(c[0],c[1]);
+    var col=countryColor[cid]||'#7ee8a2';
+    var t=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',xy[0].toFixed(1));
+    t.setAttribute('y',xy[1].toFixed(1));
+    t.setAttribute('text-anchor','middle');
+    t.setAttribute('dominant-baseline','central');
+    t.setAttribute('font-family','DM Mono,monospace');
+    t.setAttribute('font-size','9');
+    t.setAttribute('font-weight','700');
+    t.setAttribute('fill',col);
+    t.setAttribute('opacity','0.95');
+    t.setAttribute('pointer-events','none');
+    t.textContent='$'+Math.round(val).toLocaleString('es-AR');
+    svg.appendChild(t);
+  });
+
+  // Leyenda
+  var legendItems=[];
+  var SECTOR_NAMES={nyse:'🇺🇸 NYSE/USA',argentina:'🇦🇷 Argentina',brasil:'🇧🇷 Brasil',europa:'🇪🇺 Europa',china:'🇨🇳 China',cripto:'₿ Cripto'};
+  ['nyse','argentina','brasil','europa','china','cripto'].forEach(function(sec){
+    var v=sectorVal[sec]||0;
+    if(v<=0)return;
+    legendItems.push('<span style="display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.62rem;color:var(--text2)">'
+      +'<span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:'+SECTOR_COLORS[sec]+';flex-shrink:0"></span>'
+      +SECTOR_NAMES[sec]+' <b style="color:'+SECTOR_COLORS[sec]+'">$'+Math.round(v).toLocaleString('es-AR')+'</b></span>');
+  });
+  legend.innerHTML=legendItems.join('');
+}
 
 function renderBonosTIR(){
   var status=document.getElementById('btir-status');
