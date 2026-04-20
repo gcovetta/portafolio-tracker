@@ -779,8 +779,23 @@ tr:hover td{background:var(--surface2)}
         <!-- Fila 1: Distribución por rubro -->
         <div style="margin-bottom:1rem">
           <div class="card" style="padding:1rem">
-            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Distribución por rubro</div>
-            <div style="position:relative;height:280px"><canvas id="db-chart-rubros"></canvas></div>
+            <div class="card-title" style="margin-bottom:.8rem;font-size:.78rem">Distribución por rubro <span id="db-rubros-hint" style="font-size:.65rem;color:var(--text3);font-weight:400">— hacé clic en un rubro para ver los tickers</span></div>
+            <div style="display:flex;gap:1.2rem;align-items:flex-start">
+              <div style="position:relative;height:300px;flex:0 0 340px"><canvas id="db-chart-rubros"></canvas></div>
+              <div id="db-rubros-detail" style="flex:1;min-width:0;display:none;padding-top:4px">
+                <div id="db-rubros-detail-title" style="font-size:.75rem;font-weight:700;color:var(--text);margin-bottom:8px;font-family:var(--mono)"></div>
+                <table style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.72rem">
+                  <thead>
+                    <tr style="border-bottom:1px solid var(--border2)">
+                      <th style="text-align:left;padding:3px 6px;color:var(--text3);font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Ticker</th>
+                      <th style="text-align:right;padding:3px 6px;color:var(--text3);font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Valor USD</th>
+                      <th style="text-align:right;padding:3px 6px;color:var(--text3);font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em">% del rubro</th>
+                    </tr>
+                  </thead>
+                  <tbody id="db-rubros-detail-tbody"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
         <!-- Fila 2: Top Holdings -->
@@ -4409,22 +4424,68 @@ function renderDashboard(){
 
   // ── Gráfico 1: Distribución por rubro ────────────────────
   // Solo Renta Variable (excluye Bonos y ONs) · Top 10 + Otros
+  var rubroRawData=posData.filter(function(d){return d.sector!=='bonos'&&d.sector!=='on';});
   var rubroVal={};
-  posData.filter(function(d){return d.sector!=='bonos'&&d.sector!=='on';}).forEach(function(d){
+  rubroRawData.forEach(function(d){
     var rubro=getRubro(d.ticker);
     rubroVal[rubro]=(rubroVal[rubro]||0)+d.valUSD;
   });
   // Ordenar y tomar top 10; el resto va a "Otros"
   var rubroAllKeys=Object.keys(rubroVal).sort(function(a,b){return rubroVal[b]-rubroVal[a];});
   var rubroTop=rubroAllKeys.slice(0,10);
-  var rubroOtrosVal=rubroAllKeys.slice(10).reduce(function(s,k){return s+rubroVal[k];},0);
+  var rubroOtrosKeys=rubroAllKeys.slice(10);
+  var rubroOtrosVal=rubroOtrosKeys.reduce(function(s,k){return s+rubroVal[k];},0);
   var rubroKeys=rubroTop.slice();
   var rubroFinal={};
   rubroTop.forEach(function(k){rubroFinal[k]=rubroVal[k];});
-  if(rubroOtrosVal>0){rubroKeys.push('Otros');rubroFinal['Otros']=(rubroFinal['Otros']||0)+rubroOtrosVal;}
+  if(rubroOtrosVal>0){rubroKeys.push('Otros');rubroFinal['Otros']=rubroOtrosVal;}
   var rubroTotal=rubroKeys.reduce(function(s,k){return s+(rubroFinal[k]||0);},0);
   var RUBRO_COLORS=['#60a5fa','#f97316','#4ade80','#f87171','#facc15','#c084fc','#38bdf8',
     '#fb923c','#a78bfa','#34d399','#9ca3af'];
+
+  // Función para mostrar detalle al hacer clic
+  function dbShowRubroDetail(rubroName, color){
+    var detail=document.getElementById('db-rubros-detail');
+    var title=document.getElementById('db-rubros-detail-title');
+    var tbody=document.getElementById('db-rubros-detail-tbody');
+    if(!detail||!title||!tbody) return;
+
+    // Tickers que pertenecen a este rubro (para "Otros": los que quedaron fuera del top 10)
+    var tickers;
+    if(rubroName==='Otros'){
+      tickers=rubroRawData.filter(function(d){return rubroOtrosKeys.indexOf(getRubro(d.ticker))>=0;});
+    } else {
+      tickers=rubroRawData.filter(function(d){return getRubro(d.ticker)===rubroName;});
+    }
+    // Ordenar por valUSD desc
+    tickers=tickers.slice().sort(function(a,b){return b.valUSD-a.valUSD;});
+    var rubroSum=tickers.reduce(function(s,d){return s+d.valUSD;},0);
+
+    title.innerHTML='<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:'+color+';margin-right:6px;vertical-align:middle"></span>'+rubroName+' <span style="color:var(--text3);font-weight:400">— $'+Math.round(rubroSum).toLocaleString('es-AR')+' USD</span>';
+    tbody.innerHTML='';
+    tickers.forEach(function(d){
+      var pct=rubroSum>0?(d.valUSD/rubroSum*100):0;
+      var barW=Math.max(2,Math.round(pct));
+      var tr=document.createElement('tr');
+      tr.style.borderBottom='1px solid var(--border)';
+      tr.innerHTML=
+        '<td style="padding:4px 6px;font-weight:700;color:var(--text)">'+d.ticker+'</td>'+
+        '<td style="padding:4px 6px;text-align:right;color:var(--text2)">$'+Math.round(d.valUSD).toLocaleString('es-AR')+'</td>'+
+        '<td style="padding:4px 6px;min-width:120px">'+
+          '<div style="display:flex;align-items:center;gap:6px">'+
+            '<div style="flex:1;background:var(--border);border-radius:3px;height:6px;overflow:hidden">'+
+              '<div style="width:'+barW+'%;background:'+color+';height:100%;border-radius:3px"></div>'+
+            '</div>'+
+            '<span style="color:var(--text);font-weight:700;font-size:.7rem;min-width:36px;text-align:right">'+pct.toFixed(1)+'%</span>'+
+          '</div>'+
+        '</td>';
+      tbody.appendChild(tr);
+    });
+    detail.style.display='block';
+    var hint=document.getElementById('db-rubros-hint');
+    if(hint) hint.style.display='none';
+  }
+
   var pieLabelPluginRubros={
     id:'pieLabelsRubros',
     afterDatasetDraw:function(chart){
@@ -4443,7 +4504,6 @@ function renderDashboard(){
           ctx2.textAlign='center';ctx2.textBaseline='middle';
           ctx2.font='700 13px DM Mono, monospace';
           ctx2.fillStyle='#fff';
-          // Mostrar label + %
           var label=chart.data.labels[i]||'';
           ctx2.fillText(label,x,y-7);
           ctx2.fillText(pct.toFixed(0)+'%',x,y+7);
@@ -4452,6 +4512,7 @@ function renderDashboard(){
       });
     }
   };
+
   dbMakeChart('db-chart-rubros',{
     type:'doughnut',
     data:{
@@ -4465,6 +4526,13 @@ function renderDashboard(){
     },
     options:{
       responsive:true,maintainAspectRatio:false,cutout:'40%',
+      onClick:function(evt,elements){
+        if(!elements||!elements.length) return;
+        var idx=elements[0].index;
+        var rubroName=rubroKeys[idx];
+        var color=RUBRO_COLORS[idx%RUBRO_COLORS.length];
+        dbShowRubroDetail(rubroName, color);
+      },
       plugins:{
         legend:{display:false},
         tooltip:{callbacks:{label:function(ctx){
