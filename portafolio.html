@@ -272,7 +272,7 @@ tr:hover td{background:var(--surface2)}
 <div class="main sidebar-open" id="main">
   <nav class="sidebar">
     <div class="nav-sec">Vistas</div>
-    <button class="nav-item" onclick="showPage(&#39;portafolio&#39;,this)"><span>◈</span>Portafolio</button>
+    <button class="nav-item active" onclick="showPage(&#39;portafolio&#39;,this)"><span>◈</span>Portafolio</button>
     <button class="nav-item" onclick="showPage(&#39;movimientos&#39;,this)"><span>↕</span>Movimientos</button>
     <div class="nav-sec">R. Variable</div>
     <div style="padding:.2rem .85rem .1rem">
@@ -291,7 +291,7 @@ tr:hover td{background:var(--surface2)}
     <button class="nav-item" onclick="showPage(&#39;targets&#39;,this)"><span>◎</span>P. de Venta</button>
     <button class="nav-item" onclick="showPage(&#39;tipocambio&#39;,this)"><span>$</span>Tipo de Cambio</button>
     <div class="nav-sec">Laboratorio</div>
-    <button class="nav-item active" onclick="showPage(&#39;dashboard&#39;,this)"><span>📊</span>DashBoard</button>
+    <button class="nav-item" onclick="showPage(&#39;dashboard&#39;,this)"><span>📊</span>DashBoard</button>
     <button class="nav-item" onclick="showPage(&#39;rubros&#39;,this)"><span>🏷</span>Rubros</button>
     <button class="nav-item" onclick="showPage(&#39;bonostir&#39;,this)"><span>📈</span>Bonos TIR</button>
     <button class="nav-item" onclick="showPage(&#39;vetamovim&#39;,this)"><span>🧪</span>VetaMovim</button>
@@ -299,7 +299,7 @@ tr:hover td{background:var(--surface2)}
   <div class="content">
 
     <!-- PORTAFOLIO -->
-    <div class="page" id="page-portafolio">
+    <div class="page active" id="page-portafolio">
       <!-- PIN overlay portafolio -->
       <div id="port-pin-overlay" style="display: none; position: fixed; inset: 0px; background: rgba(0, 0, 0, 0.7); z-index: 8000; align-items: center; justify-content: center;">
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;display:flex;flex-direction:column;align-items:center;gap:14px;min-width:220px">
@@ -774,7 +774,7 @@ tr:hover td{background:var(--surface2)}
     </div>
 
     <!-- VETA MOVIM (WIP - no impacta portafolio) -->
-    <div class="page active" id="page-dashboard" style="padding:0">
+    <div class="page" id="page-dashboard" style="padding:0">
       <div id="db-scroll" style="height:calc(100vh - 100px);overflow-y:auto;overflow-x:hidden;padding:1.2rem">
         <!-- Fila 1: Distribución por rubro -->
         <div style="margin-bottom:1rem">
