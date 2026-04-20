@@ -3675,26 +3675,21 @@ function toggleSidebar(){
   if(main) main.classList.toggle('sidebar-open');
 }
 
-// Reenviar eventos wheel de los canvas del dashboard al .content scrollable
-(function(){
-  function attachDashWheelForward(){
-    var content=document.querySelector('.content');
-    if(!content) return;
-    var page=document.getElementById('page-dashboard');
-    if(!page) return;
-    page.querySelectorAll('canvas').forEach(function(c){
-      c.addEventListener('wheel',function(e){
-        content.scrollTop+=e.deltaY;
-        e.stopPropagation();
-      },{passive:true});
-    });
-  }
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',attachDashWheelForward);
-  } else {
-    attachDashWheelForward();
-  }
-})();
+// Reenviar scroll de canvas del dashboard al contenedor scrollable
+function attachDashScrollForward(){
+  var content=document.querySelector('.content');
+  var page=document.getElementById('page-dashboard');
+  if(!content||!page) return;
+  page.querySelectorAll('canvas').forEach(function(c){
+    if(c._dashScrollAttached) return;
+    c._dashScrollAttached=true;
+    c.addEventListener('wheel',function(e){
+      var dy=e.deltaMode===1?e.deltaY*24:e.deltaMode===2?e.deltaY*window.innerHeight:e.deltaY;
+      content.scrollTop+=dy;
+      e.preventDefault();
+    },{passive:false});
+  });
+}
 
 // ─── Mini Pie: distribución portafolio ───────────────────────
 // ─── Sector Pie: desglose por cada sector ────────────────────
@@ -4230,6 +4225,9 @@ function renderDashboard(){
     },
     plugins:[pieLabelPluginRubros]
   });
+
+  // Adjuntar scroll forwarding a los nuevos canvas
+  attachDashScrollForward();
 }
 </script>
 
