@@ -4098,16 +4098,19 @@ function renderDashboard(){
     {key:'europa', label:'Europa'},
     {key:'china',  label:'China'}
   ];
-  var segCostMap={};var segGainMap={};
+  // Acumulo valor actual e invertido por separado para el cálculo exacto
+  var segValMap={};var segCostMap={};
   posData.forEach(function(d){
+    segValMap[d.sector]=(segValMap[d.sector]||0)+d.valUSD;
     segCostMap[d.sector]=(segCostMap[d.sector]||0)+d.costUSD;
-    segGainMap[d.sector]=(segGainMap[d.sector]||0)+d.gainUSD;
   });
   var segLabels=[];var segVals=[];var segColors=[];
   segDefs.forEach(function(s){
     var cost=segCostMap[s.key]||0;
+    var val=segValMap[s.key]||0;
     if(cost<=0) return;
-    var pct=(segGainMap[s.key]||0)/cost*100;
+    // (Σ valor actual USD − Σ invertido USD) / Σ invertido USD × 100
+    var pct=(val-cost)/cost*100;
     segLabels.push(s.label);
     segVals.push(parseFloat(pct.toFixed(2)));
     segColors.push(pct>=0?'rgba(126,232,162,.75)':'rgba(248,113,113,.75)');
@@ -4146,19 +4149,11 @@ function renderDashboard(){
   });
 
   // ── Gráfico 6: Distribución por rubro ────────────────────
+  // Solo Renta Variable (excluye Bonos y ONs)
   var rubroVal={};
-  positions.filter(function(p){return p.qty>0;}).forEach(function(p){
-    var q=quotes[p.ticker];if(!q||!q.price)return;
-    var sector=getSector(p.ticker);
-    var isBonoON=(sector==='bonos'||sector==='on');
-    var ratio=RATIOS_TABLE[p.ticker]||1;
-    var tc=isBonoON?(MEP_HOY||CCL_HOY||1):(CCL_HOY||1);
-    var valUSD=isBonoON?(q.price*ratio/tc*p.qty/100):(q.price/ratio*p.qty);
-    var rubro;
-    if(sector==='bonos') rubro='Soberanos';
-    else if(sector==='on') rubro='Corporativos';
-    else rubro=RUBRO_MAP[p.ticker]||'Otros';
-    rubroVal[rubro]=(rubroVal[rubro]||0)+valUSD;
+  posData.filter(function(d){return d.sector!=='bonos'&&d.sector!=='on';}).forEach(function(d){
+    var rubro=RUBRO_MAP[d.ticker]||'Otros';
+    rubroVal[rubro]=(rubroVal[rubro]||0)+d.valUSD;
   });
   var rubroKeys=Object.keys(rubroVal).sort(function(a,b){return rubroVal[b]-rubroVal[a];});
   var rubroTotal=rubroKeys.reduce(function(s,k){return s+(rubroVal[k]||0);},0);
