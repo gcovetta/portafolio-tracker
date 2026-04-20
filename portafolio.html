@@ -320,25 +320,31 @@ tr:hover td{background:var(--surface2)}
         <button id="port-eye-btn" onclick="portToggleBlur()" title="Mostrar/ocultar valores" style="background: none; border: none; cursor: pointer; color: var(--accent); font-size: 1.1rem; padding: 2px 6px; border-radius: 4px; line-height: 1;">👁</button>
       </div>
       <div id="port-content" class="">
-      <div class="mgrid">
-        <div class="metric" style="flex:0 0 280px;min-width:220px;padding:.7rem .85rem;background:transparent;border-color:transparent">
-          <div class="metric-label" style="margin-bottom:6px">Por sector</div>
-          <div style="position:relative;height:190px"><canvas id="m-pie-sector"></canvas></div>
+      <!-- Elemento oculto para mantener el cálculo de dividendos -->
+      <div style="display:none"><div id="m-divs"></div></div>
+      <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:1.2rem">
+        <!-- Izquierda: 2 filas de métricas -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-shrink:0">
+          <div class="metric"><div class="metric-label">Valor Total USD</div><div class="metric-value port-sensitive" id="m-val">—</div></div>
+          <div class="metric"><div class="metric-label">Rendimiento</div><div class="metric-value" id="m-rend">—</div></div>
+          <div class="metric"><div class="metric-label">Ganancia Neta USD</div><div class="metric-value port-sensitive" id="m-ganancia">—</div></div>
+          <div class="metric"><div class="metric-label">Posiciones</div><div class="metric-value" id="m-count">—</div></div>
         </div>
-        <div class="metric" style="flex:0 0 280px;min-width:220px;padding:.7rem .85rem;background:transparent;border-color:transparent">
-          <div class="metric-label" style="margin-bottom:6px">R. Variable por país</div>
-          <div style="position:relative;height:190px"><canvas id="m-pie-rv"></canvas></div>
+        <!-- Derecha: 3 gráficos de torta -->
+        <div style="display:flex;gap:8px;flex:1;flex-wrap:wrap;min-width:0">
+          <div style="flex:1 1 220px;min-width:200px;padding:.7rem .85rem">
+            <div class="metric-label" style="margin-bottom:6px">Por sector</div>
+            <div style="position:relative;height:190px"><canvas id="m-pie-sector"></canvas></div>
+          </div>
+          <div style="flex:1 1 220px;min-width:200px;padding:.7rem .85rem">
+            <div class="metric-label" style="margin-bottom:6px">R. Variable por país</div>
+            <div style="position:relative;height:190px"><canvas id="m-pie-rv"></canvas></div>
+          </div>
+          <div style="flex:1 1 220px;min-width:200px;padding:.7rem .85rem">
+            <div class="metric-label" style="margin-bottom:6px">Distribución</div>
+            <div style="position:relative;height:190px"><canvas id="m-pie-chart"></canvas></div>
+          </div>
         </div>
-        <div class="metric"><div class="metric-label">Rendimiento</div><div class="metric-value" id="m-rend"><span style="color:var(--accent);font-weight:700">+32%</span></div></div>
-        <div class="metric"><div class="metric-label">Valor total USD</div><div class="metric-value port-sensitive" id="m-val">$257.255</div></div>
-        <div class="metric"><div class="metric-label">Ganancia Neta USD</div><div class="metric-value port-sensitive" id="m-ganancia">—</div></div>
-        <div class="metric"><div class="metric-label">Dividendos USD</div><div class="metric-value port-sensitive" id="m-divs">$2.652</div></div>
-        <div class="metric"><div class="metric-label">Posiciones</div><div class="metric-value" id="m-count">74</div></div>
-        <div class="metric" style="flex:0 0 280px;min-width:220px;padding:.7rem .85rem;background:transparent;border-color:transparent">
-          <div class="metric-label" style="margin-bottom:6px">Distribución</div>
-          <div style="position:relative;height:190px"><canvas id="m-pie-chart"></canvas></div>
-        </div>
-
       </div>
       <!-- Tickers cerca del objetivo -->
       <div class="nt-card" id="near-target-card" style="">
