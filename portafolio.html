@@ -772,7 +772,7 @@ tr:hover td{background:var(--surface2)}
     </div>
 
     <!-- VETA MOVIM (WIP - no impacta portafolio) -->
-    <div class="page" id="page-dashboard">
+    <div class="page" id="page-dashboard" style="overflow:visible;height:auto">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
         <span style="font-size:1.1rem;font-weight:700">📊 DashBoard</span>
         <span style="font-size:.68rem;font-family:var(--mono);color:var(--text3)">Análisis visual del portafolio</span>
@@ -3732,7 +3732,7 @@ function renderSectorPie(sectorVal){
           var y=arc.y+Math.sin(angle)*r;
           ctx2.save();
           ctx2.textAlign='center';ctx2.textBaseline='middle';
-          ctx2.font='700 9px DM Mono, monospace';
+          ctx2.font='700 13px DM Mono, monospace';
           ctx2.fillStyle='#fff';
           ctx2.fillText(pct.toFixed(0)+'%',x,y);
           ctx2.restore();
@@ -3797,7 +3797,7 @@ function renderRVPie(sectorVal){
           var y=arc.y+Math.sin(angle)*r;
           ctx2.save();
           ctx2.textAlign='center';ctx2.textBaseline='middle';
-          ctx2.font='700 9px DM Mono, monospace';
+          ctx2.font='700 13px DM Mono, monospace';
           ctx2.fillStyle='#fff';
           ctx2.fillText(pct.toFixed(0)+'%',x,y);
           ctx2.restore();
@@ -3857,7 +3857,7 @@ function renderMiniPie(fija,variable,liquidez){
           var y=arc.y+Math.sin(angle)*r;
           ctx2.save();
           ctx2.textAlign='center';ctx2.textBaseline='middle';
-          ctx2.font='700 9px DM Mono, monospace';
+          ctx2.font='700 13px DM Mono, monospace';
           ctx2.fillStyle='#fff';
           ctx2.fillText(pct.toFixed(0)+'%',x,y);
           ctx2.restore();
@@ -3991,7 +3991,7 @@ function renderDashboard(){
   // Construir datos por posición con valor USD y ganancia USD
   var posData=[];
   open.forEach(function(p){
-    var q=QUOTES[p.ticker];
+    var q=quotes[p.ticker];
     if(!q||!q.price)return;
     var sector=getSector(p.ticker);
     var isBonoON=(sector==='bonos'||sector==='on');
@@ -3999,10 +3999,11 @@ function renderDashboard(){
     var tc=isBonoON?mepHoy:tcHoy;
     var priceUSD=isBonoON?(q.price*ratio/tc):q.price;
     var valUSD=priceUSD*p.qty;
-    // costo promedio en USD
-    var costUSD=isBonoON?((p.avgCost||0)*ratio/tc):(p.avgCost||0);
-    var gainUSD=(priceUSD-costUSD)*p.qty;
-    posData.push({ticker:p.ticker,sector:sector,valUSD:valUSD,gainUSD:gainUSD,costUSD:costUSD*p.qty});
+    // costo promedio USD por unidad = costUSDpuro / qty
+    var avgCostUSD=p.qty>0?p.costUSDpuro/p.qty:0;
+    var costUSDtotal=isBonoON?(avgCostUSD*ratio/tc*p.qty):p.costUSDpuro;
+    var gainUSD=valUSD-costUSDtotal;
+    posData.push({ticker:p.ticker,sector:sector,valUSD:valUSD,gainUSD:gainUSD,costUSD:costUSDtotal});
   });
 
   // ── Gráfico 1: Donut por sector ──────────────────────────
@@ -4175,7 +4176,7 @@ function renderDashboard(){
   // ── Gráfico 6: Distribución por rubro ────────────────────
   var rubroVal={};
   positions.filter(function(p){return p.qty>0;}).forEach(function(p){
-    var q=QUOTES[p.ticker];if(!q||!q.price)return;
+    var q=quotes[p.ticker];if(!q||!q.price)return;
     var sector=getSector(p.ticker);
     var isBonoON=(sector==='bonos'||sector==='on');
     var ratio=RATIOS_TABLE[p.ticker]||1;
@@ -4207,7 +4208,7 @@ function renderDashboard(){
           var y=arc.y+Math.sin(angle)*r;
           ctx2.save();
           ctx2.textAlign='center';ctx2.textBaseline='middle';
-          ctx2.font='700 9px DM Mono, monospace';
+          ctx2.font='700 13px DM Mono, monospace';
           ctx2.fillStyle='#fff';
           ctx2.fillText(pct.toFixed(0)+'%',x,y);
           ctx2.restore();
