@@ -829,7 +829,7 @@ function renderBalance() {
             {label:'Neto acumulado',data:dNeto,type:'line',borderColor:'#F5A623',backgroundColor:'rgba(245,166,35,.06)',tension:.4,pointRadius:3,borderWidth:2,fill:true,order:1}
         ]},
         options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-        plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(18,21,32,.95)',borderColor:'rgba(255,255,255,.1)',borderWidth:1,padding:{top:10,right:14,bottom:10,left:14},titleColor:'#E8EAF2',bodyColor:'#8B90A8',
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(18,21,32,.97)',borderColor:'rgba(255,255,255,.12)',borderWidth:1,padding:{top:12,right:20,bottom:12,left:16},titleColor:'#E8EAF2',bodyColor:'#8B90A8',bodySpacing:5,boxWidth:10,boxHeight:10,titleFont:{size:12,weight:'600'},bodyFont:{size:12},
         callbacks:{
             label:function(c){
                 var v=Math.round(Math.abs(c.raw));
@@ -838,9 +838,7 @@ function renderBalance() {
             },
             afterLabel:function(c){
                 var idx=c.dataIndex; var lines=[];
-                if(c.datasetIndex===0&&dBR_det[idx]&&dBR_det[idx].length){
-                    dBR_det[idx].forEach(function(d){ lines.push('  · '+d.desc+': U$S '+d.monto.toLocaleString('es-AR')); });
-                } else if(c.datasetIndex===1&&dBP_det[idx]&&dBP_det[idx].length){
+                if(c.datasetIndex===1&&dBP_det[idx]&&dBP_det[idx].length){
                     dBP_det[idx].forEach(function(d){ lines.push('  · '+d.desc+': U$S '+d.monto.toLocaleString('es-AR')); });
                 } else if(c.datasetIndex===2&&dBD_det[idx]&&dBD_det[idx].length){
                     dBD_det[idx].forEach(function(d){ lines.push('  · '+d.desc+' (c.'+d.cuota+'/'+d.total+'): U$S '+d.monto.toLocaleString('es-AR')); });
