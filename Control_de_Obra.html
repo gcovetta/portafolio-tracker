@@ -308,7 +308,8 @@ var MO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic
 var S = {
     startDate: '2026-04-01', tcn: 1200,
     rubros: [], pagos: [], etapas: [], ingresos: [], deudas: [], ajustes: [],
-    editPagoId: null, editRubroId: null, editEtapaId: null, editBalType: null, editBalId: null
+    editPagoId: null, editRubroId: null, editEtapaId: null, editBalType: null, editBalId: null,
+    calc: { manoObra: '', materiales: '', otrosCostos: '', m2: '' }
 };
 
 // ═══════════════════════════════════════
@@ -481,6 +482,18 @@ function renderResumen() {
         '<div class="metric-card"><div class="ml">Comprometido</div><div class="mv c-amber">'+fmtMain(pe)+'</div><div class="ms">'+S.pagos.filter(function(p){return p.estado!=='pagado';}).length+' pagos pend.</div></div>' +
         '<div class="metric-card"><div class="ml">Disponible</div><div class="mv '+(sl<0?'c-red':'c-green')+'">'+fmtMain(sl)+'</div><div class="ms">'+(sl<0?'Excedido':'Sin comprometer')+'</div></div>' +
         '</div>' +
+        // Calculadora costo por m²
+        '<div class="card" style="margin-bottom:16px;">' +
+        '<div class="card-hdr"><h3>Calculadora de costo por m²</h3><span style="font-size:11px;color:var(--text3);">Ingresá los valores para calcular el costo por línea</span></div>' +
+        '<div class="card-body">' +
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;">' +
+        '<div class="fg"><label>Mano de obra (U$S)</label><div class="amt-wrap"><input type="number" id="calcMO" placeholder="0" min="0" value="'+( S.calc.manoObra||'')+'" oninput="S.calc.manoObra=this.value;calcCostoM2()" onchange="calcCostoM2()"><span class="amt-tag">USD</span></div></div>' +
+        '<div class="fg"><label>Materiales (U$S)</label><div class="amt-wrap"><input type="number" id="calcMat" placeholder="0" min="0" value="'+(S.calc.materiales||'')+'" oninput="S.calc.materiales=this.value;calcCostoM2()" onchange="calcCostoM2()"><span class="amt-tag">USD</span></div></div>' +
+        '<div class="fg"><label>Total construcción (U$S)</label><div class="amt-wrap"><input type="number" id="calcTot" placeholder="Auto" min="0" value="'+(S.calc.total||'')+'" oninput="S.calc.total=this.value;calcCostoM2()" onchange="calcCostoM2()"><span class="amt-tag">USD</span></div></div>' +
+        '<div class="fg"><label>Superficie (m²)</label><div class="amt-wrap"><input type="number" id="calcM2" placeholder="0" min="0" value="'+(S.calc.m2||'')+'" oninput="S.calc.m2=this.value;calcCostoM2()" onchange="calcCostoM2()"><span class="amt-tag">m²</span></div></div>' +
+        '</div>' +
+        '<div id="calcResult" style="overflow-x:auto;"></div>' +
+        '</div></div>' +
         '<div class="grid2">' +
         '<div><div class="card"><div class="card-hdr"><h3>Avance de obra</h3><span style="font-size:18px;font-weight:600;font-family:DM Mono,monospace;color:var(--blue)">'+av+'%</span></div>' +
         '<div class="card-body">' +
@@ -506,6 +519,55 @@ function renderResumen() {
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(v){ return 'U$S '+Math.round(v.raw).toLocaleString('es-AR'); }}}},
         scales:{x:{ticks:{color:'#565C7A',font:{size:9},maxRotation:45,autoSkip:false},grid:{color:'rgba(255,255,255,.03)'}},y:{ticks:{color:'#565C7A',font:{size:10},callback:function(v){ return v>=1000?'U$S '+(v/1000).toFixed(0)+'k':'U$S '+Math.round(v); }},grid:{color:'rgba(255,255,255,.04)'}}}}
     });
+    // Restaurar resultado calculadora si había valores guardados
+    setTimeout(calcCostoM2, 0);
+}
+
+function calcCostoM2() {
+    var el = document.getElementById('calcResult'); if(!el) return;
+    var mo  = parseFloat(document.getElementById('calcMO')  && document.getElementById('calcMO').value)  || 0;
+    var mat = parseFloat(document.getElementById('calcMat') && document.getElementById('calcMat').value) || 0;
+    var m2  = parseFloat(document.getElementById('calcM2')  && document.getElementById('calcM2').value)  || 0;
+    // Total: usa el campo manual si está lleno, sino suma mo+mat
+    var totField = document.getElementById('calcTot');
+    var totManual = totField && totField.value !== '' ? parseFloat(totField.value) : null;
+    var tot = (totManual !== null && totManual > 0) ? totManual : (mo + mat);
+    // Si el campo total estaba vacío y calculamos, mostramos el auto-valor como placeholder
+    if (totField && (totManual === null || totManual === 0) && (mo+mat) > 0) {
+        totField.placeholder = Math.round(mo+mat).toLocaleString('es-AR');
+    }
+    var otros = (totManual !== null && totManual > 0) ? Math.max(0, tot - mo - mat) : 0;
+    if(!m2 || !tot){ el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Ingresá al menos el total de construcción y la superficie para calcular.</div>'; return; }
+    var THS2='padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap;';
+    var rows = [
+        { label:'Mano de obra', total:mo, color:'#A78BFA' },
+        { label:'Materiales',   total:mat, color:'#4C8EF5' },
+    ];
+    if(otros > 0) rows.push({ label:'Otros costos', total:otros, color:'#F5A623' });
+    rows.push({ label:'TOTAL CONSTRUCCIÓN', total:tot, color:'#3ECF8E', bold:true });
+    var rowsHTML = rows.map(function(r){
+        var cpm2 = m2>0 ? r.total/m2 : 0;
+        var pct2 = tot>0 ? Math.round(r.total/tot*100) : 0;
+        var bStyle = r.bold ? 'font-weight:700;background:var(--surface2);' : '';
+        var numStyle = 'font-family:DM Mono,monospace;font-size:13px;';
+        return '<tr>' +
+            '<td style="padding:10px 14px;border-bottom:1px solid var(--border);'+bStyle+'">' +
+            '<div style="display:flex;align-items:center;gap:8px;">' +
+            '<span style="width:8px;height:8px;border-radius:2px;background:'+r.color+';display:inline-block;flex-shrink:0;"></span>' +
+            '<span style="font-size:13px;'+(r.bold?'font-weight:700;color:var(--text);':'color:var(--text2);')+'">'+r.label+'</span>' +
+            '</div></td>' +
+            '<td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:right;'+bStyle+numStyle+'color:'+(r.bold?'var(--green)':'var(--text)')+';'+(r.total===0?'color:var(--text3);':'')+'">'+( r.total>0?'U$S '+Math.round(r.total).toLocaleString('es-AR'):'—')+'</td>' +
+            '<td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:right;'+bStyle+numStyle+'color:'+r.color+';'+(cpm2===0?'color:var(--text3);':'')+'">'+( cpm2>0?'U$S '+cpm2.toLocaleString('es-AR',{maximumFractionDigits:1})+' / m²':'—')+'</td>' +
+            '<td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:right;'+bStyle+'">'+( r.total>0&&!r.bold?'<div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;"><div style="width:80px;height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+pct2+'%;background:'+r.color+';border-radius:3px;"></div></div><span style="font-size:12px;font-family:DM Mono,monospace;color:var(--text3);width:30px;text-align:right;">'+pct2+'%</span></div>':'<span style="font-size:12px;font-family:DM Mono,monospace;color:var(--text3);">100%</span>')+'</td>' +
+            '</tr>';
+    }).join('');
+    el.innerHTML = '<table style="width:100%;border-collapse:collapse;">' +
+        '<thead><tr>' +
+        '<th style="'+THS2+'text-align:left;">Concepto</th>' +
+        '<th style="'+THS2+'text-align:right;">Total USD</th>' +
+        '<th style="'+THS2+'text-align:right;">Costo por m²</th>' +
+        '<th style="'+THS2+'text-align:right;">Distribución</th>' +
+        '</tr></thead><tbody>'+rowsHTML+'</tbody></table>';
 }
 
 // ═══════════════════════════════════════
