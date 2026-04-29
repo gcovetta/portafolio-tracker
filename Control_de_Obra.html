@@ -803,8 +803,11 @@ function renderBalance() {
     // Chart
     if (chartBal) chartBal.destroy();
     var labelsB = Array.from({length:18}, function(_,i){ return mLabel(i); });
-    var allO2 = []; S.ingresos.forEach(function(x){ expandirIngreso(x).forEach(function(o){ allO2.push(o); }); });
+    // Incluir desc en cada ocurrencia para el tooltip
+    var allO2 = [];
+    S.ingresos.forEach(function(x){ expandirIngreso(x).forEach(function(o){ allO2.push({fecha:o.fecha,montoARS:o.montoARS,realizado:o.realizado,desc:x.desc}); }); });
     var cumIR=0,cumIP=0,cumDeu=0, dBR=[],dBP=[],dBD=[],dNeto=[];
+    var dBR_det=[],dBP_det=[],dBD_det=[];
     for(var i=0;i<18;i++){
         var ms=mesStr(i);
         var iRM=allO2.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms); }).reduce(function(s,o){ return s+o.montoARS; },0);
@@ -812,6 +815,10 @@ function renderBalance() {
         var dM=S.deudas.reduce(function(s,d){ var fi=d.fechaInicio||S.startDate; if(ms<fi.substring(0,7)) return s; var sd=new Date(fi+'T00:00:00'),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return s; return s+(d.montoARS/d.cuotas); },0);
         cumIR+=iRM; cumIP+=iPM; cumDeu+=dM;
         dBR.push(Math.round(iRM/S.tcn)); dBP.push(Math.round(iPM/S.tcn)); dBD.push(-Math.round(dM/S.tcn)); dNeto.push(Math.round((cumIR+cumIP-cumDeu)/S.tcn));
+        // Detalle para tooltip
+        dBR_det.push(allO2.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms); }).map(function(o){ return {desc:o.desc,monto:Math.round(o.montoARS/S.tcn)}; }));
+        dBP_det.push(allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms); }).map(function(o){ return {desc:o.desc,monto:Math.round(o.montoARS/S.tcn)}; }));
+        dBD_det.push(S.deudas.reduce(function(arr,d){ var fi=d.fechaInicio||S.startDate; if(ms<fi.substring(0,7)) return arr; var sd=new Date(fi+'T00:00:00'),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return arr; arr.push({desc:d.desc,monto:Math.round((d.montoARS/d.cuotas)/S.tcn),cuota:ix+1,total:d.cuotas}); return arr; },[]));
     }
     chartBal = new Chart(document.getElementById('chartBal').getContext('2d'),{
         type:'bar',
@@ -822,7 +829,25 @@ function renderBalance() {
             {label:'Neto acumulado',data:dNeto,type:'line',borderColor:'#F5A623',backgroundColor:'rgba(245,166,35,.06)',tension:.4,pointRadius:3,borderWidth:2,fill:true,order:1}
         ]},
         options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-        plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(18,21,32,.95)',borderColor:'rgba(255,255,255,.1)',borderWidth:1,padding:10,titleColor:'#E8EAF2',bodyColor:'#8B90A8',callbacks:{label:function(c){ return c.dataset.label+': U$S '+Math.round(c.raw).toLocaleString('es-AR'); }}}},
+        plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(18,21,32,.95)',borderColor:'rgba(255,255,255,.1)',borderWidth:1,padding:{top:10,right:14,bottom:10,left:14},titleColor:'#E8EAF2',bodyColor:'#8B90A8',
+        callbacks:{
+            label:function(c){
+                var v=Math.round(Math.abs(c.raw));
+                if(c.datasetIndex===2) return 'Deuda total: U$S '+v.toLocaleString('es-AR');
+                return c.dataset.label+': U$S '+Math.round(c.raw).toLocaleString('es-AR');
+            },
+            afterLabel:function(c){
+                var idx=c.dataIndex; var lines=[];
+                if(c.datasetIndex===0&&dBR_det[idx]&&dBR_det[idx].length){
+                    dBR_det[idx].forEach(function(d){ lines.push('  · '+d.desc+': U$S '+d.monto.toLocaleString('es-AR')); });
+                } else if(c.datasetIndex===1&&dBP_det[idx]&&dBP_det[idx].length){
+                    dBP_det[idx].forEach(function(d){ lines.push('  · '+d.desc+': U$S '+d.monto.toLocaleString('es-AR')); });
+                } else if(c.datasetIndex===2&&dBD_det[idx]&&dBD_det[idx].length){
+                    dBD_det[idx].forEach(function(d){ lines.push('  · '+d.desc+' (c.'+d.cuota+'/'+d.total+'): U$S '+d.monto.toLocaleString('es-AR')); });
+                }
+                return lines;
+            }
+        }}},
         scales:{x:{ticks:{color:'#565C7A',font:{size:9},maxRotation:45,autoSkip:false},grid:{color:'rgba(255,255,255,.03)'}},y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){ var a=Math.abs(v); return (v<0?'-':'')+'U$S '+(a>=1000?Math.round(a/1000)+'k':Math.round(a)); }},grid:{color:'rgba(255,255,255,.04)'},afterDataLimits:function(axis){ if(axis.min>0) axis.min=0; }}}}
     });
 }
