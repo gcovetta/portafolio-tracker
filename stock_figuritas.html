@@ -239,6 +239,32 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .inv-del-btn{width:24px;height:24px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .12s;}
 .inv-del-btn:hover{background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);}
 
+
+/* FILTRO RESERVAS */
+.filter-bar{display:flex;gap:8px;align-items:center;margin-bottom:1rem;flex-wrap:wrap;}
+.filter-input{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'Inter',sans-serif;font-size:12px;padding:7px 12px;outline:none;flex:1;min-width:180px;transition:border-color .15s;}
+.filter-input:focus{border-color:var(--orange);}
+.filter-input::placeholder{color:var(--muted);}
+.filter-select{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'Inter',sans-serif;font-size:12px;padding:7px 10px;outline:none;cursor:pointer;transition:border-color .15s;}
+.filter-select:focus{border-color:var(--orange);}
+.filter-clear{padding:7px 12px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;color:var(--muted);font-family:'Inter',sans-serif;font-size:11px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.filter-clear:hover{background:var(--surface2);color:var(--text);}
+.filter-count{font-size:11px;color:var(--muted);white-space:nowrap;}
+
+
+/* RESUMEN INVERSIÓN */
+.inv-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.4rem;}
+.inv-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem 1.3rem;}
+.inv-card-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:8px;}
+.inv-card-val{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;line-height:1;}
+.inv-card-sub{font-size:10px;color:var(--muted);margin-top:5px;}
+.inv-card-val.positive{color:var(--green);}
+.inv-card-val.negative{color:var(--red);}
+.inv-card-val.neutral{color:var(--muted);}
+.inv-card.ganancia-pos{border-color:rgba(76,175,125,.25);}
+.inv-card.ganancia-neg{border-color:rgba(224,92,92,.25);}
+@media(max-width:760px){.inv-summary{grid-template-columns:1fr 1fr;}}
+
 </style>
 </head>
 <body>
@@ -460,6 +486,18 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     </div>
     <div class="preview-txt" id="nr-preview">Total sobres: <span id="nr-preview-val"></span></div>
 
+    <!-- FILTRO -->
+    <div class="filter-bar">
+      <input type="text" class="filter-input" id="res-filtro" placeholder="Buscar por cliente, estado, fecha..." oninput="renderTablas()" />
+      <select class="filter-select" id="res-estado" onchange="renderTablas()">
+        <option value="">Todos los estados</option>
+        <option value="pendiente">Pendientes</option>
+        <option value="entregado">Entregados</option>
+      </select>
+      <button class="filter-clear" onclick="limpiarFiltro()">✕ Limpiar</button>
+      <span class="filter-count" id="res-count"></span>
+    </div>
+
     <div class="sub-title"><span class="dot dot-o"></span>Pendientes</div>
     <div style="overflow-x:auto;">
       <table class="tbl">
@@ -513,6 +551,31 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 
   <!-- TAB INVERTIDO -->
   <div id="tab-invertido" class="tab-pane">
+
+    <!-- RECUADROS RESUMEN -->
+    <div class="inv-summary">
+      <div class="inv-card">
+        <div class="inv-card-label">Total invertido</div>
+        <div class="inv-card-val c-accent" id="inv-s-invertido">$0</div>
+        <div class="inv-card-sub" id="inv-s-invertido-sub">Figus + Cajas</div>
+      </div>
+      <div class="inv-card">
+        <div class="inv-card-label">Reservado (a cobrar)</div>
+        <div class="inv-card-val c-orange" id="inv-s-reservado">$0</div>
+        <div class="inv-card-sub" id="inv-s-reservado-sub">0 reservas</div>
+      </div>
+      <div class="inv-card">
+        <div class="inv-card-label">Entregado (cobrado)</div>
+        <div class="inv-card-val c-green" id="inv-s-entregado">$0</div>
+        <div class="inv-card-sub" id="inv-s-entregado-sub">0 entregas</div>
+      </div>
+      <div class="inv-card" id="inv-s-ganancia-card">
+        <div class="inv-card-label">Ganancia neta</div>
+        <div class="inv-card-val neutral" id="inv-s-ganancia">$0</div>
+        <div class="inv-card-sub" id="inv-s-ganancia-sub">Cobrado − Invertido</div>
+      </div>
+    </div>
+
     <div class="block">
       <div class="block-title"><span class="dot dot-g"></span>Registro de inversión</div>
 
@@ -1089,8 +1152,33 @@ async function eliminarReserva(id){
 function moneyCell(v){ return v>0?`<td class="money">${pesos(v)}</td>`:'<td style="color:var(--muted)">—</td>';}
 
 function renderTablas(){
-  const pend=[...reservas].filter(r=>r.estado==='pendiente').reverse();
-  const ent =[...reservas].filter(r=>r.estado==='entregado').reverse();
+  const filtro = (document.getElementById('res-filtro')?.value || '').toLowerCase().trim();
+  const estado = document.getElementById('res-estado')?.value || '';
+
+  function matchFiltro(r) {
+    if (!filtro) return true;
+    return (
+      r.nombre.toLowerCase().includes(filtro) ||
+      r.fecha?.toLowerCase().includes(filtro) ||
+      (r.fechaEnt?.toLowerCase().includes(filtro)) ||
+      String(r.packs).includes(filtro) ||
+      String(r.sobres).includes(filtro) ||
+      String(r.totalSobres).includes(filtro) ||
+      String(r.albumes).includes(filtro) ||
+      String(r.cajas||0).includes(filtro) ||
+      r.estado.toLowerCase().includes(filtro)
+    );
+  }
+
+  const todas = [...reservas].filter(matchFiltro);
+  const pend = todas.filter(r => r.estado==='pendiente' && (!estado || estado==='pendiente')).reverse();
+  const ent  = todas.filter(r => r.estado==='entregado' && (!estado || estado==='entregado')).reverse();
+
+  const count = document.getElementById('res-count');
+  if (count) {
+    const total = pend.length + ent.length;
+    count.textContent = total > 0 ? `${total} resultado${total!==1?'s':''}` : 'Sin resultados';
+  }
 
   const tbP=g('tb-pend');
   tbP.innerHTML=pend.length?pend.map(r=>{
@@ -1117,6 +1205,7 @@ function renderTablas(){
     </tr>`;
   }).join(''):'<tr><td colspan="12" class="empty-row">Sin reservas pendientes.</td></tr>';
 
+  renderInvSummary();
   const tbE=g('tb-ent');
   tbE.innerHTML=ent.length?ent.map(r=>{
     const tot=calcTotal(r);
@@ -1139,6 +1228,14 @@ function renderTablas(){
       </td>
     </tr>`;
   }).join(''):'<tr><td colspan="12" class="empty-row">Sin entregas registradas.</td></tr>';
+}
+
+function limpiarFiltro(){
+  const fi = document.getElementById('res-filtro');
+  const fe = document.getElementById('res-estado');
+  if (fi) fi.value = '';
+  if (fe) fe.value = '';
+  renderTablas();
 }
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -1227,6 +1324,52 @@ async function invEliminar(id) {
   await invDelete(id);
 }
 
+function renderInvSummary() {
+  // Total invertido (de la tabla de registros)
+  const totFigus = invRows.reduce((s,r) => s + (r.figus||0), 0);
+  const totCajas = invRows.reduce((s,r) => s + (r.cajas||0), 0);
+  const totalInv = totFigus + totCajas;
+
+  // Reservado y entregado (de las reservas)
+  const pend     = reservas.filter(r => r.estado === 'pendiente');
+  const ent      = reservas.filter(r => r.estado === 'entregado');
+  const valorRes = pend.reduce((s,r) => s + calcTotal(r), 0);
+  const valorEnt = ent.reduce((s,r)  => s + calcTotal(r), 0);
+
+  // Ganancia neta = (reservado + cobrado) - invertido
+  const ganancia = valorEnt - totalInv;
+
+  const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+
+  set('inv-s-invertido',     pesos(totalInv));
+  set('inv-s-invertido-sub', `Figus: ${pesos(totFigus)} · Cajas: ${pesos(totCajas)}`);
+
+  set('inv-s-reservado',     pesos(valorRes));
+  set('inv-s-reservado-sub', `${pend.length} reserva${pend.length!==1?'s':''}`);
+
+  set('inv-s-entregado',     pesos(valorEnt));
+  set('inv-s-entregado-sub', `${ent.length} entrega${ent.length!==1?'s':''}`);
+
+  // Ganancia neta con color
+  const gEl   = document.getElementById('inv-s-ganancia');
+  const gSub  = document.getElementById('inv-s-ganancia-sub');
+  const gCard = document.getElementById('inv-s-ganancia-card');
+  if (gEl) {
+    gEl.textContent = pesos(Math.abs(ganancia));
+    gEl.className   = 'inv-card-val ' + (ganancia > 0 ? 'positive' : ganancia < 0 ? 'negative' : 'neutral');
+  }
+  if (gSub) {
+    gSub.textContent = ganancia > 0
+      ? `Ganás ${pesos(ganancia)} sobre la inversión`
+      : ganancia < 0
+        ? `Faltan recuperar ${pesos(Math.abs(ganancia))}`
+        : 'En punto de equilibrio';
+  }
+  if (gCard) {
+    gCard.className = 'inv-card ' + (ganancia > 0 ? 'ganancia-pos' : ganancia < 0 ? 'ganancia-neg' : '');
+  }
+}
+
 function renderInvertido() {
   const tbody = document.getElementById('inv-tbody');
   if (!tbody) return;
@@ -1249,6 +1392,7 @@ function renderInvertido() {
   if (tf) tf.textContent = pesos(totFigus);
   if (tc) tc.textContent = pesos(totCajas);
   if (tg) tg.textContent = pesos(totGen);
+  renderInvSummary();
 }
 
 /* ── INIT ── */
@@ -1257,6 +1401,7 @@ function renderInvertido() {
   await invLoad();
   renderMetrics();
   renderInvertido();
+  renderInvSummary();
   renderSobCalc();
   renderAlbCalc();
   renderCajCalc();
