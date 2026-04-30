@@ -253,7 +253,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 
 
 /* RESUMEN INVERSIÓN */
-.inv-summary{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:1.4rem;}
+.inv-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.4rem;}
 .inv-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem 1.3rem;}
 .inv-card-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:8px;}
 .inv-card-val{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;line-height:1;}
@@ -263,8 +263,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .inv-card-val.neutral{color:var(--muted);}
 .inv-card.ganancia-pos{border-color:rgba(76,175,125,.25);}
 .inv-card.ganancia-neg{border-color:rgba(224,92,92,.25);}
-@media(max-width:900px){.inv-summary{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:600px){.inv-summary{grid-template-columns:1fr 1fr;}}
+@media(max-width:1100px){.inv-summary{grid-template-columns:repeat(4,1fr);}}
+@media(max-width:700px){.inv-summary{grid-template-columns:1fr 1fr;}}
 
 </style>
 </head>
@@ -584,6 +584,16 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
         <div class="inv-card-label">Ganancia neta proyectada</div>
         <div class="inv-card-val neutral" id="inv-s-gan-proy">$0</div>
         <div class="inv-card-sub" id="inv-s-gan-proy-sub">Ganancia + Proyectado</div>
+      </div>
+      <div class="inv-card" id="inv-s-pct-card">
+        <div class="inv-card-label">Ganancia neta %</div>
+        <div class="inv-card-val neutral" id="inv-s-pct">0%</div>
+        <div class="inv-card-sub" id="inv-s-pct-sub">Gan. neta / Invertido</div>
+      </div>
+      <div class="inv-card" id="inv-s-pct-proy-card">
+        <div class="inv-card-label">Ganancia neta % proyectada</div>
+        <div class="inv-card-val neutral" id="inv-s-pct-proy">0%</div>
+        <div class="inv-card-sub" id="inv-s-pct-proy-sub">Gan. proyectada / Invertido</div>
       </div>
     </div>
 
@@ -1405,6 +1415,30 @@ function renderInvSummary() {
   if (gpCard) {
     gpCard.className = 'inv-card ' + (gananciaProy > 0 ? 'ganancia-pos' : gananciaProy < 0 ? 'ganancia-neg' : '');
   }
+
+  // Ganancia neta %
+  const pctEl   = document.getElementById('inv-s-pct');
+  const pctSub  = document.getElementById('inv-s-pct-sub');
+  const pctCard = document.getElementById('inv-s-pct-card');
+  const pct = totalInv > 0 ? (ganancia / totalInv) * 100 : 0;
+  if (pctEl) {
+    pctEl.textContent = (pct < 0 ? '−' : '') + Math.abs(pct).toFixed(1) + '%';
+    pctEl.className   = 'inv-card-val ' + (pct > 0 ? 'positive' : pct < 0 ? 'negative' : 'neutral');
+  }
+  if (pctSub) pctSub.textContent = totalInv > 0 ? `${pesos(ganancia)} / ${pesos(totalInv)}` : 'Sin inversión registrada';
+  if (pctCard) pctCard.className = 'inv-card ' + (pct > 0 ? 'ganancia-pos' : pct < 0 ? 'ganancia-neg' : '');
+
+  // Ganancia neta % proyectada
+  const pctPEl   = document.getElementById('inv-s-pct-proy');
+  const pctPSub  = document.getElementById('inv-s-pct-proy-sub');
+  const pctPCard = document.getElementById('inv-s-pct-proy-card');
+  const pctP = totalInv > 0 ? (gananciaProy / totalInv) * 100 : 0;
+  if (pctPEl) {
+    pctPEl.textContent = (pctP < 0 ? '−' : '') + Math.abs(pctP).toFixed(1) + '%';
+    pctPEl.className   = 'inv-card-val ' + (pctP > 0 ? 'positive' : pctP < 0 ? 'negative' : 'neutral');
+  }
+  if (pctPSub) pctPSub.textContent = totalInv > 0 ? `${pesos(gananciaProy)} / ${pesos(totalInv)}` : 'Sin inversión registrada';
+  if (pctPCard) pctPCard.className = 'inv-card ' + (pctP > 0 ? 'ganancia-pos' : pctP < 0 ? 'ganancia-neg' : '');
 }
 
 function renderInvertido() {
