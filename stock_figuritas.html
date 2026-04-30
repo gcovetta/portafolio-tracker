@@ -30,7 +30,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 /* SECCIÓN ECONÓMICA */
 .eco-block{background:var(--surface);border:1px solid rgba(76,175,125,.18);border-radius:var(--radius-lg);padding:1.2rem 1.6rem;margin-bottom:1rem;}
 .eco-header{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--green);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
-.eco-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.eco-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
 .eco-card{background:var(--surface2);border-radius:var(--radius);padding:1rem 1.1rem;border:1px solid transparent;transition:border-color .3s;}
 .eco-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;}
 .eco-value{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:500;color:var(--green);line-height:1;}
@@ -39,7 +39,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 
 /* MÉTRICAS */
 .metrics-row{display:grid;gap:12px;margin-bottom:1rem;}
-.metrics-row.top{grid-template-columns:repeat(4,1fr);}
+.metrics-row.top{grid-template-columns:repeat(5,1fr);}
 .metrics-row.bot{grid-template-columns:repeat(2,1fr);}
 .metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem 1.4rem;transition:border-color .2s;position:relative;}
 .metric:hover{border-color:var(--border2);}
@@ -56,6 +56,13 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:2rem;}
 .calc-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.4rem;}
 .calc-block.sob{border-color:rgba(232,197,71,.2);} .calc-block.alb{border-color:rgba(56,189,248,.2);}
+.calc-block.caj{border-color:rgba(167,139,250,.2);}
+.dot-p{background:var(--purple);}
+.btn-cnt.p:hover{background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.4);}
+.cnt-num.p{color:var(--purple);}
+.btn-add.p{background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);}
+.btn-add.p:hover{background:rgba(167,139,250,.22);}
+.caj-img{width:80px;height:80px;object-fit:contain;border-radius:8px;margin-bottom:.6rem;}
 .calc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
 .dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
 .dot-y{background:var(--accent);} .dot-t{background:var(--teal);} .dot-o{background:var(--orange);} .dot-g{background:var(--green);}
@@ -86,7 +93,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .block-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
 
 /* NUEVA RESERVA — 7 columnas + tilde */
-.new-res-row{display:grid;grid-template-columns:1.8fr .7fr .7fr .7fr .8fr .8fr .8fr 44px;gap:8px;align-items:end;margin-bottom:.8rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+.new-res-row{display:grid;grid-template-columns:1.6fr .6fr .6fr .6fr .6fr .7fr .7fr .7fr .7fr 44px;gap:8px;align-items:end;margin-bottom:.8rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
 .nrf{display:flex;flex-direction:column;gap:5px;}
 .nrf label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
 .nrf input{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:9px 10px;outline:none;width:100%;transition:border-color .15s;}
@@ -262,6 +269,11 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
         <div class="eco-value" id="eco-entregado">$0</div>
         <div class="eco-sub" id="eco-entregado-sub">—</div>
       </div>
+      <div class="eco-card">
+        <div class="eco-label">Stock cajas</div>
+        <div class="eco-value c-purple" id="eco-cajas">$0</div>
+        <div class="eco-sub" id="eco-cajas-sub">0 cajas</div>
+      </div>
       <div class="eco-card" id="eco-ganancia-card">
         <div class="eco-label">Ganancia neta</div>
         <div class="eco-value" id="eco-ganancia">$0</div>
@@ -294,6 +306,12 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <div class="metric-value c-orange" id="m-alb-res">0</div>
       <div class="metric-sub" id="m-alb-res-sub">0 reservas</div>
     </div>
+    <div class="metric">
+      <button class="btn-es" onclick="openModal('cajas')" title="Editar">✎</button>
+      <div class="metric-label">Cajas en stock</div>
+      <div class="metric-value c-purple" id="m-cajas">0</div>
+      <div class="metric-sub" id="m-cajas-sub">$0 invertido</div>
+    </div>
   </div>
 
   <div class="metrics-row bot" style="margin-bottom:2rem;">
@@ -313,6 +331,11 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
   <div class="calc-grid">
     <div class="calc-block sob">
       <div class="calc-title"><span class="dot dot-y"></span>Ingresar sobres</div>
+      <div style="display:flex;align-items:flex-start;gap:1.4rem;flex-wrap:wrap;">
+        <div style="flex:none;">
+          <img src="sobre.png" class="caj-img" alt="Sobre figuritas" />
+        </div>
+        <div style="flex:1;min-width:200px;">
       <div class="cnt-row">
         <button class="btn-cnt y" onclick="sobCh(-1)">−</button>
         <span class="cnt-num y" id="sob-n">1</span>
@@ -328,9 +351,16 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <div class="boxes-row" id="sob-bx"></div>
       <div class="calc-formula" id="sob-fm">1 bulto × 40 packs × 25 sobres = 1.000 sobres</div>
       <button class="btn-add y" onclick="agregarSobres()">+ Agregar al stock</button>
+        </div>
+      </div>
     </div>
     <div class="calc-block alb">
       <div class="calc-title"><span class="dot dot-t"></span>Ingresar álbumes</div>
+      <div style="display:flex;align-items:flex-start;gap:1.4rem;flex-wrap:wrap;">
+        <div style="flex:none;">
+          <img src="album.png" class="caj-img" alt="Álbum figuritas" />
+        </div>
+        <div style="flex:1;min-width:200px;">
       <div class="cnt-row">
         <button class="btn-cnt t" onclick="albCh(-1)">−</button>
         <span class="cnt-num t" id="alb-n">1</span>
@@ -345,6 +375,33 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <div class="boxes-row" id="alb-bx"></div>
       <div class="calc-formula" id="alb-fm">1 bulto × 25 álbumes = 25 álbumes</div>
       <button class="btn-add t" onclick="agregarAlbumes()">+ Agregar al stock</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALCULADORA CAJAS -->
+  <div class="calc-block caj" style="margin-bottom:2rem;">
+    <div class="calc-title"><span class="dot dot-p"></span>Ingresar cajas</div>
+    <div style="display:flex;align-items:flex-start;gap:1.4rem;flex-wrap:wrap;">
+      <div style="flex:none;">
+        <img src="caja.png" class="caj-img" alt="Caja figuritas" />
+      </div>
+      <div style="flex:1;min-width:200px;">
+        <div class="cnt-row">
+          <button class="btn-cnt p" onclick="cajCh(-1)">−</button>
+          <span class="cnt-num p" id="caj-n">1</span>
+          <button class="btn-cnt p" onclick="cajCh(1)">+</button>
+          <input type="number" id="caj-i" class="cnt-in" value="1" min="1" oninput="cajSt(this.value)" />
+          <span class="cnt-lbl">cajas</span>
+        </div>
+        <div class="calc-res">
+          <div class="cres"><div class="cres-lbl">Cajas</div><div class="cres-val c-purple" id="caj-rc">1</div></div>
+          <div class="cres"><div class="cres-val c-purple" id="caj-rv" style="font-size:18px;padding-top:4px">$10.000</div><div class="cres-lbl" style="margin-top:4px">Invertido</div></div>
+        </div>
+        <div class="calc-formula" id="caj-fm">1 caja × $10.000 = $10.000 invertidos</div>
+        <button class="btn-add p" onclick="agregarCajas()">+ Agregar al stock</button>
+      </div>
     </div>
   </div>
 
@@ -360,6 +417,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <div class="nrf"><label>$ / Pack</label><input type="number" id="nr-ppk" placeholder="0" min="0" step="0.01" value="0" /></div>
       <div class="nrf"><label>$ / Sobre</label><input type="number" id="nr-psob" placeholder="0" min="0" step="0.01" value="0" /></div>
       <div class="nrf"><label>$ / Álbum</label><input type="number" id="nr-palb" placeholder="0" min="0" step="0.01" value="0" /></div>
+      <div class="nrf"><label>Cajas</label><input type="number" id="nr-cajas" placeholder="0" min="0" value="0" /></div>
+      <div class="nrf"><label>$ / Caja</label><input type="number" id="nr-pcaj" placeholder="0" min="0" step="0.01" value="0" /></div>
       <button class="btn-confirm" onclick="confirmarReserva()" title="Confirmar reserva">✓</button>
     </div>
     <div class="preview-txt" id="nr-preview">Total sobres: <span id="nr-preview-val"></span></div>
@@ -376,6 +435,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th>$/Pack</th>
           <th>$/Sobre</th>
           <th>$/Álbum</th>
+          <th>Cajas</th>
+          <th>$/Caja</th>
           <th>Total</th>
           <th>Fecha</th>
           <th>Estado</th>
@@ -399,6 +460,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th>$/Pack</th>
           <th>$/Sobre</th>
           <th>$/Álbum</th>
+          <th>Cajas</th>
+          <th>$/Caja</th>
           <th>Total</th>
           <th>Reservado</th>
           <th>Entregado</th>
@@ -490,8 +553,9 @@ const SOBRES_POR_PACK   = 25;
 const ALBUMES_POR_BULTO = 25;
 const COSTO_SOBRE       = 1500;
 const COSTO_ALBUM       = 11250;
+const COSTO_CAJA        = 10000;
 
-let sobB = 1, albB = 1;
+let sobB = 1, albB = 1, cajB = 1;
 
 /* ── SUPABASE ── */
 const SB_URL = 'https://rdkaisxgclwivkyyrmvv.supabase.co';
@@ -512,7 +576,7 @@ async function sbFetch(path, opts={}) {
   return txt ? JSON.parse(txt) : null;
 }
 
-let stock = { sobres:0, sobBultos:0, sobPacks:0, albumes:0, albBultos:0 };
+let stock = { sobres:0, sobBultos:0, sobPacks:0, albumes:0, albBultos:0, cajas:0 };
 let reservas = [];
 let nextId   = 1;
 let _saving  = false;
@@ -529,7 +593,8 @@ async function save() {
         sob_bultos: stock.sobBultos,
         sob_packs:  stock.sobPacks,
         albumes:    stock.albumes,
-        alb_bultos: stock.albBultos
+        alb_bultos: stock.albBultos,
+        cajas:      stock.cajas
       })
     });
   } catch(e) { console.error('save stock:', e); }
@@ -547,6 +612,8 @@ async function saveReserva(r) {
     p_pack:       r.pPack  || 0,
     p_sobre:      r.pSobre || 0,
     p_album:      r.pAlbum || 0,
+    cajas:        r.cajas  || 0,
+    p_caja:       r.pCaja  || 0,
     estado:       r.estado,
     fecha:        r.fecha,
     fecha_ent:    r.fechaEnt || null
@@ -569,6 +636,8 @@ async function insertReserva(r) {
     p_pack:       r.pPack  || 0,
     p_sobre:      r.pSobre || 0,
     p_album:      r.pAlbum || 0,
+    cajas:        r.cajas  || 0,
+    p_caja:       r.pCaja  || 0,
     estado:       r.estado,
     fecha:        r.fecha,
     fecha_ent:    r.fechaEnt || null
@@ -598,7 +667,8 @@ async function load() {
         sobBultos: s.sob_bultos || 0,
         sobPacks:  s.sob_packs  || 0,
         albumes:   s.albumes   || 0,
-        albBultos: s.alb_bultos || 0
+        albBultos: s.alb_bultos || 0,
+        cajas:     s.cajas      || 0
       };
     }
     if (resData && resData.length) {
@@ -612,6 +682,8 @@ async function load() {
         pPack:       r.p_pack  || 0,
         pSobre:      r.p_sobre || 0,
         pAlbum:      r.p_album || 0,
+        cajas:       r.cajas   || 0,
+        pCaja:       r.p_caja  || 0,
         estado:      r.estado,
         fecha:       r.fecha,
         fechaEnt:    r.fecha_ent || null
@@ -659,7 +731,8 @@ function calcTotal(r){
   const costoSobres = r.sobres * (r.pSobre||0);
   // Álbumes
   const costoAlbumes = r.albumes * (r.pAlbum||0);
-  return costoPacks + costoSobres + costoAlbumes;
+  const costoCajas   = (r.cajas||0) * (r.pCaja||0);
+  return costoPacks + costoSobres + costoAlbumes + costoCajas;
 }
 
 /* ── MÉTRICAS + ECO ── */
@@ -667,8 +740,10 @@ function renderMetrics() {
   const pend   = reservas.filter(r=>r.estado==='pendiente');
   const ent    = reservas.filter(r=>r.estado==='entregado');
   const sobRes = pend.reduce((s,r)=>s+r.totalSobres,0);
+  const cajRes = pend.reduce((s,r)=>s+(r.cajas||0),0);
   const albRes = pend.reduce((s,r)=>s+r.albumes,0);
   const sobEnt = ent.reduce((s,r)=>s+r.totalSobres,0);
+  const cajEnt = ent.reduce((s,r)=>s+(r.cajas||0),0);
   const albEnt = ent.reduce((s,r)=>s+r.albumes,0);
 
   /* stock */
@@ -691,7 +766,8 @@ function renderMetrics() {
   // Invertido = costo de todo lo que se ingresó al stock alguna vez
   const totalSobresAgregados = stock.sobres + sobRes + sobEnt;
   const totalAlbAgregados    = stock.albumes + albRes + albEnt;
-  const invertido = (totalSobresAgregados * COSTO_SOBRE) + (totalAlbAgregados * COSTO_ALBUM);
+  const cajTotalAgregadas = stock.cajas + cajRes + cajEnt;
+  const invertido = (totalSobresAgregados * COSTO_SOBRE) + (totalAlbAgregados * COSTO_ALBUM) + (cajTotalAgregadas * COSTO_CAJA);
 
   const valorRes = pend.reduce((s,r)=>s+calcTotal(r),0);
   const valorEnt = ent.reduce((s,r)=>s+calcTotal(r),0);
@@ -700,6 +776,13 @@ function renderMetrics() {
   const saldoInvertido = Math.max(0, invertido - valorEnt);   // inversión que aún no se recuperó
   const gananciaNeta   = Math.max(0, valorEnt - invertido);   // solo positivo cuando se superó la inversión
   const enCamino       = valorEnt < invertido;                // todavía recuperando inversión
+
+  // Cajas
+  const cajInvertido = stock.cajas * COSTO_CAJA;
+  set('eco-cajas',     pesos(cajInvertido));
+  set('eco-cajas-sub', `${stock.cajas.toLocaleString('es-AR')} caja${stock.cajas!==1?'s':''}`);
+  set('m-cajas',     stock.cajas.toLocaleString('es-AR'));
+  set('m-cajas-sub', `${pesos(cajInvertido)} invertido`);
 
   set('eco-invertido',     pesos(saldoInvertido));
   set('eco-invertido-sub', saldoInvertido > 0
@@ -775,6 +858,22 @@ function sobSt(v){const n=parseInt(v);if(!isNaN(n)&&n>=1){sobB=n;renderSobCalc()
 function albCh(d){albB=Math.max(1,albB+d);renderAlbCalc();}
 function albSt(v){const n=parseInt(v);if(!isNaN(n)&&n>=1){albB=n;renderAlbCalc();}}
 
+function renderCajCalc(){
+  const val=cajB*COSTO_CAJA;
+  const s=(id,v)=>{const e=g(id);if(e)e.textContent=v;};
+  const sv=(id,v)=>{const e=g(id);if(e)e.value=v;};
+  s('caj-n',cajB); sv('caj-i',cajB);
+  s('caj-rc',cajB.toLocaleString('es-AR'));
+  s('caj-rv',pesos(val));
+  s('caj-fm',`${cajB} caja${cajB!==1?'s':''} × ${pesos(COSTO_CAJA)} = ${pesos(val)} invertidos`);
+}
+function cajCh(d){cajB=Math.max(1,cajB+d);renderCajCalc();}
+function cajSt(v){const n=parseInt(v);if(!isNaN(n)&&n>=1){cajB=n;renderCajCalc();}}
+async function agregarCajas(){
+  stock.cajas+=cajB;
+  renderMetrics();flashEl('m-cajas');flashEl('eco-cajas');
+  await save();
+}
 async function agregarSobres(){
   const packs=sobB*PACKS_POR_BULTO,sobres=packs*SOBRES_POR_PACK;
   stock.sobres+=sobres;stock.sobBultos+=sobB;stock.sobPacks+=packs;
@@ -806,20 +905,25 @@ async function confirmarReserva(){
   const pPack  =parseFloat(g('nr-ppk').value)||0;
   const pSobre =parseFloat(g('nr-psob').value)||0;
   const pAlbum =parseFloat(g('nr-palb').value)||0;
+  const cajas  =parseInt(g('nr-cajas').value)||0;
+  const pCaja  =parseFloat(g('nr-pcaj').value)||0;
   const totalSobres=packs*SOBRES_POR_PACK+sobres;
 
   if(!nombre) return alert('Ingresá el nombre del cliente.');
   if(totalSobres===0&&albumes===0) return alert('Ingresá al menos una cantidad.');
   if(totalSobres>stock.sobres) return alert(`Stock insuficiente.\nSobres disponibles: ${stock.sobres.toLocaleString('es-AR')}`);
   if(albumes>stock.albumes)    return alert(`Stock insuficiente.\nÁlbumes disponibles: ${stock.albumes.toLocaleString('es-AR')}`);
+  if(cajas>stock.cajas)         return alert(`Stock insuficiente.\nCajas disponibles: ${stock.cajas.toLocaleString('es-AR')}`);
 
   stock.sobres  -= totalSobres;
   stock.albumes -= albumes;
+  stock.cajas   -= cajas;
 
-  reservas.push({id:nextId++,nombre,packs,sobres,totalSobres,albumes,pPack,pSobre,pAlbum,estado:'pendiente',fecha:new Date().toLocaleDateString('es-AR'),fechaEnt:null});
+  reservas.push({id:nextId++,nombre,packs,sobres,totalSobres,albumes,pPack,pSobre,pAlbum,cajas,pCaja,estado:'pendiente',fecha:new Date().toLocaleDateString('es-AR'),fechaEnt:null});
 
   g('nr-nombre').value='';g('nr-packs').value='0';g('nr-sobres').value='0';
   g('nr-albumes').value='0';g('nr-ppk').value='0';g('nr-psob').value='0';g('nr-palb').value='0';
+  g('nr-cajas').value='0';g('nr-pcaj').value='0';
   g('nr-preview').style.display='none';
 
   renderMetrics();renderTablas();
@@ -850,6 +954,8 @@ function editarReserva(id){
     <td><input class="ei" id="e-ppk-${id}" type="number" min="0" value="${r.pPack||0}"  style="width:60px" step="0.01" /></td>
     <td><input class="ei" id="e-psb-${id}" type="number" min="0" value="${r.pSobre||0}" style="width:60px" step="0.01" /></td>
     <td><input class="ei" id="e-pal-${id}" type="number" min="0" value="${r.pAlbum||0}" style="width:60px" step="0.01" /></td>
+    <td><input class="ei" id="e-caj-${id}" type="number" min="0" value="${r.cajas||0}" style="width:50px" /></td>
+    <td><input class="ei" id="e-pcj-${id}" type="number" min="0" value="${r.pCaja||0}" style="width:60px" step="0.01" /></td>
     <td>—</td>
     <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
     <td><span class="badge b-orange" style="font-size:10px">Editando</span></td>
@@ -872,17 +978,20 @@ async function guardarEd(id){
   const pPack  =parseFloat(g(`e-ppk-${id}`).value)||0;
   const pSobre =parseFloat(g(`e-psb-${id}`).value)||0;
   const pAlbum =parseFloat(g(`e-pal-${id}`).value)||0;
+  const cajas  =parseInt(g(`e-caj-${id}`).value)||0;
+  const pCaja  =parseFloat(g(`e-pcj-${id}`).value)||0;
   const totalSobres=packs*SOBRES_POR_PACK+sobres;
   if(!nombre)return alert('Ingresá el nombre.');
 
   if(r.estado==='pendiente'){
-    const diffSob=totalSobres-r.totalSobres,diffAlb=albumes-r.albumes;
+    const diffSob=totalSobres-r.totalSobres,diffAlb=albumes-r.albumes,diffCaj=(cajas-(r.cajas||0));
     if(diffSob>stock.sobres)  return alert(`Stock insuficiente. Sobres disponibles: ${stock.sobres.toLocaleString('es-AR')}`);
     if(diffAlb>stock.albumes) return alert(`Stock insuficiente. Álbumes disponibles: ${stock.albumes.toLocaleString('es-AR')}`);
-    stock.sobres-=diffSob;stock.albumes-=diffAlb;
+    if(diffCaj>stock.cajas)   return alert(`Stock insuficiente. Cajas disponibles: ${stock.cajas.toLocaleString('es-AR')}`);
+    stock.sobres-=diffSob;stock.albumes-=diffAlb;stock.cajas-=diffCaj;
   }
   r.nombre=nombre;r.packs=packs;r.sobres=sobres;r.totalSobres=totalSobres;
-  r.albumes=albumes;r.pPack=pPack;r.pSobre=pSobre;r.pAlbum=pAlbum;
+  r.albumes=albumes;r.pPack=pPack;r.pSobre=pSobre;r.pAlbum=pAlbum;r.cajas=cajas;r.pCaja=pCaja;
   renderMetrics();renderTablas();
   await Promise.all([save(), saveReserva(r)]);
 }
@@ -891,7 +1000,7 @@ async function guardarEd(id){
 async function eliminarReserva(id){
   const r=reservas.find(x=>x.id===id);if(!r)return;
   if(!confirm(`¿Eliminar reserva de ${r.nombre}?`))return;
-  if(r.estado==='pendiente'){stock.sobres+=r.totalSobres;stock.albumes+=r.albumes;}
+  if(r.estado==='pendiente'){stock.sobres+=r.totalSobres;stock.albumes+=r.albumes;stock.cajas+=(r.cajas||0);}
   reservas=reservas.filter(x=>x.id!==id);
   renderMetrics();renderTablas();
   await Promise.all([save(), deleteReserva(id)]);
@@ -916,6 +1025,8 @@ function renderTablas(){
       ${moneyCell(r.pPack||0)}
       ${moneyCell(r.pSobre||0)}
       ${moneyCell(r.pAlbum||0)}
+      <td>${(r.cajas||0)}</td>
+      ${moneyCell(r.pCaja||0)}
       <td class="total-money">${tot>0?pesos(tot):'—'}</td>
       <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -939,6 +1050,8 @@ function renderTablas(){
       ${moneyCell(r.pPack||0)}
       ${moneyCell(r.pSobre||0)}
       ${moneyCell(r.pAlbum||0)}
+      <td>${(r.cajas||0)}</td>
+      ${moneyCell(r.pCaja||0)}
       <td class="total-money">${tot>0?pesos(tot):'—'}</td>
       <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
       <td style="font-size:11px;color:var(--green)">${r.fechaEnt}</td>
@@ -955,7 +1068,7 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 let modalField=null;
 function openModal(field){
   modalField=field;
-  const labels={sobres:'Sobres en stock',albumes:'Álbumes en stock'};
+  const labels={sobres:'Sobres en stock',albumes:'Álbumes en stock',cajas:'Cajas en stock'};
   g('modal-title').textContent='Editar — '+labels[field];
   g('modal-lbl').textContent='Nuevo valor de '+labels[field].toLowerCase();
   g('modal-inp').value=stock[field];
@@ -969,7 +1082,8 @@ async function saveModal(){
   const val=parseInt(g('modal-inp').value);
   if(isNaN(val)||val<0)return alert('Ingresá un valor válido.');
   stock[modalField]=val;
-  renderMetrics();flashEl(modalField==='sobres'?'m-sobres':'m-albumes');
+  const flashMap={sobres:'m-sobres',albumes:'m-albumes',cajas:'m-cajas'};
+  renderMetrics();flashEl(flashMap[modalField]||'m-cajas');
   closeModalDirect();
   await save();
 }
@@ -984,6 +1098,7 @@ document.addEventListener('keydown',e=>{
   renderMetrics();
   renderSobCalc();
   renderAlbCalc();
+  renderCajCalc();
   renderTablas();
 })();
 </script>
