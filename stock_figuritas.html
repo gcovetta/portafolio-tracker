@@ -569,6 +569,16 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
         <div class="inv-card-label">Entregado (cobrado)</div>
         <div class="inv-card-val c-green" id="inv-s-entregado">$0</div>
         <div class="inv-card-sub" id="inv-s-entregado-sub">0 entregas</div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:6px;">
+          <div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:2px;">Ganancia</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;" id="inv-s-ent-gan">$0</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:2px;">Ganancia %</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;" id="inv-s-ent-pct">0%</div>
+          </div>
+        </div>
       </div>
       <div class="inv-card" id="inv-s-ganancia-card">
         <div class="inv-card-label">Ganancia neta</div>
@@ -1370,6 +1380,20 @@ function renderInvSummary() {
 
   set('inv-s-entregado',     pesos(valorEnt));
   set('inv-s-entregado-sub', `${ent.length} entrega${ent.length!==1?'s':''}`);
+
+  // Ganancia real sobre lo ya entregado
+  const ganEnt    = valorEnt - totalInv;
+  const ganEntPct = totalInv > 0 ? (ganEnt / totalInv) * 100 : 0;
+  const ganEntEl  = document.getElementById('inv-s-ent-gan');
+  const ganPctEl  = document.getElementById('inv-s-ent-pct');
+  if (ganEntEl) {
+    ganEntEl.textContent = (ganEnt < 0 ? '−' : '') + pesos(Math.abs(ganEnt));
+    ganEntEl.style.color = ganEnt > 0 ? 'var(--green)' : ganEnt < 0 ? 'var(--red)' : 'var(--muted)';
+  }
+  if (ganPctEl) {
+    ganPctEl.textContent = (ganEntPct < 0 ? '−' : '') + Math.abs(ganEntPct).toFixed(1) + '%';
+    ganPctEl.style.color = ganEntPct > 0 ? 'var(--green)' : ganEntPct < 0 ? 'var(--red)' : 'var(--muted)';
+  }
 
   // Ganancia neta con color
   const gEl   = document.getElementById('inv-s-ganancia');
