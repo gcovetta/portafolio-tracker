@@ -253,7 +253,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 
 
 /* RESUMEN INVERSIÓN */
-.inv-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.4rem;}
+.inv-summary{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:1.4rem;}
 .inv-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem 1.3rem;}
 .inv-card-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:8px;}
 .inv-card-val{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;line-height:1;}
@@ -263,7 +263,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .inv-card-val.neutral{color:var(--muted);}
 .inv-card.ganancia-pos{border-color:rgba(76,175,125,.25);}
 .inv-card.ganancia-neg{border-color:rgba(224,92,92,.25);}
-@media(max-width:760px){.inv-summary{grid-template-columns:1fr 1fr;}}
+@media(max-width:900px){.inv-summary{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:600px){.inv-summary{grid-template-columns:1fr 1fr;}}
 
 </style>
 </head>
@@ -573,6 +574,16 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
         <div class="inv-card-label">Ganancia neta</div>
         <div class="inv-card-val neutral" id="inv-s-ganancia">$0</div>
         <div class="inv-card-sub" id="inv-s-ganancia-sub">Cobrado − Invertido</div>
+      </div>
+      <div class="inv-card" id="inv-s-proyectado-card">
+        <div class="inv-card-label">Proyectado</div>
+        <div class="inv-card-val c-purple" id="inv-s-proyectado">$0</div>
+        <div class="inv-card-sub" id="inv-s-proyectado-sub">Stock restante × precio</div>
+      </div>
+      <div class="inv-card" id="inv-s-gan-proy-card">
+        <div class="inv-card-label">Ganancia neta proyectada</div>
+        <div class="inv-card-val neutral" id="inv-s-gan-proy">$0</div>
+        <div class="inv-card-sub" id="inv-s-gan-proy-sub">Ganancia + Proyectado</div>
       </div>
     </div>
 
@@ -1367,6 +1378,32 @@ function renderInvSummary() {
   }
   if (gCard) {
     gCard.className = 'inv-card ' + (ganancia > 0 ? 'ganancia-pos' : ganancia < 0 ? 'ganancia-neg' : '');
+  }
+
+  // Proyectado: stock restante × precios de venta proyectados
+  const proyectado = (stock.sobres * 2000) + (stock.albumes * 15000) + (stock.cajas * 14000);
+
+  const pEl  = document.getElementById('inv-s-proyectado');
+  const pSub = document.getElementById('inv-s-proyectado-sub');
+  if (pEl)  pEl.textContent  = pesos(proyectado);
+  if (pSub) pSub.textContent = `${stock.sobres.toLocaleString('es-AR')} sob × $2.000 + ${stock.albumes.toLocaleString('es-AR')} álb × $15.000 + ${stock.cajas.toLocaleString('es-AR')} caj × $14.000`;
+
+  // Ganancia neta proyectada = ganancia actual + proyectado
+  const gananciaProy = ganancia + proyectado;
+  const gpEl   = document.getElementById('inv-s-gan-proy');
+  const gpSub  = document.getElementById('inv-s-gan-proy-sub');
+  const gpCard = document.getElementById('inv-s-gan-proy-card');
+  if (gpEl) {
+    gpEl.textContent = pesos(Math.abs(gananciaProy));
+    gpEl.className   = 'inv-card-val ' + (gananciaProy > 0 ? 'positive' : gananciaProy < 0 ? 'negative' : 'neutral');
+  }
+  if (gpSub) {
+    gpSub.textContent = gananciaProy >= 0
+      ? `Ganancia neta + stock restante`
+      : `Aún en negativo: faltan ${pesos(Math.abs(gananciaProy))}`;
+  }
+  if (gpCard) {
+    gpCard.className = 'inv-card ' + (gananciaProy > 0 ? 'ganancia-pos' : gananciaProy < 0 ? 'ganancia-neg' : '');
   }
 }
 
