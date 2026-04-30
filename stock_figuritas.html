@@ -668,8 +668,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 <script>
 
 /* ── LOGIN ── */
-const _lkh = '2ca9f63bb06128cdda3ab45ebc7033656c2495bbb82308afee8faad496048390';
-let lkBuffer = '';
+var _lkh = '2ca9f63bb06128cdda3ab45ebc7033656c2495bbb82308afee8faad496048390';
+var lkBuffer = '';
 
 async function _hash(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
