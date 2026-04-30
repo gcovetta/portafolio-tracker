@@ -179,9 +179,6 @@
                 <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>Etapas
             </button>
             <div class="nav-s">Finanzas</div>
-            <button class="nav-item" onclick="goTo('rubros')">
-                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>Rubros
-            </button>
             <button class="nav-item" onclick="goTo('pagos')">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg>Pagos
             </button>
@@ -223,7 +220,6 @@
             <div class="alerts-banner" id="alertsBanner"></div>
             <div id="page-resumen" class="page active"></div>
             <div id="page-etapas" class="page"></div>
-            <div id="page-rubros" class="page"></div>
             <div id="page-pagos" class="page"></div>
             <div id="page-balance" class="page"></div>
             <div id="page-config" class="page"></div>
@@ -238,7 +234,7 @@
         <div class="modal-body">
             <div class="form-row">
                 <div class="fg"><label>Fecha</label><input type="date" id="mFecha"></div>
-                <div class="fg"><label>Rubro</label><select id="mRubro"></select></div>
+                <div class="fg"><label>Etapa</label><select id="mEtapa"></select></div>
             </div>
             <div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="mDesc" placeholder="Descripción del pago"></div></div>
             <div class="form-row">
@@ -250,24 +246,6 @@
     </div>
 </div>
 
-<!-- MODAL RUBRO -->
-<div class="modal-overlay" id="modalRubro">
-    <div class="modal">
-        <div class="modal-hdr"><h3 id="mRubroTitle">Agregar rubro</h3><button class="btn btn-sm" onclick="closeModal('modalRubro')">✕</button></div>
-        <div class="modal-body">
-            <div class="form-row full"><div class="fg"><label>Nombre</label><input type="text" id="rNombre" placeholder="Ej: Pintura exterior"></div></div>
-            <div class="form-row">
-                <div class="fg"><label>Fecha inicio</label><input type="date" id="rFechaIni"></div>
-                <div class="fg"><label>Fecha fin</label><input type="date" id="rFechaFin"></div>
-            </div>
-            <div class="form-row">
-                <div class="fg"><label>Color</label><input type="color" id="rColor" value="#4C8EF5"></div>
-            </div>
-        </div>
-        <div class="modal-ftr"><button class="btn" onclick="closeModal('modalRubro')">Cancelar</button><button class="btn btn-primary" onclick="saveRubro()">Guardar</button></div>
-    </div>
-</div>
-
 <!-- MODAL ETAPA -->
 <div class="modal-overlay" id="modalEtapa">
     <div class="modal">
@@ -275,8 +253,8 @@
         <div class="modal-body">
             <div class="form-row full"><div class="fg"><label>Nombre</label><input type="text" id="eNombre" placeholder="Ej: Estructura"></div></div>
             <div class="form-row">
-                <div class="fg"><label>Mes inicio (1-18)</label><input type="number" id="eMesIni" min="1" max="18" placeholder="1"></div>
-                <div class="fg"><label>Mes fin (1-18)</label><input type="number" id="eMesFin" min="1" max="18" placeholder="6"></div>
+                <div class="fg"><label>Fecha inicio</label><input type="date" id="eFechaIni"></div>
+                <div class="fg"><label>Fecha fin</label><input type="date" id="eFechaFin"></div>
             </div>
             <div class="form-row">
                 <div class="fg"><label>Color</label><input type="color" id="eColor" value="#4C8EF5"></div>
@@ -311,7 +289,7 @@ var MO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic
 var S = {
     startDate: '2026-04-01', tcn: 1200,
     rubros: [], pagos: [], etapas: [], ingresos: [], deudas: [], ajustes: [],
-    editPagoId: null, editRubroId: null, editEtapaId: null, editBalType: null, editBalId: null,
+    editPagoId: null, editEtapaId: null, editBalType: null, editBalId: null,
     calc: { manoObra: '', materiales: '', otrosCostos: '', m2: '' }
 };
 
@@ -386,25 +364,27 @@ async function initApp() {
 async function loadAllData() {
     var results = await Promise.all([
         sb.from('obra_config').select('*').eq('id','main').single(),
-        sb.from('obra_rubros').select('*').order('orden'),
         sb.from('obra_pagos').select('*').order('fecha'),
         sb.from('obra_etapas').select('*').order('orden'),
         sb.from('obra_ingresos').select('*').order('fecha'),
         sb.from('obra_deudas').select('*').order('created_at'),
         sb.from('obra_ajustes').select('*').order('fecha')
     ]);
-    var cfg=results[0], rubros=results[1], pagos=results[2], etapas=results[3],
-        ingresos=results[4], deudas=results[5], ajustes=results[6];
+    var cfg=results[0], pagos=results[1], etapas=results[2],
+        ingresos=results[3], deudas=results[4], ajustes=results[5];
 
     if (cfg.data) {
         S.startDate = cfg.data.start_date;
         S.tcn = parseFloat(cfg.data.tcn) || 1200;
         var inp = document.getElementById('tcnInput');
         if (inp) inp.value = S.tcn;
+        S.calc.manoObra   = cfg.data.calc_mo  != null ? String(cfg.data.calc_mo)  : '';
+        S.calc.materiales = cfg.data.calc_mat != null ? String(cfg.data.calc_mat) : '';
+        S.calc.total      = cfg.data.calc_tot != null ? String(cfg.data.calc_tot) : '';
+        S.calc.m2         = cfg.data.calc_m2  != null ? String(cfg.data.calc_m2)  : '';
     }
-    S.rubros   = (rubros.data||[]).map(function(r){ return {id:r.id, nombre:r.nombre, presupARS:(r.presup_usd||0)*S.tcn, presupUSD:r.presup_usd||0, color:r.color, avanceFisico:r.avance_fisico, orden:r.orden, fechaIni:r.fecha_ini||'', fechaFin:r.fecha_fin||''}; });
-    S.pagos    = (pagos.data||[]).map(function(p){ return {id:p.id, fecha:p.fecha, rubroId:p.rubro_id, desc:p.descripcion, montoARS:p.monto_usd*S.tcn, montoUSD:p.monto_usd, estado:p.estado}; });
-    S.etapas   = (etapas.data||[]).map(function(e){ return {id:e.id, nombre:e.nombre, mesIni:e.mes_ini, mesFin:e.mes_fin, color:e.color, avance:e.avance, orden:e.orden}; });
+    S.pagos    = (pagos.data||[]).map(function(p){ return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, desc:p.descripcion, montoARS:p.monto_usd*S.tcn, montoUSD:p.monto_usd, estado:p.estado}; });
+    S.etapas   = (etapas.data||[]).map(function(e){ return {id:e.id, nombre:e.nombre, mesIni:e.mes_ini||1, mesFin:e.mes_fin||1, color:e.color, avance:e.avance, orden:e.orden, finalizado:e.finalizado||false, fechaIni:e.fecha_ini||'', fechaFin:e.fecha_fin||''}; });
     S.ingresos = (ingresos.data||[]).map(function(x){
         var obj={id:x.id, fecha:x.fecha, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd, realizado:x.realizado, periodicidad:x.periodicidad, fechaHasta:x.fecha_hasta||''};
         // calcular nCuotas si tiene fechaHasta y es mensual
@@ -424,15 +404,6 @@ async function loadAllData() {
 // ═══════════════════════════════════════
 function renderAlerts() {
     var items = [];
-    S.rubros.forEach(function(r) {
-        var g = S.pagos.filter(function(p){ return p.rubroId===r.id&&p.estado==='pagado'; }).reduce(function(s,p){ return s+p.montoARS; },0);
-        var p2 = pct(g, r.presupARS);
-        if (g > r.presupARS) {
-            items.push('<div class="alert-item danger"><strong>'+r.nombre+'</strong> — excedido en '+fmtMain(g-r.presupARS)+'</div>');
-        } else if (p2 >= 80) {
-            items.push('<div class="alert-item warning"><strong>'+r.nombre+'</strong> — '+p2+'% utilizado</div>');
-        }
-    });
     var v = S.pagos.filter(function(p){ return p.estado==='vencido'; }).length;
     if (v) items.push('<div class="alert-item danger"><strong>'+v+' pago'+(v>1?'s':'')+' vencido'+(v>1?'s':'')+' sin registrar</strong></div>');
     document.getElementById('alertsBanner').innerHTML = items.join('');
@@ -443,27 +414,10 @@ function renderAlerts() {
 // ═══════════════════════════════════════
 var chartMens = null;
 function renderResumen() {
-    var tp=totalPresARS(), pd=totalPagadoARS(), pe=totalPendienteARS(), sl=tp-pd-pe, av=pct(pd,tp), cm=curMonthOff();
-    var avanceRows = S.rubros.map(function(r) {
-        var g = S.pagos.filter(function(p){ return p.rubroId===r.id&&p.estado==='pagado'; }).reduce(function(s,p){ return s+p.montoARS; },0);
-        var pFin=pct(g,r.presupARS), ov=g>r.presupARS, pFis=r.avanceFisico||0;
-        return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">' +
-            '<span style="width:8px;height:8px;border-radius:2px;background:'+r.color+';flex-shrink:0;display:inline-block;margin-top:2px;"></span>' +
-            '<div style="flex:1;min-width:0;">' +
-            '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">' +
-            '<span style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;">'+r.nombre+'</span>' +
-            '<span style="font-size:11px;font-family:DM Mono,monospace;color:'+(ov?'var(--red)':'var(--text3)')+';">'+fmtMain(g)+' / '+fmtMain(r.presupARS)+'</span>' +
-            '</div>' +
-            '<div style="position:relative;height:10px;background:var(--surface3);border-radius:5px;overflow:hidden;">' +
-            '<div style="position:absolute;inset:0;width:'+pFis+'%;background:'+r.color+'33;border-radius:5px;"></div>' +
-            '<div style="position:absolute;inset:0;width:'+Math.min(pFin,100)+'%;background:'+(ov?'var(--red)':r.color)+';border-radius:5px;"></div>' +
-            '</div>' +
-            '<div style="display:flex;justify-content:space-between;margin-top:2px;">' +
-            '<span style="font-size:10px;color:var(--text3);">Financiero: <span style="color:'+(ov?'var(--red)':'inherit')+'">'+pFin+'%</span></span>' +
-            '<span style="font-size:10px;color:var(--text3);">Físico: '+pFis+'%</span>' +
-            '</div></div></div>';
-    }).join('');
-    var etapaRows = S.etapas.map(function(e) {
+    var pd=totalPagadoARS(), pe=totalPendienteARS(), cm=curMonthOff();
+    var etapasActivas = S.etapas.filter(function(e){ return !e.finalizado; });
+    var avFisico = etapasActivas.length ? Math.round(etapasActivas.reduce(function(s,e){ return s+e.avance; },0)/etapasActivas.length) : 0;
+    var etapaRows = S.etapas.filter(function(e){ return !e.finalizado; }).map(function(e) {
         var en=cm>=e.mesIni-1&&cm<e.mesFin, past=cm>=e.mesFin;
         var cls=past&&e.avance<100?'atrasada':past?'completada':en?'en-curso':'pendiente';
         var lbl={atrasada:'Atrasada',completada:'Completada','en-curso':'En curso',pendiente:'Pendiente'}[cls];
@@ -480,31 +434,33 @@ function renderResumen() {
     }).join('');
     document.getElementById('page-resumen').innerHTML =
         '<div class="metrics">' +
-        '<div class="metric-card"><div class="ml">Presupuesto total</div><div class="mv c-blue">'+fmtMain(tp)+'</div><div class="ms">'+S.rubros.length+' rubros</div></div>' +
-        '<div class="metric-card"><div class="ml">Ejecutado</div><div class="mv c-green">'+fmtMain(pd)+'</div><div class="ms">'+av+'% del total</div></div>' +
+        '<div class="metric-card"><div class="ml">Total pagado</div><div class="mv c-green">'+fmtMain(pd)+'</div><div class="ms">'+S.pagos.filter(function(p){return p.estado==='pagado';}).length+' pagos</div></div>' +
         '<div class="metric-card"><div class="ml">Comprometido</div><div class="mv c-amber">'+fmtMain(pe)+'</div><div class="ms">'+S.pagos.filter(function(p){return p.estado!=='pagado';}).length+' pagos pend.</div></div>' +
-        '<div class="metric-card"><div class="ml">Disponible</div><div class="mv '+(sl<0?'c-red':'c-green')+'">'+fmtMain(sl)+'</div><div class="ms">'+(sl<0?'Excedido':'Sin comprometer')+'</div></div>' +
+        '<div class="metric-card"><div class="ml">Avance físico</div><div class="mv c-blue">'+avFisico+'%</div><div class="ms">'+etapasActivas.length+' etapas activas</div></div>' +
+        '<div class="metric-card"><div class="ml">Etapas finalizadas</div><div class="mv c-green">'+S.etapas.filter(function(e){return e.finalizado;}).length+'</div><div class="ms">de '+S.etapas.length+' totales</div></div>' +
         '</div>' +
-        // Calculadora costo por m²
-        '<div class="card" style="margin-bottom:16px;">' +
-        '<div class="card-hdr"><h3>Calculadora de costo total</h3><span style="font-size:11px;color:var(--text3);">Ingresá los costos por m² y la superficie para calcular el total de cada línea</span></div>' +
-        '<div class="card-body">' +
-        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;">' +
-        '<div class="fg"><label>Mano de obra (U$S/m²)</label><div class="amt-wrap"><input type="number" id="calcMO" placeholder="0" min="0" value="'+(S.calc.manoObra||'')+'" oninput="S.calc.manoObra=this.value;calcCostoM2()" onchange="calcCostoM2()"><span class="amt-tag">U$S/m²</span></div></div>' +
-        '<div class="fg"><label>Materiales (U$S/m²)</label><div class="amt-wrap"><input type="number" id="calcMat" placeholder="0" min="0" value="'+(S.calc.materiales||'')+'" oninput="S.calc.materiales=this.value;calcCostoM2()" onchange="calcCostoM2()"><span class="amt-tag">U$S/m²</span></div></div>' +
-        '<div class="fg"><label>Total construcción (U$S/m²)</label><div class="amt-wrap"><input type="number" id="calcTot" placeholder="Auto" min="0" value="'+(S.calc.total||'')+'" oninput="S.calc.total=this.value;calcCostoM2()" onchange="calcCostoM2()"><span class="amt-tag">U$S/m²</span></div></div>' +
-        '<div class="fg"><label>Superficie (m²)</label><div class="amt-wrap"><input type="number" id="calcM2" placeholder="0" min="0" value="'+(S.calc.m2||'')+'" oninput="S.calc.m2=this.value;calcCostoM2()" onchange="calcCostoM2()"><span class="amt-tag">m²</span></div></div>' +
+        // Calculadora costo por m² (compacta / colapsable)
+        '<details class="card" style="margin-bottom:16px;">' +
+        '<summary style="padding:10px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;list-style:none;-webkit-appearance:none;">' +
+        '<div style="display:flex;align-items:center;gap:10px;">' +
+        '<span style="font-size:13px;font-weight:600;">Calculadora de costo total</span>' +
+        '<span style="font-size:11px;color:var(--text3);">'+(S.calc.m2?S.calc.m2+' m²':'—')+' · '+(S.calc.total||S.calc.manoObra?'U$S '+(S.calc.total||S.calc.manoObra)+'/m²':'sin datos')+'</span>' +
+        '</div><span style="color:var(--text3);font-size:12px;">▾</span></summary>' +
+        '<div class="card-body" style="padding-top:8px;">' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">' +
+        '<div class="fg" style="min-width:110px;flex:1;"><label style="font-size:10px;">M. obra (U$S/m²)</label><div class="amt-wrap"><input type="number" id="calcMO" placeholder="0" min="0" value="'+(S.calc.manoObra||'')+'" style="height:28px;font-size:12px;" oninput="S.calc.manoObra=this.value;calcCostoM2();scheduleCalcSave()"><span class="amt-tag" style="font-size:10px;">U$S</span></div></div>' +
+        '<div class="fg" style="min-width:110px;flex:1;"><label style="font-size:10px;">Materiales (U$S/m²)</label><div class="amt-wrap"><input type="number" id="calcMat" placeholder="0" min="0" value="'+(S.calc.materiales||'')+'" style="height:28px;font-size:12px;" oninput="S.calc.materiales=this.value;calcCostoM2();scheduleCalcSave()"><span class="amt-tag" style="font-size:10px;">U$S</span></div></div>' +
+        '<div class="fg" style="min-width:110px;flex:1;"><label style="font-size:10px;">Total (U$S/m²)</label><div class="amt-wrap"><input type="number" id="calcTot" placeholder="Auto" min="0" value="'+(S.calc.total||'')+'" style="height:28px;font-size:12px;" oninput="S.calc.total=this.value;calcCostoM2();scheduleCalcSave()"><span class="amt-tag" style="font-size:10px;">U$S</span></div></div>' +
+        '<div class="fg" style="min-width:90px;flex:1;"><label style="font-size:10px;">Superficie (m²)</label><div class="amt-wrap"><input type="number" id="calcM2" placeholder="0" min="0" value="'+(S.calc.m2||'')+'" style="height:28px;font-size:12px;" oninput="S.calc.m2=this.value;calcCostoM2();scheduleCalcSave()"><span class="amt-tag" style="font-size:10px;">m²</span></div></div>' +
         '</div>' +
         '<div id="calcResult" style="overflow-x:auto;"></div>' +
-        '</div></div>' +
+        '</div></details>' +
         '<div class="grid2">' +
-        '<div><div class="card"><div class="card-hdr"><h3>Avance de obra</h3><span style="font-size:18px;font-weight:600;font-family:DM Mono,monospace;color:var(--blue)">'+av+'%</span></div>' +
+        '<div><div class="card"><div class="card-hdr"><h3>Avance de obra</h3><span style="font-size:18px;font-weight:600;font-family:DM Mono,monospace;color:var(--blue)">'+avFisico+'%</span></div>' +
         '<div class="card-body">' +
-        '<div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden;margin-bottom:16px;"><div style="height:100%;width:'+av+'%;background:var(--blue);border-radius:4px;"></div></div>' +
-        '<div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">Rubros</div>' + avanceRows +
-        '<div style="border-top:1px solid var(--border);margin-top:14px;padding-top:14px;">' +
+        '<div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden;margin-bottom:16px;"><div style="height:100%;width:'+avFisico+'%;background:var(--blue);border-radius:4px;"></div></div>' +
         '<div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">Etapas</div>' + etapaRows +
-        '</div></div></div></div>' +
+        '</div></div></div>' +
         '<div><div class="card" style="margin-bottom:14px;"><div class="card-hdr"><h3>Cronograma</h3><span style="font-size:11px;color:var(--text3);">Mes '+Math.max(0,Math.min(18,cm+1))+' / 18</span></div>' +
         '<div class="card-body"><div class="months-strip">'+mStrip+'</div></div></div>' +
         '<div class="card"><div class="card-hdr"><h3>Gasto mensual (U$S)</h3></div><div class="card-body"><div style="position:relative;width:100%;height:180px;"><canvas id="chartMens"></canvas></div></div></div>' +
@@ -573,6 +529,29 @@ function calcCostoM2() {
         '</tr></thead><tbody>'+rowsHTML+'</tbody></table>';
 }
 
+var calcSaveTimer = null;
+function scheduleCalcSave() { clearTimeout(calcSaveTimer); calcSaveTimer = setTimeout(saveCalc, 800); }
+async function saveCalc() {
+    var payload = {
+        calc_mo:  S.calc.manoObra   !== '' ? parseFloat(S.calc.manoObra)   : null,
+        calc_mat: S.calc.materiales !== '' ? parseFloat(S.calc.materiales) : null,
+        calc_tot: S.calc.total      !== '' ? parseFloat(S.calc.total)      : null,
+        calc_m2:  S.calc.m2         !== '' ? parseFloat(S.calc.m2)         : null
+    };
+    await sb.from('obra_config').update(payload).eq('id','main');
+}
+async function toggleFinalizadoEtapa(id) {
+    var e = S.etapas.find(function(x){ return x.id===id; });
+    if (!e) return;
+    e.finalizado = !e.finalizado;
+    setSaveStatus('saving');
+    var res = await sb.from('obra_etapas').update({finalizado:e.finalizado}).eq('id',id);
+    if (res.error) { setSaveStatus('error'); return; }
+    setSaveStatus('ok','Guardado');
+    renderEtapas();
+    if (curPage==='resumen') renderResumen();
+}
+
 // ═══════════════════════════════════════
 // PAGE: ETAPAS
 // ═══════════════════════════════════════
@@ -584,24 +563,38 @@ function renderEtapas() {
             Array.from({length:18}, function(_,i){ var inR=i>=e.mesIni-1&&i<=e.mesFin-1,isCur=i===cm&&inR; return '<div class="gantt-cell" style="background:'+(inR?(isCur?e.color:e.color+'66'):'transparent')+'"></div>'; }).join('') +
             '</div></div>';
     }).join('');
-    var items = S.etapas.map(function(e,idx) {
+    var activas = S.etapas.filter(function(e){ return !e.finalizado; });
+    var finalizadas = S.etapas.filter(function(e){ return e.finalizado; });
+    var items = activas.map(function(e,idx) {
         var en=cm>=e.mesIni-1&&cm<e.mesFin, past=cm>=e.mesFin;
         var cls=past&&e.avance<100?'atrasada':past?'completada':en?'en-curso':'pendiente';
         var lbl={atrasada:'Atrasada',completada:'Completada','en-curso':'En curso',pendiente:'Pendiente'}[cls];
-        var dur=e.mesFin-e.mesIni+1, d0=monthDate(e.mesIni-1), d1=monthDate(e.mesFin-1);
-        var fechaStr=MO[d0.getMonth()]+' '+d0.getFullYear()+' - '+MO[d1.getMonth()]+' '+d1.getFullYear();
+        var fechaIniStr=e.fechaIni?e.fechaIni.split('-').reverse().join('/'):(e.mesIni?mLabel(e.mesIni-1):'—');
+        var fechaFinStr=e.fechaFin?e.fechaFin.split('-').reverse().join('/'):(e.mesFin?mLabel(e.mesFin-1):'—');
         var tl = Array.from({length:18}, function(_,i){ var inR=i>=e.mesIni-1&&i<=e.mesFin-1,isCur=i===cm&&inR; return '<div class="etm-cell" style="background:'+(inR?(isCur?e.color:e.color+'55'):'var(--surface3)')+'"></div>'; }).join('');
         return '<div class="drag-item" data-idx="'+idx+'">' +
             '<div class="drag-handle"><span></span><span></span><span></span></div>' +
             '<div class="di-dot" style="background:'+e.color+'"></div>' +
             '<div class="di-info"><div class="di-name">'+e.nombre+'</div>' +
-            '<div class="di-sub">'+fechaStr+' · '+dur+' mes'+(dur>1?'es':'')+'</div>' +
+            '<div class="di-sub">'+fechaIniStr+' → '+fechaFinStr+'</div>' +
             '<div class="etapa-prog-wrap"><div class="etapa-prog-track"><div class="etapa-prog-fill" style="width:'+e.avance+'%;background:'+e.color+'"></div></div>' +
             '<span style="font-size:11px;font-family:DM Mono,monospace;color:'+e.color+';width:32px;text-align:right;">'+e.avance+'%</span></div>' +
             '<div class="etapa-tl-mini">'+tl+'</div></div>' +
             '<div class="di-actions"><span class="etapa-status '+cls+'">'+lbl+'</span>' +
+            '<button class="btn btn-sm" style="background:var(--green-dim);color:var(--green);" title="Marcar como finalizada" onclick="toggleFinalizadoEtapa('+e.id+')">✓</button>' +
             '<button class="btn btn-sm" onclick="openEditEtapa('+e.id+')">Editar</button>' +
             '<button class="btn btn-sm btn-danger" onclick="deleteEtapa('+e.id+')">✕</button></div></div>';
+    }).join('');
+    var itemsFinalizadas = finalizadas.map(function(e) {
+        var dur=e.mesFin-e.mesIni+1, d0=monthDate(e.mesIni-1), d1=monthDate(e.mesFin-1);
+        var fechaStr=MO[d0.getMonth()]+' '+d0.getFullYear()+' - '+MO[d1.getMonth()]+' '+d1.getFullYear();
+        return '<div class="drag-item" style="opacity:0.7;">' +
+            '<div style="width:24px;flex-shrink:0;"></div>' +
+            '<div class="di-dot" style="background:'+e.color+'"></div>' +
+            '<div class="di-info"><div class="di-name" style="text-decoration:line-through;color:var(--text3);">'+e.nombre+'</div>' +
+            '<div class="di-sub">'+fechaStr+' · '+dur+' mes'+(dur>1?'es':'')+'</div></div>' +
+            '<div class="di-actions"><span class="etapa-status completada">Finalizada</span>' +
+            '<button class="btn btn-sm" onclick="toggleFinalizadoEtapa('+e.id+')">Reabrir</button></div></div>';
     }).join('');
     document.getElementById('page-etapas').innerHTML =
         '<div class="card" style="margin-bottom:16px;"><div class="card-hdr"><h3>Gantt</h3></div>' +
@@ -610,18 +603,30 @@ function renderEtapas() {
         '<div class="months-strip" style="margin-bottom:0;">'+mStrip+'</div></div>' + gantt +
         '</div></div></div>' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
-        '<div><div style="font-size:13px;font-weight:600;">Etapas de obra</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Arrastrá para reordenar</div></div>' +
+        '<div><div style="font-size:13px;font-weight:600;">Etapas de obra</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Arrastrá para reordenar · ✓ para finalizar</div></div>' +
         '<button class="btn btn-primary" onclick="openNewEtapa()">+ Nueva etapa</button></div>' +
-        '<div class="drag-list" id="etapasList">'+(items||'<div class="empty">Sin etapas</div>')+'</div>';
-    makeDraggable('etapasList', S.etapas, renderEtapas, 'obra_etapas');
+        '<div class="drag-list" id="etapasList">'+(items||'<div class="empty">Sin etapas</div>')+'</div>' +
+        (finalizadas.length ?
+            '<div style="margin-top:20px;">' +
+            '<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text2);">Etapas finalizadas <span style="font-size:11px;font-weight:400;color:var(--text3);">('+finalizadas.length+')</span></div>' +
+            '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 0;">'+itemsFinalizadas+'</div>' +
+            '</div>' : '');
+    makeDraggable('etapasList', activas, renderEtapas, 'obra_etapas');
 }
-function openNewEtapa(){ S.editEtapaId=null; document.getElementById('mEtapaTitle').textContent='Nueva etapa'; document.getElementById('eNombre').value=''; document.getElementById('eMesIni').value=''; document.getElementById('eMesFin').value=''; document.getElementById('eColor').value='#4C8EF5'; document.getElementById('eAvance').value='0'; openModal('modalEtapa'); }
-function openEditEtapa(id){ S.editEtapaId=id; var e=S.etapas.find(function(x){ return x.id===id; }); document.getElementById('mEtapaTitle').textContent='Editar etapa'; document.getElementById('eNombre').value=e.nombre; document.getElementById('eMesIni').value=e.mesIni; document.getElementById('eMesFin').value=e.mesFin; document.getElementById('eColor').value=e.color; document.getElementById('eAvance').value=e.avance; openModal('modalEtapa'); }
+function dateToMesOff(dateStr) {
+    if (!dateStr) return 1;
+    var d = new Date(dateStr+'T00:00:00'), s = new Date(S.startDate);
+    return Math.max(1, Math.min(18, (d.getFullYear()-s.getFullYear())*12+(d.getMonth()-s.getMonth())+1));
+}
+function openNewEtapa(){ S.editEtapaId=null; document.getElementById('mEtapaTitle').textContent='Nueva etapa'; document.getElementById('eNombre').value=''; document.getElementById('eFechaIni').value=''; document.getElementById('eFechaFin').value=''; document.getElementById('eColor').value='#4C8EF5'; document.getElementById('eAvance').value='0'; openModal('modalEtapa'); }
+function openEditEtapa(id){ S.editEtapaId=id; var e=S.etapas.find(function(x){ return x.id===id; }); document.getElementById('mEtapaTitle').textContent='Editar etapa'; document.getElementById('eNombre').value=e.nombre; document.getElementById('eFechaIni').value=e.fechaIni||''; document.getElementById('eFechaFin').value=e.fechaFin||''; document.getElementById('eColor').value=e.color; document.getElementById('eAvance').value=e.avance; openModal('modalEtapa'); }
 async function saveEtapa(){
-    var nombre=document.getElementById('eNombre').value.trim(), mesIni=parseInt(document.getElementById('eMesIni').value), mesFin=parseInt(document.getElementById('eMesFin').value), color=document.getElementById('eColor').value, avance=Math.min(100,Math.max(0,parseInt(document.getElementById('eAvance').value)||0));
-    if(!nombre||!mesIni||!mesFin||mesIni>mesFin){ alert('Completá todos los campos.'); return; }
+    var nombre=document.getElementById('eNombre').value.trim(), fechaIni=document.getElementById('eFechaIni').value, fechaFin=document.getElementById('eFechaFin').value, color=document.getElementById('eColor').value, avance=Math.min(100,Math.max(0,parseInt(document.getElementById('eAvance').value)||0));
+    if(!nombre){ alert('Ingresá el nombre de la etapa.'); return; }
+    var mesIni=dateToMesOff(fechaIni), mesFin=dateToMesOff(fechaFin);
+    if(fechaIni&&fechaFin&&fechaIni>fechaFin){ alert('La fecha de inicio no puede ser posterior a la de fin.'); return; }
     setSaveStatus('saving');
-    var payload={nombre:nombre,mes_ini:mesIni,mes_fin:mesFin,color:color,avance:avance};
+    var payload={nombre:nombre,fecha_ini:fechaIni||null,fecha_fin:fechaFin||null,mes_ini:mesIni,mes_fin:mesFin,color:color,avance:avance};
     var res = S.editEtapaId ? await sb.from('obra_etapas').update(payload).eq('id',S.editEtapaId) : await sb.from('obra_etapas').insert(Object.assign({},payload,{orden:S.etapas.length}));
     if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
     setSaveStatus('ok','Guardado'); closeModal('modalEtapa'); await loadAllData(); renderEtapas();
@@ -635,77 +640,18 @@ async function deleteEtapa(id){
 }
 
 // ═══════════════════════════════════════
-// PAGE: RUBROS
-// ═══════════════════════════════════════
-function renderRubros() {
-    var items = S.rubros.map(function(r,idx) {
-        var pFis=r.avanceFisico||0;
-        var fechaIniStr = r.fechaIni ? r.fechaIni.split('-').reverse().join('/') : '—';
-        var fechaFinStr = r.fechaFin ? r.fechaFin.split('-').reverse().join('/') : '—';
-        return '<div class="drag-item" data-idx="'+idx+'" style="align-items:flex-start;">' +
-            '<div class="drag-handle" style="margin-top:3px;"><span></span><span></span><span></span></div>' +
-            '<div class="di-dot" style="background:'+r.color+';margin-top:4px;"></div>' +
-            '<div class="di-info"><div class="di-name">'+r.nombre+'</div>' +
-            '<div class="di-sub" style="margin-top:2px;">Inicio: <strong style="color:var(--text)">'+fechaIniStr+'</strong> &nbsp;·&nbsp; Fin: <strong style="color:var(--text)">'+fechaFinStr+'</strong></div>' +
-            '<div style="margin-top:6px;">' +
-            '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:10px;color:var(--text3);width:90px;flex-shrink:0;">Avance físico</span><input type="range" min="0" max="100" step="1" value="'+pFis+'" style="flex:1;accent-color:'+r.color+';height:4px;cursor:pointer;" oninput="updAF('+r.id+',this.value)" onchange="saveAF('+r.id+',this.value)"><span id="af'+r.id+'" style="font-size:11px;font-family:DM Mono,monospace;color:'+r.color+';width:32px;text-align:right;">'+pFis+'%</span></div>' +
-            '</div></div>' +
-            '<div class="di-actions" style="margin-top:2px;"><button class="btn btn-sm" onclick="openEditRubro('+r.id+')">Editar</button><button class="btn btn-sm btn-danger" onclick="deleteRubro('+r.id+')">✕</button></div></div>';
-    }).join('');
-    var tableRows = S.rubros.map(function(r) {
-        var pFis=r.avanceFisico||0;
-        var fechaIniStr = r.fechaIni ? r.fechaIni.split('-').reverse().join('/') : '—';
-        var fechaFinStr = r.fechaFin ? r.fechaFin.split('-').reverse().join('/') : '—';
-        return '<tr><td><span class="color-dot" style="background:'+r.color+'"></span>'+r.nombre+'</td>' +
-            '<td style="font-family:DM Mono,monospace;font-size:12px;">'+fechaIniStr+'</td>' +
-            '<td style="font-family:DM Mono,monospace;font-size:12px;">'+fechaFinStr+'</td>' +
-            '<td style="text-align:center"><span style="font-family:DM Mono,monospace;font-size:12px;color:'+r.color+'">'+pFis+'%</span></td></tr>';
-    }).join('');
-    document.getElementById('page-rubros').innerHTML =
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
-        '<div><div style="font-size:13px;font-weight:600;">Rubros de obra</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Arrastrá para reordenar · Slider para avance físico</div></div>' +
-        '<button class="btn btn-primary" onclick="openNewRubro()">+ Nuevo rubro</button></div>' +
-        '<div class="drag-list" id="rubrosList">'+items+'</div>' +
-        '<div class="card" style="margin-top:16px;"><div class="card-hdr"><h3>Tabla resumen</h3></div><div class="table-wrap">' +
-        '<table><thead><tr><th>Rubro</th><th>Fecha inicio</th><th>Fecha fin</th><th style="text-align:center">Avance físico</th></tr></thead><tbody>'+tableRows+'</tbody></table>' +
-        '</div></div>';
-    makeDraggable('rubrosList', S.rubros, renderRubros, 'obra_rubros');
-}
-function updAF(id,val){ var r=S.rubros.find(function(x){ return x.id===id; }); if(r) r.avanceFisico=parseInt(val)||0; var el=document.getElementById('af'+id); if(el) el.textContent=val+'%'; if(curPage==='resumen') renderResumen(); }
-async function saveAF(id,val){ setSaveStatus('saving'); var res=await sb.from('obra_rubros').update({avance_fisico:parseInt(val)||0}).eq('id',id); setSaveStatus(res.error?'error':'ok',res.error?'Error':'Guardado'); }
-function openNewRubro(){ S.editRubroId=null; document.getElementById('mRubroTitle').textContent='Nuevo rubro'; document.getElementById('rNombre').value=''; document.getElementById('rFechaIni').value=''; document.getElementById('rFechaFin').value=''; document.getElementById('rColor').value='#4C8EF5'; openModal('modalRubro'); }
-function openEditRubro(id){ S.editRubroId=id; var r=S.rubros.find(function(x){ return x.id===id; }); document.getElementById('mRubroTitle').textContent='Editar rubro'; document.getElementById('rNombre').value=r.nombre; document.getElementById('rFechaIni').value=r.fechaIni||''; document.getElementById('rFechaFin').value=r.fechaFin||''; document.getElementById('rColor').value=r.color; openModal('modalRubro'); }
-async function saveRubro(){
-    var nombre=document.getElementById('rNombre').value.trim(), fechaIni=document.getElementById('rFechaIni').value, fechaFin=document.getElementById('rFechaFin').value, color=document.getElementById('rColor').value;
-    if(!nombre) return;
-    setSaveStatus('saving');
-    var payload={nombre:nombre,fecha_ini:fechaIni||null,fecha_fin:fechaFin||null,color:color};
-    var res = S.editRubroId ? await sb.from('obra_rubros').update(payload).eq('id',S.editRubroId) : await sb.from('obra_rubros').insert(Object.assign({},payload,{orden:S.rubros.length,avance_fisico:0,presup_usd:0}));
-    if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
-    setSaveStatus('ok','Guardado'); closeModal('modalRubro'); await loadAllData(); renderRubros(); renderAlerts(); updateSidebar();
-}
-async function deleteRubro(id){
-    if(!confirm('Eliminar este rubro y sus pagos?')) return;
-    setSaveStatus('saving');
-    await sb.from('obra_pagos').delete().eq('rubro_id',id);
-    var res = await sb.from('obra_rubros').delete().eq('id',id);
-    if(res.error){ setSaveStatus('error'); return; }
-    setSaveStatus('ok','Guardado'); await loadAllData(); renderRubros(); renderAlerts(); updateSidebar();
-}
-
-// ═══════════════════════════════════════
 // PAGE: PAGOS
 // ═══════════════════════════════════════
 var pagoFilter='todos', pagoSearch='';
 function renderPagos(){
     var lista = S.pagos.filter(function(p){
         return (pagoFilter==='todos'||p.estado===pagoFilter) &&
-               (!pagoSearch||(p.desc||'').toLowerCase().includes(pagoSearch.toLowerCase())||(getRubro(p.rubroId)||{nombre:''}).nombre.toLowerCase().includes(pagoSearch.toLowerCase()));
+               (!pagoSearch||(p.desc||'').toLowerCase().includes(pagoSearch.toLowerCase())||((S.etapas.find(function(e){return e.id===p.etapaId;})||{nombre:''}).nombre).toLowerCase().includes(pagoSearch.toLowerCase()));
     }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
     var rows = lista.map(function(p){
-        var r=getRubro(p.rubroId);
+        var e=S.etapas.find(function(x){ return x.id===p.etapaId; });
         return '<tr><td style="font-family:DM Mono,monospace;font-size:12px;">'+p.fecha+'</td>' +
-            '<td><span class="color-dot" style="background:'+(r?r.color:'#888')+'"></span>'+(r?r.nombre:'—')+'</td>' +
+            '<td><span class="color-dot" style="background:'+(e?e.color:'#888')+'"></span>'+(e?e.nombre:'—')+'</td>' +
             '<td>'+(p.desc||'')+'</td>' +
             '<td class="num-cell" style="text-align:right">'+fmtMain(p.montoARS)+'</td>' +
             '<td><span class="badge '+p.estado+'">'+p.estado+'</span></td>' +
@@ -721,17 +667,17 @@ function renderPagos(){
         '<select onchange="pagoFilter=this.value;renderPagos()"><option value="todos" '+(pagoFilter==='todos'?'selected':'')+'>Todos</option><option value="pagado" '+(pagoFilter==='pagado'?'selected':'')+'>Pagados</option><option value="pendiente" '+(pagoFilter==='pendiente'?'selected':'')+'>Pendientes</option><option value="vencido" '+(pagoFilter==='vencido'?'selected':'')+'>Vencidos</option></select></div>' +
         '<div style="display:flex;gap:8px;"><button class="btn btn-excel" onclick="exportarExcel()">Excel</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>' +
         '<div class="card"><div class="table-wrap">' +
-        (lista.length?'<table><thead><tr><th>Fecha</th><th>Rubro</th><th>Descripción</th><th style="text-align:right">Monto</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'+rows+'</tbody></table>':'<div class="empty">Sin pagos</div>')+
+        (lista.length?'<table><thead><tr><th>Fecha</th><th>Etapa</th><th>Descripción</th><th style="text-align:right">Monto</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'+rows+'</tbody></table>':'<div class="empty">Sin pagos</div>')+
         '</div></div>';
 }
-function fillRubroSel(sel){ document.getElementById('mRubro').innerHTML=S.rubros.map(function(r){ return '<option value="'+r.id+'"'+(r.id===sel?' selected':'')+'>'+r.nombre+'</option>'; }).join(''); }
-function openNewPago(){ S.editPagoId=null; document.getElementById('mPagoTitle').textContent='Registrar pago'; document.getElementById('mFecha').value=new Date().toISOString().split('T')[0]; document.getElementById('mDesc').value=''; document.getElementById('mMonto').value=''; document.getElementById('mEstado').value='pagado'; fillRubroSel(S.rubros[0]&&S.rubros[0].id); openModal('modalPago'); }
-function openEditPago(id){ S.editPagoId=id; var p=S.pagos.find(function(x){ return x.id===id; }); document.getElementById('mPagoTitle').textContent='Editar pago'; document.getElementById('mFecha').value=p.fecha; document.getElementById('mDesc').value=p.desc||''; document.getElementById('mMonto').value=Math.round(p.montoUSD); document.getElementById('mEstado').value=p.estado; fillRubroSel(p.rubroId); openModal('modalPago'); }
+function fillEtapaSel(sel){ document.getElementById('mEtapa').innerHTML=S.etapas.map(function(e){ return '<option value="'+e.id+'"'+(e.id===sel?' selected':'')+'>'+e.nombre+'</option>'; }).join(''); }
+function openNewPago(){ S.editPagoId=null; document.getElementById('mPagoTitle').textContent='Registrar pago'; document.getElementById('mFecha').value=new Date().toISOString().split('T')[0]; document.getElementById('mDesc').value=''; document.getElementById('mMonto').value=''; document.getElementById('mEstado').value='pagado'; fillEtapaSel(S.etapas[0]&&S.etapas[0].id); openModal('modalPago'); }
+function openEditPago(id){ S.editPagoId=id; var p=S.pagos.find(function(x){ return x.id===id; }); document.getElementById('mPagoTitle').textContent='Editar pago'; document.getElementById('mFecha').value=p.fecha; document.getElementById('mDesc').value=p.desc||''; document.getElementById('mMonto').value=Math.round(p.montoUSD); document.getElementById('mEstado').value=p.estado; fillEtapaSel(p.etapaId); openModal('modalPago'); }
 async function savePago(){
-    var fecha=document.getElementById('mFecha').value, rubroId=parseInt(document.getElementById('mRubro').value), desc=document.getElementById('mDesc').value.trim(), raw=parseFloat(document.getElementById('mMonto').value), estado=document.getElementById('mEstado').value;
+    var fecha=document.getElementById('mFecha').value, etapaId=parseInt(document.getElementById('mEtapa').value)||null, desc=document.getElementById('mDesc').value.trim(), raw=parseFloat(document.getElementById('mMonto').value), estado=document.getElementById('mEstado').value;
     if(!fecha||!desc||!raw) return;
     setSaveStatus('saving');
-    var payload={fecha:fecha,rubro_id:rubroId,descripcion:desc,monto_usd:raw,estado:estado};
+    var payload={fecha:fecha,etapa_id:etapaId,descripcion:desc,monto_usd:raw,estado:estado};
     var res = S.editPagoId ? await sb.from('obra_pagos').update(payload).eq('id',S.editPagoId) : await sb.from('obra_pagos').insert(payload);
     if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
     setSaveStatus('ok','Guardado'); closeModal('modalPago'); await loadAllData(); renderPagos(); renderAlerts(); updateSidebar();
@@ -753,7 +699,7 @@ function renderBalance() {
     var ingReal = allOcurr.filter(function(o){ return o.realizado; }).reduce(function(s,o){ return s+o.montoARS; },0);
     var ingProy = allOcurr.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS; },0);
     var deu = totalDeudasARS(), aj = totalAjustesARS(), neto = ingReal+ingProy-deu-aj;
-    var presup = totalPresARS(), isPos = neto >= 0;
+    var isPos = neto >= 0;
 
     // meses cubiertos
     var _saldo=ingReal, _mesesCub=0;
@@ -836,8 +782,7 @@ function renderBalance() {
         // KPIs
         '<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;margin-bottom:14px;">' +
         '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 16px;background:'+(isPos?'var(--green-dim)':'var(--red-dim)')+';border-color:'+(isPos?'rgba(62,207,142,.3)':'rgba(245,101,101,.3)')+';display:flex;align-items:center;justify-content:space-between;">' +
-        '<div><div style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:'+(isPos?'var(--green)':'var(--red)')+';margin-bottom:3px;">Balance neto</div><div style="font-size:22px;font-weight:700;font-family:DM Mono,monospace;color:'+(isPos?'var(--green)':'var(--red)')+';">'+fmtUSD(neto)+'</div></div>' +
-        '<div style="text-align:right;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:'+(isPos?'var(--green)':'var(--red)')+';opacity:.65;margin-bottom:3px;">Cubre obra</div><div style="font-size:22px;font-weight:700;font-family:DM Mono,monospace;color:'+(neto>=presup?'var(--green)':'var(--amber)')+';">'+pct(neto,presup)+'%</div></div></div>' +
+        '<div><div style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:'+(isPos?'var(--green)':'var(--red)')+';margin-bottom:3px;">Balance neto</div><div style="font-size:22px;font-weight:700;font-family:DM Mono,monospace;color:'+(isPos?'var(--green)':'var(--red)')+';">'+fmtUSD(neto)+'</div></div></div>' +
         '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Acreditado</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--green);">'+fmtUSD(ingReal)+'</div></div>' +
         '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Proyectado</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--text);">'+fmtUSD(ingProy)+'</div></div>' +
         '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Deudas</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--red);">'+fmtUSD(deu)+'</div></div>' +
@@ -1027,7 +972,7 @@ function renderConfig(){
         '</div><div>' +
         '<div class="card"><div class="card-hdr"><h3>Exportar Excel</h3></div><div class="card-body"><button class="btn btn-excel" onclick="exportarExcel()">Exportar Excel completo</button></div></div>' +
         '<div class="card" style="margin-top:14px;"><div class="card-hdr"><h3>Estadísticas</h3></div><div class="card-body">' +
-        [['Rubros',S.rubros.length],['Pagos',S.pagos.length],['Etapas',S.etapas.length],['Ingresos',S.ingresos.length],['Deudas',S.deudas.length],['Mes actual',Math.max(0,Math.min(18,curMonthOff()+1))+' / 18'],['TCN','$'+S.tcn.toLocaleString('es-AR')+'/USD']].map(function(x){ return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text2);">'+x[0]+'</span><span style="font-family:DM Mono,monospace;font-weight:500;">'+x[1]+'</span></div>'; }).join('') +
+        [['Etapas',S.etapas.length],['Pagos',S.pagos.length],['Ingresos',S.ingresos.length],['Deudas',S.deudas.length],['Mes actual',Math.max(0,Math.min(18,curMonthOff()+1))+' / 18'],['TCN','$'+S.tcn.toLocaleString('es-AR')+'/USD']].map(function(x){ return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text2);">'+x[0]+'</span><span style="font-family:DM Mono,monospace;font-weight:500;">'+x[1]+'</span></div>'; }).join('') +
         '</div></div></div></div>';
 }
 async function saveConfigDB(){ S.startDate=document.getElementById('cfgStart').value; setSaveStatus('saving'); var res=await sb.from('obra_config').update({start_date:S.startDate}).eq('id','main'); setSaveStatus(res.error?'error':'ok',res.error?'Error':'Guardado'); updateSidebar(); goTo('resumen'); }
@@ -1040,8 +985,8 @@ function exportarExcel(){
     var tp=totalPresARS(),pd=totalPagadoARS(),pe=totalPendienteARS(),sl=tp-pd-pe;
     var wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['CONTROL DE OBRA'],['TCN: $'+S.tcn+'/USD'],[''],['Concepto','USD'],['Presupuesto',Math.round(tp/S.tcn)],['Pagado',Math.round(pd/S.tcn)],['Comprometido',Math.round(pe/S.tcn)],['Disponible',Math.round(sl/S.tcn)],['Avance %',pct(pd,tp)+'%']]),'Resumen');
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['RUBROS'],['Rubro','Presup USD','Pagado USD','Disponible USD','Ejec %']].concat(S.rubros.map(function(r){ var g=S.pagos.filter(function(p){ return p.rubroId===r.id&&p.estado==='pagado'; }).reduce(function(s,p){ return s+p.montoARS; },0); return [r.nombre,Math.round(r.presupUSD),Math.round(g/S.tcn),Math.round((r.presupARS-g)/S.tcn),pct(g,r.presupARS)+'%']; }))),'Rubros');
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['PAGOS'],['Fecha','Rubro','Descripcion','Monto USD','Estado']].concat([].concat(S.pagos).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); }).map(function(p){ var r=getRubro(p.rubroId); return [p.fecha,r?r.nombre:'—',p.desc||'',Math.round(p.montoUSD),p.estado]; }))),'Pagos');
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['ETAPAS'],['Etapa','Fecha inicio','Fecha fin','Avance %','Estado']].concat(S.etapas.map(function(e){ return [e.nombre,e.fechaIni||'',e.fechaFin||'',e.avance+'%',e.finalizado?'Finalizada':'Activa']; }))),'Etapas');
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['PAGOS'],['Fecha','Etapa','Descripcion','Monto USD','Estado']].concat([].concat(S.pagos).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); }).map(function(p){ var e=S.etapas.find(function(x){return x.id===p.etapaId;}); return [p.fecha,e?e.nombre:'—',p.desc||'',Math.round(p.montoUSD),p.estado]; }))),'Pagos');
     XLSX.writeFile(wb,'control-obra-'+new Date().toISOString().split('T')[0]+'.xlsx');
 }
 
@@ -1073,8 +1018,8 @@ function makeDraggable(listId, arr, renderFn, dbTable){
 // NAVIGATION
 // ═══════════════════════════════════════
 var curPage = 'resumen';
-var PAGE_TITLES = {resumen:'Resumen general',etapas:'Etapas de obra',rubros:'Rubros',pagos:'Pagos',balance:'Balance personal',config:'Configuración'};
-var PAGE_ORDER  = ['resumen','etapas','rubros','pagos','balance','config'];
+var PAGE_TITLES = {resumen:'Resumen general',etapas:'Etapas de obra',pagos:'Pagos',balance:'Balance personal',config:'Configuración'};
+var PAGE_ORDER  = ['resumen','etapas','pagos','balance','config'];
 
 function goTo(page){
     curPage=page;
