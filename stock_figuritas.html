@@ -1188,7 +1188,7 @@ async function invLoad() {
   try {
     const data = await sbFetch('invertido?select=*&order=id.asc');
     if (data && data.length) {
-      invRows = data.map(r => ({ id: r.id, desc: r.desc, figus: r.figus || 0, cajas: r.cajas || 0 }));
+      invRows = data.map(r => ({ id: r.id, desc: r.descripcion, figus: r.figus || 0, cajas: r.cajas || 0 }));
       invNextId = Math.max(...invRows.map(r => r.id), 0) + 1;
     }
   } catch(e) { console.error('invLoad:', e); }
@@ -1197,7 +1197,7 @@ async function invLoad() {
 async function invSave(r) {
   await sbFetch('invertido', {
     method: 'POST', prefer: 'return=minimal',
-    body: JSON.stringify({ id: r.id, desc: r.desc, figus: r.figus, cajas: r.cajas })
+    body: JSON.stringify({ id: r.id, descripcion: r.desc, figus: r.figus, cajas: r.cajas })
   });
 }
 
