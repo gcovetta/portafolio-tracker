@@ -53,8 +53,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .btn-es:hover{background:var(--surface2);color:var(--text);}
 
 /* CALCULADORAS */
-.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:2rem;}
-.calc-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.4rem;}
+.calc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:2rem;}
+.calc-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;}
 .calc-block.sob{border-color:rgba(232,197,71,.2);} .calc-block.alb{border-color:rgba(56,189,248,.2);}
 .calc-block.caj{border-color:rgba(167,139,250,.2);}
 .dot-p{background:var(--purple);}
@@ -62,25 +62,25 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .cnt-num.p{color:var(--purple);}
 .btn-add.p{background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);}
 .btn-add.p:hover{background:rgba(167,139,250,.22);}
-.caj-img{width:80px;height:80px;object-fit:contain;border-radius:8px;margin-bottom:.6rem;}
-.calc-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.caj-img{width:60px;height:60px;object-fit:contain;border-radius:8px;margin-bottom:.4rem;}
+.calc-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.8rem;padding-bottom:.6rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
 .dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
 .dot-y{background:var(--accent);} .dot-t{background:var(--teal);} .dot-o{background:var(--orange);} .dot-g{background:var(--green);}
-.cnt-row{display:flex;align-items:center;gap:10px;margin-bottom:1.2rem;}
-.btn-cnt{width:36px;height:36px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0;}
+.cnt-row{display:flex;align-items:center;gap:6px;margin-bottom:.8rem;}
+.btn-cnt{width:30px;height:30px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0;}
 .btn-cnt.y:hover{background:var(--accent-dim);color:var(--accent);border-color:rgba(232,197,71,.4);}
 .btn-cnt.t:hover{background:var(--teal-dim);color:var(--teal);border-color:rgba(56,189,248,.4);}
-.cnt-num{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:500;min-width:40px;text-align:center;}
+.cnt-num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;min-width:32px;text-align:center;}
 .cnt-num.y{color:var(--accent);} .cnt-num.t{color:var(--teal);}
-.cnt-in{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:8px 10px;outline:none;width:72px;transition:border-color .15s;}
+.cnt-in{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:6px 8px;outline:none;width:58px;transition:border-color .15s;}
 .cnt-in:focus{border-color:var(--accent);}
 .cnt-lbl{font-size:12px;color:var(--muted);}
-.calc-res{display:flex;gap:8px;margin-bottom:1.2rem;}
+.calc-res{display:flex;gap:6px;margin-bottom:.8rem;}
 .cres{flex:1;background:var(--surface2);border-radius:var(--radius);padding:10px 12px;text-align:center;}
 .cres-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px;}
 .cres-val{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:500;}
 .boxes-row{display:flex;flex-wrap:wrap;gap:5px;min-height:44px;align-items:flex-end;margin-bottom:1rem;}
-.calc-formula{font-size:11px;color:var(--muted);margin-bottom:1.2rem;line-height:1.5;}
+.calc-formula{font-size:10px;color:var(--muted);margin-bottom:.8rem;line-height:1.4;}
 .btn-add{width:100%;padding:11px;border-radius:var(--radius);border:1px solid;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;letter-spacing:.02em;}
 .btn-add:active{transform:scale(.98);}
 .btn-add.y{background:var(--accent-dim);color:var(--accent);border-color:rgba(232,197,71,.3);}
@@ -153,6 +153,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 @keyframes flash{0%{transform:scale(1)}30%{transform:scale(1.08)}100%{transform:scale(1)}}
 .flash{animation:flash .35s ease;}
 
+@media(max-width:900px){.calc-grid{grid-template-columns:1fr 1fr;}}
 @media(max-width:760px){
   .metrics-row.top{grid-template-columns:repeat(2,1fr);}
   .metrics-row.bot{grid-template-columns:1fr 1fr;}
@@ -331,11 +332,11 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
   <div class="calc-grid">
     <div class="calc-block sob">
       <div class="calc-title"><span class="dot dot-y"></span>Ingresar sobres</div>
-      <div style="display:flex;align-items:flex-start;gap:1.4rem;flex-wrap:wrap;">
+      <div style="display:flex;align-items:flex-start;gap:.8rem;flex-wrap:wrap;">
         <div style="flex:none;">
           <img src="sobre.png" class="caj-img" alt="Sobre figuritas" />
         </div>
-        <div style="flex:1;min-width:200px;">
+        <div style="flex:1;min-width:120px;">
       <div class="cnt-row">
         <button class="btn-cnt y" onclick="sobCh(-1)">−</button>
         <span class="cnt-num y" id="sob-n">1</span>
@@ -356,11 +357,11 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     </div>
     <div class="calc-block alb">
       <div class="calc-title"><span class="dot dot-t"></span>Ingresar álbumes</div>
-      <div style="display:flex;align-items:flex-start;gap:1.4rem;flex-wrap:wrap;">
+      <div style="display:flex;align-items:flex-start;gap:.8rem;flex-wrap:wrap;">
         <div style="flex:none;">
           <img src="album.png" class="caj-img" alt="Álbum figuritas" />
         </div>
-        <div style="flex:1;min-width:200px;">
+        <div style="flex:1;min-width:120px;">
       <div class="cnt-row">
         <button class="btn-cnt t" onclick="albCh(-1)">−</button>
         <span class="cnt-num t" id="alb-n">1</span>
@@ -378,29 +379,27 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- CALCULADORA CAJAS -->
-  <div class="calc-block caj" style="margin-bottom:2rem;">
-    <div class="calc-title"><span class="dot dot-p"></span>Ingresar cajas</div>
-    <div style="display:flex;align-items:flex-start;gap:1.4rem;flex-wrap:wrap;">
-      <div style="flex:none;">
-        <img src="caja.png" class="caj-img" alt="Caja figuritas" />
-      </div>
-      <div style="flex:1;min-width:200px;">
-        <div class="cnt-row">
-          <button class="btn-cnt p" onclick="cajCh(-1)">−</button>
-          <span class="cnt-num p" id="caj-n">1</span>
-          <button class="btn-cnt p" onclick="cajCh(1)">+</button>
-          <input type="number" id="caj-i" class="cnt-in" value="1" min="1" oninput="cajSt(this.value)" />
-          <span class="cnt-lbl">cajas</span>
+    <div class="calc-block caj">
+      <div class="calc-title"><span class="dot dot-p"></span>Ingresar cajas</div>
+      <div style="display:flex;align-items:flex-start;gap:.8rem;flex-wrap:wrap;">
+        <div style="flex:none;">
+          <img src="caja.png" class="caj-img" alt="Caja figuritas" />
         </div>
-        <div class="calc-res">
-          <div class="cres"><div class="cres-lbl">Cajas</div><div class="cres-val c-purple" id="caj-rc">1</div></div>
-          <div class="cres"><div class="cres-val c-purple" id="caj-rv" style="font-size:18px;padding-top:4px">$10.000</div><div class="cres-lbl" style="margin-top:4px">Invertido</div></div>
+        <div style="flex:1;min-width:120px;">
+          <div class="cnt-row">
+            <button class="btn-cnt p" onclick="cajCh(-1)">−</button>
+            <span class="cnt-num p" id="caj-n">1</span>
+            <button class="btn-cnt p" onclick="cajCh(1)">+</button>
+            <input type="number" id="caj-i" class="cnt-in" value="1" min="1" oninput="cajSt(this.value)" />
+            <span class="cnt-lbl">cajas</span>
+          </div>
+          <div class="calc-res">
+            <div class="cres"><div class="cres-lbl">Cajas</div><div class="cres-val c-purple" id="caj-rc">1</div></div>
+            <div class="cres"><div class="cres-val c-purple" id="caj-rv" style="font-size:16px;padding-top:4px">$10.000</div><div class="cres-lbl" style="margin-top:4px">Invertido</div></div>
+          </div>
+          <div class="calc-formula" id="caj-fm">1 caja × $10.000 = $10.000 invertidos</div>
+          <button class="btn-add p" onclick="agregarCajas()">+ Agregar al stock</button>
         </div>
-        <div class="calc-formula" id="caj-fm">1 caja × $10.000 = $10.000 invertidos</div>
-        <button class="btn-add p" onclick="agregarCajas()">+ Agregar al stock</button>
       </div>
     </div>
   </div>
