@@ -1337,7 +1337,7 @@ function renderInvSummary() {
   const valorEnt = ent.reduce((s,r)  => s + calcTotal(r), 0);
 
   // Ganancia neta = (reservado + cobrado) - invertido
-  const ganancia = valorEnt - totalInv;
+  const ganancia = valorEnt + valorRes - totalInv;
 
   const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
 
@@ -1360,7 +1360,7 @@ function renderInvSummary() {
   }
   if (gSub) {
     gSub.textContent = ganancia > 0
-      ? `Ganás ${pesos(ganancia)} sobre la inversión`
+      ? `(Cobrado + A cobrar) supera la inversión en ${pesos(ganancia)}`
       : ganancia < 0
         ? `Faltan recuperar ${pesos(Math.abs(ganancia))}`
         : 'En punto de equilibrio';
