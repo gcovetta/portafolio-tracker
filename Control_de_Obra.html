@@ -257,7 +257,10 @@
         <div class="modal-body">
             <div class="form-row full"><div class="fg"><label>Nombre</label><input type="text" id="rNombre" placeholder="Ej: Pintura exterior"></div></div>
             <div class="form-row">
-                <div class="fg"><label>Presupuesto (U$S)</label><div class="amt-wrap"><input type="number" id="rPresup" placeholder="0" min="0"><span class="amt-tag">USD</span></div></div>
+                <div class="fg"><label>Fecha inicio</label><input type="date" id="rFechaIni"></div>
+                <div class="fg"><label>Fecha fin</label><input type="date" id="rFechaFin"></div>
+            </div>
+            <div class="form-row">
                 <div class="fg"><label>Color</label><input type="color" id="rColor" value="#4C8EF5"></div>
             </div>
         </div>
@@ -399,7 +402,7 @@ async function loadAllData() {
         var inp = document.getElementById('tcnInput');
         if (inp) inp.value = S.tcn;
     }
-    S.rubros   = (rubros.data||[]).map(function(r){ return {id:r.id, nombre:r.nombre, presupARS:r.presup_usd*S.tcn, presupUSD:r.presup_usd, color:r.color, avanceFisico:r.avance_fisico, orden:r.orden}; });
+    S.rubros   = (rubros.data||[]).map(function(r){ return {id:r.id, nombre:r.nombre, presupARS:(r.presup_usd||0)*S.tcn, presupUSD:r.presup_usd||0, color:r.color, avanceFisico:r.avance_fisico, orden:r.orden, fechaIni:r.fecha_ini||'', fechaFin:r.fecha_fin||''}; });
     S.pagos    = (pagos.data||[]).map(function(p){ return {id:p.id, fecha:p.fecha, rubroId:p.rubro_id, desc:p.descripcion, montoARS:p.monto_usd*S.tcn, montoUSD:p.monto_usd, estado:p.estado}; });
     S.etapas   = (etapas.data||[]).map(function(e){ return {id:e.id, nombre:e.nombre, mesIni:e.mes_ini, mesFin:e.mes_fin, color:e.color, avance:e.avance, orden:e.orden}; });
     S.ingresos = (ingresos.data||[]).map(function(x){
@@ -636,51 +639,48 @@ async function deleteEtapa(id){
 // ═══════════════════════════════════════
 function renderRubros() {
     var items = S.rubros.map(function(r,idx) {
-        var g=S.pagos.filter(function(p){ return p.rubroId===r.id&&p.estado==='pagado'; }).reduce(function(s,p){ return s+p.montoARS; },0);
-        var comp=S.pagos.filter(function(p){ return p.rubroId===r.id&&p.estado!=='pagado'; }).reduce(function(s,p){ return s+p.montoARS; },0);
-        var disp=r.presupARS-g-comp, pFin=pct(g,r.presupARS), ov=g>r.presupARS, pFis=r.avanceFisico||0;
+        var pFis=r.avanceFisico||0;
+        var fechaIniStr = r.fechaIni ? r.fechaIni.split('-').reverse().join('/') : '—';
+        var fechaFinStr = r.fechaFin ? r.fechaFin.split('-').reverse().join('/') : '—';
         return '<div class="drag-item" data-idx="'+idx+'" style="align-items:flex-start;">' +
             '<div class="drag-handle" style="margin-top:3px;"><span></span><span></span><span></span></div>' +
             '<div class="di-dot" style="background:'+r.color+';margin-top:4px;"></div>' +
             '<div class="di-info"><div class="di-name">'+r.nombre+'</div>' +
-            '<div class="di-sub" style="margin-top:2px;">Presup: <strong style="color:var(--text)">'+fmtMain(r.presupARS)+'</strong> &nbsp;·&nbsp; Pagado: <strong style="color:'+(ov?'var(--red)':'var(--green)')+'">'+fmtMain(g)+'</strong> &nbsp;·&nbsp; Disp: <strong style="color:'+(disp<0?'var(--red)':'var(--text2)')+'">'+fmtMain(disp)+'</strong></div>' +
+            '<div class="di-sub" style="margin-top:2px;">Inicio: <strong style="color:var(--text)">'+fechaIniStr+'</strong> &nbsp;·&nbsp; Fin: <strong style="color:var(--text)">'+fechaFinStr+'</strong></div>' +
             '<div style="margin-top:6px;">' +
-            '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="font-size:10px;color:var(--text3);width:90px;flex-shrink:0;">Financiero</span><div style="flex:1;height:5px;background:var(--surface3);border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+Math.min(pFin,100)+'%;background:'+(ov?'var(--red)':r.color)+';border-radius:3px;"></div></div><span style="font-size:11px;font-family:DM Mono,monospace;color:'+(ov?'var(--red)':'var(--text3)')+';width:32px;text-align:right;">'+pFin+'%</span></div>' +
-            '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:10px;color:var(--text3);width:90px;flex-shrink:0;">Fisico real</span><input type="range" min="0" max="100" step="1" value="'+pFis+'" style="flex:1;accent-color:'+r.color+';height:4px;cursor:pointer;" oninput="updAF('+r.id+',this.value)" onchange="saveAF('+r.id+',this.value)"><span id="af'+r.id+'" style="font-size:11px;font-family:DM Mono,monospace;color:'+r.color+';width:32px;text-align:right;">'+pFis+'%</span></div>' +
+            '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:10px;color:var(--text3);width:90px;flex-shrink:0;">Avance físico</span><input type="range" min="0" max="100" step="1" value="'+pFis+'" style="flex:1;accent-color:'+r.color+';height:4px;cursor:pointer;" oninput="updAF('+r.id+',this.value)" onchange="saveAF('+r.id+',this.value)"><span id="af'+r.id+'" style="font-size:11px;font-family:DM Mono,monospace;color:'+r.color+';width:32px;text-align:right;">'+pFis+'%</span></div>' +
             '</div></div>' +
             '<div class="di-actions" style="margin-top:2px;"><button class="btn btn-sm" onclick="openEditRubro('+r.id+')">Editar</button><button class="btn btn-sm btn-danger" onclick="deleteRubro('+r.id+')">✕</button></div></div>';
     }).join('');
     var tableRows = S.rubros.map(function(r) {
-        var g=S.pagos.filter(function(p){ return p.rubroId===r.id&&p.estado==='pagado'; }).reduce(function(s,p){ return s+p.montoARS; },0);
-        var comp=S.pagos.filter(function(p){ return p.rubroId===r.id&&p.estado!=='pagado'; }).reduce(function(s,p){ return s+p.montoARS; },0);
-        var disp=r.presupARS-g-comp, p2=pct(g,r.presupARS), ov=g>r.presupARS;
+        var pFis=r.avanceFisico||0;
+        var fechaIniStr = r.fechaIni ? r.fechaIni.split('-').reverse().join('/') : '—';
+        var fechaFinStr = r.fechaFin ? r.fechaFin.split('-').reverse().join('/') : '—';
         return '<tr><td><span class="color-dot" style="background:'+r.color+'"></span>'+r.nombre+'</td>' +
-            '<td class="num-cell" style="text-align:right">'+fmtMain(r.presupARS)+'</td>' +
-            '<td class="num-cell" style="text-align:right;color:var(--green)">'+fmtMain(g)+'</td>' +
-            '<td class="num-cell" style="text-align:right;color:var(--amber)">'+fmtMain(comp)+'</td>' +
-            '<td class="num-cell" style="text-align:right;color:'+(disp<0?'var(--red)':'var(--text)')+'">'+fmtMain(disp)+'</td>' +
-            '<td style="text-align:right"><span style="font-family:DM Mono,monospace;font-size:12px;color:'+(ov?'var(--red)':'var(--text3)')+'">'+p2+'%</span></td></tr>';
+            '<td style="font-family:DM Mono,monospace;font-size:12px;">'+fechaIniStr+'</td>' +
+            '<td style="font-family:DM Mono,monospace;font-size:12px;">'+fechaFinStr+'</td>' +
+            '<td style="text-align:center"><span style="font-family:DM Mono,monospace;font-size:12px;color:'+r.color+'">'+pFis+'%</span></td></tr>';
     }).join('');
     document.getElementById('page-rubros').innerHTML =
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
-        '<div><div style="font-size:13px;font-weight:600;">Rubros presupuestarios</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Arrastrá para reordenar · Slider para avance físico</div></div>' +
+        '<div><div style="font-size:13px;font-weight:600;">Rubros de obra</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Arrastrá para reordenar · Slider para avance físico</div></div>' +
         '<button class="btn btn-primary" onclick="openNewRubro()">+ Nuevo rubro</button></div>' +
         '<div class="drag-list" id="rubrosList">'+items+'</div>' +
         '<div class="card" style="margin-top:16px;"><div class="card-hdr"><h3>Tabla resumen</h3></div><div class="table-wrap">' +
-        '<table><thead><tr><th>Rubro</th><th style="text-align:right">Presupuesto</th><th style="text-align:right">Pagado</th><th style="text-align:right">Comprometido</th><th style="text-align:right">Disponible</th><th style="text-align:right">Ejec.</th></tr></thead><tbody>'+tableRows+'</tbody></table>' +
+        '<table><thead><tr><th>Rubro</th><th>Fecha inicio</th><th>Fecha fin</th><th style="text-align:center">Avance físico</th></tr></thead><tbody>'+tableRows+'</tbody></table>' +
         '</div></div>';
     makeDraggable('rubrosList', S.rubros, renderRubros, 'obra_rubros');
 }
 function updAF(id,val){ var r=S.rubros.find(function(x){ return x.id===id; }); if(r) r.avanceFisico=parseInt(val)||0; var el=document.getElementById('af'+id); if(el) el.textContent=val+'%'; if(curPage==='resumen') renderResumen(); }
 async function saveAF(id,val){ setSaveStatus('saving'); var res=await sb.from('obra_rubros').update({avance_fisico:parseInt(val)||0}).eq('id',id); setSaveStatus(res.error?'error':'ok',res.error?'Error':'Guardado'); }
-function openNewRubro(){ S.editRubroId=null; document.getElementById('mRubroTitle').textContent='Nuevo rubro'; document.getElementById('rNombre').value=''; document.getElementById('rPresup').value=''; document.getElementById('rColor').value='#4C8EF5'; openModal('modalRubro'); }
-function openEditRubro(id){ S.editRubroId=id; var r=S.rubros.find(function(x){ return x.id===id; }); document.getElementById('mRubroTitle').textContent='Editar rubro'; document.getElementById('rNombre').value=r.nombre; document.getElementById('rPresup').value=Math.round(r.presupUSD); document.getElementById('rColor').value=r.color; openModal('modalRubro'); }
+function openNewRubro(){ S.editRubroId=null; document.getElementById('mRubroTitle').textContent='Nuevo rubro'; document.getElementById('rNombre').value=''; document.getElementById('rFechaIni').value=''; document.getElementById('rFechaFin').value=''; document.getElementById('rColor').value='#4C8EF5'; openModal('modalRubro'); }
+function openEditRubro(id){ S.editRubroId=id; var r=S.rubros.find(function(x){ return x.id===id; }); document.getElementById('mRubroTitle').textContent='Editar rubro'; document.getElementById('rNombre').value=r.nombre; document.getElementById('rFechaIni').value=r.fechaIni||''; document.getElementById('rFechaFin').value=r.fechaFin||''; document.getElementById('rColor').value=r.color; openModal('modalRubro'); }
 async function saveRubro(){
-    var nombre=document.getElementById('rNombre').value.trim(), raw=parseFloat(document.getElementById('rPresup').value)||0, color=document.getElementById('rColor').value;
-    if(!nombre||!raw) return;
+    var nombre=document.getElementById('rNombre').value.trim(), fechaIni=document.getElementById('rFechaIni').value, fechaFin=document.getElementById('rFechaFin').value, color=document.getElementById('rColor').value;
+    if(!nombre) return;
     setSaveStatus('saving');
-    var payload={nombre:nombre,presup_usd:raw,color:color};
-    var res = S.editRubroId ? await sb.from('obra_rubros').update(payload).eq('id',S.editRubroId) : await sb.from('obra_rubros').insert(Object.assign({},payload,{orden:S.rubros.length,avance_fisico:0}));
+    var payload={nombre:nombre,fecha_ini:fechaIni||null,fecha_fin:fechaFin||null,color:color};
+    var res = S.editRubroId ? await sb.from('obra_rubros').update(payload).eq('id',S.editRubroId) : await sb.from('obra_rubros').insert(Object.assign({},payload,{orden:S.rubros.length,avance_fisico:0,presup_usd:0}));
     if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
     setSaveStatus('ok','Guardado'); closeModal('modalRubro'); await loadAllData(); renderRubros(); renderAlerts(); updateSidebar();
 }
