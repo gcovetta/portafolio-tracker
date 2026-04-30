@@ -1419,17 +1419,17 @@ function renderInvSummary() {
     gCard.className = 'inv-card ' + (ganancia > 0 ? 'ganancia-pos' : ganancia < 0 ? 'ganancia-neg' : '');
   }
   // Mini valores dentro del recuadro Ganancia neta
-  const resentEl = document.getElementById('inv-s-gan-resent');
-  const ganPctEl = document.getElementById('inv-s-gan-pct');
-  const resMasEnt = valorRes + valorEnt;
-  const ganPct    = totalInv > 0 ? (ganancia / totalInv) * 100 : 0;
-  if (resentEl) {
-    resentEl.textContent = pesos(resMasEnt);
-    resentEl.style.color = 'var(--text)';
+  const gnResentEl = document.getElementById('inv-s-gan-resent');
+  const gnPctEl    = document.getElementById('inv-s-gan-pct');
+  const gnResMasEnt = valorRes + valorEnt;
+  const gnPct       = totalInv > 0 ? (ganancia / totalInv) * 100 : 0;
+  if (gnResentEl) {
+    gnResentEl.textContent = pesos(gnResMasEnt);
+    gnResentEl.style.color = 'var(--text)';
   }
-  if (ganPctEl) {
-    ganPctEl.textContent = (ganPct < 0 ? '−' : '') + Math.abs(ganPct).toFixed(1) + '%';
-    ganPctEl.style.color = ganPct > 0 ? 'var(--green)' : ganPct < 0 ? 'var(--red)' : 'var(--muted)';
+  if (gnPctEl) {
+    gnPctEl.textContent = (gnPct < 0 ? '−' : '') + Math.abs(gnPct).toFixed(1) + '%';
+    gnPctEl.style.color = gnPct > 0 ? 'var(--green)' : gnPct < 0 ? 'var(--red)' : 'var(--muted)';
   }
 
   // Proyectado: stock restante × precios de venta proyectados
