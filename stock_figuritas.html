@@ -271,7 +271,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 <body>
 
 <!-- LOGIN OVERLAY -->
-<div class="login-overlay" id="login-overlay" style="display:none;">
+<div class="login-overlay" id="login-overlay">
   <div class="login-box">
     <div class="login-logo">◈ <span>Stock</span>Figuritas</div>
     <div class="login-label">Ingresá tu código</div>
@@ -584,16 +584,6 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
         <div class="inv-card-label">Ganancia neta</div>
         <div class="inv-card-val neutral" id="inv-s-ganancia">$0</div>
         <div class="inv-card-sub" id="inv-s-ganancia-sub">Cobrado − Invertido</div>
-        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:6px;">
-          <div>
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:2px;">Reservado + Entregado</div>
-            <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;" id="inv-s-gan-resent">$0</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:2px;">Ganancia %</div>
-            <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;" id="inv-s-gan-pct">0%</div>
-          </div>
-        </div>
       </div>
       <div class="inv-card" id="inv-s-proyectado-card">
         <div class="inv-card-label">Proyectado</div>
@@ -604,6 +594,11 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
         <div class="inv-card-label">Ganancia neta proyectada</div>
         <div class="inv-card-val neutral" id="inv-s-gan-proy">$0</div>
         <div class="inv-card-sub" id="inv-s-gan-proy-sub">Ganancia + Proyectado</div>
+      </div>
+      <div class="inv-card" id="inv-s-pct-card">
+        <div class="inv-card-label">Ganancia neta %</div>
+        <div class="inv-card-val neutral" id="inv-s-pct">0%</div>
+        <div class="inv-card-sub" id="inv-s-pct-sub">Gan. neta / Invertido</div>
       </div>
       <div class="inv-card" id="inv-s-pct-proy-card">
         <div class="inv-card-label">Ganancia neta % proyectada</div>
@@ -668,19 +663,19 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 <script>
 
 /* ── LOGIN ── */
-var _lkh = '2ca9f63bb06128cdda3ab45ebc7033656c2495bbb82308afee8faad496048390';
-var lkBuffer = '';
+const _lkh = '2ca9f63bb06128cdda3ab45ebc7033656c2495bbb82308afee8faad496048390';
+let lkBuffer = '';
 
 async function _hash(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-async function lkPress(n) {
+function lkPress(n) {
   if (lkBuffer.length >= 4) return;
   lkBuffer += String(n);
   lkUpdateDots();
-  if (lkBuffer.length === 4) await lkCheck();
+  if (lkBuffer.length === 4) lkCheck();
 }
 function lkDel() {
   lkBuffer = lkBuffer.slice(0, -1);
@@ -711,10 +706,10 @@ async function lkCheck() {
     lkUpdateDots();
   }
 }
-document.addEventListener('keydown', async e => {
+document.addEventListener('keydown', e => {
   const ov = document.getElementById('login-overlay');
   if (!ov || ov.style.display === 'none') return;
-  if (e.key >= '0' && e.key <= '9') await lkPress(parseInt(e.key));
+  if (e.key >= '0' && e.key <= '9') lkPress(parseInt(e.key));
   if (e.key === 'Backspace') lkDel();
 });
 (function() {
@@ -1418,19 +1413,6 @@ function renderInvSummary() {
   if (gCard) {
     gCard.className = 'inv-card ' + (ganancia > 0 ? 'ganancia-pos' : ganancia < 0 ? 'ganancia-neg' : '');
   }
-  // Reservado + Entregado y % dentro del recuadro
-  const resentEl = document.getElementById('inv-s-gan-resent');
-  const ganPctEl = document.getElementById('inv-s-gan-pct');
-  const resMasEnt = valorRes + valorEnt;
-  const ganPct    = totalInv > 0 ? (ganancia / totalInv) * 100 : 0;
-  if (resentEl) {
-    resentEl.textContent = pesos(resMasEnt);
-    resentEl.style.color = 'var(--text)';
-  }
-  if (ganPctEl) {
-    ganPctEl.textContent = (ganPct < 0 ? '−' : '') + Math.abs(ganPct).toFixed(1) + '%';
-    ganPctEl.style.color = ganPct > 0 ? 'var(--green)' : ganPct < 0 ? 'var(--red)' : 'var(--muted)';
-  }
 
   // Proyectado: stock restante × precios de venta proyectados
   const proyectado = (stock.sobres * 2000) + (stock.albumes * 15000) + (stock.cajas * 14000);
@@ -1457,6 +1439,18 @@ function renderInvSummary() {
   if (gpCard) {
     gpCard.className = 'inv-card ' + (gananciaProy > 0 ? 'ganancia-pos' : gananciaProy < 0 ? 'ganancia-neg' : '');
   }
+
+  // Ganancia neta %
+  const pctEl   = document.getElementById('inv-s-pct');
+  const pctSub  = document.getElementById('inv-s-pct-sub');
+  const pctCard = document.getElementById('inv-s-pct-card');
+  const pct = totalInv > 0 ? (ganancia / totalInv) * 100 : 0;
+  if (pctEl) {
+    pctEl.textContent = (pct < 0 ? '−' : '') + Math.abs(pct).toFixed(1) + '%';
+    pctEl.className   = 'inv-card-val ' + (pct > 0 ? 'positive' : pct < 0 ? 'negative' : 'neutral');
+  }
+  if (pctSub) pctSub.textContent = totalInv > 0 ? `${pesos(ganancia)} / ${pesos(totalInv)}` : 'Sin inversión registrada';
+  if (pctCard) pctCard.className = 'inv-card ' + (pct > 0 ? 'ganancia-pos' : pct < 0 ? 'ganancia-neg' : '');
 
   // Ganancia neta % proyectada
   const pctPEl   = document.getElementById('inv-s-pct-proy');
