@@ -210,6 +210,35 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 .shake{animation:shake .35s ease;}
 
+
+/* TABS NAV */
+.tabs-nav{display:flex;gap:4px;margin-bottom:1.5rem;}
+.tab-btn{padding:8px 18px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;color:var(--muted);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;letter-spacing:.02em;}
+.tab-btn:hover{background:var(--surface2);color:var(--text);}
+.tab-btn.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(232,197,71,.3);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* TABLA INVERTIDO */
+.inv-table{width:100%;border-collapse:collapse;}
+.inv-table th{text-align:left;padding:8px 12px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--border);}
+.inv-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:13px;}
+.inv-table tr:last-child td{border-bottom:none;}
+.inv-table tbody tr:hover td{background:rgba(255,255,255,.02);}
+.inv-input{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:14px;padding:7px 10px;outline:none;width:160px;transition:border-color .15s;text-align:right;}
+.inv-input:focus{border-color:var(--accent);}
+.inv-total-row td{border-top:1px solid var(--border2);font-weight:600;background:var(--surface2);border-bottom:none;}
+.inv-total-val{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:500;color:var(--accent);}
+.inv-total-val.green{color:var(--green);}
+.inv-label-col{font-size:13px;color:var(--text);}
+.inv-add-row{display:flex;gap:8px;align-items:center;margin-bottom:1rem;flex-wrap:wrap;}
+.inv-add-input{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:8px 12px;outline:none;transition:border-color .15s;flex:1;min-width:140px;}
+.inv-add-input:focus{border-color:var(--accent);}
+.inv-add-btn{padding:8px 16px;border-radius:var(--radius);border:1px solid rgba(232,197,71,.3);background:var(--accent-dim);color:var(--accent);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.inv-add-btn:hover{background:var(--accent-dim2);}
+.inv-del-btn{width:24px;height:24px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .12s;}
+.inv-del-btn:hover{background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);}
+
 </style>
 </head>
 <body>
@@ -248,6 +277,15 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 </header>
 
 <div class="container">
+
+  <!-- TAB NAV -->
+  <div class="tabs-nav">
+    <button class="tab-btn active" onclick="showTab('stock',this)">Stock</button>
+    <button class="tab-btn" onclick="showTab('invertido',this)">Invertido</button>
+  </div>
+
+  <!-- TAB STOCK -->
+  <div id="tab-stock" class="tab-pane active">
 
   <!-- BLOQUE ECONÓMICO -->
   <div class="eco-block" style="margin-bottom:12px;">
@@ -471,7 +509,49 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     </div>
   </div>
 
-</div>
+  </div><!-- /tab-stock -->
+
+  <!-- TAB INVERTIDO -->
+  <div id="tab-invertido" class="tab-pane">
+    <div class="block">
+      <div class="block-title"><span class="dot dot-g"></span>Registro de inversión</div>
+
+      <!-- AGREGAR FILA -->
+      <div class="inv-add-row">
+        <input type="text" id="inv-desc" class="inv-add-input" placeholder="Descripción (ej: Bulto #1)" />
+        <input type="number" id="inv-figus" class="inv-add-input" placeholder="$ Figus/Sobres" min="0" step="0.01" style="max-width:160px;" />
+        <input type="number" id="inv-cajas" class="inv-add-input" placeholder="$ Cajas" min="0" step="0.01" style="max-width:160px;" />
+        <button class="inv-add-btn" onclick="invAgregar()">+ Agregar</button>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="inv-table">
+          <thead><tr>
+            <th style="width:40%">Descripción</th>
+            <th style="width:25%">Pagado Figus / Sobres</th>
+            <th style="width:25%">Pagado Cajas</th>
+            <th style="width:10%"></th>
+          </tr></thead>
+          <tbody id="inv-tbody"></tbody>
+          <tfoot>
+            <tr class="inv-total-row">
+              <td class="inv-label-col" style="font-size:12px;color:var(--muted)">TOTAL</td>
+              <td><span class="inv-total-val" id="inv-tot-figus">$0</span></td>
+              <td><span class="inv-total-val green" id="inv-tot-cajas">$0</span></td>
+              <td></td>
+            </tr>
+            <tr class="inv-total-row">
+              <td class="inv-label-col" style="font-size:12px;color:var(--muted)">TOTAL GENERAL</td>
+              <td colspan="2"><span class="inv-total-val" id="inv-tot-general">$0</span></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div><!-- /tab-invertido -->
+
+</div><!-- /container -->
 
 <!-- MODAL EDITAR STOCK -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
@@ -909,7 +989,7 @@ async function confirmarReserva(){
   const totalSobres=packs*SOBRES_POR_PACK+sobres;
 
   if(!nombre) return alert('Ingresá el nombre del cliente.');
-  if(totalSobres===0&&albumes===0) return alert('Ingresá al menos una cantidad.');
+  if(totalSobres===0&&albumes===0&&cajas===0) return alert('Ingresá al menos una cantidad.');
   if(totalSobres>stock.sobres) return alert(`Stock insuficiente.\nSobres disponibles: ${stock.sobres.toLocaleString('es-AR')}`);
   if(albumes>stock.albumes)    return alert(`Stock insuficiente.\nÁlbumes disponibles: ${stock.albumes.toLocaleString('es-AR')}`);
   if(cajas>stock.cajas)         return alert(`Stock insuficiente.\nCajas disponibles: ${stock.cajas.toLocaleString('es-AR')}`);
@@ -1091,10 +1171,92 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&modalField)saveModal();
 });
 
+
+/* ── TABS ── */
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+/* ── INVERTIDO ── */
+let invRows = [];
+let invNextId = 1;
+
+async function invLoad() {
+  try {
+    const data = await sbFetch('invertido?select=*&order=id.asc');
+    if (data && data.length) {
+      invRows = data.map(r => ({ id: r.id, desc: r.desc, figus: r.figus || 0, cajas: r.cajas || 0 }));
+      invNextId = Math.max(...invRows.map(r => r.id), 0) + 1;
+    }
+  } catch(e) { console.error('invLoad:', e); }
+}
+
+async function invSave(r) {
+  await sbFetch('invertido', {
+    method: 'POST', prefer: 'return=minimal',
+    body: JSON.stringify({ id: r.id, desc: r.desc, figus: r.figus, cajas: r.cajas })
+  });
+}
+
+async function invDelete(id) {
+  await sbFetch('invertido?id=eq.' + id, { method: 'DELETE' });
+}
+
+async function invAgregar() {
+  const desc  = (document.getElementById('inv-desc').value || '').trim();
+  const figus = parseFloat(document.getElementById('inv-figus').value) || 0;
+  const cajas = parseFloat(document.getElementById('inv-cajas').value) || 0;
+  if (!desc) return alert('Ingresá una descripción.');
+  if (figus === 0 && cajas === 0) return alert('Ingresá al menos un monto.');
+  const row = { id: invNextId++, desc, figus, cajas };
+  invRows.push(row);
+  document.getElementById('inv-desc').value = '';
+  document.getElementById('inv-figus').value = '';
+  document.getElementById('inv-cajas').value = '';
+  renderInvertido();
+  await invSave(row);
+}
+
+async function invEliminar(id) {
+  if (!confirm('¿Eliminar esta fila?')) return;
+  invRows = invRows.filter(r => r.id !== id);
+  renderInvertido();
+  await invDelete(id);
+}
+
+function renderInvertido() {
+  const tbody = document.getElementById('inv-tbody');
+  if (!tbody) return;
+  if (!invRows.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-row">Sin registros. Agregá tu primera inversión.</td></tr>';
+  } else {
+    tbody.innerHTML = invRows.map(r => `<tr>
+      <td class="inv-label-col">${esc(r.desc)}</td>
+      <td><span style="font-family:'IBM Plex Mono',monospace;color:var(--accent)">${r.figus > 0 ? pesos(r.figus) : '—'}</span></td>
+      <td><span style="font-family:'IBM Plex Mono',monospace;color:var(--green)">${r.cajas > 0 ? pesos(r.cajas) : '—'}</span></td>
+      <td><button class="inv-del-btn" onclick="invEliminar(${r.id})">✕</button></td>
+    </tr>`).join('');
+  }
+  const totFigus = invRows.reduce((s, r) => s + (r.figus || 0), 0);
+  const totCajas = invRows.reduce((s, r) => s + (r.cajas || 0), 0);
+  const totGen   = totFigus + totCajas;
+  const tf = document.getElementById('inv-tot-figus');
+  const tc = document.getElementById('inv-tot-cajas');
+  const tg = document.getElementById('inv-tot-general');
+  if (tf) tf.textContent = pesos(totFigus);
+  if (tc) tc.textContent = pesos(totCajas);
+  if (tg) tg.textContent = pesos(totGen);
+}
+
 /* ── INIT ── */
 (async () => {
   await load();
+  await invLoad();
   renderMetrics();
+  renderInvertido();
   renderSobCalc();
   renderAlbCalc();
   renderCajCalc();
