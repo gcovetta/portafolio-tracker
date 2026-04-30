@@ -308,14 +308,14 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
   <!-- TAB NAV -->
   <div class="tabs-nav">
     <button class="tab-btn active" onclick="showTab('stock',this)">Stock</button>
-    <button class="tab-btn" onclick="showTab('invertido',this)">Invertido</button>
+    <button class="tab-btn" onclick="showTab('invertido',this)">Económico</button>
   </div>
 
   <!-- TAB STOCK -->
   <div id="tab-stock" class="tab-pane active">
 
   <!-- BLOQUE ECONÓMICO -->
-  <div class="eco-block" style="margin-bottom:12px;">
+  <div class="eco-block" style="display:none;">
     <div class="eco-header">
       <span class="dot dot-g"></span>Resumen económico
     </div>
@@ -1366,7 +1366,7 @@ function renderInvSummary() {
   const gSub  = document.getElementById('inv-s-ganancia-sub');
   const gCard = document.getElementById('inv-s-ganancia-card');
   if (gEl) {
-    gEl.textContent = pesos(Math.abs(ganancia));
+    gEl.textContent = (ganancia < 0 ? '−' : '') + pesos(Math.abs(ganancia));
     gEl.className   = 'inv-card-val ' + (ganancia > 0 ? 'positive' : ganancia < 0 ? 'negative' : 'neutral');
   }
   if (gSub) {
@@ -1394,7 +1394,7 @@ function renderInvSummary() {
   const gpSub  = document.getElementById('inv-s-gan-proy-sub');
   const gpCard = document.getElementById('inv-s-gan-proy-card');
   if (gpEl) {
-    gpEl.textContent = pesos(Math.abs(gananciaProy));
+    gpEl.textContent = (gananciaProy < 0 ? '−' : '') + pesos(Math.abs(gananciaProy));
     gpEl.className   = 'inv-card-val ' + (gananciaProy > 0 ? 'positive' : gananciaProy < 0 ? 'negative' : 'neutral');
   }
   if (gpSub) {
