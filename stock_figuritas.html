@@ -676,11 +676,11 @@ async function _hash(str) {
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
-function lkPress(n) {
+async function lkPress(n) {
   if (lkBuffer.length >= 4) return;
   lkBuffer += String(n);
   lkUpdateDots();
-  if (lkBuffer.length === 4) lkCheck();
+  if (lkBuffer.length === 4) await lkCheck();
 }
 function lkDel() {
   lkBuffer = lkBuffer.slice(0, -1);
@@ -711,10 +711,10 @@ async function lkCheck() {
     lkUpdateDots();
   }
 }
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown', async e => {
   const ov = document.getElementById('login-overlay');
   if (!ov || ov.style.display === 'none') return;
-  if (e.key >= '0' && e.key <= '9') lkPress(parseInt(e.key));
+  if (e.key >= '0' && e.key <= '9') await lkPress(parseInt(e.key));
   if (e.key === 'Backspace') lkDel();
 });
 (function() {
