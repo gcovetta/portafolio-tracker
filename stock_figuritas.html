@@ -1283,10 +1283,10 @@ function renderTablas(){
       <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
       <td><span class="badge b-orange">Reservado</span></td>
       <td style="display:flex;gap:4px">
-        <button class="btn-icon ok"  onclick="entregarReserva(${r.id})" title="Confirmar entrega">✓</button>
-        <button class="btn-icon pay" onclick="marcarPago(${r.id})"       title="Marcar como pagado">$</button>
-        <button class="btn-icon"     onclick="editarReserva(${r.id})"   title="Editar">✎</button>
-        <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar">✕</button>
+        <button class="btn-icon ok"  onclick="entregarReserva(${r.id})" title="Confirmar entrega" style="background:var(--green-dim);color:var(--green);border-color:rgba(76,175,125,.3);">✓</button>
+        <button class="btn-icon pay" onclick="marcarPago(${r.id})"       title="Marcar como pagado" style="background:var(--teal-dim);color:var(--teal);border-color:rgba(56,189,248,.3);">$</button>
+        <button class="btn-icon"     onclick="editarReserva(${r.id})"   title="Editar" style="background:var(--orange-dim);color:var(--orange);border-color:rgba(244,133,90,.3);">✎</button>
+        <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar" style="background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);">✕</button>
       </td>
     </tr>`;
   }).join(''):'<tr><td colspan="14" class="empty-row">Sin reservas pendientes.</td></tr>';
@@ -1310,10 +1310,10 @@ function renderTablas(){
       <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
       <td><span class="badge b-teal">Pagado</span></td>
       <td style="display:flex;gap:4px">
-        <button class="btn-icon ok"  onclick="entregarReserva(${r.id})" title="Confirmar entrega">✓</button>
+        <button class="btn-icon ok"  onclick="entregarReserva(${r.id})" title="Confirmar entrega" style="background:var(--green-dim);color:var(--green);border-color:rgba(76,175,125,.3);">✓</button>
         <button class="btn-icon pay" onclick="marcarPago(${r.id})"       title="Desmarcar pago" style="background:var(--teal-dim);color:var(--teal);border-color:rgba(56,189,248,.3);">$</button>
-        <button class="btn-icon"     onclick="editarReserva(${r.id})"   title="Editar">✎</button>
-        <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar">✕</button>
+        <button class="btn-icon"     onclick="editarReserva(${r.id})"   title="Editar" style="background:var(--orange-dim);color:var(--orange);border-color:rgba(244,133,90,.3);">✎</button>
+        <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar" style="background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);">✕</button>
       </td>
     </tr>`;
   }).join(''):'<tr><td colspan="14" class="empty-row">Sin reservas pagadas pendientes de entrega.</td></tr>';
@@ -1337,7 +1337,7 @@ function renderTablas(){
       <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
       <td style="font-size:11px;color:var(--green)">${r.fechaEnt}</td>
       <td style="display:flex;gap:4px">
-        <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar">✕</button>
+        <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar" style="background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);">✕</button>
       </td>
     </tr>`;
   }).join(''):'<tr><td colspan="12" class="empty-row">Sin entregas registradas.</td></tr>';
