@@ -127,17 +127,21 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .tbl tfoot tr td{padding:10px 6px;border-top:2px solid var(--border2);font-size:12px;background:var(--surface2);}
 .tfoot-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
 .tfoot-total{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--accent);}
-border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:4px 6px;outline:none;cursor:pointer;transition:border-color .15s;width:90px;}
+.tbl-select{background:var(--bg);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:4px 6px;outline:none;cursor:pointer;transition:border-color .15s;width:90px;}
 .tbl-select:focus{border-color:var(--accent);}
 .tbl-select.opt-martona{border-color:rgba(232,197,71,.4);color:var(--accent);}
 .tbl-select.opt-sx{border-color:rgba(167,139,250,.4);color:var(--purple);}
 .tbl-select.opt-nada{border-color:var(--border2);color:var(--muted);}
-.tbl-comment{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:4px 7px;outline:none;width:130px;transition:border-color .15s;}
+.tbl-comment{background:var(--bg);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:4px 7px;outline:none;width:130px;transition:border-color .15s;}
 .tbl-comment:focus{border-color:var(--accent);}
 .tbl-comment::placeholder{color:var(--muted);}
 .extra-cell{display:flex;flex-direction:row;align-items:center;gap:6px;min-width:240px;}
-.preview-txt{font-size:11px;color:var(--muted);margin-bottom:.8rem;display:none;}
-.preview-txt span{color:var(--accent);font-weight:500;}
+.sub-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.8rem;display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;}
+.sub-title:hover{color:var(--text);}
+.sub-title .collapse-icon{margin-left:auto;font-size:10px;color:var(--muted);transition:transform .2s;}
+.sub-title.collapsed .collapse-icon{transform:rotate(-90deg);}
+.collapsible{overflow:hidden;transition:max-height .3s ease, opacity .2s ease;max-height:3000px;opacity:1;}
+.collapsible.collapsed{max-height:0;opacity:0;}
 
 /* EDIT */
 .editing td{background:rgba(232,197,71,.03)!important;}
@@ -145,7 +149,8 @@ border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:
 .ei.nm{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;}
 
 .tbl-divider{height:1px;background:var(--border);margin:1.5rem 0;}
-.sub-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:.8rem;display:flex;align-items:center;gap:6px;}
+.preview-txt{font-size:11px;color:var(--muted);margin-bottom:.8rem;display:none;}
+.preview-txt span{color:var(--accent);font-weight:500;}
 
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:500;opacity:0;pointer-events:none;transition:opacity .2s;}
@@ -449,7 +454,8 @@ border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:
       <span class="filter-count" id="res-count"></span>
     </div>
 
-    <div class="sub-title"><span class="dot dot-o"></span>Pendientes</div>
+    <div class="sub-title" onclick="toggleTable('pend',this)"><span class="dot dot-o"></span>Pendientes<span class="collapse-icon">▼</span></div>
+    <div class="collapsible" id="col-pend">
     <div style="overflow-x:auto;">
       <table class="tbl">
         <thead><tr>
@@ -473,10 +479,12 @@ border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:
         <tfoot id="tf-pend"></tfoot>
       </table>
     </div>
+    </div><!-- /col-pend -->
 
     <div class="tbl-divider"></div>
 
-    <div class="sub-title"><span class="dot dot-t"></span>Pagados — No entregados</div>
+    <div class="sub-title" onclick="toggleTable('pago',this)"><span class="dot dot-t"></span>Pagados — No entregados<span class="collapse-icon">▼</span></div>
+    <div class="collapsible" id="col-pago">
     <div style="overflow-x:auto;">
       <table class="tbl">
         <thead><tr>
@@ -500,10 +508,12 @@ border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:
         <tfoot id="tf-pago"></tfoot>
       </table>
     </div>
+    </div><!-- /col-pago -->
 
     <div class="tbl-divider"></div>
 
-    <div class="sub-title"><span class="dot dot-g"></span>Entregados</div>
+    <div class="sub-title" onclick="toggleTable('ent',this)"><span class="dot dot-g"></span>Entregados<span class="collapse-icon">▼</span></div>
+    <div class="collapsible" id="col-ent">
     <div style="overflow-x:auto;">
       <table class="tbl">
         <thead><tr>
@@ -527,6 +537,7 @@ border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:
         <tfoot id="tf-ent"></tfoot>
       </table>
     </div>
+    </div><!-- /col-ent -->
   </div>
 
   <!-- CALCULADORAS -->
@@ -1311,6 +1322,13 @@ async function updateComentario(id, inp) {
   const r = reservas.find(x => x.id===id); if(!r) return;
   r.comentario = inp.value;
   await saveReserva(r);
+}
+
+function toggleTable(name, btn) {
+  const col = g('col-' + name);
+  if (!col) return;
+  const isCollapsed = col.classList.toggle('collapsed');
+  btn.classList.toggle('collapsed', isCollapsed);
 }
 
 function renderTablas(){
