@@ -115,6 +115,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;}
 .b-orange{background:var(--orange-dim);color:var(--orange);}
 .b-green{background:var(--green-dim);color:var(--green);}
+.b-teal{background:var(--teal-dim);color:var(--teal);}
+.btn-icon.pay:hover{background:var(--teal-dim);color:var(--teal);border-color:rgba(56,189,248,.3);}
 .cname{font-size:13px;font-weight:600;}
 
 .btn-icon{width:24px;height:24px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:11px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .12s;}
@@ -496,6 +498,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <select class="filter-select" id="res-estado" onchange="renderTablas()">
         <option value="">Todos los estados</option>
         <option value="pendiente">Pendientes</option>
+        <option value="pagado">Pagados</option>
         <option value="entregado">Entregados</option>
       </select>
       <button class="filter-clear" onclick="limpiarFiltro()">✕ Limpiar</button>
@@ -522,6 +525,31 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th></th>
         </tr></thead>
         <tbody id="tb-pend"></tbody>
+      </table>
+    </div>
+
+    <div class="tbl-divider"></div>
+
+    <div class="sub-title"><span class="dot dot-t"></span>Pagados — No entregados</div>
+    <div style="overflow-x:auto;">
+      <table class="tbl">
+        <thead><tr>
+          <th>Cliente</th>
+          <th>Packs</th>
+          <th>Sobres</th>
+          <th>Tot. sobres</th>
+          <th>Álbumes</th>
+          <th>$/Pack</th>
+          <th>$/Sobre</th>
+          <th>$/Álbum</th>
+          <th>Cajas</th>
+          <th>$/Caja</th>
+          <th>Total</th>
+          <th>Reservado</th>
+          <th>Estado</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="tb-pago"></tbody>
       </table>
     </div>
 
@@ -800,6 +828,7 @@ async function saveReserva(r) {
     cajas:        r.cajas  || 0,
     p_caja:       r.pCaja  || 0,
     estado:       r.estado,
+    pagado:       r.pagado || false,
     fecha:        r.fecha,
     fecha_ent:    r.fechaEnt || null
   };
@@ -824,6 +853,7 @@ async function insertReserva(r) {
     cajas:        r.cajas  || 0,
     p_caja:       r.pCaja  || 0,
     estado:       r.estado,
+    pagado:       r.pagado || false,
     fecha:        r.fecha,
     fecha_ent:    r.fechaEnt || null
   };
@@ -870,6 +900,7 @@ async function load() {
         cajas:       r.cajas   || 0,
         pCaja:       r.p_caja  || 0,
         estado:      r.estado,
+        pagado:      r.pagado  || false,
         fecha:       r.fecha,
         fechaEnt:    r.fecha_ent || null
       }));
@@ -922,7 +953,7 @@ function calcTotal(r){
 
 /* ── MÉTRICAS + ECO ── */
 function renderMetrics() {
-  const pend   = reservas.filter(r=>r.estado==='pendiente');
+  const pend   = reservas.filter(r=>r.estado==='pendiente');  // includes pagados
   const ent    = reservas.filter(r=>r.estado==='entregado');
   const sobRes = pend.reduce((s,r)=>s+r.totalSobres,0);
   const cajRes = pend.reduce((s,r)=>s+(r.cajas||0),0);
@@ -1104,7 +1135,7 @@ async function confirmarReserva(){
   stock.albumes -= albumes;
   stock.cajas   -= cajas;
 
-  reservas.push({id:nextId++,nombre,packs,sobres,totalSobres,albumes,pPack,pSobre,pAlbum,cajas,pCaja,estado:'pendiente',fecha:new Date().toLocaleDateString('es-AR'),fechaEnt:null});
+  reservas.push({id:nextId++,nombre,packs,sobres,totalSobres,albumes,pPack,pSobre,pAlbum,cajas,pCaja,estado:'pendiente',pagado:false,fecha:new Date().toLocaleDateString('es-AR'),fechaEnt:null});
 
   g('nr-nombre').value='';g('nr-packs').value='0';g('nr-sobres').value='0';
   g('nr-albumes').value='0';g('nr-ppk').value='0';g('nr-psob').value='0';g('nr-palb').value='0';
@@ -1126,7 +1157,15 @@ async function entregarReserva(id){
   await Promise.all([save(), saveReserva(r)]);
 }
 
-/* ── EDITAR ── */
+/* ── MARCAR PAGO ── */
+async function marcarPago(id){
+  const r=reservas.find(x=>x.id===id);if(!r||r.estado!=='pendiente')return;
+  r.pagado = !r.pagado;
+  renderTablas();
+  await saveReserva(r);
+}
+
+
 function editarReserva(id){
   const r=reservas.find(x=>x.id===id);if(!r)return;
   const row=g(`row-${id}`);if(!row)return;
@@ -1214,12 +1253,15 @@ function renderTablas(){
   }
 
   const todas = [...reservas].filter(matchFiltro);
-  const pend = todas.filter(r => r.estado==='pendiente' && (!estado || estado==='pendiente')).reverse();
-  const ent  = todas.filter(r => r.estado==='entregado' && (!estado || estado==='entregado')).reverse();
+  const filterEstado = estado;
+  const pend     = todas.filter(r => r.estado==='pendiente' && !r.pagado && (!filterEstado || filterEstado==='pendiente')).reverse();
+  const pagados  = todas.filter(r => r.estado==='pendiente' &&  r.pagado && (!filterEstado || filterEstado==='pagado')).reverse();
+  const ent      = todas.filter(r => r.estado==='entregado' && (!filterEstado || filterEstado==='entregado')).reverse();
 
+  const pagados_count = pagados.length;
   const count = document.getElementById('res-count');
   if (count) {
-    const total = pend.length + ent.length;
+    const total = pend.length + pagados_count + ent.length;
     count.textContent = total > 0 ? `${total} resultado${total!==1?'s':''}` : 'Sin resultados';
   }
 
@@ -1242,11 +1284,39 @@ function renderTablas(){
       <td><span class="badge b-orange">Reservado</span></td>
       <td style="display:flex;gap:4px">
         <button class="btn-icon ok"  onclick="entregarReserva(${r.id})" title="Confirmar entrega">✓</button>
+        <button class="btn-icon pay" onclick="marcarPago(${r.id})"       title="Marcar como pagado">$</button>
         <button class="btn-icon"     onclick="editarReserva(${r.id})"   title="Editar">✎</button>
         <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar">✕</button>
       </td>
     </tr>`;
-  }).join(''):'<tr><td colspan="12" class="empty-row">Sin reservas pendientes.</td></tr>';
+  }).join(''):'<tr><td colspan="14" class="empty-row">Sin reservas pendientes.</td></tr>';
+
+  // Tabla: Pagados — No entregados
+  const tbPago=g('tb-pago');
+  tbPago.innerHTML=pagados.length?pagados.map(r=>{
+    const tot=calcTotal(r);
+    return `<tr id="row-${r.id}">
+      <td><span class="cname">${esc(r.nombre)}</span></td>
+      <td>${r.packs}</td>
+      <td>${r.sobres}</td>
+      <td><strong>${r.totalSobres.toLocaleString('es-AR')}</strong></td>
+      <td>${r.albumes}</td>
+      ${moneyCell(r.pPack||0)}
+      ${moneyCell(r.pSobre||0)}
+      ${moneyCell(r.pAlbum||0)}
+      <td>${(r.cajas||0)}</td>
+      ${moneyCell(r.pCaja||0)}
+      <td class="total-money">${tot>0?pesos(tot):'—'}</td>
+      <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
+      <td><span class="badge b-teal">Pagado</span></td>
+      <td style="display:flex;gap:4px">
+        <button class="btn-icon ok"  onclick="entregarReserva(${r.id})" title="Confirmar entrega">✓</button>
+        <button class="btn-icon pay" onclick="marcarPago(${r.id})"       title="Desmarcar pago" style="background:var(--teal-dim);color:var(--teal);border-color:rgba(56,189,248,.3);">$</button>
+        <button class="btn-icon"     onclick="editarReserva(${r.id})"   title="Editar">✎</button>
+        <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar">✕</button>
+      </td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="14" class="empty-row">Sin reservas pagadas pendientes de entrega.</td></tr>';
 
   renderInvSummary();
   const tbE=g('tb-ent');
