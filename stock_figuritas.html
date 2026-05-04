@@ -1282,7 +1282,7 @@ async function updateComentario(id, inp) {
   await saveReserva(r);
 }
 
-
+function renderTablas(){
   const filtro = (document.getElementById('res-filtro')?.value || '').toLowerCase().trim();
   const estado = document.getElementById('res-estado')?.value || '';
 
