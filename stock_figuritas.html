@@ -124,7 +124,10 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .btn-icon.ok:hover{background:var(--green-dim);color:var(--green);border-color:rgba(76,175,125,.3);}
 .btn-icon.del:hover{background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);}
 
-.tbl-select{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:4px 6px;outline:none;cursor:pointer;transition:border-color .15s;width:90px;}
+.tbl tfoot tr td{padding:10px 6px;border-top:2px solid var(--border2);font-size:12px;background:var(--surface2);}
+.tfoot-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.tfoot-total{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--accent);}
+border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:4px 6px;outline:none;cursor:pointer;transition:border-color .15s;width:90px;}
 .tbl-select:focus{border-color:var(--accent);}
 .tbl-select.opt-martona{border-color:rgba(232,197,71,.4);color:var(--accent);}
 .tbl-select.opt-sx{border-color:rgba(167,139,250,.4);color:var(--purple);}
@@ -467,6 +470,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th></th>
         </tr></thead>
         <tbody id="tb-pend"></tbody>
+        <tfoot id="tf-pend"></tfoot>
       </table>
     </div>
 
@@ -493,6 +497,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th></th>
         </tr></thead>
         <tbody id="tb-pago"></tbody>
+        <tfoot id="tf-pago"></tfoot>
       </table>
     </div>
 
@@ -519,6 +524,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th></th>
         </tr></thead>
         <tbody id="tb-ent"></tbody>
+        <tfoot id="tf-ent"></tfoot>
       </table>
     </div>
   </div>
@@ -1366,6 +1372,14 @@ function renderTablas(){
     </tr>`;
   }).join(''):'<tr><td colspan="16" class="empty-row">Sin reservas pendientes.</td></tr>';
 
+  const totalPend = pend.reduce((s,r) => s + calcTotal(r), 0);
+  const tfP = g('tf-pend');
+  if (tfP) tfP.innerHTML = pend.length ? `<tr>
+    <td colspan="10" class="tfoot-label">Total pendientes</td>
+    <td class="tfoot-total">${pesos(totalPend)}</td>
+    <td colspan="4"></td>
+  </tr>` : '';
+
   // Tabla: Pagados — No entregados
   const tbPago=g('tb-pago');
   tbPago.innerHTML=pagados.length?pagados.map(r=>{
@@ -1394,6 +1408,14 @@ function renderTablas(){
     </tr>`;
   }).join(''):'<tr><td colspan="16" class="empty-row">Sin reservas pagadas pendientes de entrega.</td></tr>';
 
+  const totalPago = pagados.reduce((s,r) => s + calcTotal(r), 0);
+  const tfPago = g('tf-pago');
+  if (tfPago) tfPago.innerHTML = pagados.length ? `<tr>
+    <td colspan="10" class="tfoot-label">Total pagados</td>
+    <td class="tfoot-total">${pesos(totalPago)}</td>
+    <td colspan="4"></td>
+  </tr>` : '';
+
   renderInvSummary();
   const tbE=g('tb-ent');
   tbE.innerHTML=ent.length?ent.map(r=>{
@@ -1418,6 +1440,14 @@ function renderTablas(){
       </td>
     </tr>`;
   }).join(''):'<tr><td colspan="14" class="empty-row">Sin entregas registradas.</td></tr>';
+
+  const totalEnt = ent.reduce((s,r) => s + calcTotal(r), 0);
+  const tfE = g('tf-ent');
+  if (tfE) tfE.innerHTML = ent.length ? `<tr>
+    <td colspan="10" class="tfoot-label">Total entregados</td>
+    <td class="tfoot-total">${pesos(totalEnt)}</td>
+    <td colspan="4"></td>
+  </tr>` : '';
 }
 
 function limpiarFiltro(){
