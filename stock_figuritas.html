@@ -124,7 +124,15 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .btn-icon.ok:hover{background:var(--green-dim);color:var(--green);border-color:rgba(76,175,125,.3);}
 .btn-icon.del:hover{background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);}
 
-.empty-row{text-align:center;padding:2rem;color:var(--muted);font-size:12px;}
+.tbl-select{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:4px 6px;outline:none;cursor:pointer;transition:border-color .15s;width:90px;}
+.tbl-select:focus{border-color:var(--accent);}
+.tbl-select.opt-martona{border-color:rgba(232,197,71,.4);color:var(--accent);}
+.tbl-select.opt-sx{border-color:rgba(167,139,250,.4);color:var(--purple);}
+.tbl-select.opt-nada{border-color:var(--border2);color:var(--muted);}
+.tbl-comment{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:4px 7px;outline:none;width:130px;transition:border-color .15s;}
+.tbl-comment:focus{border-color:var(--accent);}
+.tbl-comment::placeholder{color:var(--muted);}
+.extra-cell{display:flex;flex-direction:column;gap:4px;min-width:140px;}
 .preview-txt{font-size:11px;color:var(--muted);margin-bottom:.8rem;display:none;}
 .preview-txt span{color:var(--accent);font-weight:500;}
 
@@ -268,8 +276,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .inv-card-val.neutral{color:var(--muted);}
 .inv-card.ganancia-pos{border-color:rgba(76,175,125,.25);}
 .inv-card.ganancia-neg{border-color:rgba(224,92,92,.25);}
-@media(max-width:1100px){.inv-summary{grid-template-columns:repeat(4,1fr);}}
-@media(max-width:700px){.inv-summary{grid-template-columns:1fr 1fr;}}
+@media(max-width:1100px){.inv-summary{grid-template-columns:repeat(3,1fr) !important;}}
+@media(max-width:700px){.inv-summary{grid-template-columns:1fr 1fr !important;}}
 
 </style>
 </head>
@@ -522,6 +530,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th>Total</th>
           <th>Fecha</th>
           <th>Estado</th>
+          <th>Info</th>
           <th></th>
         </tr></thead>
         <tbody id="tb-pend"></tbody>
@@ -547,6 +556,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th>Total</th>
           <th>Reservado</th>
           <th>Estado</th>
+          <th>Info</th>
           <th></th>
         </tr></thead>
         <tbody id="tb-pago"></tbody>
@@ -572,6 +582,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th>Total</th>
           <th>Reservado</th>
           <th>Entregado</th>
+          <th>Info</th>
           <th></th>
         </tr></thead>
         <tbody id="tb-ent"></tbody>
@@ -585,7 +596,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
   <div id="tab-invertido" class="tab-pane">
 
     <!-- RECUADROS RESUMEN -->
-    <div class="inv-summary">
+    <div class="inv-summary" style="grid-template-columns:repeat(5,1fr);">
       <div class="inv-card">
         <div class="inv-card-label">Total invertido</div>
         <div class="inv-card-val c-accent" id="inv-s-invertido">$0</div>
@@ -595,6 +606,11 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
         <div class="inv-card-label">Reservado (a cobrar)</div>
         <div class="inv-card-val c-orange" id="inv-s-reservado">$0</div>
         <div class="inv-card-sub" id="inv-s-reservado-sub">0 reservas</div>
+      </div>
+      <div class="inv-card" style="border-color:rgba(56,189,248,.2);">
+        <div class="inv-card-label">Cobrado — No entregado</div>
+        <div class="inv-card-val c-teal" id="inv-s-cobrado-ne">$0</div>
+        <div class="inv-card-sub" id="inv-s-cobrado-ne-sub">0 pagados</div>
       </div>
       <div class="inv-card">
         <div class="inv-card-label">Entregado (cobrado)</div>
@@ -617,7 +633,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
         <div class="inv-card-sub" id="inv-s-ganancia-sub">Cobrado − Invertido</div>
         <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:6px;">
           <div>
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:2px;">Reservado + Entregado</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:2px;">Res. + Cobrado + Entregado</div>
             <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;" id="inv-s-gan-resent">$0</div>
           </div>
           <div style="text-align:right;">
@@ -829,6 +845,8 @@ async function saveReserva(r) {
     p_caja:       r.pCaja  || 0,
     estado:       r.estado,
     pagado:       r.pagado || false,
+    origen:       r.origen || 'nada',
+    comentario:   r.comentario || '',
     fecha:        r.fecha,
     fecha_ent:    r.fechaEnt || null
   };
@@ -854,6 +872,8 @@ async function insertReserva(r) {
     p_caja:       r.pCaja  || 0,
     estado:       r.estado,
     pagado:       r.pagado || false,
+    origen:       r.origen || 'nada',
+    comentario:   r.comentario || '',
     fecha:        r.fecha,
     fecha_ent:    r.fechaEnt || null
   };
@@ -901,6 +921,8 @@ async function load() {
         pCaja:       r.p_caja  || 0,
         estado:      r.estado,
         pagado:      r.pagado  || false,
+        origen:      r.origen  || 'nada',
+        comentario:  r.comentario || '',
         fecha:       r.fecha,
         fechaEnt:    r.fecha_ent || null
       }));
@@ -1135,7 +1157,7 @@ async function confirmarReserva(){
   stock.albumes -= albumes;
   stock.cajas   -= cajas;
 
-  reservas.push({id:nextId++,nombre,packs,sobres,totalSobres,albumes,pPack,pSobre,pAlbum,cajas,pCaja,estado:'pendiente',pagado:false,fecha:new Date().toLocaleDateString('es-AR'),fechaEnt:null});
+  reservas.push({id:nextId++,nombre,packs,sobres,totalSobres,albumes,pPack,pSobre,pAlbum,cajas,pCaja,estado:'pendiente',pagado:false,origen:'nada',comentario:'',fecha:new Date().toLocaleDateString('es-AR'),fechaEnt:null});
 
   g('nr-nombre').value='';g('nr-packs').value='0';g('nr-sobres').value='0';
   g('nr-albumes').value='0';g('nr-ppk').value='0';g('nr-psob').value='0';g('nr-palb').value='0';
@@ -1233,7 +1255,34 @@ async function eliminarReserva(id){
 /* ── RENDER TABLAS ── */
 function moneyCell(v){ return v>0?`<td class="money">${pesos(v)}</td>`:'<td style="color:var(--muted)">—</td>';}
 
-function renderTablas(){
+function infoCell(r) {
+  const cls = r.origen==='martona' ? 'opt-martona' : r.origen==='sx' ? 'opt-sx' : 'opt-nada';
+  return `<td>
+    <div class="extra-cell">
+      <select class="tbl-select ${cls}" onchange="updateOrigen(${r.id},this)" title="Origen">
+        <option value="nada"    ${r.origen==='nada'    ?'selected':''}>Nada</option>
+        <option value="martona" ${r.origen==='martona' ?'selected':''}>Martona</option>
+        <option value="sx"      ${r.origen==='sx'      ?'selected':''}>SX</option>
+      </select>
+      <input class="tbl-comment" type="text" value="${esc(r.comentario||'')}" placeholder="Comentario..." onchange="updateComentario(${r.id},this)" title="Comentario" />
+    </div>
+  </td>`;
+}
+
+async function updateOrigen(id, sel) {
+  const r = reservas.find(x => x.id===id); if(!r) return;
+  r.origen = sel.value;
+  sel.className = 'tbl-select ' + (r.origen==='martona' ? 'opt-martona' : r.origen==='sx' ? 'opt-sx' : 'opt-nada');
+  await saveReserva(r);
+}
+
+async function updateComentario(id, inp) {
+  const r = reservas.find(x => x.id===id); if(!r) return;
+  r.comentario = inp.value;
+  await saveReserva(r);
+}
+
+
   const filtro = (document.getElementById('res-filtro')?.value || '').toLowerCase().trim();
   const estado = document.getElementById('res-estado')?.value || '';
 
@@ -1282,6 +1331,7 @@ function renderTablas(){
       <td class="total-money">${tot>0?pesos(tot):'—'}</td>
       <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
       <td><span class="badge b-orange">Reservado</span></td>
+      ${infoCell(r)}
       <td style="display:flex;gap:4px">
         <button class="btn-icon ok"  onclick="entregarReserva(${r.id})" title="Confirmar entrega" style="background:var(--green-dim);color:var(--green);border-color:rgba(76,175,125,.3);">✓</button>
         <button class="btn-icon pay" onclick="marcarPago(${r.id})"       title="Marcar como pagado" style="background:var(--teal-dim);color:var(--teal);border-color:rgba(56,189,248,.3);">$</button>
@@ -1289,7 +1339,7 @@ function renderTablas(){
         <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar" style="background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);">✕</button>
       </td>
     </tr>`;
-  }).join(''):'<tr><td colspan="14" class="empty-row">Sin reservas pendientes.</td></tr>';
+  }).join(''):'<tr><td colspan="16" class="empty-row">Sin reservas pendientes.</td></tr>';
 
   // Tabla: Pagados — No entregados
   const tbPago=g('tb-pago');
@@ -1309,6 +1359,7 @@ function renderTablas(){
       <td class="total-money">${tot>0?pesos(tot):'—'}</td>
       <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
       <td><span class="badge b-teal">Pagado</span></td>
+      ${infoCell(r)}
       <td style="display:flex;gap:4px">
         <button class="btn-icon ok"  onclick="entregarReserva(${r.id})" title="Confirmar entrega" style="background:var(--green-dim);color:var(--green);border-color:rgba(76,175,125,.3);">✓</button>
         <button class="btn-icon pay" onclick="marcarPago(${r.id})"       title="Desmarcar pago" style="background:var(--teal-dim);color:var(--teal);border-color:rgba(56,189,248,.3);">$</button>
@@ -1316,7 +1367,7 @@ function renderTablas(){
         <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar" style="background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);">✕</button>
       </td>
     </tr>`;
-  }).join(''):'<tr><td colspan="14" class="empty-row">Sin reservas pagadas pendientes de entrega.</td></tr>';
+  }).join(''):'<tr><td colspan="16" class="empty-row">Sin reservas pagadas pendientes de entrega.</td></tr>';
 
   renderInvSummary();
   const tbE=g('tb-ent');
@@ -1336,11 +1387,12 @@ function renderTablas(){
       <td class="total-money">${tot>0?pesos(tot):'—'}</td>
       <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
       <td style="font-size:11px;color:var(--green)">${r.fechaEnt}</td>
+      ${infoCell(r)}
       <td style="display:flex;gap:4px">
         <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar" style="background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);">✕</button>
       </td>
     </tr>`;
-  }).join(''):'<tr><td colspan="12" class="empty-row">Sin entregas registradas.</td></tr>';
+  }).join(''):'<tr><td colspan="14" class="empty-row">Sin entregas registradas.</td></tr>';
 }
 
 function limpiarFiltro(){
@@ -1444,13 +1496,15 @@ function renderInvSummary() {
   const totalInv = totFigus + totCajas;
 
   // Reservado y entregado (de las reservas)
-  const pend     = reservas.filter(r => r.estado === 'pendiente');
-  const ent      = reservas.filter(r => r.estado === 'entregado');
-  const valorRes = pend.reduce((s,r) => s + calcTotal(r), 0);
-  const valorEnt = ent.reduce((s,r)  => s + calcTotal(r), 0);
+  const pend        = reservas.filter(r => r.estado === 'pendiente' && !r.pagado);
+  const cobradoNE   = reservas.filter(r => r.estado === 'pendiente' &&  r.pagado);
+  const ent         = reservas.filter(r => r.estado === 'entregado');
+  const valorRes    = pend.reduce((s,r)       => s + calcTotal(r), 0);
+  const valorCobNE  = cobradoNE.reduce((s,r)  => s + calcTotal(r), 0);
+  const valorEnt    = ent.reduce((s,r)        => s + calcTotal(r), 0);
 
-  // Ganancia neta = (reservado + cobrado) - invertido
-  const ganancia = valorEnt + valorRes - totalInv;
+  // Ganancia neta = (reservado + cobrado no ent + entregado) - invertido
+  const ganancia = valorEnt + valorRes + valorCobNE - totalInv;
 
   const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
 
@@ -1459,6 +1513,9 @@ function renderInvSummary() {
 
   set('inv-s-reservado',     pesos(valorRes));
   set('inv-s-reservado-sub', `${pend.length} reserva${pend.length!==1?'s':''}`);
+
+  set('inv-s-cobrado-ne',     pesos(valorCobNE));
+  set('inv-s-cobrado-ne-sub', `${cobradoNE.length} pagado${cobradoNE.length!==1?'s':''}`);
 
   set('inv-s-entregado',     pesos(valorEnt));
   set('inv-s-entregado-sub', `${ent.length} entrega${ent.length!==1?'s':''}`);
@@ -1498,7 +1555,7 @@ function renderInvSummary() {
   // Mini valores dentro del recuadro Ganancia neta
   const gnResentEl = document.getElementById('inv-s-gan-resent');
   const gnPctEl    = document.getElementById('inv-s-gan-pct');
-  const gnResMasEnt = valorRes + valorEnt;
+  const gnResMasEnt = valorRes + valorCobNE + valorEnt;
   const gnPct       = totalInv > 0 ? (ganancia / totalInv) * 100 : 0;
   if (gnResentEl) {
     gnResentEl.textContent = pesos(gnResMasEnt);
