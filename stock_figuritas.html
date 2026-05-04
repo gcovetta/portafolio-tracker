@@ -512,8 +512,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 
     <div class="tbl-divider"></div>
 
-    <div class="sub-title" onclick="toggleTable('ent',this)"><span class="dot dot-g"></span>Entregados<span class="collapse-icon">▼</span></div>
-    <div class="collapsible" id="col-ent">
+    <div class="sub-title collapsed" onclick="toggleTable('ent',this)"><span class="dot dot-g"></span>Entregados<span class="collapse-icon">▼</span></div>
+    <div class="collapsible collapsed" id="col-ent">
     <div style="overflow-x:auto;">
       <table class="tbl">
         <thead><tr>
@@ -1233,7 +1233,7 @@ function editarReserva(id){
     <td><input class="ei" id="e-pcj-${id}" type="number" min="0" value="${r.pCaja||0}" style="width:60px" step="0.01" /></td>
     <td>—</td>
     <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
-    <td><span class="badge b-orange" style="font-size:10px">Editando</span></td>
+    ${r.estado==='entregado' ? `<td style="font-size:11px;color:var(--green)">${r.fechaEnt||''}</td>` : `<td><span class="badge b-orange" style="font-size:10px">Editando</span></td>`}
     <td>
       <div style="display:flex;flex-direction:column;gap:4px;">
         <select class="ei" id="e-orig-${id}" style="font-family:'Inter',sans-serif;font-size:12px;padding:4px 6px;cursor:pointer;">
@@ -1454,6 +1454,7 @@ function renderTablas(){
       <td style="font-size:11px;color:var(--green)">${r.fechaEnt}</td>
       ${infoCell(r)}
       <td style="display:flex;gap:4px">
+        <button class="btn-icon"     onclick="editarReserva(${r.id})"   title="Editar" style="background:var(--orange-dim);color:var(--orange);border-color:rgba(244,133,90,.3);">✎</button>
         <button class="btn-icon del" onclick="eliminarReserva(${r.id})" title="Eliminar" style="background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);">✕</button>
       </td>
     </tr>`;
