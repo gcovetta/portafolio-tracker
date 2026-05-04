@@ -93,7 +93,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .block-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
 
 /* NUEVA RESERVA — 7 columnas + tilde */
-.new-res-row{display:grid;grid-template-columns:1.4fr .55fr .55fr .55fr .55fr .65fr .65fr .65fr .65fr 38px;gap:6px;align-items:end;margin-bottom:.8rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+.new-res-row{display:grid;grid-template-columns:1.4fr .55fr .55fr .55fr .55fr .65fr .65fr .65fr .65fr .7fr .9fr 38px;gap:6px;align-items:end;margin-bottom:.8rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
 .nrf{display:flex;flex-direction:column;gap:5px;}
 .nrf label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
 .nrf input{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 6px;outline:none;width:100%;transition:border-color .15s;}
@@ -496,6 +496,15 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <div class="nrf"><label>$ / Álbum</label><input type="number" id="nr-palb" placeholder="0" min="0" step="0.01" value="0" /></div>
       <div class="nrf"><label>Cajas</label><input type="number" id="nr-cajas" placeholder="0" min="0" value="0" /></div>
       <div class="nrf"><label>$ / Caja</label><input type="number" id="nr-pcaj" placeholder="0" min="0" step="0.01" value="0" /></div>
+      <div class="nrf">
+        <label>Origen</label>
+        <select id="nr-origen" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'Inter',sans-serif;font-size:12px;padding:7px 6px;outline:none;width:100%;cursor:pointer;">
+          <option value="nada">—</option>
+          <option value="martona">Martona</option>
+          <option value="sx">SX</option>
+        </select>
+      </div>
+      <div class="nrf"><label>Comentario</label><input type="text" id="nr-comentario" placeholder="Opcional..." style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'Inter',sans-serif;font-size:12px;padding:7px 6px;outline:none;width:100%;" /></div>
       <button class="btn-confirm" onclick="confirmarReserva()" title="Confirmar reserva">✓</button>
     </div>
     <div class="preview-txt" id="nr-preview">Total sobres: <span id="nr-preview-val"></span></div>
@@ -1145,6 +1154,8 @@ async function confirmarReserva(){
   const pAlbum =parseFloat(g('nr-palb').value)||0;
   const cajas  =parseInt(g('nr-cajas').value)||0;
   const pCaja  =parseFloat(g('nr-pcaj').value)||0;
+  const origen    =g('nr-origen').value||'nada';
+  const comentario=g('nr-comentario').value.trim();
   const totalSobres=packs*SOBRES_POR_PACK+sobres;
 
   if(!nombre) return alert('Ingresá el nombre del cliente.');
@@ -1157,11 +1168,12 @@ async function confirmarReserva(){
   stock.albumes -= albumes;
   stock.cajas   -= cajas;
 
-  reservas.push({id:nextId++,nombre,packs,sobres,totalSobres,albumes,pPack,pSobre,pAlbum,cajas,pCaja,estado:'pendiente',pagado:false,origen:'nada',comentario:'',fecha:new Date().toLocaleDateString('es-AR'),fechaEnt:null});
+  reservas.push({id:nextId++,nombre,packs,sobres,totalSobres,albumes,pPack,pSobre,pAlbum,cajas,pCaja,estado:'pendiente',pagado:false,origen,comentario,fecha:new Date().toLocaleDateString('es-AR'),fechaEnt:null});
 
   g('nr-nombre').value='';g('nr-packs').value='0';g('nr-sobres').value='0';
   g('nr-albumes').value='0';g('nr-ppk').value='0';g('nr-psob').value='0';g('nr-palb').value='0';
   g('nr-cajas').value='0';g('nr-pcaj').value='0';
+  g('nr-origen').value='nada';g('nr-comentario').value='';
   g('nr-preview').style.display='none';
 
   renderMetrics();renderTablas();
@@ -1205,9 +1217,19 @@ function editarReserva(id){
     <td>—</td>
     <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
     <td><span class="badge b-orange" style="font-size:10px">Editando</span></td>
+    <td>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <select class="ei" id="e-orig-${id}" style="font-family:'Inter',sans-serif;font-size:12px;padding:4px 6px;cursor:pointer;">
+          <option value="nada"    ${(r.origen||'nada')==='nada'    ?'selected':''}>—</option>
+          <option value="martona" ${(r.origen||'')==='martona'?'selected':''}>Martona</option>
+          <option value="sx"      ${(r.origen||'')==='sx'     ?'selected':''}>SX</option>
+        </select>
+        <input class="ei" id="e-com-${id}" type="text" value="${esc(r.comentario||'')}" placeholder="Comentario..." style="font-family:'Inter',sans-serif;" />
+      </div>
+    </td>
     <td style="display:flex;gap:4px">
-      <button class="btn-icon ok" onclick="guardarEd(${id})" title="Guardar">✓</button>
-      <button class="btn-icon del" onclick="renderTablas()" title="Cancelar">✕</button>
+      <button class="btn-icon ok" onclick="guardarEd(${id})" title="Guardar" style="background:var(--green-dim);color:var(--green);border-color:rgba(76,175,125,.3);">✓</button>
+      <button class="btn-icon del" onclick="renderTablas()" title="Cancelar" style="background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);">✕</button>
     </td>
   </tr>`;
 }
@@ -1226,6 +1248,8 @@ async function guardarEd(id){
   const pAlbum =parseFloat(g(`e-pal-${id}`).value)||0;
   const cajas  =parseInt(g(`e-caj-${id}`).value)||0;
   const pCaja  =parseFloat(g(`e-pcj-${id}`).value)||0;
+  const origen    =(g(`e-orig-${id}`)?.value)||r.origen||'nada';
+  const comentario=(g(`e-com-${id}`)?.value)||r.comentario||'';
   const totalSobres=packs*SOBRES_POR_PACK+sobres;
   if(!nombre)return alert('Ingresá el nombre.');
 
@@ -1238,6 +1262,7 @@ async function guardarEd(id){
   }
   r.nombre=nombre;r.packs=packs;r.sobres=sobres;r.totalSobres=totalSobres;
   r.albumes=albumes;r.pPack=pPack;r.pSobre=pSobre;r.pAlbum=pAlbum;r.cajas=cajas;r.pCaja=pCaja;
+  r.origen=origen;r.comentario=comentario;
   renderMetrics();renderTablas();
   await Promise.all([save(), saveReserva(r)]);
 }
