@@ -93,7 +93,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .block-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
 
 /* NUEVA RESERVA — 7 columnas + tilde */
-.new-res-row{display:grid;grid-template-columns:1.4fr .55fr .55fr .55fr .55fr .65fr .65fr .65fr .65fr .7fr .9fr 38px;gap:6px;align-items:end;margin-bottom:.8rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+.new-res-row{display:grid;grid-template-columns:1.4fr .55fr .55fr .55fr .55fr .65fr .65fr .65fr .65fr .55fr .55fr .65fr .7fr .9fr 38px;gap:6px;align-items:end;margin-bottom:.8rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
 .nrf{display:flex;flex-direction:column;gap:5px;}
 .nrf label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
 .nrf input{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 6px;outline:none;width:100%;transition:border-color .15s;}
@@ -531,6 +531,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <div class="nrf"><label>$ / Álbum</label><input type="number" id="nr-palb" placeholder="0" min="0" step="0.01" value="0"></div>
       <div class="nrf"><label>Cajas</label><input type="number" id="nr-cajas" placeholder="0" min="0" value="0"></div>
       <div class="nrf"><label>$ / Caja</label><input type="number" id="nr-pcaj" placeholder="0" min="0" step="0.01" value="0"></div>
+      <div class="nrf"><label>Llav. Copa</label><input type="number" id="nr-llacopa" placeholder="0" min="0" value="0"></div>
+      <div class="nrf"><label>Llav. Fifa</label><input type="number" id="nr-llafifa" placeholder="0" min="0" value="0"></div>
+      <div class="nrf"><label>$ / Llavero</label><input type="number" id="nr-pllav" placeholder="0" min="0" step="0.01" value="0"></div>
       <div class="nrf">
         <label>Origen</label>
         <select id="nr-origen" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:&#39;Inter&#39;,sans-serif;font-size:12px;padding:7px 6px;outline:none;width:100%;cursor:pointer;">
@@ -572,6 +575,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th>$/Álbum</th>
           <th>Cajas</th>
           <th>$/Caja</th>
+          <th>Llavero Copa</th>
+          <th>Llavero Fifa</th>
+          <th>$/Llavero</th>
           <th>Total</th>
           <th>Fecha</th>
           <th>Estado</th>
@@ -589,6 +595,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$25.000</td>
       <td style="font-size:11px;color:var(--muted)">8/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -619,6 +628,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$150.000</td>
       <td style="font-size:11px;color:var(--muted)">8/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -649,6 +661,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">8/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -679,6 +694,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">8/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -709,6 +727,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$15.000</td>
       <td style="font-size:11px;color:var(--muted)">8/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -739,6 +760,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$15.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -769,6 +793,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -799,6 +826,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -829,6 +859,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>2</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$28.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -859,6 +892,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -889,6 +925,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -919,6 +958,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -949,6 +991,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -979,6 +1024,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1009,6 +1057,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1039,6 +1090,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1069,6 +1123,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>3</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$42.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1099,6 +1156,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$40.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1129,6 +1189,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$115.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1159,6 +1222,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$100.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1189,6 +1255,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1219,6 +1288,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$12.500</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$125.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1249,6 +1321,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$75.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1279,6 +1354,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$200.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1309,6 +1387,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1339,6 +1420,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$64.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1369,6 +1453,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>5</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$70.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1399,6 +1486,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$100.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1429,6 +1519,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$64.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1459,6 +1552,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$150.000</td>
       <td style="font-size:11px;color:var(--muted)">28/4/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1489,6 +1585,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">21/4/2026</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -1535,6 +1634,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th>$/Álbum</th>
           <th>Cajas</th>
           <th>$/Caja</th>
+          <th>Llavero Copa</th>
+          <th>Llavero Fifa</th>
+          <th>$/Llavero</th>
           <th>Total</th>
           <th>Reservado</th>
           <th>Estado</th>
@@ -1552,6 +1654,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>3</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$42.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-teal">Pagado</span></td>
@@ -1582,6 +1687,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$60.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td><span class="badge b-teal">Pagado</span></td>
@@ -1612,6 +1720,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$69.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td><span class="badge b-teal">Pagado</span></td>
@@ -1642,6 +1753,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td><span class="badge b-teal">Pagado</span></td>
@@ -1672,6 +1786,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">4/5/2026</td>
       <td><span class="badge b-teal">Pagado</span></td>
@@ -1702,6 +1819,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>2</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$48.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td><span class="badge b-teal">Pagado</span></td>
@@ -1748,6 +1868,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th>$/Álbum</th>
           <th>Cajas</th>
           <th>$/Caja</th>
+          <th>Llavero Copa</th>
+          <th>Llavero Fifa</th>
+          <th>$/Llavero</th>
           <th>Total</th>
           <th>Reservado</th>
           <th>Entregado</th>
@@ -1765,6 +1888,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$15.000</td>
       <td style="font-size:11px;color:var(--muted)">8/5/2026</td>
       <td style="font-size:11px;color:var(--green)">8/5/2026</td>
@@ -1793,6 +1919,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$35.000</td>
       <td style="font-size:11px;color:var(--muted)">8/5/2026</td>
       <td style="font-size:11px;color:var(--green)">8/5/2026</td>
@@ -1821,6 +1950,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">8/5/2026</td>
       <td style="font-size:11px;color:var(--green)">8/5/2026</td>
@@ -1849,6 +1981,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$35.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -1877,6 +2012,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$35.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td style="font-size:11px;color:var(--green)">8/5/2026</td>
@@ -1905,6 +2043,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -1933,6 +2074,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$150.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -1961,6 +2105,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -1989,6 +2136,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -2017,6 +2167,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$10.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -2045,6 +2198,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">7/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -2073,6 +2229,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -2101,6 +2260,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$15.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">6/5/2026</td>
@@ -2129,6 +2291,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">6/5/2026</td>
@@ -2157,6 +2322,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$40.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">6/5/2026</td>
@@ -2185,6 +2353,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">6/5/2026</td>
@@ -2213,6 +2384,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">6/5/2026</td>
@@ -2241,6 +2415,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$315.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">6/5/2026</td>
@@ -2269,6 +2446,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$80.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -2297,6 +2477,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>3</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$42.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">6/5/2026</td>
@@ -2325,6 +2508,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -2353,6 +2539,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$55.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">6/5/2026</td>
@@ -2381,6 +2570,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$34.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -2409,6 +2601,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$40.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -2437,6 +2632,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$25.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">6/5/2026</td>
@@ -2465,6 +2663,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">6/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -2493,6 +2694,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$220.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td style="font-size:11px;color:var(--green)">6/5/2026</td>
@@ -2521,6 +2725,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$1.260.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -2549,6 +2756,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -2577,6 +2787,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$194.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -2605,6 +2818,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$35.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td style="font-size:11px;color:var(--green)">6/5/2026</td>
@@ -2633,6 +2849,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -2661,6 +2880,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -2689,6 +2911,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$45.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td style="font-size:11px;color:var(--green)">6/5/2026</td>
@@ -2717,6 +2942,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$40.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td style="font-size:11px;color:var(--green)">6/5/2026</td>
@@ -2745,6 +2973,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$80.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td style="font-size:11px;color:var(--green)">6/5/2026</td>
@@ -2773,6 +3004,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -2801,6 +3035,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">5/5/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -2829,6 +3066,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$35.000</td>
       <td style="font-size:11px;color:var(--muted)">4/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -2857,6 +3097,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">4/5/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -2885,6 +3128,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$60.000</td>
       <td style="font-size:11px;color:var(--muted)">4/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -2913,6 +3159,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$79.000</td>
       <td style="font-size:11px;color:var(--muted)">4/5/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -2941,6 +3190,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$150.000</td>
       <td style="font-size:11px;color:var(--muted)">4/5/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -2969,6 +3221,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$79.000</td>
       <td style="font-size:11px;color:var(--muted)">4/5/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -2997,6 +3252,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$615.000</td>
       <td style="font-size:11px;color:var(--muted)">4/5/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -3025,6 +3283,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>2</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$28.000</td>
       <td style="font-size:11px;color:var(--muted)">4/5/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -3053,6 +3314,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">—</td>
       <td style="font-size:11px;color:var(--muted)">4/5/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -3081,6 +3345,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$129.000</td>
       <td style="font-size:11px;color:var(--muted)">4/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -3109,6 +3376,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$265.000</td>
       <td style="font-size:11px;color:var(--muted)">4/5/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -3137,6 +3407,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">4/5/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -3165,6 +3438,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$15.000</td>
       <td style="font-size:11px;color:var(--muted)">3/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -3193,6 +3469,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$20.000</td>
       <td style="font-size:11px;color:var(--muted)">3/5/2026</td>
       <td style="font-size:11px;color:var(--green)">3/5/2026</td>
@@ -3221,6 +3500,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$115.000</td>
       <td style="font-size:11px;color:var(--muted)">3/5/2026</td>
       <td style="font-size:11px;color:var(--green)">3/5/2026</td>
@@ -3249,6 +3531,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$114.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -3277,6 +3562,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$100.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">3/5/2026</td>
@@ -3305,6 +3593,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$10.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -3333,6 +3624,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$45.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -3361,6 +3655,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -3389,6 +3686,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$10.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -3417,6 +3717,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$100.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">3/5/2026</td>
@@ -3445,6 +3748,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$15.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -3473,6 +3779,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$33.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -3501,6 +3810,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$165.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -3529,6 +3841,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -3557,6 +3872,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -3585,6 +3903,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$100.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -3613,6 +3934,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$115.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -3641,6 +3965,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$129.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -3669,6 +3996,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$39.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -3697,6 +4027,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$100.000</td>
       <td style="font-size:11px;color:var(--muted)">2/5/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -3725,6 +4058,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$115.000</td>
       <td style="font-size:11px;color:var(--muted)">1/5/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -3753,6 +4089,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$79.000</td>
       <td style="font-size:11px;color:var(--muted)">1/5/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -3781,6 +4120,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$130.000</td>
       <td style="font-size:11px;color:var(--muted)">1/5/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -3809,6 +4151,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">1/5/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -3837,6 +4182,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$35.000</td>
       <td style="font-size:11px;color:var(--muted)">1/5/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -3865,6 +4213,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>2</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$28.100</td>
       <td style="font-size:11px;color:var(--muted)">1/5/2026</td>
       <td style="font-size:11px;color:var(--green)">7/5/2026</td>
@@ -3893,6 +4244,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">1/5/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -3921,6 +4275,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$100.000</td>
       <td style="font-size:11px;color:var(--muted)">1/5/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -3949,6 +4306,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">1/5/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -3977,6 +4337,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -4005,6 +4368,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$14.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -4033,6 +4399,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -4061,6 +4430,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$260.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -4089,6 +4461,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$30.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -4117,6 +4492,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -4145,6 +4523,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$15.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -4173,6 +4554,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -4201,6 +4585,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$129.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -4229,6 +4616,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$79.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -4257,6 +4647,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -4285,6 +4678,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>1</td>
       <td class="money">$14.000</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$79.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -4313,6 +4709,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$45.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -4341,6 +4740,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -4369,6 +4771,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$110.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -4397,6 +4802,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -4425,6 +4833,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$165.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -4453,6 +4864,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -4481,6 +4895,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$15.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -4509,6 +4926,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$15.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -4537,6 +4957,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$200.000</td>
       <td style="font-size:11px;color:var(--muted)">30/4/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -4565,6 +4988,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">29/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -4593,6 +5019,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">29/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -4621,6 +5050,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$20.000</td>
       <td style="font-size:11px;color:var(--muted)">29/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -4649,6 +5081,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$150.000</td>
       <td style="font-size:11px;color:var(--muted)">29/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -4677,6 +5112,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">28/4/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -4705,6 +5143,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">28/4/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -4733,6 +5174,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">28/4/2026</td>
       <td style="font-size:11px;color:var(--green)">28/4/2026</td>
@@ -4761,6 +5205,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$150.000</td>
       <td style="font-size:11px;color:var(--muted)">28/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -4789,6 +5236,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$100.000</td>
       <td style="font-size:11px;color:var(--muted)">28/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -4817,6 +5267,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$80.000</td>
       <td style="font-size:11px;color:var(--muted)">28/4/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -4845,6 +5298,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$115.000</td>
       <td style="font-size:11px;color:var(--muted)">28/4/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -4873,6 +5329,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">28/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -4901,6 +5360,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$315.000</td>
       <td style="font-size:11px;color:var(--muted)">28/4/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -4929,6 +5391,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">28/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -4957,6 +5422,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$35.000</td>
       <td style="font-size:11px;color:var(--muted)">28/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -4985,6 +5453,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">28/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -5013,6 +5484,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$165.000</td>
       <td style="font-size:11px;color:var(--muted)">28/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -5041,6 +5515,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$115.000</td>
       <td style="font-size:11px;color:var(--muted)">22/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -5069,6 +5546,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">21/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -5097,6 +5577,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">21/4/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -5125,6 +5608,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">21/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -5153,6 +5639,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">21/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -5181,6 +5670,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$130.000</td>
       <td style="font-size:11px;color:var(--muted)">21/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -5209,6 +5701,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$115.000</td>
       <td style="font-size:11px;color:var(--muted)">21/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -5237,6 +5732,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">21/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -5265,6 +5763,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$530.000</td>
       <td style="font-size:11px;color:var(--muted)">16/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -5293,6 +5794,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">16/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -5321,6 +5825,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$410.000</td>
       <td style="font-size:11px;color:var(--muted)">15/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -5349,6 +5856,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">14/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -5377,6 +5887,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">14/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -5405,6 +5918,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">14/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -5433,6 +5949,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$14.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$260.000</td>
       <td style="font-size:11px;color:var(--muted)">14/4/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -5461,6 +5980,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$145.000</td>
       <td style="font-size:11px;color:var(--muted)">13/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -5489,6 +6011,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$50.000</td>
       <td style="font-size:11px;color:var(--muted)">10/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -5517,6 +6042,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$230.000</td>
       <td style="font-size:11px;color:var(--muted)">10/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -5545,6 +6073,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">10/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -5573,6 +6104,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">10/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -5601,6 +6135,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$115.000</td>
       <td style="font-size:11px;color:var(--muted)">10/4/2026</td>
       <td style="font-size:11px;color:var(--green)">5/5/2026</td>
@@ -5629,6 +6166,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">10/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -5657,6 +6197,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$115.000</td>
       <td style="font-size:11px;color:var(--muted)">10/4/2026</td>
       <td style="font-size:11px;color:var(--green)">4/5/2026</td>
@@ -5685,6 +6228,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">10/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -5713,6 +6259,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">10/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -5741,6 +6290,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$165.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -5769,6 +6321,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$150.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -5797,6 +6352,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$230.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -5825,6 +6383,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$130.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -5853,6 +6414,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -5881,6 +6445,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -5909,6 +6476,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -5937,6 +6507,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -5965,6 +6538,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$80.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -5993,6 +6569,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$195.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -6021,6 +6600,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -6049,6 +6631,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -6077,6 +6662,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$115.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -6105,6 +6693,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -6133,6 +6724,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$575.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">2/5/2026</td>
@@ -6161,6 +6755,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$100.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -6189,6 +6786,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$115.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">28/4/2026</td>
@@ -6217,6 +6817,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -6245,6 +6848,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$280.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">28/4/2026</td>
@@ -6273,6 +6879,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">28/4/2026</td>
@@ -6301,6 +6910,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td style="color:var(--muted)">—</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">—</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">28/4/2026</td>
@@ -6329,6 +6941,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$115.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -6357,6 +6972,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$115.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -6385,6 +7003,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$165.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -6413,6 +7034,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$130.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">1/5/2026</td>
@@ -6441,6 +7065,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -6469,6 +7096,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -6497,6 +7127,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">30/4/2026</td>
@@ -6525,6 +7158,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <td class="money">$15.000</td>
       <td>0</td>
       <td style="color:var(--muted)">—</td>
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">$65.000</td>
       <td style="font-size:11px;color:var(--muted)">9/4/2026</td>
       <td style="font-size:11px;color:var(--green)">29/4/2026</td>
@@ -6837,8 +7473,11 @@ async function saveReserva(r) {
     p_pack:       r.pPack  || 0,
     p_sobre:      r.pSobre || 0,
     p_album:      r.pAlbum || 0,
-    cajas:        r.cajas  || 0,
-    p_caja:       r.pCaja  || 0,
+    cajas:        r.cajas       || 0,
+    p_caja:       r.pCaja       || 0,
+    llavero_copa: r.llaveroCopa || 0,
+    llavero_fifa: r.llaveroFifa || 0,
+    p_llavero:    r.pLlavero   || 0,
     estado:       r.estado,
     pagado:       r.pagado || false,
     origen:       r.origen || 'nada',
@@ -6864,8 +7503,11 @@ async function insertReserva(r) {
     p_pack:       r.pPack  || 0,
     p_sobre:      r.pSobre || 0,
     p_album:      r.pAlbum || 0,
-    cajas:        r.cajas  || 0,
-    p_caja:       r.pCaja  || 0,
+    cajas:        r.cajas       || 0,
+    p_caja:       r.pCaja       || 0,
+    llavero_copa: r.llaveroCopa || 0,
+    llavero_fifa: r.llaveroFifa || 0,
+    p_llavero:    r.pLlavero   || 0,
     estado:       r.estado,
     pagado:       r.pagado || false,
     origen:       r.origen || 'nada',
@@ -6915,8 +7557,11 @@ async function load() {
         pPack:       r.p_pack  || 0,
         pSobre:      r.p_sobre || 0,
         pAlbum:      r.p_album || 0,
-        cajas:       r.cajas   || 0,
-        pCaja:       r.p_caja  || 0,
+        cajas:       r.cajas       || 0,
+        pCaja:       r.p_caja      || 0,
+        llaveroCopa: r.llavero_copa || 0,
+        llaveroFifa: r.llavero_fifa || 0,
+        pLlavero:    r.p_llavero   || 0,
         estado:      r.estado,
         pagado:      r.pagado  || false,
         origen:      r.origen  || 'nada',
@@ -6967,8 +7612,9 @@ function calcTotal(r){
   const costoSobres = r.sobres * (r.pSobre||0);
   // Álbumes
   const costoAlbumes = r.albumes * (r.pAlbum||0);
-  const costoCajas   = (r.cajas||0) * (r.pCaja||0);
-  return costoPacks + costoSobres + costoAlbumes + costoCajas;
+  const costoCajas    = (r.cajas||0) * (r.pCaja||0);
+  const costoLlaveros = ((r.llaveroCopa||0) + (r.llaveroFifa||0)) * (r.pLlavero||0);
+  return costoPacks + costoSobres + costoAlbumes + costoCajas + costoLlaveros;
 }
 
 /* ── MÉTRICAS + ECO ── */
@@ -7153,27 +7799,33 @@ async function confirmarReserva(){
   const pPack  =parseFloat(g('nr-ppk').value)||0;
   const pSobre =parseFloat(g('nr-psob').value)||0;
   const pAlbum =parseFloat(g('nr-palb').value)||0;
-  const cajas  =parseInt(g('nr-cajas').value)||0;
-  const pCaja  =parseFloat(g('nr-pcaj').value)||0;
-  const origen    =g('nr-origen').value||'nada';
+  const cajas       =parseInt(g('nr-cajas').value)||0;
+  const pCaja       =parseFloat(g('nr-pcaj').value)||0;
+  const llaveroCopa =parseInt(g('nr-llacopa').value)||0;
+  const llaveroFifa =parseInt(g('nr-llafifa').value)||0;
+  const pLlavero    =parseFloat(g('nr-pllav').value)||0;
+  const origen      =g('nr-origen').value||'nada';
   const comentario=g('nr-comentario').value.trim();
   const totalSobres=packs*SOBRES_POR_PACK+sobres;
 
   if(!nombre) return alert('Ingresá el nombre del cliente.');
-  if(totalSobres===0&&albumes===0&&cajas===0) return alert('Ingresá al menos una cantidad.');
+  if(totalSobres===0&&albumes===0&&cajas===0&&llaveroCopa===0&&llaveroFifa===0) return alert('Ingresá al menos una cantidad.');
   if(totalSobres>stock.sobres) return alert(`Stock insuficiente.\nSobres disponibles: ${stock.sobres.toLocaleString('es-AR')}`);
   if(albumes>stock.albumes)    return alert(`Stock insuficiente.\nÁlbumes disponibles: ${stock.albumes.toLocaleString('es-AR')}`);
   if(cajas>stock.cajas)         return alert(`Stock insuficiente.\nCajas disponibles: ${stock.cajas.toLocaleString('es-AR')}`);
 
-  stock.sobres  -= totalSobres;
-  stock.albumes -= albumes;
-  stock.cajas   -= cajas;
+  stock.sobres      -= totalSobres;
+  stock.albumes     -= albumes;
+  stock.cajas       -= cajas;
+  stock.llaveroCopa -= llaveroCopa;
+  stock.llaveroFifa -= llaveroFifa;
 
-  reservas.push({id:nextId++,nombre,packs,sobres,totalSobres,albumes,pPack,pSobre,pAlbum,cajas,pCaja,estado:'pendiente',pagado:false,origen,comentario,fecha:new Date().toLocaleDateString('es-AR'),fechaEnt:null});
+  reservas.push({id:nextId++,nombre,packs,sobres,totalSobres,albumes,pPack,pSobre,pAlbum,cajas,pCaja,llaveroCopa,llaveroFifa,pLlavero,estado:'pendiente',pagado:false,origen,comentario,fecha:new Date().toLocaleDateString('es-AR'),fechaEnt:null});
 
   g('nr-nombre').value='';g('nr-packs').value='0';g('nr-sobres').value='0';
   g('nr-albumes').value='0';g('nr-ppk').value='0';g('nr-psob').value='0';g('nr-palb').value='0';
   g('nr-cajas').value='0';g('nr-pcaj').value='0';
+  g('nr-llacopa').value='0';g('nr-llafifa').value='0';g('nr-pllav').value='0';
   g('nr-origen').value='nada';g('nr-comentario').value='';
   g('nr-preview').style.display='none';
 
@@ -7361,6 +8013,9 @@ function renderTablas(){
       ${moneyCell(r.pAlbum||0)}
       <td>${(r.cajas||0)}</td>
       ${moneyCell(r.pCaja||0)}
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">${tot>0?pesos(tot):'—'}</td>
       <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -7397,6 +8052,9 @@ function renderTablas(){
       ${moneyCell(r.pAlbum||0)}
       <td>${(r.cajas||0)}</td>
       ${moneyCell(r.pCaja||0)}
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">${tot>0?pesos(tot):'—'}</td>
       <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
       <td><span class="badge b-teal">Pagado</span></td>
@@ -7433,6 +8091,9 @@ function renderTablas(){
       ${moneyCell(r.pAlbum||0)}
       <td>${(r.cajas||0)}</td>
       ${moneyCell(r.pCaja||0)}
+            <td>${(r.llaveroCopa||0)}</td>
+      <td>${(r.llaveroFifa||0)}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">${tot>0?pesos(tot):'—'}</td>
       <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
       <td style="font-size:11px;color:var(--green)">${r.fechaEnt}</td>
