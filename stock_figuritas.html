@@ -417,7 +417,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     Reservado
     <span style="display:inline-block;flex:1;height:1px;background:var(--muted);opacity:.2;"></span>
   </div>
-  <div class="metrics-row bot" style="margin-bottom:12px;">
+  <div class="metrics-row top" style="margin-bottom:12px;">
     <div class="metric">
       <div class="metric-label">Sobres</div>
       <div class="metric-value c-orange" id="m-sob-res">565</div>
@@ -427,6 +427,57 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <div class="metric-label">Álbumes</div>
       <div class="metric-value c-orange" id="m-alb-res">33</div>
       <div class="metric-sub" id="m-alb-res-sub">37 reservas</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Cajas</div>
+      <div class="metric-value c-orange" id="m-caj-res">0</div>
+      <div class="metric-sub" id="m-caj-res-sub">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Llavero Copa</div>
+      <div class="metric-value c-orange" id="m-llacopa-res">0</div>
+      <div class="metric-sub" id="m-llacopa-res-sub">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Llavero Fifa</div>
+      <div class="metric-value c-orange" id="m-llafifa-res">0</div>
+      <div class="metric-sub" id="m-llafifa-res-sub">—</div>
+    </div>
+  </div>
+
+  <hr style="border:none;border-top:1px dashed rgba(255,255,255,0.12);margin:0 0 8px 0;">
+
+  <!-- TÍTULO PAGADOS NO ENTREGADOS -->
+  <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+    <span style="display:inline-block;width:16px;height:1px;background:var(--muted);opacity:.5;"></span>
+    Pagados — No Entregados
+    <span style="display:inline-block;flex:1;height:1px;background:var(--muted);opacity:.2;"></span>
+  </div>
+  <div class="metrics-row top" style="margin-bottom:12px;">
+    <div class="metric">
+      <div class="metric-label">Sobres</div>
+      <div class="metric-value c-teal" id="m-sob-pag">0</div>
+      <div class="metric-sub" id="m-sob-pag-sub">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Álbumes</div>
+      <div class="metric-value c-teal" id="m-alb-pag">0</div>
+      <div class="metric-sub" id="m-alb-pag-sub">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Cajas</div>
+      <div class="metric-value c-teal" id="m-caj-pag">0</div>
+      <div class="metric-sub" id="m-caj-pag-sub">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Llavero Copa</div>
+      <div class="metric-value c-teal" id="m-llacopa-pag">0</div>
+      <div class="metric-sub" id="m-llacopa-pag-sub">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Llavero Fifa</div>
+      <div class="metric-value c-teal" id="m-llafifa-pag">0</div>
+      <div class="metric-sub" id="m-llafifa-pag-sub">—</div>
     </div>
   </div>
 
@@ -6502,89 +6553,6 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     </div><!-- /col-ent -->
   </div>
 
-  <!-- CALCULADORAS -->
-  <div class="calc-grid">
-    <div class="calc-block sob">
-      <div class="calc-title"><span class="dot dot-y"></span>Ingresar sobres</div>
-      <div style="display:flex;align-items:flex-start;gap:.8rem;flex-wrap:wrap;">
-        <div style="flex:none;">
-          <img src="./stock_figuritas_files/sobre.png" class="caj-img" alt="Sobre figuritas">
-        </div>
-        <div style="flex:1;min-width:120px;">
-      <div class="cnt-row">
-        <button class="btn-cnt y" onclick="sobCh(-1)">−</button>
-        <span class="cnt-num y" id="sob-n">1</span>
-        <button class="btn-cnt y" onclick="sobCh(1)">+</button>
-        <input type="number" id="sob-i" class="cnt-in" value="1" min="1" oninput="sobSt(this.value)">
-        <span class="cnt-lbl">bultos</span>
-      </div>
-      <div class="calc-res">
-        <div class="cres"><div class="cres-lbl">Bultos</div><div class="cres-val c-accent" id="sob-rb">1</div></div>
-        <div class="cres"><div class="cres-lbl">Packs</div><div class="cres-val c-accent" id="sob-rp">40</div></div>
-        <div class="cres"><div class="cres-val c-accent" id="sob-rs" style="font-size:22px;padding-top:4px">1.000</div><div class="cres-lbl" style="margin-top:4px">Sobres</div></div>
-      </div>
-      <div class="boxes-row" id="sob-bx"><svg width="42" height="42" viewBox="0 0 72 72" style="display: block;"><rect x="10" y="26" width="48" height="36" rx="3" fill="#7F77DD" stroke="#3C3489" stroke-width=".8"></rect>
-    <polygon points="10,26 34,16 58,26 34,36" fill="#AFA9EC" stroke="#3C3489" stroke-width=".8"></polygon>
-    <polygon points="58,26 66,30 66,62 58,58" fill="#534AB7" stroke="#3C3489" stroke-width=".8"></polygon>
-    <line x1="34" y1="16" x2="34" y2="36" stroke="#3C3489" stroke-width=".6" stroke-dasharray="2,2"></line>
-    <rect x="14" y="28" width="40" height="6" rx="2" fill="#CECBF6" opacity=".6"></rect></svg></div>
-      <div class="calc-formula" id="sob-fm">1 bulto × 40 packs × 25 sobres = 1.000 sobres</div>
-      <button class="btn-add y" onclick="agregarSobres()">+ Agregar al stock</button>
-        </div>
-      </div>
-    </div>
-    <div class="calc-block alb">
-      <div class="calc-title"><span class="dot dot-t"></span>Ingresar álbumes</div>
-      <div style="display:flex;align-items:flex-start;gap:.8rem;flex-wrap:wrap;">
-        <div style="flex:none;">
-          <img src="./stock_figuritas_files/album.png" class="caj-img" alt="Álbum figuritas">
-        </div>
-        <div style="flex:1;min-width:120px;">
-      <div class="cnt-row">
-        <button class="btn-cnt t" onclick="albCh(-1)">−</button>
-        <span class="cnt-num t" id="alb-n">1</span>
-        <button class="btn-cnt t" onclick="albCh(1)">+</button>
-        <input type="number" id="alb-i" class="cnt-in" value="1" min="1" oninput="albSt(this.value)">
-        <span class="cnt-lbl">bultos</span>
-      </div>
-      <div class="calc-res">
-        <div class="cres"><div class="cres-lbl">Bultos</div><div class="cres-val c-teal" id="alb-rb">1</div></div>
-        <div class="cres"><div class="cres-val c-teal" id="alb-ra" style="font-size:22px;padding-top:4px">25</div><div class="cres-lbl" style="margin-top:4px">Álbumes</div></div>
-      </div>
-      <div class="boxes-row" id="alb-bx"><svg width="42" height="42" viewBox="0 0 72 72" style="display: block;"><rect x="10" y="26" width="48" height="36" rx="3" fill="#1D9E75" stroke="#085041" stroke-width=".8"></rect>
-    <polygon points="10,26 34,16 58,26 34,36" fill="#5DCAA5" stroke="#085041" stroke-width=".8"></polygon>
-    <polygon points="58,26 66,30 66,62 58,58" fill="#0F6E56" stroke="#085041" stroke-width=".8"></polygon>
-    <line x1="34" y1="16" x2="34" y2="36" stroke="#085041" stroke-width=".6" stroke-dasharray="2,2"></line>
-    <rect x="14" y="28" width="40" height="6" rx="2" fill="#9FE1CB" opacity=".6"></rect></svg></div>
-      <div class="calc-formula" id="alb-fm">1 bulto × 25 álbumes = 25 álbumes</div>
-      <button class="btn-add t" onclick="agregarAlbumes()">+ Agregar al stock</button>
-        </div>
-      </div>
-    </div>
-    <div class="calc-block caj">
-      <div class="calc-title"><span class="dot dot-p"></span>Ingresar cajas</div>
-      <div style="display:flex;align-items:flex-start;gap:.8rem;flex-wrap:wrap;">
-        <div style="flex:none;">
-          <img src="./stock_figuritas_files/caja.png" class="caj-img" alt="Caja figuritas">
-        </div>
-        <div style="flex:1;min-width:120px;">
-          <div class="cnt-row">
-            <button class="btn-cnt p" onclick="cajCh(-1)">−</button>
-            <span class="cnt-num p" id="caj-n">1</span>
-            <button class="btn-cnt p" onclick="cajCh(1)">+</button>
-            <input type="number" id="caj-i" class="cnt-in" value="1" min="1" oninput="cajSt(this.value)">
-            <span class="cnt-lbl">cajas</span>
-          </div>
-          <div class="calc-res">
-            <div class="cres"><div class="cres-lbl">Cajas</div><div class="cres-val c-purple" id="caj-rc">1</div></div>
-            <div class="cres"><div class="cres-val c-purple" id="caj-rv" style="font-size:16px;padding-top:4px">$10.000</div><div class="cres-lbl" style="margin-top:4px">Invertido</div></div>
-          </div>
-          <div class="calc-formula" id="caj-fm">1 caja × $10.000 = $10.000 invertidos</div>
-          <button class="btn-add p" onclick="agregarCajas()">+ Agregar al stock</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   </div><!-- /tab-stock -->
 
