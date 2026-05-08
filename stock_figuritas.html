@@ -39,7 +39,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 
 /* MÉTRICAS */
 .metrics-row{display:grid;gap:12px;margin-bottom:1rem;}
-.metrics-row.top{grid-template-columns:repeat(7,1fr);}
+.metrics-row.top{grid-template-columns:repeat(5,1fr);}
 .metrics-row.bot{grid-template-columns:repeat(2,1fr);}
 .metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem 1.4rem;transition:border-color .2s;position:relative;}
 .metric:hover{border-color:var(--border2);}
@@ -93,7 +93,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .block-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
 
 /* NUEVA RESERVA — 7 columnas + tilde */
-.new-res-row{display:grid;grid-template-columns:1.4fr .55fr .55fr .55fr .55fr .65fr .65fr .65fr .65fr .7fr .9fr 38px;gap:6px;align-items:end;margin-bottom:.8rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+.new-res-row{display:grid;grid-template-columns:1.4fr .55fr .55fr .55fr .55fr .65fr .65fr .65fr .65fr .55fr .55fr .65fr .7fr .9fr 38px;gap:6px;align-items:end;margin-bottom:.8rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
 .nrf{display:flex;flex-direction:column;gap:5px;}
 .nrf label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
 .nrf input{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 6px;outline:none;width:100%;transition:border-color .15s;}
@@ -394,22 +394,10 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <div class="metric-sub" id="m-alb-res-sub">37 reservas</div>
     </div>
     <div class="metric">
-      <button class="btn-es" onclick="openModal('cajas')" title="Editar">✎</button>
+      <button class="btn-es" onclick="openModal(&#39;cajas&#39;)" title="Editar">✎</button>
       <div class="metric-label">Cajas en stock</div>
       <div class="metric-value c-purple" id="m-cajas">27</div>
       <div class="metric-sub" id="m-cajas-sub">$270.000 invertido</div>
-    </div>
-    <div class="metric">
-      <button class="btn-es" onclick="openModal('llaveroCopa')" title="Editar">✎</button>
-      <div class="metric-label">LlaverosCopa en stock</div>
-      <div class="metric-value" style="color:#f472b6" id="m-llaveroCopa">0</div>
-      <div class="metric-sub" id="m-llaveroCopa-sub">—</div>
-    </div>
-    <div class="metric">
-      <button class="btn-es" onclick="openModal('llaveroFifa')" title="Editar">✎</button>
-      <div class="metric-label">LlaverosFifa en stock</div>
-      <div class="metric-value" style="color:#fb923c" id="m-llaveroFifa">0</div>
-      <div class="metric-sub" id="m-llaveroFifa-sub">—</div>
     </div>
   </div>
 
@@ -440,6 +428,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
       <div class="nrf"><label>$ / Álbum</label><input type="number" id="nr-palb" placeholder="0" min="0" step="0.01" value="0"></div>
       <div class="nrf"><label>Cajas</label><input type="number" id="nr-cajas" placeholder="0" min="0" value="0"></div>
       <div class="nrf"><label>$ / Caja</label><input type="number" id="nr-pcaj" placeholder="0" min="0" step="0.01" value="0"></div>
+      <div class="nrf"><label>Lla_Copa</label><input type="number" id="nr-llacopa" placeholder="0" min="0" value="0"></div>
+      <div class="nrf"><label>LlaFifa</label><input type="number" id="nr-llafifa" placeholder="0" min="0" value="0"></div>
+      <div class="nrf"><label>$ / Llavero</label><input type="number" id="nr-pllav" placeholder="0" min="0" step="0.01" value="0"></div>
       <div class="nrf">
         <label>Origen</label>
         <select id="nr-origen" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:&#39;Inter&#39;,sans-serif;font-size:12px;padding:7px 6px;outline:none;width:100%;cursor:pointer;">
@@ -481,6 +472,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th>$/Álbum</th>
           <th>Cajas</th>
           <th>$/Caja</th>
+          <th>Lla_Copa</th>
+          <th>LlaFifa</th>
+          <th>$/Llavero</th>
           <th>Total</th>
           <th>Fecha</th>
           <th>Estado</th>
@@ -1444,6 +1438,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th>$/Álbum</th>
           <th>Cajas</th>
           <th>$/Caja</th>
+          <th>Lla_Copa</th>
+          <th>LlaFifa</th>
+          <th>$/Llavero</th>
           <th>Total</th>
           <th>Reservado</th>
           <th>Estado</th>
@@ -1657,6 +1654,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
           <th>$/Álbum</th>
           <th>Cajas</th>
           <th>$/Caja</th>
+          <th>Lla_Copa</th>
+          <th>LlaFifa</th>
+          <th>$/Llavero</th>
           <th>Total</th>
           <th>Reservado</th>
           <th>Entregado</th>
@@ -6791,7 +6791,7 @@ async function sbFetch(path, opts={}) {
   return txt ? JSON.parse(txt) : null;
 }
 
-let stock = { sobres:0, sobBultos:0, sobPacks:0, albumes:0, albBultos:0, cajas:0, llaveroCopa:0, llaveroFifa:0 };
+let stock = { sobres:0, sobBultos:0, sobPacks:0, albumes:0, albBultos:0, cajas:0 };
 let reservas = [];
 let nextId   = 1;
 let _saving  = false;
@@ -6809,9 +6809,7 @@ async function save() {
         sob_packs:  stock.sobPacks,
         albumes:    stock.albumes,
         alb_bultos: stock.albBultos,
-        cajas:        stock.cajas,
-        llaverocopa:  stock.llaveroCopa,
-        llaverofifa:  stock.llaveroFifa
+        cajas:      stock.cajas
       })
     });
   } catch(e) { console.error('save stock:', e); }
@@ -6831,6 +6829,9 @@ async function saveReserva(r) {
     p_album:      r.pAlbum || 0,
     cajas:        r.cajas  || 0,
     p_caja:       r.pCaja  || 0,
+    lla_copa:     r.llaCopa  || 0,
+    lla_fifa:     r.llaFifa  || 0,
+    p_llavero:    r.pLlavero || 0,
     estado:       r.estado,
     pagado:       r.pagado || false,
     origen:       r.origen || 'nada',
@@ -6858,6 +6859,9 @@ async function insertReserva(r) {
     p_album:      r.pAlbum || 0,
     cajas:        r.cajas  || 0,
     p_caja:       r.pCaja  || 0,
+    lla_copa:     r.llaCopa  || 0,
+    lla_fifa:     r.llaFifa  || 0,
+    p_llavero:    r.pLlavero || 0,
     estado:       r.estado,
     pagado:       r.pagado || false,
     origen:       r.origen || 'nada',
@@ -6891,9 +6895,7 @@ async function load() {
         sobPacks:  s.sob_packs  || 0,
         albumes:   s.albumes   || 0,
         albBultos: s.alb_bultos || 0,
-        cajas:       s.cajas       || 0,
-        llaveroCopa: s.llaverocopa || 0,
-        llaveroFifa: s.llaverofifa || 0
+        cajas:     s.cajas      || 0
       };
     }
     if (resData && resData.length) {
@@ -6909,6 +6911,9 @@ async function load() {
         pAlbum:      r.p_album || 0,
         cajas:       r.cajas   || 0,
         pCaja:       r.p_caja  || 0,
+        llaCopa:     r.lla_copa  || 0,
+        llaFifa:     r.lla_fifa  || 0,
+        pLlavero:    r.p_llavero || 0,
         estado:      r.estado,
         pagado:      r.pagado  || false,
         origen:      r.origen  || 'nada',
@@ -6960,7 +6965,8 @@ function calcTotal(r){
   // Álbumes
   const costoAlbumes = r.albumes * (r.pAlbum||0);
   const costoCajas   = (r.cajas||0) * (r.pCaja||0);
-  return costoPacks + costoSobres + costoAlbumes + costoCajas;
+  const costoLlaveros = ((r.llaCopa||0) + (r.llaFifa||0)) * (r.pLlavero||0);
+  return costoPacks + costoSobres + costoAlbumes + costoCajas + costoLlaveros;
 }
 
 /* ── MÉTRICAS + ECO ── */
@@ -7011,10 +7017,6 @@ function renderMetrics() {
   set('eco-cajas-sub', `${stock.cajas.toLocaleString('es-AR')} caja${stock.cajas!==1?'s':''}`);
   set('m-cajas',     stock.cajas.toLocaleString('es-AR'));
   set('m-cajas-sub', `${pesos(cajInvertido)} invertido`);
-  set('m-llaveroCopa',     (stock.llaveroCopa||0).toLocaleString('es-AR'));
-  set('m-llaveroCopa-sub', (stock.llaveroCopa||0) > 0 ? `${stock.llaveroCopa} llavero${stock.llaveroCopa!==1?'s':''}` : '—');
-  set('m-llaveroFifa',     (stock.llaveroFifa||0).toLocaleString('es-AR'));
-  set('m-llaveroFifa-sub', (stock.llaveroFifa||0) > 0 ? `${stock.llaveroFifa} llavero${stock.llaveroFifa!==1?'s':''}` : '—');
 
   set('eco-invertido',     pesos(saldoInvertido));
   set('eco-invertido-sub', saldoInvertido > 0
@@ -7139,25 +7141,33 @@ async function confirmarReserva(){
   const pAlbum =parseFloat(g('nr-palb').value)||0;
   const cajas  =parseInt(g('nr-cajas').value)||0;
   const pCaja  =parseFloat(g('nr-pcaj').value)||0;
+  const llaCopa =parseInt(g('nr-llacopa').value)||0;
+  const llaFifa =parseInt(g('nr-llafifa').value)||0;
+  const pLlavero=parseFloat(g('nr-pllav').value)||0;
   const origen    =g('nr-origen').value||'nada';
   const comentario=g('nr-comentario').value.trim();
   const totalSobres=packs*SOBRES_POR_PACK+sobres;
 
   if(!nombre) return alert('Ingresá el nombre del cliente.');
-  if(totalSobres===0&&albumes===0&&cajas===0) return alert('Ingresá al menos una cantidad.');
+  if(totalSobres===0&&albumes===0&&cajas===0&&llaCopa===0&&llaFifa===0) return alert('Ingresá al menos una cantidad.');
   if(totalSobres>stock.sobres) return alert(`Stock insuficiente.\nSobres disponibles: ${stock.sobres.toLocaleString('es-AR')}`);
   if(albumes>stock.albumes)    return alert(`Stock insuficiente.\nÁlbumes disponibles: ${stock.albumes.toLocaleString('es-AR')}`);
   if(cajas>stock.cajas)         return alert(`Stock insuficiente.\nCajas disponibles: ${stock.cajas.toLocaleString('es-AR')}`);
+  if(llaCopa>stock.llaveroCopa) return alert(`Stock insuficiente.\nLlaverosCopa disponibles: ${(stock.llaveroCopa||0).toLocaleString('es-AR')}`);
+  if(llaFifa>stock.llaveroFifa) return alert(`Stock insuficiente.\nLlaverosFifa disponibles: ${(stock.llaveroFifa||0).toLocaleString('es-AR')}`);
 
-  stock.sobres  -= totalSobres;
-  stock.albumes -= albumes;
-  stock.cajas   -= cajas;
+  stock.sobres      -= totalSobres;
+  stock.albumes     -= albumes;
+  stock.cajas       -= cajas;
+  stock.llaveroCopa -= llaCopa;
+  stock.llaveroFifa -= llaFifa;
 
-  reservas.push({id:nextId++,nombre,packs,sobres,totalSobres,albumes,pPack,pSobre,pAlbum,cajas,pCaja,estado:'pendiente',pagado:false,origen,comentario,fecha:new Date().toLocaleDateString('es-AR'),fechaEnt:null});
+  reservas.push({id:nextId++,nombre,packs,sobres,totalSobres,albumes,pPack,pSobre,pAlbum,cajas,pCaja,llaCopa,llaFifa,pLlavero,estado:'pendiente',pagado:false,origen,comentario,fecha:new Date().toLocaleDateString('es-AR'),fechaEnt:null});
 
   g('nr-nombre').value='';g('nr-packs').value='0';g('nr-sobres').value='0';
   g('nr-albumes').value='0';g('nr-ppk').value='0';g('nr-psob').value='0';g('nr-palb').value='0';
   g('nr-cajas').value='0';g('nr-pcaj').value='0';
+  g('nr-llacopa').value='0';g('nr-llafifa').value='0';g('nr-pllav').value='0';
   g('nr-origen').value='nada';g('nr-comentario').value='';
   g('nr-preview').style.display='none';
 
@@ -7199,6 +7209,9 @@ function editarReserva(id){
     <td><input class="ei" id="e-pal-${id}" type="number" min="0" value="${r.pAlbum||0}" style="width:60px" step="0.01" /></td>
     <td><input class="ei" id="e-caj-${id}" type="number" min="0" value="${r.cajas||0}" style="width:50px" /></td>
     <td><input class="ei" id="e-pcj-${id}" type="number" min="0" value="${r.pCaja||0}" style="width:60px" step="0.01" /></td>
+    <td><input class="ei" id="e-lca-${id}" type="number" min="0" value="${r.llaCopa||0}" style="width:50px" /></td>
+    <td><input class="ei" id="e-lfi-${id}" type="number" min="0" value="${r.llaFifa||0}" style="width:50px" /></td>
+    <td><input class="ei" id="e-plv-${id}" type="number" min="0" value="${r.pLlavero||0}" style="width:60px" step="0.01" /></td>
     <td>—</td>
     <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
     ${r.estado==='entregado' ? `<td style="font-size:11px;color:var(--green)">${r.fechaEnt||''}</td>` : `<td><span class="badge b-orange" style="font-size:10px">Editando</span></td>`}
@@ -7233,6 +7246,9 @@ async function guardarEd(id){
   const pAlbum =parseFloat(g(`e-pal-${id}`).value)||0;
   const cajas  =parseInt(g(`e-caj-${id}`).value)||0;
   const pCaja  =parseFloat(g(`e-pcj-${id}`).value)||0;
+  const llaCopa =parseInt(g(`e-lca-${id}`).value)||0;
+  const llaFifa =parseInt(g(`e-lfi-${id}`).value)||0;
+  const pLlavero=parseFloat(g(`e-plv-${id}`).value)||0;
   const origen    =(g(`e-orig-${id}`)?.value)||r.origen||'nada';
   const comentario=(g(`e-com-${id}`)?.value)||r.comentario||'';
   const totalSobres=packs*SOBRES_POR_PACK+sobres;
@@ -7240,13 +7256,18 @@ async function guardarEd(id){
 
   if(r.estado==='pendiente'){
     const diffSob=totalSobres-r.totalSobres,diffAlb=albumes-r.albumes,diffCaj=(cajas-(r.cajas||0));
+    const diffLca=(llaCopa-(r.llaCopa||0)),diffLfi=(llaFifa-(r.llaFifa||0));
     if(diffSob>stock.sobres)  return alert(`Stock insuficiente. Sobres disponibles: ${stock.sobres.toLocaleString('es-AR')}`);
     if(diffAlb>stock.albumes) return alert(`Stock insuficiente. Álbumes disponibles: ${stock.albumes.toLocaleString('es-AR')}`);
     if(diffCaj>stock.cajas)   return alert(`Stock insuficiente. Cajas disponibles: ${stock.cajas.toLocaleString('es-AR')}`);
+    if(diffLca>stock.llaveroCopa) return alert(`Stock insuficiente. LlaverosCopa disponibles: ${(stock.llaveroCopa||0)}`);
+    if(diffLfi>stock.llaveroFifa) return alert(`Stock insuficiente. LlaverosFifa disponibles: ${(stock.llaveroFifa||0)}`);
     stock.sobres-=diffSob;stock.albumes-=diffAlb;stock.cajas-=diffCaj;
+    stock.llaveroCopa-=diffLca;stock.llaveroFifa-=diffLfi;
   }
   r.nombre=nombre;r.packs=packs;r.sobres=sobres;r.totalSobres=totalSobres;
   r.albumes=albumes;r.pPack=pPack;r.pSobre=pSobre;r.pAlbum=pAlbum;r.cajas=cajas;r.pCaja=pCaja;
+  r.llaCopa=llaCopa;r.llaFifa=llaFifa;r.pLlavero=pLlavero;
   r.origen=origen;r.comentario=comentario;
   renderMetrics();renderTablas();
   await Promise.all([save(), saveReserva(r)]);
@@ -7256,7 +7277,7 @@ async function guardarEd(id){
 async function eliminarReserva(id){
   const r=reservas.find(x=>x.id===id);if(!r)return;
   if(!confirm(`¿Eliminar reserva de ${r.nombre}?`))return;
-  if(r.estado==='pendiente'){stock.sobres+=r.totalSobres;stock.albumes+=r.albumes;stock.cajas+=(r.cajas||0);}
+  if(r.estado==='pendiente'){stock.sobres+=r.totalSobres;stock.albumes+=r.albumes;stock.cajas+=(r.cajas||0);stock.llaveroCopa+=(r.llaCopa||0);stock.llaveroFifa+=(r.llaFifa||0);}
   reservas=reservas.filter(x=>x.id!==id);
   renderMetrics();renderTablas();
   await Promise.all([save(), deleteReserva(id)]);
@@ -7345,6 +7366,9 @@ function renderTablas(){
       ${moneyCell(r.pAlbum||0)}
       <td>${(r.cajas||0)}</td>
       ${moneyCell(r.pCaja||0)}
+      <td>${(r.llaCopa||0)||'—'}</td>
+      <td>${(r.llaFifa||0)||'—'}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">${tot>0?pesos(tot):'—'}</td>
       <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
       <td><span class="badge b-orange">Reservado</span></td>
@@ -7381,6 +7405,9 @@ function renderTablas(){
       ${moneyCell(r.pAlbum||0)}
       <td>${(r.cajas||0)}</td>
       ${moneyCell(r.pCaja||0)}
+      <td>${(r.llaCopa||0)||'—'}</td>
+      <td>${(r.llaFifa||0)||'—'}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">${tot>0?pesos(tot):'—'}</td>
       <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
       <td><span class="badge b-teal">Pagado</span></td>
@@ -7417,6 +7444,9 @@ function renderTablas(){
       ${moneyCell(r.pAlbum||0)}
       <td>${(r.cajas||0)}</td>
       ${moneyCell(r.pCaja||0)}
+      <td>${(r.llaCopa||0)||'—'}</td>
+      <td>${(r.llaFifa||0)||'—'}</td>
+      ${moneyCell(r.pLlavero||0)}
       <td class="total-money">${tot>0?pesos(tot):'—'}</td>
       <td style="font-size:11px;color:var(--muted)">${r.fecha}</td>
       <td style="font-size:11px;color:var(--green)">${r.fechaEnt}</td>
@@ -7451,7 +7481,7 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 let modalField=null;
 function openModal(field){
   modalField=field;
-  const labels={sobres:'Sobres en stock',albumes:'Álbumes en stock',cajas:'Cajas en stock',llaveroCopa:'LlaverosCopa en stock',llaveroFifa:'LlaverosFifa en stock'};
+  const labels={sobres:'Sobres en stock',albumes:'Álbumes en stock',cajas:'Cajas en stock'};
   g('modal-title').textContent='Editar — '+labels[field];
   g('modal-lbl').textContent='Nuevo valor de '+labels[field].toLowerCase();
   g('modal-inp').value=stock[field];
@@ -7465,7 +7495,7 @@ async function saveModal(){
   const val=parseInt(g('modal-inp').value);
   if(isNaN(val)||val<0)return alert('Ingresá un valor válido.');
   stock[modalField]=val;
-  const flashMap={sobres:'m-sobres',albumes:'m-albumes',cajas:'m-cajas',llaveroCopa:'m-llaveroCopa',llaveroFifa:'m-llaveroFifa'};
+  const flashMap={sobres:'m-sobres',albumes:'m-albumes',cajas:'m-cajas'};
   renderMetrics();flashEl(flashMap[modalField]||'m-cajas');
   closeModalDirect();
   await save();
