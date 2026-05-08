@@ -370,47 +370,99 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
   </div>
 
   <!-- MÉTRICAS STOCK -->
+  <!-- TÍTULO STOCK -->
+  <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+    <span style="display:inline-block;width:16px;height:1px;background:var(--muted);opacity:.5;"></span>
+    Stock
+    <span style="display:inline-block;flex:1;height:1px;background:var(--muted);opacity:.2;"></span>
+  </div>
   <div class="metrics-row top" style="margin-bottom:12px;">
     <div class="metric">
-      <button class="btn-es" onclick="openModal(&#39;sobres&#39;)" title="Editar">✎</button>
-      <div class="metric-label">Sobres en stock</div>
+      <button class="btn-es" onclick="openModal('sobres')" title="Editar">✎</button>
+      <div class="metric-label">Sobres</div>
       <div class="metric-value c-accent" id="m-sobres">1.010</div>
       <div class="metric-sub" id="m-sobres-sub">9 bultos · 360 packs</div>
     </div>
     <div class="metric">
-      <button class="btn-es" onclick="openModal(&#39;albumes&#39;)" title="Editar">✎</button>
-      <div class="metric-label">Álbumes en stock</div>
+      <button class="btn-es" onclick="openModal('albumes')" title="Editar">✎</button>
+      <div class="metric-label">Álbumes</div>
       <div class="metric-value c-teal" id="m-albumes">48</div>
       <div class="metric-sub" id="m-albumes-sub">18 bultos</div>
     </div>
     <div class="metric">
-      <div class="metric-label">Sobres reservados</div>
+      <button class="btn-es" onclick="openModal('cajas')" title="Editar">✎</button>
+      <div class="metric-label">Cajas</div>
+      <div class="metric-value c-purple" id="m-cajas">27</div>
+      <div class="metric-sub" id="m-cajas-sub">$270.000 invertido</div>
+    </div>
+    <div class="metric">
+      <button class="btn-es" onclick="openModal('llaveroCopa')" title="Editar">✎</button>
+      <div class="metric-label">Llavero Copa</div>
+      <div class="metric-value" style="color:#f472b6" id="m-llaveroCopa">0</div>
+      <div class="metric-sub" id="m-llaveroCopa-sub">—</div>
+    </div>
+    <div class="metric">
+      <button class="btn-es" onclick="openModal('llaveroFifa')" title="Editar">✎</button>
+      <div class="metric-label">Llavero Fifa</div>
+      <div class="metric-value" style="color:#fb923c" id="m-llaveroFifa">0</div>
+      <div class="metric-sub" id="m-llaveroFifa-sub">—</div>
+    </div>
+  </div>
+
+  <hr style="border:none;border-top:1px dashed rgba(255,255,255,0.12);margin:0 0 8px 0;">
+
+  <!-- TÍTULO RESERVADO -->
+  <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+    <span style="display:inline-block;width:16px;height:1px;background:var(--muted);opacity:.5;"></span>
+    Reservado
+    <span style="display:inline-block;flex:1;height:1px;background:var(--muted);opacity:.2;"></span>
+  </div>
+  <div class="metrics-row bot" style="margin-bottom:12px;">
+    <div class="metric">
+      <div class="metric-label">Sobres</div>
       <div class="metric-value c-orange" id="m-sob-res">565</div>
       <div class="metric-sub" id="m-sob-res-sub">37 reservas</div>
     </div>
     <div class="metric">
-      <div class="metric-label">Álbumes reservados</div>
+      <div class="metric-label">Álbumes</div>
       <div class="metric-value c-orange" id="m-alb-res">33</div>
       <div class="metric-sub" id="m-alb-res-sub">37 reservas</div>
     </div>
-    <div class="metric">
-      <button class="btn-es" onclick="openModal(&#39;cajas&#39;)" title="Editar">✎</button>
-      <div class="metric-label">Cajas en stock</div>
-      <div class="metric-value c-purple" id="m-cajas">27</div>
-      <div class="metric-sub" id="m-cajas-sub">$270.000 invertido</div>
-    </div>
   </div>
 
-  <div class="metrics-row bot" style="margin-bottom:2rem;">
+  <hr style="border:none;border-top:1px dashed rgba(255,255,255,0.12);margin:0 0 8px 0;">
+
+  <!-- TÍTULO ENTREGADO -->
+  <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+    <span style="display:inline-block;width:16px;height:1px;background:var(--muted);opacity:.5;"></span>
+    Entregado
+    <span style="display:inline-block;flex:1;height:1px;background:var(--muted);opacity:.2;"></span>
+  </div>
+  <div class="metrics-row top" style="margin-bottom:2rem;">
     <div class="metric">
-      <div class="metric-label">Sobres entregados</div>
+      <div class="metric-label">Sobres</div>
       <div class="metric-value c-green" id="m-sob-ent">7.389</div>
       <div class="metric-sub" id="m-sob-ent-sub">171 entregas</div>
     </div>
     <div class="metric">
-      <div class="metric-label">Álbumes entregados</div>
+      <div class="metric-label">Álbumes</div>
       <div class="metric-value c-green" id="m-alb-ent">196</div>
       <div class="metric-sub" id="m-alb-ent-sub">171 entregas</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Cajas</div>
+      <div class="metric-value c-green" id="m-caj-ent">0</div>
+      <div class="metric-sub" id="m-caj-ent-sub">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Llavero Copa</div>
+      <div class="metric-value c-green" id="m-llacopa-ent">0</div>
+      <div class="metric-sub" id="m-llacopa-ent-sub">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Llavero Fifa</div>
+      <div class="metric-value c-green" id="m-llafifa-ent">0</div>
+      <div class="metric-sub" id="m-llafifa-ent-sub">—</div>
     </div>
   </div>
 
@@ -6779,7 +6831,7 @@ async function sbFetch(path, opts={}) {
   return txt ? JSON.parse(txt) : null;
 }
 
-let stock = { sobres:0, sobBultos:0, sobPacks:0, albumes:0, albBultos:0, cajas:0 };
+let stock = { sobres:0, sobBultos:0, sobPacks:0, albumes:0, albBultos:0, cajas:0, llaveroCopa:0, llaveroFifa:0 };
 let reservas = [];
 let nextId   = 1;
 let _saving  = false;
@@ -6797,7 +6849,9 @@ async function save() {
         sob_packs:  stock.sobPacks,
         albumes:    stock.albumes,
         alb_bultos: stock.albBultos,
-        cajas:      stock.cajas
+        cajas:        stock.cajas,
+        llaverocopa:  stock.llaveroCopa,
+        llaverofifa:  stock.llaveroFifa
       })
     });
   } catch(e) { console.error('save stock:', e); }
@@ -6877,7 +6931,9 @@ async function load() {
         sobPacks:  s.sob_packs  || 0,
         albumes:   s.albumes   || 0,
         albBultos: s.alb_bultos || 0,
-        cajas:     s.cajas      || 0
+        cajas:       s.cajas       || 0,
+        llaveroCopa: s.llaverocopa || 0,
+        llaveroFifa: s.llaverofifa || 0
       };
     }
     if (resData && resData.length) {
@@ -6954,9 +7010,11 @@ function renderMetrics() {
   const sobRes = pend.reduce((s,r)=>s+r.totalSobres,0);
   const cajRes = pend.reduce((s,r)=>s+(r.cajas||0),0);
   const albRes = pend.reduce((s,r)=>s+r.albumes,0);
-  const sobEnt = ent.reduce((s,r)=>s+r.totalSobres,0);
-  const cajEnt = ent.reduce((s,r)=>s+(r.cajas||0),0);
-  const albEnt = ent.reduce((s,r)=>s+r.albumes,0);
+  const sobEnt     = ent.reduce((s,r)=>s+r.totalSobres,0);
+  const cajEnt     = ent.reduce((s,r)=>s+(r.cajas||0),0);
+  const albEnt     = ent.reduce((s,r)=>s+r.albumes,0);
+  const llaCopaEnt = ent.reduce((s,r)=>s+(r.llaCopa||0),0);
+  const llaFifaEnt = ent.reduce((s,r)=>s+(r.llaFifa||0),0);
 
   /* stock */
   set('m-sobres',      stock.sobres.toLocaleString('es-AR'));
@@ -6969,10 +7027,16 @@ function renderMetrics() {
   set('m-alb-res',     albRes.toLocaleString('es-AR'));
   set('m-alb-res-sub', `${pend.length} reserva${pend.length!==1?'s':''}`);
   /* entregados */
-  set('m-sob-ent',     sobEnt.toLocaleString('es-AR'));
-  set('m-sob-ent-sub', `${ent.length} entrega${ent.length!==1?'s':''}`);
-  set('m-alb-ent',     albEnt.toLocaleString('es-AR'));
-  set('m-alb-ent-sub', `${ent.length} entrega${ent.length!==1?'s':''}`);
+  set('m-sob-ent',         sobEnt.toLocaleString('es-AR'));
+  set('m-sob-ent-sub',     `${ent.length} entrega${ent.length!==1?'s':''}`);
+  set('m-alb-ent',         albEnt.toLocaleString('es-AR'));
+  set('m-alb-ent-sub',     `${ent.length} entrega${ent.length!==1?'s':''}`);
+  set('m-caj-ent',         cajEnt.toLocaleString('es-AR'));
+  set('m-caj-ent-sub',     cajEnt>0 ? `${cajEnt} caja${cajEnt!==1?'s':''}` : '—');
+  set('m-llacopa-ent',     llaCopaEnt.toLocaleString('es-AR'));
+  set('m-llacopa-ent-sub', llaCopaEnt>0 ? `${llaCopaEnt} unidad${llaCopaEnt!==1?'es':''}` : '—');
+  set('m-llafifa-ent',     llaFifaEnt.toLocaleString('es-AR'));
+  set('m-llafifa-ent-sub', llaFifaEnt>0 ? `${llaFifaEnt} unidad${llaFifaEnt!==1?'es':''}` : '—');
 
   /* ── ECONÓMICO ── */
   // Invertido = costo de todo lo que se ingresó al stock alguna vez
@@ -6993,8 +7057,12 @@ function renderMetrics() {
   const cajInvertido = stock.cajas * COSTO_CAJA;
   set('eco-cajas',     pesos(cajInvertido));
   set('eco-cajas-sub', `${stock.cajas.toLocaleString('es-AR')} caja${stock.cajas!==1?'s':''}`);
-  set('m-cajas',     stock.cajas.toLocaleString('es-AR'));
-  set('m-cajas-sub', `${pesos(cajInvertido)} invertido`);
+  set('m-cajas',           stock.cajas.toLocaleString('es-AR'));
+  set('m-cajas-sub',       `${pesos(cajInvertido)} invertido`);
+  set('m-llaveroCopa',     (stock.llaveroCopa||0).toLocaleString('es-AR'));
+  set('m-llaveroCopa-sub', (stock.llaveroCopa||0) > 0 ? `${stock.llaveroCopa} unidad${stock.llaveroCopa!==1?'es':''}` : '—');
+  set('m-llaveroFifa',     (stock.llaveroFifa||0).toLocaleString('es-AR'));
+  set('m-llaveroFifa-sub', (stock.llaveroFifa||0) > 0 ? `${stock.llaveroFifa} unidad${stock.llaveroFifa!==1?'es':''}` : '—');
 
   set('eco-invertido',     pesos(saldoInvertido));
   set('eco-invertido-sub', saldoInvertido > 0
@@ -7338,22 +7406,10 @@ function renderTablas(){
     </tr>`;
   }).join(''):'<tr><td colspan="16" class="empty-row">Sin reservas pendientes.</td></tr>';
 
-  const totalPend     = pend.reduce((s,r) => s + calcTotal(r), 0);
-  const totalPacks    = pend.reduce((s,r) => s + (r.packs||0), 0);
-  const totalSobresSueltos = pend.reduce((s,r) => s + (r.sobres||0), 0);
-  const totalTotSobres= pend.reduce((s,r) => s + (r.totalSobres||0), 0);
-  const totalAlbumes  = pend.reduce((s,r) => s + (r.albumes||0), 0);
-  const totalCajas    = pend.reduce((s,r) => s + (r.cajas||0), 0);
+  const totalPend = pend.reduce((s,r) => s + calcTotal(r), 0);
   const tfP = g('tf-pend');
-  if (tfP) tfP.innerHTML = pend.length ? `<tr style="background:var(--surface2);">
-    <td class="tfoot-label">TOTALES</td>
-    <td class="tfoot-label" style="color:var(--accent)">${totalPacks.toLocaleString('es-AR')}</td>
-    <td class="tfoot-label" style="color:var(--accent)">${totalSobresSueltos.toLocaleString('es-AR')}</td>
-    <td class="tfoot-label" style="color:var(--accent)">${totalTotSobres.toLocaleString('es-AR')}</td>
-    <td class="tfoot-label" style="color:var(--teal)">${totalAlbumes.toLocaleString('es-AR')}</td>
-    <td></td><td></td><td></td>
-    <td class="tfoot-label" style="color:var(--purple)">${totalCajas.toLocaleString('es-AR')}</td>
-    <td></td>
+  if (tfP) tfP.innerHTML = pend.length ? `<tr>
+    <td colspan="10" class="tfoot-label">Total pendientes</td>
     <td class="tfoot-total">${pesos(totalPend)}</td>
     <td colspan="4"></td>
   </tr>` : '';
@@ -7443,7 +7499,7 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 let modalField=null;
 function openModal(field){
   modalField=field;
-  const labels={sobres:'Sobres en stock',albumes:'Álbumes en stock',cajas:'Cajas en stock'};
+  const labels={sobres:'Sobres en stock',albumes:'Álbumes en stock',cajas:'Cajas en stock',llaveroCopa:'Llavero Copa',llaveroFifa:'Llavero Fifa'};
   g('modal-title').textContent='Editar — '+labels[field];
   g('modal-lbl').textContent='Nuevo valor de '+labels[field].toLowerCase();
   g('modal-inp').value=stock[field];
@@ -7457,7 +7513,7 @@ async function saveModal(){
   const val=parseInt(g('modal-inp').value);
   if(isNaN(val)||val<0)return alert('Ingresá un valor válido.');
   stock[modalField]=val;
-  const flashMap={sobres:'m-sobres',albumes:'m-albumes',cajas:'m-cajas'};
+  const flashMap={sobres:'m-sobres',albumes:'m-albumes',cajas:'m-cajas',llaveroCopa:'m-llaveroCopa',llaveroFifa:'m-llaveroFifa'};
   renderMetrics();flashEl(flashMap[modalField]||'m-cajas');
   closeModalDirect();
   await save();
