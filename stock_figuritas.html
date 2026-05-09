@@ -1520,7 +1520,19 @@ function renderTablas(){
   const totalPend = pend.reduce((s,r) => s + calcTotal(r), 0);
   const tfP = g('tf-pend');
   if (tfP) tfP.innerHTML = pend.length ? `<tr>
-    <td colspan="10" class="tfoot-label">Total pendientes</td>
+    <td class="tfoot-label">Totales</td>
+    <td class="tfoot-total">${pend.reduce((s,r)=>s+(r.packs||0),0)}</td>
+    <td class="tfoot-total">${pend.reduce((s,r)=>s+(r.sobres||0),0)}</td>
+    <td class="tfoot-total">${pend.reduce((s,r)=>s+(r.totalSobres||0),0).toLocaleString('es-AR')}</td>
+    <td class="tfoot-total">${pend.reduce((s,r)=>s+(r.albumes||0),0)}</td>
+    <td style="color:var(--muted)">—</td>
+    <td style="color:var(--muted)">—</td>
+    <td style="color:var(--muted)">—</td>
+    <td class="tfoot-total">${pend.reduce((s,r)=>s+(r.cajas||0),0)}</td>
+    <td style="color:var(--muted)">—</td>
+    <td class="tfoot-total">${pend.reduce((s,r)=>s+(r.llaveroCopa||0),0)}</td>
+    <td class="tfoot-total">${pend.reduce((s,r)=>s+(r.llaveroFifa||0),0)}</td>
+    <td style="color:var(--muted)">—</td>
     <td class="tfoot-total">${pesos(totalPend)}</td>
     <td colspan="4"></td>
   </tr>` : '';
@@ -1559,7 +1571,19 @@ function renderTablas(){
   const totalPago = pagados.reduce((s,r) => s + calcTotal(r), 0);
   const tfPago = g('tf-pago');
   if (tfPago) tfPago.innerHTML = pagados.length ? `<tr>
-    <td colspan="10" class="tfoot-label">Total pagados</td>
+    <td class="tfoot-label">Totales</td>
+    <td class="tfoot-total">${pagados.reduce((s,r)=>s+(r.packs||0),0)}</td>
+    <td class="tfoot-total">${pagados.reduce((s,r)=>s+(r.sobres||0),0)}</td>
+    <td class="tfoot-total">${pagados.reduce((s,r)=>s+(r.totalSobres||0),0).toLocaleString('es-AR')}</td>
+    <td class="tfoot-total">${pagados.reduce((s,r)=>s+(r.albumes||0),0)}</td>
+    <td style="color:var(--muted)">—</td>
+    <td style="color:var(--muted)">—</td>
+    <td style="color:var(--muted)">—</td>
+    <td class="tfoot-total">${pagados.reduce((s,r)=>s+(r.cajas||0),0)}</td>
+    <td style="color:var(--muted)">—</td>
+    <td class="tfoot-total">${pagados.reduce((s,r)=>s+(r.llaveroCopa||0),0)}</td>
+    <td class="tfoot-total">${pagados.reduce((s,r)=>s+(r.llaveroFifa||0),0)}</td>
+    <td style="color:var(--muted)">—</td>
     <td class="tfoot-total">${pesos(totalPago)}</td>
     <td colspan="4"></td>
   </tr>` : '';
