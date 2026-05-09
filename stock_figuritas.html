@@ -1847,12 +1847,20 @@ function renderInvSummary() {
   }
 
   // Proyectado: stock restante × precios de venta proyectados
-  const proyectado = (stock.sobres * 2000) + (stock.albumes * 15000) + (stock.cajas * 14000);
+  const proyectado = (stock.sobres * 2000) + (stock.albumes * 15000) + (stock.cajas * 14000) + (stock.llaveroCopa * 2000) + (stock.llaveroFifa * 2000);
 
   const pEl  = document.getElementById('inv-s-proyectado');
   const pSub = document.getElementById('inv-s-proyectado-sub');
   if (pEl)  pEl.textContent  = pesos(proyectado);
-  if (pSub) pSub.textContent = `${stock.sobres.toLocaleString('es-AR')} sob × $2.000 + ${stock.albumes.toLocaleString('es-AR')} álb × $15.000 + ${stock.cajas.toLocaleString('es-AR')} caj × $14.000`;
+  if (pSub) {
+    let partes = [];
+    partes.push(`${stock.sobres.toLocaleString('es-AR')} sob × $2.000`);
+    partes.push(`${stock.albumes.toLocaleString('es-AR')} álb × $15.000`);
+    partes.push(`${stock.cajas.toLocaleString('es-AR')} caj × $14.000`);
+    if (stock.llaveroCopa > 0) partes.push(`${stock.llaveroCopa.toLocaleString('es-AR')} llav. Copa × $2.000`);
+    if (stock.llaveroFifa > 0) partes.push(`${stock.llaveroFifa.toLocaleString('es-AR')} llav. Fifa × $2.000`);
+    pSub.textContent = partes.join(' + ');
+  }
 
   // Ganancia neta proyectada = ganancia actual + proyectado
   const gananciaProy = ganancia + proyectado;
