@@ -136,6 +136,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .btn-icon.del:hover{background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);}
 
 .tbl tfoot tr td{padding:10px 6px;border-top:2px solid var(--border2);font-size:12px;background:var(--surface2);}
+.tbl tfoot{position:sticky;bottom:0;z-index:2;}
 .tfoot-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
 .tfoot-total{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--accent);}
 .tbl-select{background:var(--bg);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:11px;padding:4px 6px;outline:none;cursor:pointer;transition:border-color .15s;width:90px;}
@@ -151,7 +152,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .sub-title:hover{color:var(--text);}
 .sub-title .collapse-icon{margin-left:auto;font-size:10px;color:var(--muted);transition:transform .2s;}
 .sub-title.collapsed .collapse-icon{transform:rotate(-90deg);}
-.collapsible{overflow:hidden;transition:max-height .3s ease, opacity .2s ease;max-height:3000px;opacity:1;}
+.collapsible{overflow:hidden;transition:max-height .3s ease, opacity .2s ease;max-height:60000px;opacity:1;}
 .collapsible.collapsed{max-height:0;opacity:0;}
 
 /* EDIT */
@@ -672,9 +673,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 
     <div class="sub-title collapsed" onclick="toggleTable(&#39;ent&#39;,this)"><span class="dot dot-g"></span>Entregados<span class="collapse-icon">▼</span></div>
     <div class="collapsible collapsed" id="col-ent">
-    <div style="overflow-x:auto;">
+    <div style="overflow-x:auto;overflow-y:auto;max-height:520px;">
       <table class="tbl">
-        <thead><tr>
+        <thead style="position:sticky;top:0;z-index:3;background:var(--surface);"><tr>
           <th>Cliente</th>
           <th>Packs</th>
           <th>Sobres</th>
