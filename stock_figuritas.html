@@ -1108,6 +1108,7 @@ function calcTotal(r){
 /* ── MÉTRICAS + ECO ── */
 function renderMetrics() {
   const pend   = reservas.filter(r=>r.estado==='pendiente');  // includes pagados
+  const pagados = reservas.filter(r=>r.estado==='pendiente' && r.pagado);
   const ent    = reservas.filter(r=>r.estado==='entregado');
   const sobRes = pend.reduce((s,r)=>s+r.totalSobres,0);
   const cajRes = pend.reduce((s,r)=>s+(r.cajas||0),0);
@@ -1115,8 +1116,13 @@ function renderMetrics() {
   const sobEnt     = ent.reduce((s,r)=>s+r.totalSobres,0);
   const cajEnt     = ent.reduce((s,r)=>s+(r.cajas||0),0);
   const albEnt     = ent.reduce((s,r)=>s+r.albumes,0);
-  const llaCopaEnt = ent.reduce((s,r)=>s+(r.llaCopa||0),0);
-  const llaFifaEnt = ent.reduce((s,r)=>s+(r.llaFifa||0),0);
+  const llaCopaEnt = ent.reduce((s,r)=>s+(r.llaveroCopa||0),0);
+  const llaFifaEnt = ent.reduce((s,r)=>s+(r.llaveroFifa||0),0);
+  const sobPag      = pagados.reduce((s,r)=>s+r.totalSobres,0);
+  const albPag      = pagados.reduce((s,r)=>s+r.albumes,0);
+  const cajPag      = pagados.reduce((s,r)=>s+(r.cajas||0),0);
+  const llaCopaPag  = pagados.reduce((s,r)=>s+(r.llaveroCopa||0),0);
+  const llaFifaPag  = pagados.reduce((s,r)=>s+(r.llaveroFifa||0),0);
 
   /* stock */
   set('m-sobres',      stock.sobres.toLocaleString('es-AR'));
@@ -1128,6 +1134,17 @@ function renderMetrics() {
   set('m-sob-res-sub', `${pend.length} reserva${pend.length!==1?'s':''}`);
   set('m-alb-res',     albRes.toLocaleString('es-AR'));
   set('m-alb-res-sub', `${pend.length} reserva${pend.length!==1?'s':''}`);
+  /* pagados — no entregados */
+  set('m-sob-pag',         sobPag.toLocaleString('es-AR'));
+  set('m-sob-pag-sub',     pagados.length ? `${pagados.length} reserva${pagados.length!==1?'s':''}` : '—');
+  set('m-alb-pag',         albPag.toLocaleString('es-AR'));
+  set('m-alb-pag-sub',     albPag>0 ? `${albPag} álbum${albPag!==1?'es':''}` : '—');
+  set('m-caj-pag',         cajPag.toLocaleString('es-AR'));
+  set('m-caj-pag-sub',     cajPag>0 ? `${cajPag} caja${cajPag!==1?'s':''}` : '—');
+  set('m-llacopa-pag',     llaCopaPag.toLocaleString('es-AR'));
+  set('m-llacopa-pag-sub', llaCopaPag>0 ? `${llaCopaPag} unidad${llaCopaPag!==1?'es':''}` : '—');
+  set('m-llafifa-pag',     llaFifaPag.toLocaleString('es-AR'));
+  set('m-llafifa-pag-sub', llaFifaPag>0 ? `${llaFifaPag} unidad${llaFifaPag!==1?'es':''}` : '—');
   /* entregados */
   set('m-sob-ent',         sobEnt.toLocaleString('es-AR'));
   set('m-sob-ent-sub',     `${ent.length} entrega${ent.length!==1?'s':''}`);
