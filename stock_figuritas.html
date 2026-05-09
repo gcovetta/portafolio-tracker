@@ -41,6 +41,11 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .metrics-row{display:grid;gap:12px;margin-bottom:1rem;}
 .metrics-row.top{grid-template-columns:repeat(5,1fr);}
 .metrics-row.bot{grid-template-columns:repeat(2,1fr);}
+.metrics-row.compact{display:flex;flex-wrap:wrap;gap:8px;}
+.metrics-row.compact .metric{flex:0 0 auto;min-width:120px;padding:.7rem 1rem;}
+.metrics-row.compact .metric-value{font-size:20px;}
+.metrics-row.compact .metric-label{margin-bottom:6px;}
+.metrics-row.compact .metric-sub{margin-top:4px;}
 .metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem 1.4rem;transition:border-color .2s;position:relative;}
 .metric:hover{border-color:var(--border2);}
 .metric-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;}
@@ -377,7 +382,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     <span class="collapse-icon">▼</span>
   </div>
   <div class="collapsible" id="col-met-stock">
-    <div class="metrics-row top" style="margin-bottom:12px;">
+    <div class="metrics-row compact" style="margin-bottom:12px;">
       <div class="metric">
         <button class="btn-es" onclick="openModal('sobres')" title="Editar">✎</button>
         <div class="metric-label">Sobres</div>
@@ -419,7 +424,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     <span class="collapse-icon">▼</span>
   </div>
   <div class="collapsible" id="col-met-res">
-    <div class="metrics-row top" style="margin-bottom:12px;">
+    <div class="metrics-row compact" style="margin-bottom:12px;">
       <div class="metric">
         <div class="metric-label">Sobres</div>
         <div class="metric-value c-orange" id="m-sob-res">565</div>
@@ -456,7 +461,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     <span class="collapse-icon">▼</span>
   </div>
   <div class="collapsible" id="col-met-pag">
-    <div class="metrics-row top" style="margin-bottom:12px;">
+    <div class="metrics-row compact" style="margin-bottom:12px;">
       <div class="metric">
         <div class="metric-label">Sobres</div>
         <div class="metric-value c-teal" id="m-sob-pag">0</div>
