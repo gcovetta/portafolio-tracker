@@ -382,7 +382,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     <span class="collapse-icon">▼</span>
   </div>
   <div class="collapsible" id="col-met-stock">
-    <div class="metrics-row compact" style="margin-bottom:12px;">
+    <div class="metrics-row compact" style="margin-bottom:12px;justify-content:center;">
       <div class="metric">
         <button class="btn-es" onclick="openModal('sobres')" title="Editar">✎</button>
         <div class="metric-label">Sobres</div>
@@ -417,79 +417,85 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     <hr style="border:none;border-top:1px dashed rgba(255,255,255,0.12);margin:0 0 8px 0;">
   </div>
 
-  <div class="sub-title" onclick="toggleTable('met-res',this)">
-    <span style="display:inline-block;width:16px;height:1px;background:var(--muted);opacity:.5;"></span>
-    Reservado
-    <span style="display:inline-block;flex:1;height:1px;background:var(--muted);opacity:.2;"></span>
-    <span class="collapse-icon">▼</span>
-  </div>
-  <div class="collapsible" id="col-met-res">
-    <div class="metrics-row compact" style="margin-bottom:12px;">
-      <div class="metric">
-        <div class="metric-label">Sobres</div>
-        <div class="metric-value c-orange" id="m-sob-res">565</div>
-        <div class="metric-sub" id="m-sob-res-sub">37 reservas</div>
+  <!-- RESERVADO + PAGADOS lado a lado -->
+  <div style="display:flex;gap:20px;align-items:flex-start;">
+    <div style="flex:1;min-width:0;">
+      <div class="sub-title" onclick="toggleTable('met-res',this)">
+        <span style="display:inline-block;width:16px;height:1px;background:var(--muted);opacity:.5;"></span>
+        Reservado
+        <span style="display:inline-block;flex:1;height:1px;background:var(--muted);opacity:.2;"></span>
+        <span class="collapse-icon">▼</span>
       </div>
-      <div class="metric">
-        <div class="metric-label">Álbumes</div>
-        <div class="metric-value c-orange" id="m-alb-res">33</div>
-        <div class="metric-sub" id="m-alb-res-sub">37 reservas</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Cajas</div>
-        <div class="metric-value c-orange" id="m-caj-res">0</div>
-        <div class="metric-sub" id="m-caj-res-sub">—</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Llavero Copa</div>
-        <div class="metric-value c-orange" id="m-llacopa-res">0</div>
-        <div class="metric-sub" id="m-llacopa-res-sub">—</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Llavero Fifa</div>
-        <div class="metric-value c-orange" id="m-llafifa-res">0</div>
-        <div class="metric-sub" id="m-llafifa-res-sub">—</div>
-      </div>
-    </div>
-    <hr style="border:none;border-top:1px dashed rgba(255,255,255,0.12);margin:0 0 8px 0;">
-  </div>
-
-  <div class="sub-title" onclick="toggleTable('met-pag',this)">
-    <span style="display:inline-block;width:16px;height:1px;background:var(--muted);opacity:.5;"></span>
-    Pagados — No Entregados
-    <span style="display:inline-block;flex:1;height:1px;background:var(--muted);opacity:.2;"></span>
-    <span class="collapse-icon">▼</span>
-  </div>
-  <div class="collapsible" id="col-met-pag">
-    <div class="metrics-row compact" style="margin-bottom:12px;">
-      <div class="metric">
-        <div class="metric-label">Sobres</div>
-        <div class="metric-value c-teal" id="m-sob-pag">0</div>
-        <div class="metric-sub" id="m-sob-pag-sub">—</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Álbumes</div>
-        <div class="metric-value c-teal" id="m-alb-pag">0</div>
-        <div class="metric-sub" id="m-alb-pag-sub">—</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Cajas</div>
-        <div class="metric-value c-teal" id="m-caj-pag">0</div>
-        <div class="metric-sub" id="m-caj-pag-sub">—</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Llavero Copa</div>
-        <div class="metric-value c-teal" id="m-llacopa-pag">0</div>
-        <div class="metric-sub" id="m-llacopa-pag-sub">—</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Llavero Fifa</div>
-        <div class="metric-value c-teal" id="m-llafifa-pag">0</div>
-        <div class="metric-sub" id="m-llafifa-pag-sub">—</div>
+      <div class="collapsible" id="col-met-res">
+        <div class="metrics-row compact" style="margin-bottom:12px;">
+          <div class="metric">
+            <div class="metric-label">Sobres</div>
+            <div class="metric-value c-orange" id="m-sob-res">565</div>
+            <div class="metric-sub" id="m-sob-res-sub">37 reservas</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Álbumes</div>
+            <div class="metric-value c-orange" id="m-alb-res">33</div>
+            <div class="metric-sub" id="m-alb-res-sub">37 reservas</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Cajas</div>
+            <div class="metric-value c-orange" id="m-caj-res">0</div>
+            <div class="metric-sub" id="m-caj-res-sub">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Llavero Copa</div>
+            <div class="metric-value c-orange" id="m-llacopa-res">0</div>
+            <div class="metric-sub" id="m-llacopa-res-sub">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Llavero Fifa</div>
+            <div class="metric-value c-orange" id="m-llafifa-res">0</div>
+            <div class="metric-sub" id="m-llafifa-res-sub">—</div>
+          </div>
+        </div>
       </div>
     </div>
-    <hr style="border:none;border-top:1px dashed rgba(255,255,255,0.12);margin:0 0 8px 0;">
+    <div style="width:1px;background:rgba(255,255,255,0.08);align-self:stretch;margin-top:2px;"></div>
+    <div style="flex:1;min-width:0;">
+      <div class="sub-title" onclick="toggleTable('met-pag',this)">
+        <span style="display:inline-block;width:16px;height:1px;background:var(--muted);opacity:.5;"></span>
+        Pagados — No Entregados
+        <span style="display:inline-block;flex:1;height:1px;background:var(--muted);opacity:.2;"></span>
+        <span class="collapse-icon">▼</span>
+      </div>
+      <div class="collapsible" id="col-met-pag">
+        <div class="metrics-row compact" style="margin-bottom:12px;">
+          <div class="metric">
+            <div class="metric-label">Sobres</div>
+            <div class="metric-value c-teal" id="m-sob-pag">0</div>
+            <div class="metric-sub" id="m-sob-pag-sub">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Álbumes</div>
+            <div class="metric-value c-teal" id="m-alb-pag">0</div>
+            <div class="metric-sub" id="m-alb-pag-sub">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Cajas</div>
+            <div class="metric-value c-teal" id="m-caj-pag">0</div>
+            <div class="metric-sub" id="m-caj-pag-sub">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Llavero Copa</div>
+            <div class="metric-value c-teal" id="m-llacopa-pag">0</div>
+            <div class="metric-sub" id="m-llacopa-pag-sub">—</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Llavero Fifa</div>
+            <div class="metric-value c-teal" id="m-llafifa-pag">0</div>
+            <div class="metric-sub" id="m-llafifa-pag-sub">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+  <hr style="border:none;border-top:1px dashed rgba(255,255,255,0.12);margin:0 0 8px 0;">
 
   <div class="sub-title collapsed" onclick="toggleTable('met-ent',this)">
     <span style="display:inline-block;width:16px;height:1px;background:var(--muted);opacity:.5;"></span>
