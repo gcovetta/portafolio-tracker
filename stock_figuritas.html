@@ -1107,12 +1107,15 @@ function calcTotal(r){
 
 /* ── MÉTRICAS + ECO ── */
 function renderMetrics() {
-  const pend   = reservas.filter(r=>r.estado==='pendiente');  // includes pagados
+  const pend    = reservas.filter(r=>r.estado==='pendiente');  // todos los pendientes
+  const pendNoPag = reservas.filter(r=>r.estado==='pendiente' && !r.pagado);
   const pagados = reservas.filter(r=>r.estado==='pendiente' && r.pagado);
   const ent    = reservas.filter(r=>r.estado==='entregado');
-  const sobRes = pend.reduce((s,r)=>s+r.totalSobres,0);
-  const cajRes = pend.reduce((s,r)=>s+(r.cajas||0),0);
-  const albRes = pend.reduce((s,r)=>s+r.albumes,0);
+  const sobRes = pendNoPag.reduce((s,r)=>s+r.totalSobres,0);
+  const cajRes = pendNoPag.reduce((s,r)=>s+(r.cajas||0),0);
+  const albRes = pendNoPag.reduce((s,r)=>s+r.albumes,0);
+  const llaCopaPendNoPag = pendNoPag.reduce((s,r)=>s+(r.llaveroCopa||0),0);
+  const llaFifaPendNoPag = pendNoPag.reduce((s,r)=>s+(r.llaveroFifa||0),0);
   const sobEnt     = ent.reduce((s,r)=>s+r.totalSobres,0);
   const cajEnt     = ent.reduce((s,r)=>s+(r.cajas||0),0);
   const albEnt     = ent.reduce((s,r)=>s+r.albumes,0);
@@ -1129,11 +1132,17 @@ function renderMetrics() {
   set('m-sobres-sub',  `${stock.sobBultos} bulto${stock.sobBultos!==1?'s':''} · ${stock.sobPacks} packs`);
   set('m-albumes',     stock.albumes.toLocaleString('es-AR'));
   set('m-albumes-sub', `${stock.albBultos} bulto${stock.albBultos!==1?'s':''}`);
-  /* reservados */
+  /* reservados (solo pendientes no pagados) */
   set('m-sob-res',     sobRes.toLocaleString('es-AR'));
-  set('m-sob-res-sub', `${pend.length} reserva${pend.length!==1?'s':''}`);
+  set('m-sob-res-sub', `${pendNoPag.length} reserva${pendNoPag.length!==1?'s':''}`);
   set('m-alb-res',     albRes.toLocaleString('es-AR'));
-  set('m-alb-res-sub', `${pend.length} reserva${pend.length!==1?'s':''}`);
+  set('m-alb-res-sub', `${pendNoPag.length} reserva${pendNoPag.length!==1?'s':''}`);
+  set('m-caj-res',     cajRes.toLocaleString('es-AR'));
+  set('m-caj-res-sub', cajRes>0 ? `${cajRes} caja${cajRes!==1?'s':''}` : '—');
+  set('m-llacopa-res', llaCopaPendNoPag.toLocaleString('es-AR'));
+  set('m-llacopa-res-sub', llaCopaPendNoPag>0 ? `${llaCopaPendNoPag} unidad${llaCopaPendNoPag!==1?'es':''}` : '—');
+  set('m-llafifa-res', llaFifaPendNoPag.toLocaleString('es-AR'));
+  set('m-llafifa-res-sub', llaFifaPendNoPag>0 ? `${llaFifaPendNoPag} unidad${llaFifaPendNoPag!==1?'es':''}` : '—');
   /* pagados — no entregados */
   set('m-sob-pag',         sobPag.toLocaleString('es-AR'));
   set('m-sob-pag-sub',     pagados.length ? `${pagados.length} reserva${pagados.length!==1?'s':''}` : '—');
