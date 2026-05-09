@@ -973,11 +973,20 @@ async function saveReserva(r) {
     fecha:        r.fecha,
     fecha_ent:    r.fechaEnt || null
   };
-  await sbFetch('reservas?id=eq.' + r.id, {
+  const res = await fetch(SB_URL + '/rest/v1/reservas?id=eq.' + r.id, {
     method: 'PATCH',
-    prefer: 'return=minimal',
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
     body: JSON.stringify(row)
   });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error('Supabase PATCH error: ' + t);
+  }
 }
 
 async function insertReserva(r) {
@@ -1352,10 +1361,18 @@ async function confirmarReserva(){
 async function entregarReserva(id){
   const r=reservas.find(x=>x.id===id);if(!r||r.estado!=='pendiente')return;
   if(!confirm(`¿Confirmar entrega a ${r.nombre}?\n${r.totalSobres} sobres · ${r.albumes} álbumes\nTotal: ${pesos(calcTotal(r))}`))return;
+  const estadoAnterior=r.estado, fechaAnterior=r.fechaEnt;
   r.estado='entregado';r.fechaEnt=new Date().toLocaleDateString('es-AR');
   renderMetrics();renderTablas();
   flashEl('m-sob-ent');flashEl('m-alb-ent');flashEl('eco-entregado');flashEl('eco-reservado');
-  await Promise.all([save(), saveReserva(r)]);
+  try {
+    await Promise.all([save(), saveReserva(r)]);
+  } catch(e) {
+    console.error('entregarReserva error:', e);
+    r.estado=estadoAnterior;r.fechaEnt=fechaAnterior;
+    renderMetrics();renderTablas();
+    alert('Error al guardar la entrega. No se guardó en la base de datos. Intentá de nuevo.');
+  }
 }
 
 /* ── MARCAR PAGO ── */
