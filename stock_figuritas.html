@@ -46,8 +46,9 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .metrics-row.compact .metric-value{font-size:20px;}
 .metrics-row.compact .metric-label{margin-bottom:6px;}
 .metrics-row.compact .metric-sub{margin-top:4px;}
-.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem 1.4rem;transition:border-color .2s;position:relative;}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem 1.4rem;transition:border-color .2s,background .2s,box-shadow .2s;position:relative;}
 .metric:hover{border-color:var(--border2);}
+.metric.stock-alert{border-color:rgba(224,92,92,.55)!important;background:rgba(224,92,92,.06)!important;box-shadow:0 0 0 1px rgba(224,92,92,.25),0 4px 20px rgba(224,92,92,.12)!important;z-index:2;}
 .metric-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;}
 .metric-value{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:500;line-height:1;}
 .metric-sub{font-size:10px;color:var(--muted);margin-top:6px;}
@@ -388,31 +389,31 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
   </div>
   <div class="collapsible" id="col-met-stock">
     <div class="metrics-row compact" style="margin-bottom:12px;justify-content:center;">
-      <div class="metric">
+      <div class="metric" id="card-sobres">
         <button class="btn-es" onclick="openModal('sobres')" title="Editar">✎</button>
         <div class="metric-label">Sobres</div>
         <div class="metric-value c-accent" id="m-sobres">1.010</div>
         <div class="metric-sub" id="m-sobres-sub">9 bultos · 360 packs</div>
       </div>
-      <div class="metric">
+      <div class="metric" id="card-albumes">
         <button class="btn-es" onclick="openModal('albumes')" title="Editar">✎</button>
         <div class="metric-label">Álbumes</div>
         <div class="metric-value c-teal" id="m-albumes">48</div>
         <div class="metric-sub" id="m-albumes-sub">18 bultos</div>
       </div>
-      <div class="metric">
+      <div class="metric" id="card-cajas">
         <button class="btn-es" onclick="openModal('cajas')" title="Editar">✎</button>
         <div class="metric-label">Cajas</div>
         <div class="metric-value c-purple" id="m-cajas">27</div>
         <div class="metric-sub" id="m-cajas-sub">$270.000 invertido</div>
       </div>
-      <div class="metric">
+      <div class="metric" id="card-llaveroCopa">
         <button class="btn-es" onclick="openModal('llaveroCopa')" title="Editar">✎</button>
         <div class="metric-label">Llavero Copa</div>
         <div class="metric-value" style="color:#f472b6" id="m-llaveroCopa">0</div>
         <div class="metric-sub" id="m-llaveroCopa-sub">—</div>
       </div>
-      <div class="metric">
+      <div class="metric" id="card-llaveroFifa">
         <button class="btn-es" onclick="openModal('llaveroFifa')" title="Editar">✎</button>
         <div class="metric-label">Llavero Fifa</div>
         <div class="metric-value" style="color:#fb923c" id="m-llaveroFifa">0</div>
@@ -1169,13 +1170,15 @@ function renderMetrics() {
   set('m-albumes',     stock.albumes.toLocaleString('es-AR'));
   set('m-albumes-sub', `${stock.albBultos} bulto${stock.albBultos!==1?'s':''}`);
   // Color negativo en recuadros de stock
-  ['m-sobres','m-albumes','m-cajas','m-llaveroCopa','m-llaveroFifa'].forEach(id=>{const el=g(id);if(!el)return;});
-  const _negColor = (id, val, posColor) => { const el=g(id); if(!el)return; el.style.color = val<0 ? 'var(--red)' : `var(--${posColor})`; };
-  _negColor('m-sobres',    stock.sobres,      'accent');
-  _negColor('m-albumes',   stock.albumes,     'teal');
-  _negColor('m-cajas',     stock.cajas,       'purple');
-  _negColor('m-llaveroCopa', stock.llaveroCopa||0, 'text');
-  _negColor('m-llaveroFifa', stock.llaveroFifa||0, 'text');
+  const _stockColor = (valId, cardId, val, posColor) => {
+    const el = g(valId); if(el) el.style.color = val <= 1 ? 'var(--red)' : `var(--${posColor})`;
+    const card = g(cardId); if(card) card.classList.toggle('stock-alert', val <= 1);
+  };
+  _stockColor('m-sobres',     'card-sobres',     stock.sobres,           'accent');
+  _stockColor('m-albumes',    'card-albumes',    stock.albumes,          'teal');
+  _stockColor('m-cajas',      'card-cajas',      stock.cajas,            'purple');
+  _stockColor('m-llaveroCopa','card-llaveroCopa',stock.llaveroCopa||0,   'text');
+  _stockColor('m-llaveroFifa','card-llaveroFifa',stock.llaveroFifa||0,   'text');
   /* reservados (solo pendientes no pagados) */
   set('m-sob-res',     sobRes.toLocaleString('es-AR'));
   set('m-sob-res-sub', `${pendNoPag.length} reserva${pendNoPag.length!==1?'s':''}`);
@@ -1384,9 +1387,7 @@ async function confirmarReserva(){
 
   if(!nombre) return alert('Ingresá el nombre del cliente.');
   if(totalSobres===0&&albumes===0&&cajas===0&&llaveroCopa===0&&llaveroFifa===0) return alert('Ingresá al menos una cantidad.');
-  if(totalSobres>stock.sobres) return alert(`Stock insuficiente.\nSobres disponibles: ${stock.sobres.toLocaleString('es-AR')}`);
-  if(albumes>stock.albumes)    return alert(`Stock insuficiente.\nÁlbumes disponibles: ${stock.albumes.toLocaleString('es-AR')}`);
-  if(cajas>stock.cajas)         return alert(`Stock insuficiente.\nCajas disponibles: ${stock.cajas.toLocaleString('es-AR')}`);
+
 
   stock.sobres      -= totalSobres;
   stock.albumes     -= albumes;
@@ -1490,9 +1491,7 @@ async function guardarEd(id){
 
   if(r.estado==='pendiente'){
     const diffSob=totalSobres-r.totalSobres,diffAlb=albumes-r.albumes,diffCaj=(cajas-(r.cajas||0));
-    if(diffSob>stock.sobres)  return alert(`Stock insuficiente. Sobres disponibles: ${stock.sobres.toLocaleString('es-AR')}`);
-    if(diffAlb>stock.albumes) return alert(`Stock insuficiente. Álbumes disponibles: ${stock.albumes.toLocaleString('es-AR')}`);
-    if(diffCaj>stock.cajas)   return alert(`Stock insuficiente. Cajas disponibles: ${stock.cajas.toLocaleString('es-AR')}`);
+
     stock.sobres-=diffSob;stock.albumes-=diffAlb;stock.cajas-=diffCaj;
   }
   r.nombre=nombre;r.packs=packs;r.sobres=sobres;r.totalSobres=totalSobres;
@@ -1796,7 +1795,19 @@ function renderTablas(){
   const totalEnt = ent.reduce((s,r) => s + calcTotal(r), 0);
   const tfE = g('tf-ent');
   if (tfE) tfE.innerHTML = ent.length ? `<tr>
-    <td colspan="10" class="tfoot-label">Total entregados</td>
+    <td class="tfoot-label">Totales</td>
+    <td class="tfoot-total">${ent.reduce((s,r)=>s+(r.packs||0),0)}</td>
+    <td class="tfoot-total">${ent.reduce((s,r)=>s+(r.sobres||0),0)}</td>
+    <td class="tfoot-total">${ent.reduce((s,r)=>s+(r.totalSobres||0),0).toLocaleString('es-AR')}</td>
+    <td class="tfoot-total">${ent.reduce((s,r)=>s+(r.albumes||0),0)}</td>
+    <td style="color:var(--muted)">—</td>
+    <td style="color:var(--muted)">—</td>
+    <td style="color:var(--muted)">—</td>
+    <td class="tfoot-total">${ent.reduce((s,r)=>s+(r.cajas||0),0)}</td>
+    <td style="color:var(--muted)">—</td>
+    <td class="tfoot-total">${ent.reduce((s,r)=>s+(r.llaveroCopa||0),0)}</td>
+    <td class="tfoot-total">${ent.reduce((s,r)=>s+(r.llaveroFifa||0),0)}</td>
+    <td style="color:var(--muted)">—</td>
     <td class="tfoot-total">${pesos(totalEnt)}</td>
     <td colspan="4"></td>
   </tr>` : '';
