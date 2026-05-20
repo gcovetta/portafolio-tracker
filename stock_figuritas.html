@@ -1923,6 +1923,52 @@ async function invDelete(id) {
   await sbFetch('invertido?id=eq.' + id, { method: 'DELETE' });
 }
 
+async function invPatchSave(r) {
+  await sbFetch('invertido?id=eq.' + r.id, {
+    method: 'PATCH', prefer: 'return=minimal',
+    body: JSON.stringify({ descripcion: r.desc, figus: r.figus, cajas: r.cajas, financiamiento: r.financiamiento || 'propio', financiado: r.financiado || 0 })
+  });
+}
+
+function invEditar(id) {
+  const r = invRows.find(x => x.id === id); if (!r) return;
+  const finOpts = ['propio','prestado','mixto'].map(v =>
+    `<option value="${v}" ${(r.financiamiento||'propio')===v?'selected':''}>${v.charAt(0).toUpperCase()+v.slice(1)}</option>`
+  ).join('');
+  const finSel = `<select id="ied-fin-${id}" class="inv-fin-select s-${r.financiamiento||'propio'}" onchange="this.className='inv-fin-select s-'+this.value;document.getElementById('ied-finval-${id}').style.display=this.value==='propio'?'none':'';" style="width:110px;">${finOpts}</select>`;
+  const finVal = `<input id="ied-finval-${id}" type="number" min="0" step="0.01" value="${r.financiado||0}" placeholder="$ externo" style="width:120px;background:var(--surface2);border:1px solid rgba(224,92,92,.4);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:5px 7px;outline:none;${(r.financiamiento||'propio')==='propio'?'display:none;':''}" />`;
+  const row = document.getElementById('inv-row-' + id); if (!row) return;
+  row.innerHTML = `
+    <td><input id="ied-desc-${id}" class="ei" value="${esc(r.desc)}" style="font-family:'Inter',sans-serif;font-size:13px;width:100%;min-width:140px;" /></td>
+    <td><input id="ied-figus-${id}" type="number" min="0" step="0.01" value="${r.figus||0}" style="width:110px;background:var(--surface2);border:1px solid rgba(232,197,71,.4);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:5px 7px;outline:none;" /></td>
+    <td><input id="ied-cajas-${id}" type="number" min="0" step="0.01" value="${r.cajas||0}" style="width:110px;background:var(--surface2);border:1px solid rgba(76,175,125,.4);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:5px 7px;outline:none;" /></td>
+    <td>${finSel}</td>
+    <td>${finVal}</td>
+    <td style="display:flex;gap:4px;">
+      <button class="btn-icon ok" onclick="invGuardarEd(${id})" title="Guardar" style="background:var(--green-dim);color:var(--green);border-color:rgba(76,175,125,.3);">✓</button>
+      <button class="btn-icon del" onclick="renderInvertido()" title="Cancelar" style="background:var(--red-dim);color:var(--red);border-color:rgba(224,92,92,.3);">✕</button>
+    </td>`;
+  row.style.background = 'rgba(232,197,71,.03)';
+  const descInput = document.getElementById('ied-desc-' + id);
+  if (descInput) { descInput.focus(); descInput.select(); }
+}
+
+async function invGuardarEd(id) {
+  const r = invRows.find(x => x.id === id); if (!r) return;
+  const desc  = (document.getElementById('ied-desc-' + id)?.value || '').trim();
+  const figus = parseFloat(document.getElementById('ied-figus-' + id)?.value) || 0;
+  const cajas = parseFloat(document.getElementById('ied-cajas-' + id)?.value) || 0;
+  const financiamiento = document.getElementById('ied-fin-' + id)?.value || 'propio';
+  const financiado = parseFloat(document.getElementById('ied-finval-' + id)?.value) || 0;
+  if (!desc) return alert('Ingresá una descripción.');
+  r.desc = desc; r.figus = figus; r.cajas = cajas;
+  r.financiamiento = financiamiento;
+  r.financiado = financiamiento === 'propio' ? 0 : financiado;
+  renderInvertido();
+  try { await invPatchSave(r); }
+  catch(e) { console.error('invGuardarEd:', e); alert('Error al guardar. Revisá la conexión.'); }
+}
+
 async function invAgregar() {
   const desc  = (document.getElementById('inv-desc').value || '').trim();
   const figus = parseFloat(document.getElementById('inv-figus').value) || 0;
@@ -2093,13 +2139,16 @@ function renderInvertido() {
     tbody.innerHTML = invRows.map(r => {
       const finLabel = r.financiamiento === 'prestado' ? 'Prestado' : r.financiamiento === 'mixto' ? 'Mixto' : 'Propio';
       const finCls   = r.financiamiento === 'prestado' ? 'fin-prestado' : r.financiamiento === 'mixto' ? 'fin-mixto' : 'fin-propio';
-      return `<tr>
+      return `<tr id="inv-row-${r.id}">
       <td class="inv-label-col">${esc(r.desc)}</td>
       <td><span style="font-family:'IBM Plex Mono',monospace;color:var(--accent)">${r.figus > 0 ? pesos(r.figus) : '—'}</span></td>
       <td><span style="font-family:'IBM Plex Mono',monospace;color:var(--green)">${r.cajas > 0 ? pesos(r.cajas) : '—'}</span></td>
       <td><span class="fin-badge ${finCls}">${finLabel}</span></td>
       <td><span style="font-family:'IBM Plex Mono',monospace;color:var(--red);font-size:12px;">${(r.financiado||0) > 0 ? pesos(r.financiado) : '—'}</span></td>
-      <td><button class="inv-del-btn" onclick="invEliminar(${r.id})">✕</button></td>
+      <td style="display:flex;gap:4px;">
+        <button class="btn-icon" onclick="invEditar(${r.id})" title="Editar" style="background:var(--orange-dim);color:var(--orange);border-color:rgba(244,133,90,.3);">✎</button>
+        <button class="inv-del-btn" onclick="invEliminar(${r.id})" title="Eliminar">✕</button>
+      </td>
     </tr>`;}).join('');
   }
   const totFigus = invRows.reduce((s, r) => s + (r.figus || 0), 0);
