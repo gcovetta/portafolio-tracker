@@ -868,7 +868,6 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
             <th>Financiado</th>
             <th>Plata Propia</th>
             <th>Total</th>
-            <th>Fecha</th>
             <th></th>
           </tr></thead>
           <tbody id="inv-tbody"></tbody>
@@ -2204,7 +2203,7 @@ function renderInvertido() {
   const tbody = document.getElementById('inv-tbody');
   if (!tbody) return;
   if (!invRows.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-row">Sin registros. Agregá tu primera inversión.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Sin registros. Agregá tu primera inversión.</td></tr>';
   } else {
     const totF = invRows.reduce((s,r) => s + (r.financiado||0), 0);
     const totP = invRows.reduce((s,r) => s + (r.propia != null ? r.propia : Math.max(0,(r.figus||0)-(r.financiado||0))), 0);
@@ -2219,8 +2218,10 @@ function renderInvertido() {
         <td><span style="font-family:'IBM Plex Mono',monospace;color:var(--red)">${(r.financiado||0)>0?pesos(r.financiado):'—'}</span></td>
         <td><span style="font-family:'IBM Plex Mono',monospace;color:var(--green)">${propiaR>0?pesos(propiaR):'—'}</span></td>
         <td><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:var(--accent)">${pesos(totalR)}</span></td>
-        <td style="font-size:11px;color:var(--muted)">${r.fecha||'—'}</td>
-        <td><button class="btn-icon del" onclick="invEliminar(${r.id})" title="Eliminar">✕</button></td>
+        <td style="display:flex;gap:4px;">
+          <button class="btn-icon" onclick="invEditarFila(${r.id})" title="Editar">✎</button>
+          <button class="btn-icon del" onclick="invEliminar(${r.id})" title="Eliminar">✕</button>
+        </td>
       </tr>`;
     }).join('') + `
       <tr style="border-top:1px solid var(--border2)!important;">
@@ -2228,10 +2229,67 @@ function renderInvertido() {
         <td style="font-family:'IBM Plex Mono',monospace;color:var(--red);padding-top:10px;">${totF>0?pesos(totF):'—'}</td>
         <td style="font-family:'IBM Plex Mono',monospace;color:var(--green);padding-top:10px;">${totP>0?pesos(totP):'—'}</td>
         <td style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--accent);padding-top:10px;">${pesos(totT)}</td>
-        <td colspan="2"></td>
+        <td></td>
       </tr>`;
   }
   renderInvSummary();
+}
+
+function invEditarFila(id) {
+  const r = invRows.find(x => x.id === id); if (!r) return;
+  const items = r.items && r.items.length ? r.items : [r.desc];
+  const totalR = r.total != null ? r.total : (r.figus||0)+(r.cajas||0);
+  const propiaR = r.propia != null ? r.propia : Math.max(0, totalR-(r.financiado||0));
+  const allItems = ['Figus','Álbum','Cajas','Llaveros'];
+  const checksHtml = allItems.map(it =>
+    `<label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;">
+      <input type="checkbox" ${items.includes(it)?'checked':''} value="${it}" class="ief-chk-${id}" style="accent-color:var(--purple);" />
+      ${it}
+    </label>`
+  ).join('');
+  const row = document.getElementById('inv-row-'+id); if (!row) return;
+  row.style.background = 'rgba(232,197,71,.03)';
+  row.innerHTML = `
+    <td><div style="display:flex;flex-wrap:wrap;gap:6px;padding:4px 0;">${checksHtml}</div></td>
+    <td><input class="ei" id="ief-com-${id}" value="${esc(r.comentario||r.desc||'')}" placeholder="Comentario…" style="width:100%;min-width:120px;" /></td>
+    <td><input class="ei" id="ief-fin-${id}" type="number" min="0" step="0.01" value="${r.financiado||0}" style="width:100px;" oninput="invActualizarTotal(${id})" /></td>
+    <td><input class="ei" id="ief-pro-${id}" type="number" min="0" step="0.01" value="${propiaR}" style="width:100px;" oninput="invActualizarTotal(${id})" /></td>
+    <td><strong id="ief-tot-${id}" style="font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:13px;">${pesos(totalR)}</strong></td>
+    <td style="display:flex;gap:4px;">
+      <button class="btn-icon ok" onclick="invGuardarFila(${id})" title="Guardar">✓</button>
+      <button class="btn-icon del" onclick="renderInvertido()" title="Cancelar">✕</button>
+    </td>`;
+}
+
+function invActualizarTotal(id) {
+  const f = parseFloat(document.getElementById('ief-fin-'+id)?.value)||0;
+  const p = parseFloat(document.getElementById('ief-pro-'+id)?.value)||0;
+  const el = document.getElementById('ief-tot-'+id);
+  if (el) el.textContent = pesos(f+p);
+}
+
+async function invGuardarFila(id) {
+  const r = invRows.find(x => x.id === id); if (!r) return;
+  const checked = [...document.querySelectorAll('.ief-chk-'+id)].filter(c=>c.checked).map(c=>c.value);
+  const comentario = document.getElementById('ief-com-'+id)?.value.trim()||'';
+  const financiado = parseFloat(document.getElementById('ief-fin-'+id)?.value)||0;
+  const propia = parseFloat(document.getElementById('ief-pro-'+id)?.value)||0;
+  const total = financiado + propia;
+  if (checked.length === 0) return alert('Seleccioná al menos un ítem.');
+  if (total === 0) return alert('Ingresá al menos un monto.');
+  r.items = checked;
+  r.comentario = comentario;
+  r.desc = comentario || checked.join(', ');
+  r.financiado = financiado;
+  r.propia = propia;
+  r.total = total;
+  renderInvertido();
+  try {
+    await sbFetch('invertido?id=eq.'+id, {
+      method:'PATCH', prefer:'return=minimal',
+      body: JSON.stringify({ descripcion: r.desc, items: r.items.join(','), comentario: r.comentario, financiado: r.financiado, propia: r.propia, total: r.total })
+    });
+  } catch(e) { console.error('invGuardarFila:', e); }
 }
 
 /* ── INIT ── */
