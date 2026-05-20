@@ -194,6 +194,42 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
   .header{padding:0 1rem;}
 }
 
+/* REGISTRO INVERSIONES */
+.inv-block{background:var(--surface);border:1px solid rgba(167,139,250,.18);border-radius:var(--radius-lg);padding:1.2rem 1.6rem;margin-bottom:12px;}
+.inv-header{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--purple);margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+.inv-form{display:grid;grid-template-columns:auto 1fr 1fr 1fr auto;gap:12px;align-items:end;}
+.inv-checks{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);min-width:200px;}
+.inv-check{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;padding:2px 0;}
+.inv-check input[type=checkbox]{appearance:none;-webkit-appearance:none;width:15px;height:15px;border:1px solid var(--border2);border-radius:4px;background:var(--surface);cursor:pointer;position:relative;flex-shrink:0;transition:all .12s;}
+.inv-check input[type=checkbox]:checked{background:var(--purple);border-color:var(--purple);}
+.inv-check input[type=checkbox]:checked::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;line-height:1;text-align:center;padding-top:1px;}
+.inv-check span{font-size:12px;color:var(--text);}
+.inv-field{display:flex;flex-direction:column;gap:5px;}
+.inv-field label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.inv-field input{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:9px 10px;outline:none;width:100%;transition:border-color .15s;}
+.inv-field input:focus{border-color:var(--purple);}
+.inv-field input::placeholder{color:var(--muted);}
+.inv-total{display:flex;flex-direction:column;gap:5px;min-width:110px;}
+.inv-total label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.inv-total-val{background:var(--purple-dim);border:1px solid rgba(167,139,250,.25);border-radius:var(--radius);padding:9px 12px;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:500;color:var(--purple);white-space:nowrap;}
+.btn-inv{height:40px;padding:0 16px;border-radius:var(--radius);border:1px solid rgba(167,139,250,.3);background:var(--purple-dim);color:var(--purple);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;align-self:end;white-space:nowrap;}
+.btn-inv:hover{background:rgba(167,139,250,.22);}
+.btn-inv:active{transform:scale(.97);}
+.inv-list{margin-top:1rem;}
+.inv-tbl{width:100%;border-collapse:collapse;}
+.inv-tbl th{text-align:left;padding:7px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);border-bottom:1px solid var(--border);}
+.inv-tbl td{padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;font-size:12px;}
+.inv-tbl tr:last-child td{border-bottom:none;}
+.inv-tbl tbody tr:hover td{background:rgba(167,139,250,.03);}
+.inv-tbl td.money{font-family:'IBM Plex Mono',monospace;color:var(--purple);}
+.inv-tbl td.money-green{font-family:'IBM Plex Mono',monospace;color:var(--green);}
+.inv-tag{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500;background:var(--purple-dim);color:var(--purple);margin:1px;}
+.inv-empty{text-align:center;padding:1.5rem;color:var(--muted);font-size:12px;}
+.inv-total-row td{font-weight:600;padding-top:10px;border-top:1px solid var(--border2)!important;}
+@media(max-width:760px){
+  .inv-form{grid-template-columns:1fr 1fr;}
+}
+
 /* LOGIN */
 .login-overlay{
   position:fixed;inset:0;background:var(--bg);
@@ -792,77 +828,50 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     <div class="block">
       <div class="block-title"><span class="dot dot-g"></span>Registro de inversión</div>
 
-      <!-- AGREGAR FILA -->
-      <div class="inv-add-row">
-        <input type="text" id="inv-desc" class="inv-add-input" placeholder="Descripción (ej: Bulto #1)">
-        <input type="number" id="inv-figus" class="inv-add-input" placeholder="$ Figus/Sobres" min="0" step="0.01" style="max-width:160px;">
-        <input type="number" id="inv-cajas" class="inv-add-input" placeholder="$ Cajas" min="0" step="0.01" style="max-width:160px;">
-                <select id="inv-financiamiento" class="inv-fin-select s-propio" style="max-width:130px;" onchange="onFinSelect(this)">
-          <option value="propio">Propio</option>
-          <option value="prestado">Prestado</option>
-          <option value="mixto">Mixto</option>
-        </select>
-        <input type="number" id="inv-financiado" class="inv-add-input" placeholder="$ Financiado externo" min="0" step="0.01" style="max-width:180px;display:none;" title="Monto financiado con plata ajena">
-        <button class="inv-add-btn" onclick="invAgregar()">+ Agregar</button>
+      <!-- NUEVA UI -->
+      <div class="inv-form" style="margin-bottom:1.2rem;">
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);">Ítems</label>
+          <div class="inv-checks">
+            <label class="inv-check"><input type="checkbox" id="ic-figus" /><span>Figus</span></label>
+            <label class="inv-check"><input type="checkbox" id="ic-album" /><span>Álbum</span></label>
+            <label class="inv-check"><input type="checkbox" id="ic-cajas" /><span>Cajas</span></label>
+            <label class="inv-check"><input type="checkbox" id="ic-llave" /><span>Llaveros</span></label>
+          </div>
+        </div>
+        <div class="inv-field">
+          <label>Comentario</label>
+          <input type="text" id="inv-comentario" placeholder="Descripción opcional…" />
+        </div>
+        <div class="inv-field">
+          <label>Financiado $</label>
+          <input type="number" id="inv-financiado" placeholder="0" min="0" step="0.01" oninput="calcInvTotal()" />
+        </div>
+        <div class="inv-field">
+          <label>Plata Propia $</label>
+          <input type="number" id="inv-propia" placeholder="0" min="0" step="0.01" oninput="calcInvTotal()" />
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div class="inv-total">
+            <label>Total</label>
+            <div class="inv-total-val" id="inv-total-preview">$0</div>
+          </div>
+          <button class="btn-inv" onclick="agregarInversion()">+ Registrar</button>
+        </div>
       </div>
 
       <div style="overflow-x:auto;">
-        <table class="inv-table">
+        <table class="inv-tbl">
           <thead><tr>
-            <th style="width:40%">Descripción</th>
-            <th style="width:25%">Pagado Figus / Sobres</th>
-            <th style="width:20%">Pagado Cajas</th>
-            <th style="width:18%">Financiamiento</th>
-            <th style="width:7%">$ Externo</th>
-            <th style="width:5%"></th>
+            <th>Ítems</th>
+            <th>Comentario</th>
+            <th>Financiado</th>
+            <th>Plata Propia</th>
+            <th>Total</th>
+            <th>Fecha</th>
+            <th></th>
           </tr></thead>
-          <tbody id="inv-tbody"><tr>
-      <td class="inv-label-col">Cajas</td>
-      <td><span style="font-family:&#39;IBM Plex Mono&#39;,monospace;color:var(--accent)">—</span></td>
-      <td><span style="font-family:&#39;IBM Plex Mono&#39;,monospace;color:var(--green)">$400.000</span></td>
-      <td><button class="inv-del-btn" onclick="invEliminar(1)">✕</button></td>
-    </tr><tr>
-      <td class="inv-label-col">Figus/Album</td>
-      <td><span style="font-family:&#39;IBM Plex Mono&#39;,monospace;color:var(--accent)">$5.062.500</span></td>
-      <td><span style="font-family:&#39;IBM Plex Mono&#39;,monospace;color:var(--green)">—</span></td>
-      <td><button class="inv-del-btn" onclick="invEliminar(2)">✕</button></td>
-    </tr><tr>
-      <td class="inv-label-col">1 er compra Figus/Albun</td>
-      <td><span style="font-family:&#39;IBM Plex Mono&#39;,monospace;color:var(--accent)">$5.062.500</span></td>
-      <td><span style="font-family:&#39;IBM Plex Mono&#39;,monospace;color:var(--green)">—</span></td>
-      <td><button class="inv-del-btn" onclick="invEliminar(3)">✕</button></td>
-    </tr><tr>
-      <td class="inv-label-col">2da Compra</td>
-      <td><span style="font-family:&#39;IBM Plex Mono&#39;,monospace;color:var(--accent)">$3.600.000</span></td>
-      <td><span style="font-family:&#39;IBM Plex Mono&#39;,monospace;color:var(--green)">—</span></td>
-      <td><button class="inv-del-btn" onclick="invEliminar(5)">✕</button></td>
-    </tr><tr>
-      <td class="inv-label-col">3ercompra</td>
-      <td><span style="font-family:&#39;IBM Plex Mono&#39;,monospace;color:var(--accent)">$1.600.000</span></td>
-      <td><span style="font-family:&#39;IBM Plex Mono&#39;,monospace;color:var(--green)">—</span></td>
-      <td><button class="inv-del-btn" onclick="invEliminar(6)">✕</button></td>
-    </tr><tr>
-      <td class="inv-label-col">2da compra</td>
-      <td><span style="font-family:&#39;IBM Plex Mono&#39;,monospace;color:var(--accent)">—</span></td>
-      <td><span style="font-family:&#39;IBM Plex Mono&#39;,monospace;color:var(--green)">$400.000</span></td>
-      <td><button class="inv-del-btn" onclick="invEliminar(7)">✕</button></td>
-    </tr></tbody>
-          <tfoot>
-            <tr class="inv-total-row">
-              <td class="inv-label-col" style="font-size:12px;color:var(--muted)">TOTAL</td>
-              <td><span class="inv-total-val" id="inv-tot-figus">$15.325.000</span></td>
-              <td><span class="inv-total-val green" id="inv-tot-cajas">$800.000</span></td>
-              <td></td>
-              <td><span class="inv-total-val" style="color:var(--red)" id="inv-tot-financiado">—</span></td>
-              <td></td>
-            </tr>
-            <tr class="inv-total-row">
-              <td class="inv-label-col" style="font-size:12px;color:var(--muted)">TOTAL GENERAL</td>
-              <td colspan="2"><span class="inv-total-val" id="inv-tot-general">$16.125.000</span></td>
-              <td><span style="font-size:10px;color:var(--muted)">Propio: </span><span class="inv-total-val" style="font-size:13px;color:var(--green)" id="inv-tot-propio">—</span></td>
-              <td colspan="2"></td>
-            </tr>
-          </tfoot>
+          <tbody id="inv-tbody"></tbody>
         </table>
       </div>
     </div>
@@ -1898,6 +1907,55 @@ function showTab(name, btn) {
   if (btn) btn.classList.add('active');
 }
 
+/* ── INVERSIONES — nueva UI ── */
+function calcInvTotal() {
+  const f = parseFloat(document.getElementById('inv-financiado')?.value) || 0;
+  const p = parseFloat(document.getElementById('inv-propia')?.value) || 0;
+  const total = f + p;
+  const el = document.getElementById('inv-total-preview');
+  if (el) el.textContent = '$' + Math.round(total).toLocaleString('es-AR');
+}
+
+function getCheckedItems() {
+  const map = { 'ic-figus': 'Figus', 'ic-album': 'Álbum', 'ic-cajas': 'Cajas', 'ic-llave': 'Llaveros' };
+  return Object.entries(map).filter(([id]) => document.getElementById(id)?.checked).map(([,label]) => label);
+}
+
+async function agregarInversion() {
+  const items = getCheckedItems();
+  const comentario = document.getElementById('inv-comentario')?.value.trim() || '';
+  const financiado = parseFloat(document.getElementById('inv-financiado')?.value) || 0;
+  const propia = parseFloat(document.getElementById('inv-propia')?.value) || 0;
+  const total = financiado + propia;
+  if (items.length === 0) return alert('Seleccioná al menos un ítem.');
+  if (total === 0) return alert('Ingresá al menos un monto.');
+  const row = {
+    id: invNextId++,
+    desc: comentario || items.join(', '),
+    items,
+    comentario,
+    figus: 0, cajas: 0,
+    financiamiento: financiado > 0 && propia > 0 ? 'mixto' : financiado > 0 ? 'prestado' : 'propio',
+    financiado,
+    propia,
+    total,
+    fecha: new Date().toLocaleDateString('es-AR')
+  };
+  invRows.push(row);
+  ['ic-figus','ic-album','ic-cajas','ic-llave'].forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
+  document.getElementById('inv-comentario').value = '';
+  document.getElementById('inv-financiado').value = '';
+  document.getElementById('inv-propia').value = '';
+  document.getElementById('inv-total-preview').textContent = '$0';
+  renderInvertido();
+  try {
+    await sbFetch('invertido', {
+      method: 'POST', prefer: 'return=minimal',
+      body: JSON.stringify({ id: row.id, descripcion: row.desc, figus: row.propia, cajas: 0, financiamiento: row.financiamiento, financiado: row.financiado, items: row.items.join(','), comentario: row.comentario, total: row.total })
+    });
+  } catch(e) { console.error('agregarInversion:', e); }
+}
+
 /* ── INVERTIDO ── */
 let invRows = [];
 let invNextId = 1;
@@ -1906,7 +1964,19 @@ async function invLoad() {
   try {
     const data = await sbFetch('invertido?select=*&order=id.asc');
     if (data && data.length) {
-      invRows = data.map(r => ({ id: r.id, desc: r.descripcion, figus: r.figus || 0, cajas: r.cajas || 0, financiamiento: r.financiamiento || 'propio', financiado: r.financiado || 0 }));
+      invRows = data.map(r => ({
+        id: r.id,
+        desc: r.descripcion || '',
+        items: r.items ? r.items.split(',').filter(Boolean) : (r.descripcion ? [r.descripcion] : []),
+        comentario: r.comentario || r.descripcion || '',
+        figus: r.figus || 0,
+        cajas: r.cajas || 0,
+        financiamiento: r.financiamiento || 'propio',
+        financiado: r.financiado || 0,
+        propia: r.propia != null ? r.propia : Math.max(0, (r.figus||0) - (r.financiado||0)),
+        total: r.total != null ? r.total : (r.figus||0) + (r.cajas||0),
+        fecha: r.fecha || ''
+      }));
       invNextId = Math.max(...invRows.map(r => r.id), 0) + 1;
     }
   } catch(e) { console.error('invLoad:', e); }
@@ -2134,38 +2204,33 @@ function renderInvertido() {
   const tbody = document.getElementById('inv-tbody');
   if (!tbody) return;
   if (!invRows.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Sin registros. Agregá tu primera inversión.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-row">Sin registros. Agregá tu primera inversión.</td></tr>';
   } else {
+    const totF = invRows.reduce((s,r) => s + (r.financiado||0), 0);
+    const totP = invRows.reduce((s,r) => s + (r.propia != null ? r.propia : Math.max(0,(r.figus||0)-(r.financiado||0))), 0);
+    const totT = invRows.reduce((s,r) => s + (r.total != null ? r.total : (r.figus||0)+(r.cajas||0)), 0);
     tbody.innerHTML = invRows.map(r => {
-      const finLabel = r.financiamiento === 'prestado' ? 'Prestado' : r.financiamiento === 'mixto' ? 'Mixto' : 'Propio';
-      const finCls   = r.financiamiento === 'prestado' ? 'fin-prestado' : r.financiamiento === 'mixto' ? 'fin-mixto' : 'fin-propio';
+      const items = r.items && r.items.length ? r.items : [r.desc];
+      const totalR = r.total != null ? r.total : (r.figus||0)+(r.cajas||0);
+      const propiaR = r.propia != null ? r.propia : Math.max(0, totalR-(r.financiado||0));
       return `<tr id="inv-row-${r.id}">
-      <td class="inv-label-col">${esc(r.desc)}</td>
-      <td><span style="font-family:'IBM Plex Mono',monospace;color:var(--accent)">${r.figus > 0 ? pesos(r.figus) : '—'}</span></td>
-      <td><span style="font-family:'IBM Plex Mono',monospace;color:var(--green)">${r.cajas > 0 ? pesos(r.cajas) : '—'}</span></td>
-      <td><span class="fin-badge ${finCls}">${finLabel}</span></td>
-      <td><span style="font-family:'IBM Plex Mono',monospace;color:var(--red);font-size:12px;">${(r.financiado||0) > 0 ? pesos(r.financiado) : '—'}</span></td>
-      <td style="display:flex;gap:4px;">
-        <button class="btn-icon" onclick="invEditar(${r.id})" title="Editar" style="background:var(--orange-dim);color:var(--orange);border-color:rgba(244,133,90,.3);">✎</button>
-        <button class="inv-del-btn" onclick="invEliminar(${r.id})" title="Eliminar">✕</button>
-      </td>
-    </tr>`;}).join('');
+        <td>${items.map(it => `<span class="inv-tag">${esc(it)}</span>`).join('')}</td>
+        <td style="color:var(--muted);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.comentario||r.desc)||'—'}</td>
+        <td><span style="font-family:'IBM Plex Mono',monospace;color:var(--red)">${(r.financiado||0)>0?pesos(r.financiado):'—'}</span></td>
+        <td><span style="font-family:'IBM Plex Mono',monospace;color:var(--green)">${propiaR>0?pesos(propiaR):'—'}</span></td>
+        <td><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:var(--accent)">${pesos(totalR)}</span></td>
+        <td style="font-size:11px;color:var(--muted)">${r.fecha||'—'}</td>
+        <td><button class="btn-icon del" onclick="invEliminar(${r.id})" title="Eliminar">✕</button></td>
+      </tr>`;
+    }).join('') + `
+      <tr style="border-top:1px solid var(--border2)!important;">
+        <td colspan="2" style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding-top:10px;">Totales</td>
+        <td style="font-family:'IBM Plex Mono',monospace;color:var(--red);padding-top:10px;">${totF>0?pesos(totF):'—'}</td>
+        <td style="font-family:'IBM Plex Mono',monospace;color:var(--green);padding-top:10px;">${totP>0?pesos(totP):'—'}</td>
+        <td style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--accent);padding-top:10px;">${pesos(totT)}</td>
+        <td colspan="2"></td>
+      </tr>`;
   }
-  const totFigus = invRows.reduce((s, r) => s + (r.figus || 0), 0);
-  const totCajas = invRows.reduce((s, r) => s + (r.cajas || 0), 0);
-  const totGen   = totFigus + totCajas;
-  const totFinanciado = invRows.reduce((s, r) => s + (r.financiado || 0), 0);
-  const totPropio = Math.max(0, totGen - totFinanciado);
-  const tf = document.getElementById('inv-tot-figus');
-  const tc = document.getElementById('inv-tot-cajas');
-  const tg = document.getElementById('inv-tot-general');
-  const tfin = document.getElementById('inv-tot-financiado');
-  const tprop = document.getElementById('inv-tot-propio');
-  if (tf) tf.textContent = pesos(totFigus);
-  if (tc) tc.textContent = pesos(totCajas);
-  if (tg) tg.textContent = pesos(totGen);
-  if (tfin) tfin.textContent = totFinanciado > 0 ? pesos(totFinanciado) : '—';
-  if (tprop) tprop.textContent = pesos(totPropio);
   renderInvSummary();
 }
 
