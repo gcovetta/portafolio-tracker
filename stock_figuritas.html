@@ -2067,10 +2067,8 @@ async function invEliminar(id) {
 }
 
 function renderInvSummary() {
-  // Total invertido (de la tabla de registros)
-  const totFigus = invRows.reduce((s,r) => s + (r.figus||0), 0);
-  const totCajas = invRows.reduce((s,r) => s + (r.cajas||0), 0);
-  const totalInv = totFigus + totCajas;
+  // Total invertido = suma de columna "Total" de la tabla de registros
+  const totalInv = invRows.reduce((s,r) => s + (r.total != null ? r.total : (r.figus||0)+(r.cajas||0)), 0);
 
   // Reservado y entregado (de las reservas)
   const pend        = reservas.filter(r => r.estado === 'pendiente' && !r.pagado);
@@ -2080,13 +2078,13 @@ function renderInvSummary() {
   const valorCobNE  = cobradoNE.reduce((s,r)  => s + calcTotal(r), 0);
   const valorEnt    = ent.reduce((s,r)        => s + calcTotal(r), 0);
 
-  // Ganancia neta = (reservado + cobrado no ent + entregado) - invertido
-  const ganancia = valorEnt + valorRes + valorCobNE - totalInv;
+  // Ganancia neta = (Reservado + Cobrado-No-Entregado + Entregado-Cobrado) - Total Invertido
+  const ganancia = (valorRes + valorCobNE + valorEnt) - totalInv;
 
   const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
 
   set('inv-s-invertido',     pesos(totalInv));
-  set('inv-s-invertido-sub', `Figus: ${pesos(totFigus)} · Cajas: ${pesos(totCajas)}`);
+  set('inv-s-invertido-sub', `Suma de registros de inversión`);
 
   set('inv-s-reservado',     pesos(valorRes));
   set('inv-s-reservado-sub', `${pend.length} reserva${pend.length!==1?'s':''}`);
@@ -2121,7 +2119,7 @@ function renderInvSummary() {
   }
   if (gSub) {
     gSub.textContent = ganancia > 0
-      ? `(Cobrado + A cobrar) supera la inversión en ${pesos(ganancia)}`
+      ? `(Res. + Cob. + Entregado) ${pesos(valorRes+valorCobNE+valorEnt)} − Invertido ${pesos(totalInv)}`
       : ganancia < 0
         ? `Faltan recuperar ${pesos(Math.abs(ganancia))}`
         : 'En punto de equilibrio';
