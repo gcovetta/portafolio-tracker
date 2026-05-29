@@ -165,11 +165,10 @@
 <body>
 <div class="layout">
     <aside class="sidebar">
-        <div class="sb-brand" style="padding:12px 14px;">
-            <div style="border-radius:10px;overflow:hidden;border:1.5px solid var(--border2);box-shadow:0 2px 12px rgba(0,0,0,.5);">
-                <img src="Casa.jpeg" alt="Casa" style="width:100%;height:120px;object-fit:cover;object-position:center;display:block;">
-            </div>
-            <p id="sbFechas" style="font-size:10px;color:var(--text3);margin-top:7px;text-align:center;">18 meses</p>
+        <div class="sb-brand">
+            <div class="sb-icon"><svg viewBox="0 0 20 20" width="18" height="18"><path d="M3 5a2 2 0 012-2h10a2 2 0 012 2v2H3V5zm0 4h14v8a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg></div>
+            <h1>Control de Obra</h1>
+            <p id="sbFechas">18 meses</p>
         </div>
         <nav class="nav">
             <div class="nav-s">Tablero</div>
@@ -234,13 +233,31 @@
         <div class="modal-hdr"><h3 id="mPagoTitle">Registrar pago</h3><button class="btn btn-sm" onclick="closeModal('modalPago')">✕</button></div>
         <div class="modal-body">
             <div class="form-row">
-                <div class="fg"><label>Fecha</label><input type="date" id="mFecha"></div>
+                <div class="fg"><label>Fecha comprobante</label><input type="date" id="mFecha"></div>
                 <div class="fg"><label>Etapa</label><select id="mEtapa"></select></div>
             </div>
             <div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="mDesc" placeholder="Descripción del pago"></div></div>
             <div class="form-row">
-                <div class="fg"><label>Monto (U$S)</label><div class="amt-wrap"><input type="number" id="mMonto" placeholder="0" min="0"><span class="amt-tag">USD</span></div></div>
-                <div class="fg"><label>Estado</label><select id="mEstado"><option value="pagado">Pagado</option><option value="pendiente">Pendiente</option><option value="vencido">Vencido</option></select></div>
+                <div class="fg">
+                    <label>Moneda</label>
+                    <select id="mMoneda" onchange="onMonedaChange()">
+                        <option value="USD">U$S — Dólares</option>
+                        <option value="ARS">$ — Pesos argentinos</option>
+                    </select>
+                </div>
+                <div class="fg"><label>Estado</label><select id="mEstado" onchange="onEstadoChange()"><option value="pagado">Pagado</option><option value="pendiente">Pendiente</option><option value="vencido">Vencido</option></select></div>
+            </div>
+            <div id="rowMontoUSD" class="form-row">
+                <div class="fg"><label>Monto (U$S)</label><div class="amt-wrap"><input type="number" id="mMonto" placeholder="0" min="0" oninput="recalcPreview()"><span class="amt-tag">USD</span></div></div>
+                <div class="fg" style="opacity:.45;pointer-events:none;"><label>Equiv. en $</label><div class="amt-wrap"><input type="text" id="mMontoARSpreview" placeholder="—" readonly tabindex="-1"><span class="amt-tag">ARS</span></div></div>
+            </div>
+            <div id="rowMontoARS" class="form-row" style="display:none;">
+                <div class="fg"><label>Monto ($)</label><div class="amt-wrap"><input type="number" id="mMontoARS" placeholder="0" min="0" oninput="recalcPreview()"><span class="amt-tag">ARS</span></div></div>
+                <div class="fg"><label>TC del día ($ / U$S)</label><div class="amt-wrap"><input type="number" id="mTcnDia" placeholder="Ej: 1250" min="1" oninput="recalcPreview()"><span class="amt-tag">$/USD</span></div></div>
+            </div>
+            <div id="mPreviewConv" style="display:none;padding:8px 11px;background:var(--blue-dim);border:1px solid rgba(76,142,245,.25);border-radius:var(--radius-sm);font-size:12px;color:var(--blue);margin-top:2px;"></div>
+            <div id="rowFechaPago" class="form-row full" style="margin-top:2px;display:none;">
+                <div class="fg"><label>Fecha de pago efectivo <span style="color:var(--text3);font-weight:400;">(cuándo se acreditó)</span></label><input type="date" id="mFechaPago"></div>
             </div>
         </div>
         <div class="modal-ftr"><button class="btn" onclick="closeModal('modalPago')">Cancelar</button><button class="btn btn-primary" onclick="savePago()">Guardar</button></div>
@@ -384,7 +401,7 @@ async function loadAllData() {
         S.calc.total      = cfg.data.calc_tot != null ? String(cfg.data.calc_tot) : '';
         S.calc.m2         = cfg.data.calc_m2  != null ? String(cfg.data.calc_m2)  : '';
     }
-    S.pagos    = (pagos.data||[]).map(function(p){ return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, desc:p.descripcion, montoARS:p.monto_usd*S.tcn, montoUSD:p.monto_usd, estado:p.estado}; });
+    S.pagos    = (pagos.data||[]).map(function(p){ var tcnDia=p.tcn_dia||S.tcn; var moneda=p.moneda||'USD'; var usd=moneda==='ARS'?(p.monto_ars||0)/tcnDia:p.monto_usd; return {id:p.id, fecha:p.fecha, fechaPago:p.fecha_pago||'', etapaId:p.etapa_id, desc:p.descripcion, montoARS:moneda==='ARS'?(p.monto_ars||0):(p.monto_usd*S.tcn), montoUSD:usd, montoOriginal:moneda==='ARS'?(p.monto_ars||0):p.monto_usd, moneda:moneda, tcnDia:tcnDia, estado:p.estado}; });
     S.etapas   = (etapas.data||[]).map(function(e){ return {id:e.id, nombre:e.nombre, mesIni:e.mes_ini||1, mesFin:e.mes_fin||1, color:e.color, avance:e.avance, orden:e.orden, finalizado:e.finalizado||false, fechaIni:e.fecha_ini||'', fechaFin:e.fecha_fin||''}; });
     S.ingresos = (ingresos.data||[]).map(function(x){
         var obj={id:x.id, fecha:x.fecha, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd, realizado:x.realizado, periodicidad:x.periodicidad, fechaHasta:x.fecha_hasta||''};
@@ -433,117 +450,13 @@ function renderResumen() {
         var cl = i<cm?'past':i===cm?'current':'future';
         return '<div class="mc '+cl+'">'+mLabel(i)+'</div>';
     }).join('');
-
-    // ── Cálculos financieros (igual que Balance) ──
-    var allOcurr = [];
-    S.ingresos.forEach(function(x){ expandirIngreso(x).forEach(function(o){ allOcurr.push(o); }); });
-    var ingReal = allOcurr.filter(function(o){ return o.realizado; }).reduce(function(s,o){ return s+o.montoARS; },0);
-    var ingProy = allOcurr.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS; },0);
-    var deu = totalDeudasARS();
-    var neto = ingReal + ingProy - deu;
-    var isPos = neto >= 0;
-
-    // Meses cubiertos con acreditado
-    var _saldo = ingReal, _mesesCub = 0;
-    for (var qi = 0; qi < 18; qi++) {
-        var qms = mesStr(qi);
-        var dMes = S.deudas.reduce(function(s,d){
-            var fi=d.fechaInicio||S.startDate; if(qms<fi.substring(0,7)) return s;
-            var sd=new Date(fi+'T00:00:00'),td=monthDate(qi);
-            var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth());
-            if(ix<0||ix>=d.cuotas) return s; return s+(d.montoARS/d.cuotas);
-        },0);
-        if(_saldo>=dMes){ _saldo-=dMes; _mesesCub++; } else break;
-    }
-
-    // Mes en que el neto pasa a negativo
-    var _mesQ=-1, _mesQL='', _cIR=0, _cIP=0, _cDeu=0;
-    for (var qi2 = 0; qi2 < 18; qi2++) {
-        var qms2 = mesStr(qi2);
-        _cIR += allOcurr.filter(function(o){ return o.realizado&&o.fecha.startsWith(qms2); }).reduce(function(s,o){ return s+o.montoARS; },0);
-        _cIP += allOcurr.filter(function(o){ return !o.realizado&&o.fecha.startsWith(qms2); }).reduce(function(s,o){ return s+o.montoARS; },0);
-        _cDeu += S.deudas.reduce(function(s,d){
-            var fi=d.fechaInicio||S.startDate; if(qms2<fi.substring(0,7)) return s;
-            var sd=new Date(fi+'T00:00:00'),td=monthDate(qi2);
-            var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth());
-            if(ix<0||ix>=d.cuotas) return s; return s+(d.montoARS/d.cuotas);
-        },0);
-        if(_cIR+_cIP-_cDeu<0&&_mesQ===-1){ _mesQ=qi2+1; _mesQL=mLabel(qi2); }
-    }
-
-    // Avance financiero (pagado vs presupuesto total)
-    var tp = totalPresARS();
-    var avFin = pct(pd, tp);
-
-    // ── HTML ──
-    var CS = 'background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);';
-
     document.getElementById('page-resumen').innerHTML =
-        // ── Métricas de obra ──
         '<div class="metrics">' +
         '<div class="metric-card"><div class="ml">Total pagado</div><div class="mv c-green">'+fmtMain(pd)+'</div><div class="ms">'+S.pagos.filter(function(p){return p.estado==='pagado';}).length+' pagos</div></div>' +
         '<div class="metric-card"><div class="ml">Comprometido</div><div class="mv c-amber">'+fmtMain(pe)+'</div><div class="ms">'+S.pagos.filter(function(p){return p.estado!=='pagado';}).length+' pagos pend.</div></div>' +
         '<div class="metric-card"><div class="ml">Avance físico</div><div class="mv c-blue">'+avFisico+'%</div><div class="ms">'+etapasActivas.length+' etapas activas</div></div>' +
         '<div class="metric-card"><div class="ml">Etapas finalizadas</div><div class="mv c-green">'+S.etapas.filter(function(e){return e.finalizado;}).length+'</div><div class="ms">de '+S.etapas.length+' totales</div></div>' +
         '</div>' +
-
-        // ── Avance financiero (barra) ──
-        '<div style="'+CS+';padding:13px 18px;margin-bottom:14px;display:flex;align-items:center;gap:18px;">' +
-        '<div style="flex:1;">' +
-        '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">' +
-        '<span style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;">Avance financiero</span>' +
-        '<span style="font-size:13px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">'+avFin+'%</span>' +
-        '</div>' +
-        '<div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden;">' +
-        '<div style="height:100%;width:'+avFin+'%;background:linear-gradient(90deg,#3ECF8E,#4C8EF5);border-radius:4px;transition:width .5s;"></div>' +
-        '</div>' +
-        '<div style="display:flex;justify-content:space-between;margin-top:5px;">' +
-        '<span style="font-size:10px;color:var(--text3);">Pagado: <strong style="font-family:DM Mono,monospace;color:var(--green);">'+fmtMain(pd)+'</strong></span>' +
-        '<span style="font-size:10px;color:var(--text3);">Presupuesto: <strong style="font-family:DM Mono,monospace;color:var(--text2);">'+fmtMain(tp)+'</strong></span>' +
-        '</div>' +
-        '</div>' +
-        '</div>' +
-
-        // ── Insight cards (meses cubiertos + neto negativo) ──
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">' +
-        // Card 1: meses cubiertos
-        '<div style="'+CS+';padding:13px 16px;display:flex;align-items:center;gap:14px;">' +
-        '<div style="width:42px;height:42px;border-radius:10px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-        '<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="13" rx="2" stroke="#3ECF8E" stroke-width="1.5"/><path d="M6 2v4M14 2v4M2 8h16" stroke="#3ECF8E" stroke-width="1.5" stroke-linecap="round"/></svg>' +
-        '</div>' +
-        '<div><div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Meses cubiertos con acreditado</div>' +
-        '<div style="font-size:26px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);line-height:1;">'+(_mesesCub>=18?'18+':_mesesCub)+'<span style="font-size:13px;font-weight:500;color:var(--text3);margin-left:4px;">meses</span></div></div>' +
-        '</div>' +
-        // Card 2: cuándo el neto pasa a negativo
-        '<div style="'+CS+';padding:13px 16px;display:flex;align-items:center;gap:14px;background:'+(_mesQ===-1?'var(--green-dim)':'var(--red-dim)')+';border-color:'+(_mesQ===-1?'rgba(62,207,142,.25)':'rgba(245,101,101,.25)')+'">' +
-        '<div style="width:42px;height:42px;border-radius:10px;background:'+(_mesQ===-1?'rgba(62,207,142,.15)':'rgba(245,101,101,.15)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-        '<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7l4 2" stroke="'+(_mesQ===-1?'#3ECF8E':'#F56565')+'" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="10" r="8" stroke="'+(_mesQ===-1?'#3ECF8E':'#F56565')+'" stroke-width="1.5"/></svg>' +
-        '</div>' +
-        '<div><div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:'+(_mesQ===-1?'var(--green)':'var(--red)')+';opacity:.75;margin-bottom:3px;">Neto pasa a negativo</div>' +
-        (_mesQ===-1?'<div style="font-size:22px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);line-height:1;">Nunca</div>':'<div style="font-size:26px;font-weight:700;font-family:DM Mono,monospace;color:var(--red);line-height:1;">'+_mesQL+'<span style="font-size:12px;color:var(--red);opacity:.6;margin-left:6px;">mes '+_mesQ+'/18</span></div>') +
-        '</div></div>' +
-        '</div>' +
-
-        // ── KPI cards (balance neto, acreditado, proyectado, deudas) ──
-        '<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;margin-bottom:20px;">' +
-        '<div style="'+CS+';padding:12px 16px;background:'+(isPos?'var(--green-dim)':'var(--red-dim)')+';border-color:'+(isPos?'rgba(62,207,142,.3)':'rgba(245,101,101,.3)')+';display:flex;align-items:center;">' +
-        '<div><div style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:'+(isPos?'var(--green)':'var(--red)')+';margin-bottom:3px;">Balance neto</div>' +
-        '<div style="font-size:22px;font-weight:700;font-family:DM Mono,monospace;color:'+(isPos?'var(--green)':'var(--red)')+';">'+fmtUSD(neto)+'</div>' +
-        '<div style="font-size:10px;color:var(--text3);margin-top:2px;">Ingresos − Deudas</div></div></div>' +
-        '<div style="'+CS+';padding:12px 14px;">' +
-        '<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Acreditado</div>' +
-        '<div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--green);">'+fmtUSD(ingReal)+'</div>' +
-        '<div style="font-size:10px;color:var(--text3);margin-top:2px;">Ingresos reales</div></div>' +
-        '<div style="'+CS+';padding:12px 14px;">' +
-        '<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Proyectado</div>' +
-        '<div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--text);">'+fmtUSD(ingProy)+'</div>' +
-        '<div style="font-size:10px;color:var(--text3);margin-top:2px;">Ingresos futuros</div></div>' +
-        '<div style="'+CS+';padding:12px 14px;">' +
-        '<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Deudas</div>' +
-        '<div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--red);">'+fmtUSD(deu)+'</div>' +
-        '<div style="font-size:10px;color:var(--text3);margin-top:2px;">Saldo pendiente</div></div>' +
-        '</div>' +
-
         // Calculadora costo por m² (compacta / colapsable)
         '<details class="card" style="margin-bottom:16px;">' +
         '<summary style="padding:10px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;list-style:none;-webkit-appearance:none;">' +
@@ -755,10 +668,20 @@ function renderPagos(){
     }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
     var rows = lista.map(function(p){
         var e=S.etapas.find(function(x){ return x.id===p.etapaId; });
-        return '<tr><td style="font-family:DM Mono,monospace;font-size:12px;">'+p.fecha+'</td>' +
+        var monedaBadge=p.moneda==='ARS'
+            ?'<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:var(--amber-dim);color:var(--amber);font-family:DM Mono,monospace;font-weight:600;margin-left:5px;">ARS</span>'
+            :'<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:var(--blue-dim);color:var(--blue);font-family:DM Mono,monospace;font-weight:600;margin-left:5px;">USD</span>';
+        var montoCell;
+        if((p.moneda||'USD')==='ARS'){
+            montoCell='<td class="num-cell" style="text-align:right"><div style="font-size:13px;font-weight:600;color:var(--amber);">$'+Math.round(p.montoOriginal).toLocaleString('es-AR')+'</div><div style="font-size:10px;color:var(--text3);">≈ U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+' · TC $'+p.tcnDia.toLocaleString('es-AR')+'</div></td>';
+        } else {
+            montoCell='<td class="num-cell" style="text-align:right"><div style="font-size:13px;font-weight:600;">U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+'</div><div style="font-size:10px;color:var(--text3);">≈ $'+Math.round(p.montoARS).toLocaleString('es-AR')+'</div></td>';
+        }
+        var fechaCell='<td><div style="font-family:DM Mono,monospace;font-size:12px;">'+p.fecha+'</div>'+(p.fechaPago?'<div style="font-size:10px;color:var(--green);margin-top:1px;">✓ pagado '+p.fechaPago+'</div>':'')+'</td>';
+        return fechaCell +
             '<td><span class="color-dot" style="background:'+(e?e.color:'#888')+'"></span>'+(e?e.nombre:'—')+'</td>' +
-            '<td>'+(p.desc||'')+'</td>' +
-            '<td class="num-cell" style="text-align:right">'+fmtMain(p.montoARS)+'</td>' +
+            '<td>'+(p.desc||'')+monedaBadge+'</td>' +
+            montoCell +
             '<td><span class="badge '+p.estado+'">'+p.estado+'</span></td>' +
             '<td><div style="display:flex;gap:4px;">' +
             (p.estado!=='pagado'?'<button class="btn btn-sm btn-green" onclick="marcarPagado('+p.id+')" title="Marcar pagado">✓</button>':'')+
@@ -772,22 +695,102 @@ function renderPagos(){
         '<select onchange="pagoFilter=this.value;renderPagos()"><option value="todos" '+(pagoFilter==='todos'?'selected':'')+'>Todos</option><option value="pagado" '+(pagoFilter==='pagado'?'selected':'')+'>Pagados</option><option value="pendiente" '+(pagoFilter==='pendiente'?'selected':'')+'>Pendientes</option><option value="vencido" '+(pagoFilter==='vencido'?'selected':'')+'>Vencidos</option></select></div>' +
         '<div style="display:flex;gap:8px;"><button class="btn btn-excel" onclick="exportarExcel()">Excel</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>' +
         '<div class="card"><div class="table-wrap">' +
-        (lista.length?'<table><thead><tr><th>Fecha</th><th>Etapa</th><th>Descripción</th><th style="text-align:right">Monto</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'+rows+'</tbody></table>':'<div class="empty">Sin pagos</div>')+
+        (lista.length?'<table><thead><tr><th>Fecha</th><th>Etapa</th><th>Descripción</th><th style="text-align:right">Monto</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'+rows+'</tbody></table>'+renderTotalesPagos(lista):'<div class="empty">Sin pagos</div>')+
         '</div></div>';
 }
+function renderTotalesPagos(lista){
+    if(!lista.length) return '';
+    var pagados=lista.filter(function(p){return p.estado==='pagado';});
+    var pendientes=lista.filter(function(p){return p.estado!=='pagado';});
+    var totUSDpag=pagados.reduce(function(s,p){return s+p.montoUSD;},0);
+    var totUSDpen=pendientes.reduce(function(s,p){return s+p.montoUSD;},0);
+    var totARSpag=pagados.reduce(function(s,p){return s+(p.moneda==='ARS'?p.montoOriginal:p.montoUSD*S.tcn);},0);
+    var totARSpen=pendientes.reduce(function(s,p){return s+(p.moneda==='ARS'?p.montoOriginal:p.montoUSD*S.tcn);},0);
+    return '<div style="display:flex;gap:0;border-top:2px solid var(--border2);background:var(--surface2);">' +
+        '<div style="flex:1;padding:10px 14px;border-right:1px solid var(--border);">' +
+        '<div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--green);margin-bottom:3px;">Pagado</div>' +
+        '<div style="font-family:DM Mono,monospace;font-size:14px;font-weight:700;color:var(--green);">U$S '+Math.round(totUSDpag).toLocaleString('es-AR')+'</div>' +
+        '<div style="font-size:10px;color:var(--text3);">$ '+Math.round(totARSpag).toLocaleString('es-AR')+'</div>' +
+        '</div>' +
+        '<div style="flex:1;padding:10px 14px;border-right:1px solid var(--border);">' +
+        '<div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);margin-bottom:3px;">Comprometido</div>' +
+        '<div style="font-family:DM Mono,monospace;font-size:14px;font-weight:700;color:var(--amber);">U$S '+Math.round(totUSDpen).toLocaleString('es-AR')+'</div>' +
+        '<div style="font-size:10px;color:var(--text3);">$ '+Math.round(totARSpen).toLocaleString('es-AR')+'</div>' +
+        '</div>' +
+        '<div style="flex:1;padding:10px 14px;">' +
+        '<div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Total</div>' +
+        '<div style="font-family:DM Mono,monospace;font-size:14px;font-weight:700;color:var(--text);">U$S '+Math.round(totUSDpag+totUSDpen).toLocaleString('es-AR')+'</div>' +
+        '<div style="font-size:10px;color:var(--text3);">'+lista.length+' pago'+(lista.length!==1?'s':'')+' filtrados</div>' +
+        '</div></div>';
+}
+
+function onMonedaChange(){
+    var m=document.getElementById('mMoneda').value;
+    var rUSD=document.getElementById('rowMontoUSD');
+    var rARS=document.getElementById('rowMontoARS');
+    if(m==='ARS'){ rUSD.style.display='none'; rARS.style.display=''; }
+    else { rUSD.style.display=''; rARS.style.display='none'; }
+    recalcPreview();
+}
+
+function onEstadoChange(){
+    var est=document.getElementById('mEstado').value;
+    var row=document.getElementById('rowFechaPago');
+    if(!row) return;
+    if(est==='pagado'){ row.style.display=''; }
+    else { row.style.display='none'; document.getElementById('mFechaPago').value=''; }
+}
+
+function recalcPreview(){
+    var m=document.getElementById('mMoneda').value;
+    var prev=document.getElementById('mPreviewConv');
+    var prevARS=document.getElementById('mMontoARSpreview');
+    if(m==='USD'){
+        var usd=parseFloat(document.getElementById('mMonto').value)||0;
+        if(usd>0){
+            if(prevARS) prevARS.value='$ '+Math.round(usd*S.tcn).toLocaleString('es-AR');
+            prev.style.display='none';
+        } else {
+            if(prevARS) prevARS.value='';
+            prev.style.display='none';
+        }
+    } else {
+        var ars=parseFloat(document.getElementById('mMontoARS').value)||0;
+        var tc=parseFloat(document.getElementById('mTcnDia').value)||0;
+        if(ars>0&&tc>0){
+            var usdCalc=ars/tc;
+            prev.style.display='block';
+            prev.innerHTML='<strong>≈ U$S '+Math.round(usdCalc).toLocaleString('es-AR')+'</strong> al TC $'+tc.toLocaleString('es-AR')+'<span style="color:var(--text3);margin-left:8px;">(TCN general: $'+S.tcn.toLocaleString('es-AR')+')</span>';
+        } else {
+            prev.style.display='none';
+        }
+    }
+}
+
 function fillEtapaSel(sel){ document.getElementById('mEtapa').innerHTML=S.etapas.map(function(e){ return '<option value="'+e.id+'"'+(e.id===sel?' selected':'')+'>'+e.nombre+'</option>'; }).join(''); }
-function openNewPago(){ S.editPagoId=null; document.getElementById('mPagoTitle').textContent='Registrar pago'; document.getElementById('mFecha').value=new Date().toISOString().split('T')[0]; document.getElementById('mDesc').value=''; document.getElementById('mMonto').value=''; document.getElementById('mEstado').value='pagado'; fillEtapaSel(S.etapas[0]&&S.etapas[0].id); openModal('modalPago'); }
-function openEditPago(id){ S.editPagoId=id; var p=S.pagos.find(function(x){ return x.id===id; }); document.getElementById('mPagoTitle').textContent='Editar pago'; document.getElementById('mFecha').value=p.fecha; document.getElementById('mDesc').value=p.desc||''; document.getElementById('mMonto').value=Math.round(p.montoUSD); document.getElementById('mEstado').value=p.estado; fillEtapaSel(p.etapaId); openModal('modalPago'); }
+function openNewPago(){ S.editPagoId=null; document.getElementById('mPagoTitle').textContent='Registrar pago'; document.getElementById('mFecha').value=new Date().toISOString().split('T')[0]; document.getElementById('mDesc').value=''; document.getElementById('mMonto').value=''; document.getElementById('mMontoARS').value=''; document.getElementById('mTcnDia').value=''; document.getElementById('mFechaPago').value=new Date().toISOString().split('T')[0]; document.getElementById('mEstado').value='pagado'; document.getElementById('mMoneda').value='USD'; onMonedaChange(); onEstadoChange(); fillEtapaSel(S.etapas[0]&&S.etapas[0].id); openModal('modalPago'); }
+function openEditPago(id){ S.editPagoId=id; var p=S.pagos.find(function(x){ return x.id===id; }); document.getElementById('mPagoTitle').textContent='Editar pago'; document.getElementById('mFecha').value=p.fecha; document.getElementById('mDesc').value=p.desc||''; document.getElementById('mMoneda').value=p.moneda||'USD'; onMonedaChange(); if((p.moneda||'USD')==='ARS'){ document.getElementById('mMontoARS').value=Math.round(p.montoOriginal); document.getElementById('mTcnDia').value=p.tcnDia||''; } else { document.getElementById('mMonto').value=Math.round(p.montoUSD); } document.getElementById('mEstado').value=p.estado; document.getElementById('mFechaPago').value=p.fechaPago||''; onEstadoChange(); recalcPreview(); fillEtapaSel(p.etapaId); openModal('modalPago'); }
 async function savePago(){
-    var fecha=document.getElementById('mFecha').value, etapaId=parseInt(document.getElementById('mEtapa').value)||null, desc=document.getElementById('mDesc').value.trim(), raw=parseFloat(document.getElementById('mMonto').value), estado=document.getElementById('mEstado').value;
-    if(!fecha||!desc||!raw) return;
+    var fecha=document.getElementById('mFecha').value, etapaId=parseInt(document.getElementById('mEtapa').value)||null, desc=document.getElementById('mDesc').value.trim(), estado=document.getElementById('mEstado').value;
+    var moneda=document.getElementById('mMoneda').value;
+    var fechaPago=document.getElementById('mFechaPago').value||null;
+    var payload={fecha:fecha,etapa_id:etapaId,descripcion:desc,estado:estado,moneda:moneda,fecha_pago:estado==='pagado'?fechaPago:null};
+    if(moneda==='ARS'){
+        var ars=parseFloat(document.getElementById('mMontoARS').value)||0;
+        var tc=parseFloat(document.getElementById('mTcnDia').value)||0;
+        if(!fecha||!desc||!ars||!tc){ alert('Completá todos los campos: monto en $, TC del día y descripción.'); return; }
+        payload.monto_ars=ars; payload.tcn_dia=tc; payload.monto_usd=ars/tc;
+    } else {
+        var usd=parseFloat(document.getElementById('mMonto').value)||0;
+        if(!fecha||!desc||!usd){ alert('Completá todos los campos requeridos.'); return; }
+        payload.monto_usd=usd; payload.monto_ars=null; payload.tcn_dia=null;
+    }
     setSaveStatus('saving');
-    var payload={fecha:fecha,etapa_id:etapaId,descripcion:desc,monto_usd:raw,estado:estado};
     var res = S.editPagoId ? await sb.from('obra_pagos').update(payload).eq('id',S.editPagoId) : await sb.from('obra_pagos').insert(payload);
     if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
     setSaveStatus('ok','Guardado'); closeModal('modalPago'); await loadAllData(); renderPagos(); renderAlerts(); updateSidebar();
 }
-async function marcarPagado(id){ setSaveStatus('saving'); var res=await sb.from('obra_pagos').update({estado:'pagado'}).eq('id',id); if(res.error){ setSaveStatus('error'); return; } setSaveStatus('ok','Guardado'); await loadAllData(); renderPagos(); renderAlerts(); updateSidebar(); }
+async function marcarPagado(id){ setSaveStatus('saving'); var hoy=new Date().toISOString().split('T')[0]; var res=await sb.from('obra_pagos').update({estado:'pagado',fecha_pago:hoy}).eq('id',id); if(res.error){ setSaveStatus('error'); return; } setSaveStatus('ok','Guardado'); await loadAllData(); renderPagos(); renderAlerts(); updateSidebar(); }
 async function deletePago(id){ if(!confirm('Eliminar este pago?')) return; setSaveStatus('saving'); var res=await sb.from('obra_pagos').delete().eq('id',id); if(res.error){ setSaveStatus('error'); return; } setSaveStatus('ok','Guardado'); await loadAllData(); renderPagos(); renderAlerts(); updateSidebar(); }
 
 // ═══════════════════════════════════════
@@ -1076,6 +1079,7 @@ function renderConfig(){
         '<div class="card" style="margin-top:14px;"><div class="card-hdr"><h3>Tipo de cambio</h3></div><div class="card-body"><div style="display:flex;align-items:center;gap:8px;margin-top:4px;"><span style="color:var(--text2);">$</span><input type="number" id="cfgTCN" value="'+S.tcn+'" min="1" step="50" style="width:120px;"><span style="color:var(--text2);">/ USD</span><button class="btn btn-primary" onclick="saveTCNcfg()">Aplicar</button></div></div></div>' +
         '</div><div>' +
         '<div class="card"><div class="card-hdr"><h3>Exportar Excel</h3></div><div class="card-body"><button class="btn btn-excel" onclick="exportarExcel()">Exportar Excel completo</button></div></div>' +
+        '<div class="card" style="margin-top:14px;"><div class="card-hdr"><h3>Migración BD</h3><span style="font-size:11px;color:var(--amber);background:var(--amber-dim);padding:2px 8px;border-radius:4px;">Solo 1 vez</span></div><div class="card-body"><p style="font-size:12px;color:var(--text2);margin-bottom:8px;">Ejecutá en Supabase → SQL Editor para habilitar pagos en pesos y fecha de pago:</p><pre style="background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:12px;font-size:11px;font-family:DM Mono,monospace;color:var(--green);overflow-x:auto;white-space:pre-wrap;line-height:1.6;">ALTER TABLE obra_pagos\n  ADD COLUMN IF NOT EXISTS moneda text DEFAULT 'USD',\n  ADD COLUMN IF NOT EXISTS monto_ars numeric,\n  ADD COLUMN IF NOT EXISTS tcn_dia numeric,\n  ADD COLUMN IF NOT EXISTS fecha_pago date;</pre><button class="btn btn-sm" onclick="navigator.clipboard.writeText('ALTER TABLE obra_pagos\\n  ADD COLUMN IF NOT EXISTS moneda text DEFAULT \\'USD\\',\\n  ADD COLUMN IF NOT EXISTS monto_ars numeric,\\n  ADD COLUMN IF NOT EXISTS tcn_dia numeric,\\n  ADD COLUMN IF NOT EXISTS fecha_pago date;').then(function(){alert('SQL copiado')})">Copiar SQL</button></div></div>' +
         '<div class="card" style="margin-top:14px;"><div class="card-hdr"><h3>Estadísticas</h3></div><div class="card-body">' +
         [['Etapas',S.etapas.length],['Pagos',S.pagos.length],['Ingresos',S.ingresos.length],['Deudas',S.deudas.length],['Mes actual',Math.max(0,Math.min(18,curMonthOff()+1))+' / 18'],['TCN','$'+S.tcn.toLocaleString('es-AR')+'/USD']].map(function(x){ return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text2);">'+x[0]+'</span><span style="font-family:DM Mono,monospace;font-weight:500;">'+x[1]+'</span></div>'; }).join('') +
         '</div></div></div></div>';
