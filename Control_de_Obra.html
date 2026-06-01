@@ -741,12 +741,10 @@ async function deleteEtapa(id){
 // PAGE: PAGOS
 // ═══════════════════════════════════════
 var pagoFilter='todos', pagoSearch='';
-function renderPagos(){
-    var lista = S.pagos.filter(function(p){
-        return (pagoFilter==='todos'||p.estado===pagoFilter) &&
-               (!pagoSearch||(p.desc||'').toLowerCase().includes(pagoSearch.toLowerCase())||((S.etapas.find(function(e){return e.id===p.etapaId;})||{nombre:''}).nombre).toLowerCase().includes(pagoSearch.toLowerCase()));
-    }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
-    var rows = lista.map(function(p){
+var chartPagos = null;
+
+function buildPagoRows(lista) {
+    return lista.map(function(p){
         var e=S.etapas.find(function(x){ return x.id===p.etapaId; });
         return '<tr><td style="font-family:DM Mono,monospace;font-size:12px;">'+p.fecha+'</td>' +
             '<td><span class="color-dot" style="background:'+(e?e.color:'#888')+'"></span>'+(e?e.nombre:'—')+'</td>' +
@@ -759,14 +757,176 @@ function renderPagos(){
             '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>' +
             '</div></td></tr>';
     }).join('');
+}
+
+function renderPagos(){
+    var busqueda = function(p){ return !pagoSearch||(p.desc||'').toLowerCase().includes(pagoSearch.toLowerCase())||((S.etapas.find(function(e){return e.id===p.etapaId;})||{nombre:''}).nombre).toLowerCase().includes(pagoSearch.toLowerCase()); };
+
+    var pagados   = S.pagos.filter(function(p){ return p.estado==='pagado'   && busqueda(p); }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
+    var pendientes= S.pagos.filter(function(p){ return p.estado!=='pagado'   && busqueda(p); }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
+    var filtrados = pagoFilter==='pagado' ? pagados : pagoFilter==='pendiente'||pagoFilter==='vencido' ? S.pagos.filter(function(p){ return p.estado===pagoFilter && busqueda(p); }) : null;
+
+    var totalPag  = pagados.reduce(function(s,p){ return s+p.montoARS; },0);
+    var totalPend = pendientes.reduce(function(s,p){ return s+p.montoARS; },0);
+
+    // --- Datos gráfico por etapa ---
+    var etapasConPagos = S.etapas.filter(function(e){
+        return S.pagos.some(function(p){ return p.etapaId===e.id; });
+    });
+    var chartLabels = etapasConPagos.map(function(e){ return e.nombre; });
+    var chartColors = etapasConPagos.map(function(e){ return e.color; });
+    var chartPagData  = etapasConPagos.map(function(e){ return Math.round(S.pagos.filter(function(p){ return p.etapaId===e.id&&p.estado==='pagado'; }).reduce(function(s,p){ return s+p.montoARS; },0)/S.tcn); });
+    var chartPendData = etapasConPagos.map(function(e){ return Math.round(S.pagos.filter(function(p){ return p.etapaId===e.id&&p.estado!=='pagado'; }).reduce(function(s,p){ return s+p.montoARS; },0)/S.tcn); });
+
+    // Si hay filtro activo mostramos tabla unificada
+    if(pagoFilter!=='todos'){
+        var listaFilt = filtrados||[];
+        var rowsFilt = buildPagoRows(listaFilt);
+        document.getElementById('page-pagos').innerHTML =
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">' +
+            '<div class="filter-bar"><input type="text" placeholder="Buscar..." style="width:170px;" oninput="pagoSearch=this.value;renderPagos()" value="'+pagoSearch+'">' +
+            '<select onchange="pagoFilter=this.value;renderPagos()"><option value="todos">Todos</option><option value="pagado" '+(pagoFilter==='pagado'?'selected':'')+'>Pagados</option><option value="pendiente" '+(pagoFilter==='pendiente'?'selected':'')+'>Pendientes</option><option value="vencido" '+(pagoFilter==='vencido'?'selected':'')+'>Vencidos</option></select></div>' +
+            '<div style="display:flex;gap:8px;"><button class="btn btn-excel" onclick="exportarExcel()">Excel</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>' +
+            '<div class="card"><div class="table-wrap">'+(listaFilt.length?'<table><thead><tr><th>Fecha</th><th>Etapa</th><th>Descripción</th><th style="text-align:right">Monto</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'+rowsFilt+'</tbody></table>':'<div class="empty">Sin pagos</div>')+'</div></div>';
+        return;
+    }
+
+    var rowsPag  = buildPagoRows(pagados);
+    var rowsPend = buildPagoRows(pendientes);
+
+    var THS = 'padding:8px 11px;font-size:10px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.4px;';
+
     document.getElementById('page-pagos').innerHTML =
+        // Barra superior
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">' +
         '<div class="filter-bar"><input type="text" placeholder="Buscar..." style="width:170px;" oninput="pagoSearch=this.value;renderPagos()" value="'+pagoSearch+'">' +
-        '<select onchange="pagoFilter=this.value;renderPagos()"><option value="todos" '+(pagoFilter==='todos'?'selected':'')+'>Todos</option><option value="pagado" '+(pagoFilter==='pagado'?'selected':'')+'>Pagados</option><option value="pendiente" '+(pagoFilter==='pendiente'?'selected':'')+'>Pendientes</option><option value="vencido" '+(pagoFilter==='vencido'?'selected':'')+'>Vencidos</option></select></div>' +
+        '<select onchange="pagoFilter=this.value;renderPagos()"><option value="todos" selected>Todos</option><option value="pagado">Pagados</option><option value="pendiente">Pendientes</option><option value="vencido">Vencidos</option></select></div>' +
         '<div style="display:flex;gap:8px;"><button class="btn btn-excel" onclick="exportarExcel()">Excel</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>' +
-        '<div class="card"><div class="table-wrap">' +
-        (lista.length?'<table><thead><tr><th>Fecha</th><th>Etapa</th><th>Descripción</th><th style="text-align:right">Monto</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'+rows+'</tbody></table>':'<div class="empty">Sin pagos</div>')+
-        '</div></div>';
+
+        // KPI cards
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">' +
+        // Card pagados
+        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:14px;">' +
+        '<div style="width:40px;height:40px;border-radius:9px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+        '<svg width="18" height="18" viewBox="0 0 20 20" fill="#3ECF8E"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>' +
+        '</div><div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Pagados</div>' +
+        '<div style="font-size:20px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">'+fmtMain(totalPag)+'</div>' +
+        '<div style="font-size:11px;color:var(--text3);margin-top:2px;">'+pagados.length+' pago'+(pagados.length!==1?'s':'')+'</div></div></div>' +
+        // Card pendientes
+        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:14px;">' +
+        '<div style="width:40px;height:40px;border-radius:9px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+        '<svg width="18" height="18" viewBox="0 0 20 20" fill="#F5A623"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>' +
+        '</div><div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Pendientes / Vencidos</div>' +
+        '<div style="font-size:20px;font-weight:700;font-family:DM Mono,monospace;color:var(--amber);">'+fmtMain(totalPend)+'</div>' +
+        '<div style="font-size:11px;color:var(--text3);margin-top:2px;">'+pendientes.length+' pago'+(pendientes.length!==1?'s':'')+'</div></div></div>' +
+        '</div>' +
+
+        // Gráfico por etapa
+        '<div class="card" style="margin-bottom:16px;">' +
+        '<div class="card-hdr"><h3>Pagos por etapa</h3>' +
+        '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);">' +
+        '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.7);margin-right:4px;vertical-align:middle;"></span>Pagado</span>' +
+        '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,166,35,.6);margin-right:4px;vertical-align:middle;"></span>Pendiente</span>' +
+        '</div></div>' +
+        '<div class="card-body"><div style="position:relative;width:100%;height:200px;"><canvas id="chartPagosEtapa"></canvas></div></div></div>' +
+
+        // Dos tablas lado a lado
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">' +
+
+        // Tabla PAGADOS
+        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">' +
+        '<div style="padding:11px 14px;background:var(--green-dim);border-bottom:1px solid rgba(62,207,142,.2);display:flex;align-items:center;justify-content:space-between;">' +
+        '<div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;"></span><span style="font-size:12px;font-weight:700;color:var(--green);">Pagados</span></div>' +
+        '<span style="font-size:11px;font-family:DM Mono,monospace;font-weight:600;color:var(--green);">'+fmtMain(totalPag)+'</span></div>' +
+        '<div style="overflow-x:auto;">' +
+        (pagados.length ?
+            '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>' +
+            '<th style="'+THS+'text-align:left;">Fecha</th><th style="'+THS+'text-align:left;">Etapa / Desc</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'"></th>' +
+            '</tr></thead><tbody>'+
+            pagados.map(function(p){
+                var e=S.etapas.find(function(x){return x.id===p.etapaId;});
+                return '<tr><td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>' +
+                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:6px;"><span style="width:6px;height:6px;border-radius:1px;background:'+(e?e.color:'#888')+';flex-shrink:0;display:inline-block;"></span><div><div style="font-size:12px;font-weight:500;">'+(e?e.nombre:'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div></div></div></td>' +
+                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:var(--green);">'+fmtMain(p.montoARS)+'</td>' +
+                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;gap:3px;">' +
+                    '<button class="btn btn-sm" onclick="openEditPago('+p.id+')">✎</button>' +
+                    '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>' +
+                    '</div></td></tr>';
+            }).join('') +
+            '</tbody></table>'
+        : '<div class="empty" style="padding:2rem;">Sin pagos realizados</div>') +
+        '</div></div>' +
+
+        // Tabla PENDIENTES
+        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">' +
+        '<div style="padding:11px 14px;background:var(--amber-dim);border-bottom:1px solid rgba(245,166,35,.2);display:flex;align-items:center;justify-content:space-between;">' +
+        '<div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block;"></span><span style="font-size:12px;font-weight:700;color:var(--amber);">Pendientes / Vencidos</span></div>' +
+        '<span style="font-size:11px;font-family:DM Mono,monospace;font-weight:600;color:var(--amber);">'+fmtMain(totalPend)+'</span></div>' +
+        '<div style="overflow-x:auto;">' +
+        (pendientes.length ?
+            '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>' +
+            '<th style="'+THS+'text-align:left;">Fecha</th><th style="'+THS+'text-align:left;">Etapa / Desc</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'">Estado</th><th style="'+THS+'"></th>' +
+            '</tr></thead><tbody>'+
+            pendientes.map(function(p){
+                var e=S.etapas.find(function(x){return x.id===p.etapaId;});
+                return '<tr><td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>' +
+                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:6px;"><span style="width:6px;height:6px;border-radius:1px;background:'+(e?e.color:'#888')+';flex-shrink:0;display:inline-block;"></span><div><div style="font-size:12px;font-weight:500;">'+(e?e.nombre:'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div></div></div></td>' +
+                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:'+(p.estado==='vencido'?'var(--red)':'var(--amber)')+';">'+fmtMain(p.montoARS)+'</td>' +
+                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><span class="badge '+p.estado+'">'+p.estado+'</span></td>' +
+                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;gap:3px;">' +
+                    '<button class="btn btn-sm btn-green" onclick="marcarPagado('+p.id+')" title="Marcar pagado">✓</button>' +
+                    '<button class="btn btn-sm" onclick="openEditPago('+p.id+')">✎</button>' +
+                    '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>' +
+                    '</div></td></tr>';
+            }).join('') +
+            '</tbody></table>'
+        : '<div class="empty" style="padding:2rem;">Sin pagos pendientes</div>') +
+        '</div></div>' +
+
+        '</div>'; // fin grid 2 col
+
+    // Render chart
+    if(chartPagos) chartPagos.destroy();
+    if(document.getElementById('chartPagosEtapa') && etapasConPagos.length){
+        chartPagos = new Chart(document.getElementById('chartPagosEtapa').getContext('2d'),{
+            type:'bar',
+            data:{
+                labels: chartLabels,
+                datasets:[
+                    {
+                        label:'Pagado',
+                        data: chartPagData,
+                        backgroundColor: chartColors.map(function(c){ return c+'B3'; }),
+                        borderColor: chartColors,
+                        borderWidth:1,
+                        borderRadius:4,
+                        borderSkipped:false
+                    },
+                    {
+                        label:'Pendiente',
+                        data: chartPendData,
+                        backgroundColor: 'rgba(245,166,35,.35)',
+                        borderColor: '#F5A623',
+                        borderWidth:1,
+                        borderRadius:4,
+                        borderSkipped:false
+                    }
+                ]
+            },
+            options:{
+                responsive:true,
+                maintainAspectRatio:false,
+                plugins:{
+                    legend:{display:false},
+                    tooltip:{callbacks:{label:function(v){ return v.dataset.label+': U$S '+Math.round(v.raw).toLocaleString('es-AR'); }}}
+                },
+                scales:{
+                    x:{ticks:{color:'#565C7A',font:{size:11}},grid:{color:'rgba(255,255,255,.03)'}},
+                    y:{ticks:{color:'#565C7A',font:{size:10},callback:function(v){ return v>=1000?'U$S '+(v/1000).toFixed(0)+'k':'U$S '+Math.round(v); }},grid:{color:'rgba(255,255,255,.04)'}}
+                }
+            }
+        });
+    }
 }
 function fillEtapaSel(sel){ document.getElementById('mEtapa').innerHTML=S.etapas.map(function(e){ return '<option value="'+e.id+'"'+(e.id===sel?' selected':'')+'>'+e.nombre+'</option>'; }).join(''); }
 function openNewPago(){ S.editPagoId=null; document.getElementById('mPagoTitle').textContent='Registrar pago'; document.getElementById('mFecha').value=new Date().toISOString().split('T')[0]; document.getElementById('mDesc').value=''; document.getElementById('mMonto').value=''; document.getElementById('mEstado').value='pagado'; fillEtapaSel(S.etapas[0]&&S.etapas[0].id); openModal('modalPago'); }
