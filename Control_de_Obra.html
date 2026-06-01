@@ -397,7 +397,12 @@ async function loadAllData() {
         S.calc.m2         = cfg.data.calc_m2  != null ? String(cfg.data.calc_m2)  : '';
     }
     S.pagos    = (pagos.data||[]).map(function(p){ return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, desc:p.descripcion, montoARS:p.monto_usd*S.tcn, montoUSD:p.monto_usd, estado:p.estado}; });
-    S.etapas   = (etapas.data||[]).map(function(e){ return {id:e.id, nombre:e.nombre, mesIni:e.mes_ini||1, mesFin:e.mes_fin||1, color:e.color, avance:e.avance, orden:e.orden, finalizado:e.finalizado||false, fechaIni:e.fecha_ini||'', fechaFin:e.fecha_fin||'', dias:e.dias||0}; });
+    S.etapas   = (etapas.data||[]).map(function(e){
+        var fi=e.fecha_ini||'', ff=e.fecha_fin||'';
+        var dias=e.dias||0;
+        if(!dias&&fi&&ff){var d0=new Date(fi+'T00:00:00'),d1=new Date(ff+'T00:00:00');dias=Math.round((d1-d0)/86400000)+1;}
+        return {id:e.id, nombre:e.nombre, mesIni:e.mes_ini||1, mesFin:e.mes_fin||1, color:e.color, avance:e.avance, orden:e.orden, finalizado:e.finalizado||false, fechaIni:fi, fechaFin:ff, dias:dias};
+    });
     S.ingresos = (ingresos.data||[]).map(function(x){
         var obj={id:x.id, fecha:x.fecha, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd, realizado:x.realizado, periodicidad:x.periodicidad, fechaHasta:x.fecha_hasta||''};
         // calcular nCuotas si tiene fechaHasta y es mensual
