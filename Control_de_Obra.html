@@ -821,14 +821,21 @@ function renderPagos(){
         '<div style="font-size:11px;color:var(--text3);margin-top:2px;">'+pendientes.length+' pago'+(pendientes.length!==1?'s':'')+'</div></div></div>' +
         '</div>' +
 
-        // Gráfico por etapa
-        '<div class="card" style="margin-bottom:16px;">' +
+        // Gráficos por etapa
+        '<div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:16px;align-items:start;">' +
+        // Gráfico principal (sin Casa General)
+        '<div class="card" style="margin-bottom:0;">' +
         '<div class="card-hdr"><h3>Pagos por etapa</h3>' +
         '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);">' +
         '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.7);margin-right:4px;vertical-align:middle;"></span>Pagado</span>' +
         '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,166,35,.6);margin-right:4px;vertical-align:middle;"></span>Pendiente</span>' +
         '</div></div>' +
         '<div class="card-body"><div style="position:relative;width:100%;height:200px;"><canvas id="chartPagosEtapa"></canvas></div></div></div>' +
+        // Gráfico Casa General
+        '<div class="card" style="margin-bottom:0;min-width:220px;">' +
+        '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Casa General</h3></div>' +
+        '<div class="card-body" style="padding:12px 14px;"><div style="position:relative;width:200px;height:200px;"><canvas id="chartPagosGrande"></canvas></div></div></div>' +
+        '</div>' +
 
         // Dos tablas lado a lado
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">' +
@@ -885,48 +892,50 @@ function renderPagos(){
 
         '</div>'; // fin grid 2 col
 
-    // Render chart
-    if(chartPagos) chartPagos.destroy();
-    if(document.getElementById('chartPagosEtapa') && etapasConPagos.length){
-        chartPagos = new Chart(document.getElementById('chartPagosEtapa').getContext('2d'),{
+    // Separar Casa General del resto
+    var ETAPA_GRANDE = 'Casa General';
+    var idxGrande = chartLabels.indexOf(ETAPA_GRANDE);
+    var labelsResto=[],colorsResto=[],pagResto=[],pendResto=[];
+    var labelsGrande=[],colorsGrande=[],pagGrande=[],pendGrande=[];
+    chartLabels.forEach(function(l,i){
+        if(l===ETAPA_GRANDE){
+            labelsGrande.push(l); colorsGrande.push(chartColors[i]);
+            pagGrande.push(chartPagData[i]); pendGrande.push(chartPendData[i]);
+        } else {
+            labelsResto.push(l); colorsResto.push(chartColors[i]);
+            pagResto.push(chartPagData[i]); pendResto.push(chartPendData[i]);
+        }
+    });
+
+    function makeChartOpts(labels, colors, pagData, pendData, ctx){
+        return new Chart(ctx,{
             type:'bar',
             data:{
-                labels: chartLabels,
+                labels: labels,
                 datasets:[
-                    {
-                        label:'Pagado',
-                        data: chartPagData,
-                        backgroundColor: chartColors.map(function(c){ return c+'B3'; }),
-                        borderColor: chartColors,
-                        borderWidth:1,
-                        borderRadius:4,
-                        borderSkipped:false
-                    },
-                    {
-                        label:'Pendiente',
-                        data: chartPendData,
-                        backgroundColor: 'rgba(245,166,35,.35)',
-                        borderColor: '#F5A623',
-                        borderWidth:1,
-                        borderRadius:4,
-                        borderSkipped:false
-                    }
+                    {label:'Pagado', data:pagData, backgroundColor:colors.map(function(c){return c+'B3';}), borderColor:colors, borderWidth:1, borderRadius:4, borderSkipped:false},
+                    {label:'Pendiente', data:pendData, backgroundColor:'rgba(245,166,35,.35)', borderColor:'#F5A623', borderWidth:1, borderRadius:4, borderSkipped:false}
                 ]
             },
             options:{
-                responsive:true,
-                maintainAspectRatio:false,
-                plugins:{
-                    legend:{display:false},
-                    tooltip:{callbacks:{label:function(v){ return v.dataset.label+': U$S '+Math.round(v.raw).toLocaleString('es-AR'); }}}
-                },
+                responsive:true, maintainAspectRatio:false,
+                plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(v){return v.dataset.label+': U$S '+Math.round(v.raw).toLocaleString('es-AR');}}}},
                 scales:{
                     x:{ticks:{color:'#565C7A',font:{size:11}},grid:{color:'rgba(255,255,255,.03)'}},
-                    y:{ticks:{color:'#565C7A',font:{size:10},callback:function(v){ return v>=1000?'U$S '+(v/1000).toFixed(0)+'k':'U$S '+Math.round(v); }},grid:{color:'rgba(255,255,255,.04)'}}
+                    y:{ticks:{color:'#565C7A',font:{size:10},callback:function(v){var a=Math.abs(v);return (a>=1000?'U$S '+(a/1000).toFixed(0)+'k':'U$S '+Math.round(a));}},grid:{color:'rgba(255,255,255,.04)'}}
                 }
             }
         });
     }
+
+    if(chartPagos) { chartPagos.destroy(); chartPagos=null; }
+    if(window.chartPagosG) { window.chartPagosG.destroy(); window.chartPagosG=null; }
+
+    var ctxResto = document.getElementById('chartPagosEtapa');
+    if(ctxResto && labelsResto.length) chartPagos = makeChartOpts(labelsResto, colorsResto, pagResto, pendResto, ctxResto.getContext('2d'));
+
+    var ctxGrande = document.getElementById('chartPagosGrande');
+    if(ctxGrande && labelsGrande.length) window.chartPagosG = makeChartOpts(labelsGrande, colorsGrande, pagGrande, pendGrande, ctxGrande.getContext('2d'));
 }
 function fillEtapaSel(sel){ document.getElementById('mEtapa').innerHTML=S.etapas.map(function(e){ return '<option value="'+e.id+'"'+(e.id===sel?' selected':'')+'>'+e.nombre+'</option>'; }).join(''); }
 function openNewPago(){ S.editPagoId=null; document.getElementById('mPagoTitle').textContent='Registrar pago'; document.getElementById('mFecha').value=new Date().toISOString().split('T')[0]; document.getElementById('mDesc').value=''; document.getElementById('mMonto').value=''; document.getElementById('mEstado').value='pagado'; fillEtapaSel(S.etapas[0]&&S.etapas[0].id); openModal('modalPago'); }
