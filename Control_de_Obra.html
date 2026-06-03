@@ -187,7 +187,7 @@
             </button>
             <div class="nav-s">Sistema</div>
             <button class="nav-item" onclick="goTo('notas')">
-                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>Notas / Presupuestos
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>Presupuesto
             </button>
             <div class="nav-s">Sistema</div>
             <button class="nav-item" onclick="goTo('config')">
@@ -1468,13 +1468,14 @@ async function deleteBal(type,id){
 var editNotaId = null;
 var notasMoneda = 'USD'; // moneda global de la tabla
 
-// Convierte un valor almacenado (siempre USD) a la moneda de display
-function notaToDisplay(usd){ return notasMoneda==='ARS' ? usd*S.tcn : usd; }
-function displayToUSD(v){ return notasMoneda==='ARS' ? v/S.tcn : v; }
-function fmtNota(usd){
-    if(!usd) return '—';
-    if(notasMoneda==='ARS') return '$'+Math.round(usd*S.tcn).toLocaleString('es-AR');
-    return 'U$S '+Math.round(usd).toLocaleString('es-AR');
+// Los valores se guardan siempre en ARS (val1/val2/val3 son pesos)
+// Para mostrar en USD dividimos por TCN
+function notaToDisplay(ars){ return notasMoneda==='ARS' ? ars : ars/S.tcn; }
+function displayToARS(v){ return notasMoneda==='ARS' ? v : v*S.tcn; }
+function fmtNota(ars){
+    if(!ars) return '—';
+    if(notasMoneda==='ARS') return '$'+Math.round(ars).toLocaleString('es-AR');
+    return 'U$S '+Math.round(ars/S.tcn).toLocaleString('es-AR');
 }
 
 function setNotasMoneda(m){
@@ -1488,12 +1489,13 @@ function setNotasMoneda(m){
     renderNotas();
 }
 
-function toggleNotaCheck(id){
+async function toggleNotaCheck(id){
     var n = S.notas.find(function(x){ return x.id===id; });
     if(!n) return;
     n.checked = !n.checked;
-    // persist
-    sb.from('obra_notas').update({checked: n.checked}).eq('id', id);
+    setSaveStatus('saving');
+    var res = await sb.from('obra_notas').update({checked: n.checked}).eq('id', id);
+    setSaveStatus(res.error?'error':'ok', res.error?'Error al guardar':'Guardado');
     renderNotas();
 }
 function toggleNotaExpand(id){
@@ -1626,7 +1628,7 @@ function renderNotas(){
         // Toolbar
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">' +
         '<div>' +
-        '<div style="font-size:13px;font-weight:600;">Notas y comparativa de presupuestos</div>' +
+        '<div style="font-size:13px;font-weight:600;">Presupuesto comparativo</div>' +
         '<div style="font-size:11px;color:var(--text3);margin-top:2px;">★ = precio más bajo · ✓ = incluir en sumatoria · 📝 = notas de ítem</div>' +
         '</div>' +
         '<div style="display:flex;gap:8px;align-items:center;">' +
@@ -1692,9 +1694,9 @@ async function updateNotaValDisplay(id, vi, rawDisplay){
     var n = S.notas.find(function(x){ return x.id===id; });
     if(!n) return;
     var dispVal = parseFloat(rawDisplay)||0;
-    var usdVal  = displayToUSD(dispVal);
-    if(vi===0) n.val1=usdVal; else if(vi===1) n.val2=usdVal; else n.val3=usdVal;
-    var upd = {}; upd[['val1','val2','val3'][vi]] = usdVal;
+    var arsVal  = displayToARS(dispVal); // guarda siempre en ARS
+    if(vi===0) n.val1=arsVal; else if(vi===1) n.val2=arsVal; else n.val3=arsVal;
+    var upd = {}; upd[['val1','val2','val3'][vi]] = arsVal;
     setSaveStatus('saving');
     var res = await sb.from('obra_notas').update(upd).eq('id',id);
     setSaveStatus(res.error?'error':'ok', res.error?'Error':'Guardado');
@@ -1749,19 +1751,19 @@ function openEditNota(id){
     ['lVal1','lVal2','lVal3'].forEach(function(lid,i){
         document.getElementById(lid).textContent = (S.proveedores[i]?S.proveedores[i].nombre:'Proveedor '+(i+1))+' '+ml;
     });
-    // Mostrar valores en moneda de display
-    document.getElementById('nVal1').value = n.val1 ? Math.round(notaToDisplay(n.val1)*100)/100 : '';
-    document.getElementById('nVal2').value = n.val2 ? Math.round(notaToDisplay(n.val2)*100)/100 : '';
-    document.getElementById('nVal3').value = n.val3 ? Math.round(notaToDisplay(n.val3)*100)/100 : '';
+    // Mostrar valores en moneda de display (val1/2/3 están en ARS)
+    document.getElementById('nVal1').value = n.val1 ? Math.round(notaToDisplay(n.val1)) : '';
+    document.getElementById('nVal2').value = n.val2 ? Math.round(notaToDisplay(n.val2)) : '';
+    document.getElementById('nVal3').value = n.val3 ? Math.round(notaToDisplay(n.val3)) : '';
     openModal('modalNota');
 }
 async function saveNota(){
     var desc = document.getElementById('nDesc').value.trim();
     if(!desc){ alert('Ingresá una descripción.'); return; }
-    // Convertir display → USD para guardar
-    var v1 = displayToUSD(parseFloat(document.getElementById('nVal1').value)||0);
-    var v2 = displayToUSD(parseFloat(document.getElementById('nVal2').value)||0);
-    var v3 = displayToUSD(parseFloat(document.getElementById('nVal3').value)||0);
+    // Convertir display → ARS para guardar
+    var v1 = displayToARS(parseFloat(document.getElementById('nVal1').value)||0);
+    var v2 = displayToARS(parseFloat(document.getElementById('nVal2').value)||0);
+    var v3 = displayToARS(parseFloat(document.getElementById('nVal3').value)||0);
     var payload = {
         descripcion: desc,
         nota:        document.getElementById('nNota').value.trim(),
@@ -1858,7 +1860,7 @@ function makeDraggable(listId, arr, renderFn, dbTable){
 // NAVIGATION
 // ═══════════════════════════════════════
 var curPage = 'resumen';
-var PAGE_TITLES = {resumen:'Resumen general',etapas:'Etapas de obra',pagos:'Pagos',balance:'Balance personal',notas:'Notas / Presupuestos',config:'Configuración'};
+var PAGE_TITLES = {resumen:'Resumen general',etapas:'Etapas de obra',pagos:'Pagos',balance:'Balance personal',notas:'Presupuesto',config:'Configuración'};
 var PAGE_ORDER  = ['resumen','etapas','pagos','balance','notas','config'];
 
 function goTo(page){
