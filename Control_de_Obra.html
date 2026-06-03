@@ -264,6 +264,19 @@
                     <div id="mPreviewUSD" style="height:36px;display:flex;align-items:center;font-family:DM Mono,monospace;font-size:15px;font-weight:600;color:var(--blue);">—</div>
                 </div>
             </div>
+            <!-- Cuotas (solo visible si pendiente/vencido) -->
+            <div id="fgCuotasPago" style="display:none;">
+                <div class="form-row">
+                    <div class="fg">
+                        <label>Cantidad de cuotas</label>
+                        <input type="number" id="mCuotas" min="1" value="1" placeholder="1">
+                    </div>
+                    <div class="fg">
+                        <label>Cuotas pagadas</label>
+                        <input type="number" id="mCuotasPagadas" min="0" value="0" placeholder="0">
+                    </div>
+                </div>
+            </div>
             <!-- Info deuda automática -->
             <div id="fgDeudaInfo" style="display:none;margin-top:4px;padding:9px 12px;background:var(--amber-dim);border:1px solid rgba(245,166,35,.25);border-radius:var(--radius-sm);">
                 <div style="font-size:12px;color:var(--amber);font-weight:600;margin-bottom:2px;">⚠ Se agregará como deuda en Balance</div>
@@ -1036,7 +1049,9 @@ function setMonedaPago(m){
 }
 function onEstadoChange(){
     var est = document.getElementById('mEstado').value;
-    document.getElementById('fgDeudaInfo').style.display = (est==='pendiente'||est==='vencido') ? 'block' : 'none';
+    var isPend = est==='pendiente'||est==='vencido';
+    document.getElementById('fgDeudaInfo').style.display    = isPend ? 'block' : 'none';
+    document.getElementById('fgCuotasPago').style.display   = isPend ? 'block' : 'none';
 }
 function calcPreviewPago(){
     if(mPagoMoneda!=='ARS') return;
@@ -1058,6 +1073,9 @@ function openNewPago(){
     document.getElementById('mMonto').value='';
     document.getElementById('mEstado').value='pagado';
     document.getElementById('fgDeudaInfo').style.display='none';
+    document.getElementById('fgCuotasPago').style.display='none';
+    document.getElementById('mCuotas').value='1';
+    document.getElementById('mCuotasPagadas').value='0';
     document.getElementById('mCotizacion').value='';
     document.getElementById('mPreviewUSD').textContent='—';
     setMonedaPago('USD');
@@ -1072,7 +1090,11 @@ function openEditPago(id){
     document.getElementById('mDesc').value=p.desc||'';
     document.getElementById('mMonto').value=Math.round(p.montoUSD);
     document.getElementById('mEstado').value=p.estado;
-    document.getElementById('fgDeudaInfo').style.display=(p.estado==='pendiente'||p.estado==='vencido')?'block':'none';
+    var isPend = p.estado==='pendiente'||p.estado==='vencido';
+    document.getElementById('fgDeudaInfo').style.display  = isPend ? 'block' : 'none';
+    document.getElementById('fgCuotasPago').style.display = isPend ? 'block' : 'none';
+    document.getElementById('mCuotas').value = '1';
+    document.getElementById('mCuotasPagadas').value = '0';
     document.getElementById('mCotizacion').value='';
     document.getElementById('mPreviewUSD').textContent='—';
     setMonedaPago('USD');
@@ -1107,11 +1129,13 @@ async function savePago(){
 
     // Si es pendiente/vencido y es nuevo → agregar como deuda en Balance
     if(!S.editPagoId && (estado==='pendiente'||estado==='vencido')){
+        var cuotas  = Math.max(1, parseInt(document.getElementById('mCuotas').value)||1);
+        var pagadas = Math.min(cuotas, Math.max(0, parseInt(document.getElementById('mCuotasPagadas').value)||0));
         var deudaPayload = {
-            descripcion: desc + (etapaId ? ' ('+( S.etapas.find(function(e){return e.id===etapaId;})||{nombre:''}).nombre+')' : ''),
+            descripcion: desc + (etapaId ? ' ('+(S.etapas.find(function(e){return e.id===etapaId;})||{nombre:''}).nombre+')' : ''),
             monto_usd: montoUSD,
-            cuotas: 1,
-            pagadas: 0,
+            cuotas: cuotas,
+            pagadas: pagadas,
             fecha_inicio: fecha
         };
         var resD = await sb.from('obra_deudas').insert(deudaPayload);
