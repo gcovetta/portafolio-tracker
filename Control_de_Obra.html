@@ -326,18 +326,22 @@
 
 <!-- MODAL NOTA -->
 <div class="modal-overlay" id="modalNota">
-    <div class="modal">
+    <div class="modal" style="width:560px;">
         <div class="modal-hdr"><h3 id="mNotaTitle">Nueva fila</h3><button class="btn btn-sm" onclick="closeModal('modalNota')">✕</button></div>
         <div class="modal-body">
             <div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="nDesc" placeholder="Ej: Estructura metálica"></div></div>
-            <div class="form-row full"><div class="fg"><label>Categoría (para agrupar)</label><input type="text" id="nCat" placeholder="Ej: Estructura, Terminaciones..."></div></div>
-            <div class="form-row full"><div class="fg"><label>Nota aclaratoria</label><input type="text" id="nNota" placeholder="Ej: incluye mano de obra"></div></div>
             <div class="form-row">
-                <div class="fg"><label id="lVal1">Proveedor 1 (U$S)</label><div class="amt-wrap"><input type="number" id="nVal1" placeholder="0" min="0"><span class="amt-tag">USD</span></div></div>
-                <div class="fg"><label id="lVal2">Proveedor 2 (U$S)</label><div class="amt-wrap"><input type="number" id="nVal2" placeholder="0" min="0"><span class="amt-tag">USD</span></div></div>
+                <div class="fg"><label>Categoría (para agrupar)</label><input type="text" id="nCat" placeholder="Ej: Estructura, Terminaciones..."></div>
+                <div class="fg"><label>Cantidad</label><input type="number" id="nQty" min="1" value="1" placeholder="1"></div>
+            </div>
+            <div class="form-row full"><div class="fg"><label>Nota del ítem</label><textarea id="nNota" placeholder="Ej: incluye mano de obra, garantía 2 años..." style="width:100%;min-height:70px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:DM Sans,sans-serif;font-size:13px;padding:8px 10px;resize:vertical;outline:none;line-height:1.5;"></textarea></div></div>
+            <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px;">Precios por proveedor</div>
+            <div class="form-row">
+                <div class="fg"><label id="lVal1">Proveedor 1</label><div class="amt-wrap"><input type="number" id="nVal1" placeholder="0" min="0"><span class="amt-tag" id="nTag1">USD</span></div></div>
+                <div class="fg"><label id="lVal2">Proveedor 2</label><div class="amt-wrap"><input type="number" id="nVal2" placeholder="0" min="0"><span class="amt-tag" id="nTag2">USD</span></div></div>
             </div>
             <div class="form-row">
-                <div class="fg"><label id="lVal3">Proveedor 3 (U$S)</label><div class="amt-wrap"><input type="number" id="nVal3" placeholder="0" min="0"><span class="amt-tag">USD</span></div></div>
+                <div class="fg"><label id="lVal3">Proveedor 3</label><div class="amt-wrap"><input type="number" id="nVal3" placeholder="0" min="0"><span class="amt-tag" id="nTag3">USD</span></div></div>
                 <div class="fg"></div>
             </div>
         </div>
@@ -485,7 +489,7 @@ async function loadAllData() {
     });
     S.deudas   = (deudas.data||[]).map(function(x){ return {id:x.id, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd, cuotas:x.cuotas, pagadas:x.pagadas, fechaInicio:x.fecha_inicio}; });
     S.ajustes  = (ajustes.data||[]).map(function(x){ return {id:x.id, fecha:x.fecha, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd}; });
-    S.notas = (notas.data||[]).map(function(x){ return {id:x.id, categoria:x.categoria||'', desc:x.descripcion||'', nota:x.nota||'', val1:x.val1||0, val2:x.val2||0, val3:x.val3||0, orden:x.orden||0}; });
+    S.notas = (notas.data||[]).map(function(x){ return {id:x.id, categoria:x.categoria||'', desc:x.descripcion||'', nota:x.nota||'', val1:x.val1||0, val2:x.val2||0, val3:x.val3||0, qty:x.qty||1, checked:x.checked||false, orden:x.orden||0, _expanded:false}; });
     S.proveedores = (proveedores.data||[]).length > 0
         ? (proveedores.data||[]).map(function(x){ return {id:x.id, nombre:x.nombre||'Proveedor '+(x.posicion+1), posicion:x.posicion}; })
         : [{id:null,nombre:'Proveedor 1',posicion:0},{id:null,nombre:'Proveedor 2',posicion:1},{id:null,nombre:'Proveedor 3',posicion:2}];
@@ -1462,21 +1466,58 @@ async function deleteBal(type,id){
 // PAGE: NOTAS / PRESUPUESTOS
 // ═══════════════════════════════════════
 var editNotaId = null;
+var notasMoneda = 'USD'; // moneda global de la tabla
+
+// Convierte un valor almacenado (siempre USD) a la moneda de display
+function notaToDisplay(usd){ return notasMoneda==='ARS' ? usd*S.tcn : usd; }
+function displayToUSD(v){ return notasMoneda==='ARS' ? v/S.tcn : v; }
+function fmtNota(usd){
+    if(!usd) return '—';
+    if(notasMoneda==='ARS') return '$'+Math.round(usd*S.tcn).toLocaleString('es-AR');
+    return 'U$S '+Math.round(usd).toLocaleString('es-AR');
+}
+
+function setNotasMoneda(m){
+    notasMoneda = m;
+    document.getElementById('btnNotaUSD').style.background = m==='USD'?'var(--blue-dim)':'var(--surface3)';
+    document.getElementById('btnNotaUSD').style.color      = m==='USD'?'var(--blue)':'var(--text3)';
+    document.getElementById('btnNotaUSD').style.fontWeight = m==='USD'?'600':'400';
+    document.getElementById('btnNotaARS').style.background = m==='ARS'?'var(--amber-dim)':'var(--surface3)';
+    document.getElementById('btnNotaARS').style.color      = m==='ARS'?'var(--amber)':'var(--text3)';
+    document.getElementById('btnNotaARS').style.fontWeight = m==='ARS'?'600':'400';
+    renderNotas();
+}
+
+function toggleNotaCheck(id){
+    var n = S.notas.find(function(x){ return x.id===id; });
+    if(!n) return;
+    n.checked = !n.checked;
+    // persist
+    sb.from('obra_notas').update({checked: n.checked}).eq('id', id);
+    renderNotas();
+}
+function toggleNotaExpand(id){
+    var n = S.notas.find(function(x){ return x.id===id; });
+    if(!n) return;
+    n._expanded = !n._expanded;
+    renderNotas();
+}
 
 function renderNotas(){
     var TH = 'padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap;background:var(--surface2);';
     var p = S.proveedores;
     while(p.length < 3) p.push({id:null, nombre:'Proveedor '+(p.length+1), posicion:p.length});
 
+    // Encabezados de proveedores con nombre editable
     var provHeaders = p.map(function(pv,i){
         return '<th style="'+TH+'text-align:right;min-width:160px;">' +
-            '<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">' +
-            '<span id="provLabel'+i+'" style="cursor:pointer;" ondblclick="editProvNombre('+i+')" title="Doble click para editar">'+pv.nombre+'</span>' +
-            '<button onclick="editProvNombre('+i+')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px;padding:0;">✎</button>' +
+            '<div style="display:flex;align-items:center;justify-content:flex-end;gap:5px;">' +
+            '<span style="cursor:pointer;" ondblclick="editProvNombre('+i+')" title="Doble click para editar">'+pv.nombre+'</span>' +
+            '<button onclick="editProvNombre('+i+')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:10px;padding:0 2px;">✎</button>' +
             '</div></th>';
     }).join('');
 
-    // agrupar por categoria
+    // Agrupar por categoría
     var cats = [];
     S.notas.forEach(function(n){ if(cats.indexOf(n.categoria)<0) cats.push(n.categoria); });
     if(!cats.length) cats = [''];
@@ -1485,29 +1526,68 @@ function renderNotas(){
     cats.forEach(function(cat){
         var items = S.notas.filter(function(n){ return n.categoria===cat; });
         if(cat){
-            bodyRows += '<tr><td colspan="5" style="padding:8px 14px 4px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);background:var(--surface2);border-bottom:1px solid var(--border);">'+cat+'</td></tr>';
+            bodyRows += '<tr><td colspan="7" style="padding:7px 14px 4px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);background:var(--surface2);border-bottom:1px solid var(--border);">'+cat+'</td></tr>';
         }
         items.forEach(function(n){
-            var vals = [n.val1,n.val2,n.val3];
-            var nonZero = vals.filter(function(v){ return v>0; });
-            var minVal = nonZero.length>1 ? Math.min.apply(null,nonZero) : null;
+            // valores en display (USD o ARS)
+            var vals = [n.val1, n.val2, n.val3]; // siempre en USD internamente
+            var qty  = n.qty || 1;
+            // valor efectivo = val * qty (en USD)
+            var effVals = vals.map(function(v){ return (v||0)*qty; });
+            var nonZero = effVals.filter(function(v){ return v>0; });
+            var minVal  = nonZero.length>1 ? Math.min.apply(null,nonZero) : null;
+
+            var chk = n.checked;
+            var rowBg = chk ? 'background:var(--green-dim);' : '';
+
+            // Celdas de valor por proveedor
             var valCells = vals.map(function(v,vi){
-                var isMin = minVal!==null && v===minVal;
-                return '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;">' +
-                    '<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">' +
-                    '<input type="number" min="0" value="'+(v||'')+'" placeholder="—" ' +
-                    'onchange="updateNotaVal('+n.id+','+vi+',this.value)" ' +
-                    'style="width:100px;text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:'+(isMin?'var(--green)':'var(--text)')+';background:transparent;border:none;outline:none;border-bottom:1px solid var(--border2);padding:2px 4px;">' +
-                    (isMin?'<span title="Precio más bajo" style="color:var(--green);font-size:12px;">★</span>':'') +
+                var eff   = (v||0)*qty;
+                var disp  = notaToDisplay(v||0);  // precio unitario en moneda display
+                var effDisp = notaToDisplay(eff);
+                var isMin = minVal!==null && eff===minVal && eff>0;
+                var colr  = isMin ? 'var(--green)' : 'var(--text2)';
+                return '<td style="padding:8px 14px;border-bottom:1px solid var(--border);text-align:right;'+rowBg+'">' +
+                    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">' +
+                    // precio unitario editable
+                    '<div style="display:flex;align-items:center;gap:4px;">' +
+                    '<input type="number" min="0" value="'+(disp||'')+'" placeholder="—" ' +
+                    'onchange="updateNotaValDisplay('+n.id+','+vi+',this.value)" ' +
+                    'style="width:90px;text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:500;color:var(--text2);background:transparent;border:none;outline:none;border-bottom:1px solid var(--border2);padding:1px 2px;">' +
+                    (isMin?'<span style="color:var(--green);font-size:11px;">★</span>':'<span style="width:11px;display:inline-block;"></span>') +
+                    '</div>' +
+                    // total efectivo (qty > 1)
+                    (qty>1&&eff>0?'<div style="font-size:11px;color:'+colr+';font-family:DM Mono,monospace;font-weight:600;">= '+(notasMoneda==='ARS'?'$'+Math.round(effDisp).toLocaleString('es-AR'):'U$S '+Math.round(effDisp).toLocaleString('es-AR'))+(isMin?' ★':'')+'</div>':'') +
                     '</div></td>';
             }).join('');
-            bodyRows += '<tr>' +
-                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);">' +
+
+            // Fila principal
+            bodyRows += '<tr style="'+rowBg+'">' +
+                // Checkbox
+                '<td style="padding:8px 10px;border-bottom:1px solid var(--border);'+rowBg+'">' +
+                '<input type="checkbox" '+(chk?'checked':'')+' onchange="toggleNotaCheck('+n.id+')" ' +
+                'style="width:15px;height:15px;accent-color:var(--green);cursor:pointer;"></td>' +
+                // Descripción + expandir nota
+                '<td style="padding:8px 14px;border-bottom:1px solid var(--border);'+rowBg+'">' +
+                '<div style="display:flex;align-items:flex-start;gap:8px;">' +
+                '<div style="flex:1;">' +
                 '<div style="font-size:13px;font-weight:500;color:var(--text);">'+n.desc+'</div>' +
-                (n.nota?'<div style="font-size:11px;color:var(--text3);margin-top:2px;">'+n.nota+'</div>':'') +
+                (n.nota&&!n._expanded?'<div style="font-size:11px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;">'+n.nota+'</div>':'') +
+                (n._expanded?'<div style="margin-top:6px;padding:8px 10px;background:var(--surface3);border-radius:4px;border:1px solid var(--border2);">' +
+                    '<textarea onchange="saveNotaInline('+n.id+',this.value)" style="width:100%;background:transparent;border:none;outline:none;font-family:DM Sans,sans-serif;font-size:12px;color:var(--text);resize:vertical;min-height:60px;line-height:1.5;">'+n.nota+'</textarea>' +
+                    '</div>':'') +
+                '</div>' +
+                '<button onclick="toggleNotaExpand('+n.id+')" title="'+(n._expanded?'Cerrar nota':'Ver/editar nota')+'" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:2px 4px;flex-shrink:0;">'+(n._expanded?'▲':'📝')+'</button>' +
+                '</div></td>' +
+                // Cantidad
+                '<td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:center;'+rowBg+'">' +
+                '<input type="number" min="1" value="'+(qty||1)+'" ' +
+                'onchange="updateNotaQty('+n.id+',this.value)" ' +
+                'style="width:52px;text-align:center;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:var(--blue);background:var(--blue-dim);border:1px solid var(--border2);border-radius:4px;padding:3px 4px;outline:none;">' +
                 '</td>' +
                 valCells +
-                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);">' +
+                // Acciones
+                '<td style="padding:8px 10px;border-bottom:1px solid var(--border);'+rowBg+'">' +
                 '<div style="display:flex;gap:3px;">' +
                 '<button class="btn btn-sm" onclick="openEditNota('+n.id+')">✎</button>' +
                 '<button class="btn btn-sm btn-danger" onclick="deleteNota('+n.id+')">✕</button>' +
@@ -1515,46 +1595,80 @@ function renderNotas(){
         });
     });
 
-    // totales por proveedor
-    var tots = [0,1,2].map(function(vi){
-        return S.notas.reduce(function(s,n){ return s+([n.val1,n.val2,n.val3][vi]||0); },0);
-    });
-    var nonZeroTots = tots.filter(function(v){ return v>0; });
-    var minTot = nonZeroTots.length>1 ? Math.min.apply(null,nonZeroTots) : null;
-    var totCells = tots.map(function(v){
-        var isMin = minTot!==null && v===minTot;
-        return '<td style="padding:10px 14px;border-top:2px solid var(--border2);text-align:right;">' +
-            '<span style="font-family:DM Mono,monospace;font-size:14px;font-weight:700;color:'+(isMin?'var(--green)':'var(--text)')+';">' +
-            (v>0?'U$S '+Math.round(v).toLocaleString('es-AR')+(isMin?' ★':''):'—')+'</span></td>';
-    }).join('');
+    // Totales — solo filas checkeadas
+    var checkedItems = S.notas.filter(function(n){ return n.checked; });
+    var allItems = S.notas;
 
-    var notaGen = S.notaGeneral || '';
+    function sumProv(items, vi){
+        return items.reduce(function(s,n){ return s+([n.val1,n.val2,n.val3][vi]||0)*(n.qty||1); }, 0);
+    }
+
+    var totsAll  = [0,1,2].map(function(vi){ return sumProv(allItems, vi); });
+    var totsChk  = [0,1,2].map(function(vi){ return sumProv(checkedItems, vi); });
+
+    var nzAll = totsAll.filter(function(v){ return v>0; });
+    var minAll = nzAll.length>1 ? Math.min.apply(null,nzAll) : null;
+    var nzChk = totsChk.filter(function(v){ return v>0; });
+    var minChk = nzChk.length>1 ? Math.min.apply(null,nzChk) : null;
+
+    function totCell(v, minV, extra){
+        var isMin = minV!==null && v===minV && v>0;
+        var disp = notaToDisplay(v);
+        var lbl = v>0 ? (notasMoneda==='ARS'?'$'+Math.round(disp).toLocaleString('es-AR'):'U$S '+Math.round(disp).toLocaleString('es-AR'))+(isMin?' ★':'') : '—';
+        return '<td style="padding:10px 14px;border-top:2px solid var(--border2);text-align:right;'+(extra||'')+'">' +
+            '<span style="font-family:DM Mono,monospace;font-size:14px;font-weight:700;color:'+(isMin?'var(--green)':'var(--text)')+';">'+lbl+'</span></td>';
+    }
+
+    var monedaLabel = notasMoneda==='ARS'?'pesos':'dólares';
+    var nChecked = checkedItems.length;
 
     document.getElementById('page-notas').innerHTML =
+        // Toolbar
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">' +
-        '<div><div style="font-size:13px;font-weight:600;">Notas y comparativa de presupuestos</div>' +
-        '<div style="font-size:11px;color:var(--text3);margin-top:2px;">Comparar hasta 3 proveedores · ★ = precio más bajo · Doble click en nombre de proveedor para editar</div></div>' +
-        '<button class="btn btn-primary" onclick="openNewNota()">+ Nueva fila</button></div>' +
+        '<div>' +
+        '<div style="font-size:13px;font-weight:600;">Notas y comparativa de presupuestos</div>' +
+        '<div style="font-size:11px;color:var(--text3);margin-top:2px;">★ = precio más bajo · ✓ = incluir en sumatoria · 📝 = notas de ítem</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;align-items:center;">' +
+        // Toggle moneda
+        '<div style="display:flex;border:1px solid var(--border2);border-radius:6px;overflow:hidden;font-size:12px;">' +
+        '<button id="btnNotaUSD" onclick="setNotasMoneda('USD')" style="padding:5px 12px;border:none;cursor:pointer;background:'+(notasMoneda==='USD'?'var(--blue-dim)':'var(--surface3)')+';color:'+(notasMoneda==='USD'?'var(--blue)':'var(--text3)')+';font-weight:'+(notasMoneda==='USD'?'600':'400')+';font-family:DM Sans,sans-serif;font-size:12px;">USD</button>' +
+        '<button id="btnNotaARS" onclick="setNotasMoneda('ARS')" style="padding:5px 12px;border:none;cursor:pointer;background:'+(notasMoneda==='ARS'?'var(--amber-dim)':'var(--surface3)')+';color:'+(notasMoneda==='ARS'?'var(--amber)':'var(--text3)')+';font-weight:'+(notasMoneda==='ARS'?'600':'400')+';font-family:DM Sans,sans-serif;font-size:12px;">ARS</button>' +
+        '</div>' +
+        '<button class="btn btn-primary" onclick="openNewNota()">+ Nueva fila</button>' +
+        '</div></div>' +
 
+        // Tabla principal
         '<div class="card" style="margin-bottom:16px;overflow:hidden;">' +
         '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">' +
         '<thead><tr>' +
+        '<th style="'+TH+'width:36px;"></th>' +
         '<th style="'+TH+'text-align:left;min-width:220px;">Ítem / Descripción</th>' +
+        '<th style="'+TH+'text-align:center;width:70px;">Cant.</th>' +
         provHeaders +
         '<th style="'+TH+'width:80px;"></th></tr></thead>' +
-        '<tbody>'+(bodyRows||'<tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text3);">Sin ítems. Hacé click en "+ Nueva fila" para agregar.</td></tr>')+'</tbody>' +
-        '<tfoot><tr>' +
-        '<td style="padding:10px 14px;border-top:2px solid var(--border2);font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text3);">Total general</td>' +
-        totCells +
-        '<td style="border-top:2px solid var(--border2);"></td>' +
-        '</tr></tfoot>' +
+        '<tbody>'+(bodyRows||'<tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--text3);">Sin ítems. Hacé click en "+ Nueva fila" para agregar.</td></tr>')+'</tbody>' +
+        // Total general (todos)
+        '<tfoot>' +
+        '<tr style="background:var(--surface2);">' +
+        '<td colspan="3" style="padding:10px 14px;border-top:2px solid var(--border2);font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text3);">Total general</td>' +
+        totsAll.map(function(v){ return totCell(v, minAll, ''); }).join('') +
+        '<td style="border-top:2px solid var(--border2);"></td></tr>' +
+        // Total seleccionados
+        (nChecked>0 ?
+        '<tr style="background:var(--green-dim);">' +
+        '<td colspan="3" style="padding:10px 14px;border-top:1px solid rgba(62,207,142,.2);font-size:11px;font-weight:700;text-transform:uppercase;color:var(--green);">✓ Seleccionados ('+nChecked+')</td>' +
+        totsChk.map(function(v){ return totCell(v, minChk, 'background:var(--green-dim);'); }).join('') +
+        '<td style="border-top:1px solid rgba(62,207,142,.2);background:var(--green-dim);"></td></tr>' : '') +
+        '</tfoot>' +
         '</table></div></div>' +
 
+        // Nota general libre
         '<div class="card"><div class="card-hdr"><h3>Notas generales</h3><span style="font-size:11px;color:var(--text3);">Se guarda automáticamente</span></div>' +
         '<div class="card-body">' +
         '<textarea id="notaGeneral" placeholder="Anotaciones libres, recordatorios, condiciones de pago, contactos de proveedores..." ' +
         'style="width:100%;min-height:160px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:DM Sans,sans-serif;font-size:13px;padding:12px;resize:vertical;outline:none;line-height:1.6;" ' +
-        'oninput="scheduleNotaGenSave(this.value)">'+notaGen+'</textarea>' +
+        'oninput="scheduleNotaGenSave(this.value)">'+(S.notaGeneral||'')+'</textarea>' +
         '</div></div>';
 }
 
@@ -1564,39 +1678,63 @@ function editProvNombre(idx){
     if(!nombre) return;
     pv.nombre = nombre.trim();
     setSaveStatus('saving');
-    var p = pv.id
+    var op = pv.id
         ? sb.from('obra_proveedores').update({nombre:pv.nombre}).eq('id',pv.id)
         : sb.from('obra_proveedores').insert({nombre:pv.nombre, posicion:idx});
-    p.then(function(res){
+    op.then(function(res){
         if(!pv.id && res.data && res.data[0]) pv.id = res.data[0].id;
         setSaveStatus('ok','Guardado');
         renderNotas();
     });
 }
 
-async function updateNotaVal(id, valIdx, raw){
+async function updateNotaValDisplay(id, vi, rawDisplay){
     var n = S.notas.find(function(x){ return x.id===id; });
     if(!n) return;
-    var v = parseFloat(raw)||0;
-    var field = ['val1','val2','val3'][valIdx];
-    if(valIdx===0) n.val1=v; else if(valIdx===1) n.val2=v; else n.val3=v;
-    var upd = {}; upd[field]=v;
+    var dispVal = parseFloat(rawDisplay)||0;
+    var usdVal  = displayToUSD(dispVal);
+    if(vi===0) n.val1=usdVal; else if(vi===1) n.val2=usdVal; else n.val3=usdVal;
+    var upd = {}; upd[['val1','val2','val3'][vi]] = usdVal;
     setSaveStatus('saving');
     var res = await sb.from('obra_notas').update(upd).eq('id',id);
     setSaveStatus(res.error?'error':'ok', res.error?'Error':'Guardado');
-    // re-render solo para actualizar stars y totales sin perder focus
     renderNotas();
+}
+
+async function updateNotaQty(id, raw){
+    var n = S.notas.find(function(x){ return x.id===id; });
+    if(!n) return;
+    n.qty = Math.max(1, parseInt(raw)||1);
+    setSaveStatus('saving');
+    var res = await sb.from('obra_notas').update({qty: n.qty}).eq('id',id);
+    setSaveStatus(res.error?'error':'ok', res.error?'Error':'Guardado');
+    renderNotas();
+}
+
+async function saveNotaInline(id, val){
+    var n = S.notas.find(function(x){ return x.id===id; });
+    if(!n) return;
+    n.nota = val;
+    setSaveStatus('saving');
+    var res = await sb.from('obra_notas').update({nota: val}).eq('id',id);
+    setSaveStatus(res.error?'error':'ok', res.error?'Error':'Guardado');
 }
 
 function openNewNota(){
     editNotaId = null;
-    document.getElementById('mNotaTitle') && (document.getElementById('mNotaTitle').textContent='Nueva fila');
+    document.getElementById('mNotaTitle').textContent='Nueva fila';
     document.getElementById('nDesc').value='';
     document.getElementById('nNota').value='';
     document.getElementById('nCat').value='';
     document.getElementById('nVal1').value='';
     document.getElementById('nVal2').value='';
     document.getElementById('nVal3').value='';
+    document.getElementById('nQty').value='1';
+    // Actualizar labels moneda
+    var ml = notasMoneda==='ARS'?'($)':'(U$S)';
+    ['lVal1','lVal2','lVal3'].forEach(function(lid,i){
+        document.getElementById(lid).textContent = (S.proveedores[i]?S.proveedores[i].nombre:'Proveedor '+(i+1))+' '+ml;
+    });
     openModal('modalNota');
 }
 function openEditNota(id){
@@ -1606,21 +1744,30 @@ function openEditNota(id){
     document.getElementById('nDesc').value = n.desc;
     document.getElementById('nNota').value = n.nota||'';
     document.getElementById('nCat').value  = n.categoria||'';
-    document.getElementById('nVal1').value = n.val1||'';
-    document.getElementById('nVal2').value = n.val2||'';
-    document.getElementById('nVal3').value = n.val3||'';
+    document.getElementById('nQty').value  = n.qty||1;
+    var ml = notasMoneda==='ARS'?'($)':'(U$S)';
+    ['lVal1','lVal2','lVal3'].forEach(function(lid,i){
+        document.getElementById(lid).textContent = (S.proveedores[i]?S.proveedores[i].nombre:'Proveedor '+(i+1))+' '+ml;
+    });
+    // Mostrar valores en moneda de display
+    document.getElementById('nVal1').value = n.val1 ? Math.round(notaToDisplay(n.val1)*100)/100 : '';
+    document.getElementById('nVal2').value = n.val2 ? Math.round(notaToDisplay(n.val2)*100)/100 : '';
+    document.getElementById('nVal3').value = n.val3 ? Math.round(notaToDisplay(n.val3)*100)/100 : '';
     openModal('modalNota');
 }
 async function saveNota(){
     var desc = document.getElementById('nDesc').value.trim();
     if(!desc){ alert('Ingresá una descripción.'); return; }
+    // Convertir display → USD para guardar
+    var v1 = displayToUSD(parseFloat(document.getElementById('nVal1').value)||0);
+    var v2 = displayToUSD(parseFloat(document.getElementById('nVal2').value)||0);
+    var v3 = displayToUSD(parseFloat(document.getElementById('nVal3').value)||0);
     var payload = {
         descripcion: desc,
-        nota: document.getElementById('nNota').value.trim(),
-        categoria: document.getElementById('nCat').value.trim(),
-        val1: parseFloat(document.getElementById('nVal1').value)||0,
-        val2: parseFloat(document.getElementById('nVal2').value)||0,
-        val3: parseFloat(document.getElementById('nVal3').value)||0,
+        nota:        document.getElementById('nNota').value.trim(),
+        categoria:   document.getElementById('nCat').value.trim(),
+        val1: v1, val2: v2, val3: v3,
+        qty:  parseInt(document.getElementById('nQty').value)||1,
         orden: editNotaId ? (S.notas.find(function(x){return x.id===editNotaId;})||{orden:0}).orden : S.notas.length
     };
     setSaveStatus('saving');
