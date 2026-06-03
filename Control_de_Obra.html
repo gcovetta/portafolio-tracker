@@ -238,8 +238,36 @@
             </div>
             <div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="mDesc" placeholder="Descripción del pago"></div></div>
             <div class="form-row">
-                <div class="fg"><label>Monto (U$S)</label><div class="amt-wrap"><input type="number" id="mMonto" placeholder="0" min="0"><span class="amt-tag">USD</span></div></div>
-                <div class="fg"><label>Estado</label><select id="mEstado"><option value="pagado">Pagado</option><option value="pendiente">Pendiente</option><option value="vencido">Vencido</option></select></div>
+                <div class="fg">
+                    <label style="display:flex;align-items:center;justify-content:space-between;">
+                        Monto
+                        <div style="display:flex;gap:0;border:1px solid var(--border2);border-radius:4px;overflow:hidden;font-size:11px;">
+                            <button id="btnMonedaUSD" onclick="setMonedaPago('USD')" style="padding:2px 8px;border:none;cursor:pointer;background:var(--blue-dim);color:var(--blue);font-weight:600;font-family:DM Sans,sans-serif;font-size:11px;">USD</button>
+                            <button id="btnMonedaARS" onclick="setMonedaPago('ARS')" style="padding:2px 8px;border:none;cursor:pointer;background:var(--surface3);color:var(--text3);font-family:DM Sans,sans-serif;font-size:11px;">ARS</button>
+                        </div>
+                    </label>
+                    <div class="amt-wrap">
+                        <input type="number" id="mMonto" placeholder="0" min="0" oninput="calcPreviewPago()">
+                        <span class="amt-tag" id="mMontoTag">USD</span>
+                    </div>
+                </div>
+                <div class="fg"><label>Estado</label><select id="mEstado" onchange="onEstadoChange()"><option value="pagado">Pagado</option><option value="pendiente">Pendiente</option><option value="vencido">Vencido</option></select></div>
+            </div>
+            <!-- Fila cotización ARS (oculta por defecto) -->
+            <div id="fgCotizacion" class="form-row" style="display:none;">
+                <div class="fg">
+                    <label>Cotización dólar ese día ($ / USD)</label>
+                    <div class="amt-wrap"><input type="number" id="mCotizacion" placeholder="Ej: 1200" min="1" oninput="calcPreviewPago()"><span class="amt-tag">$/USD</span></div>
+                </div>
+                <div class="fg" style="justify-content:flex-end;">
+                    <label>Equivalente en USD</label>
+                    <div id="mPreviewUSD" style="height:36px;display:flex;align-items:center;font-family:DM Mono,monospace;font-size:15px;font-weight:600;color:var(--blue);">—</div>
+                </div>
+            </div>
+            <!-- Info deuda automática -->
+            <div id="fgDeudaInfo" style="display:none;margin-top:4px;padding:9px 12px;background:var(--amber-dim);border:1px solid rgba(245,166,35,.25);border-radius:var(--radius-sm);">
+                <div style="font-size:12px;color:var(--amber);font-weight:600;margin-bottom:2px;">⚠ Se agregará como deuda en Balance</div>
+                <div style="font-size:11px;color:var(--text3);">Los pagos pendientes/vencidos se registran automáticamente en tu Balance como deuda.</div>
             </div>
         </div>
         <div class="modal-ftr"><button class="btn" onclick="closeModal('modalPago')">Cancelar</button><button class="btn btn-primary" onclick="savePago()">Guardar</button></div>
@@ -992,16 +1020,104 @@ function renderPagos(){
         });
     }
 }
+// Moneda activa en modal pago
+var mPagoMoneda = 'USD';
+function setMonedaPago(m){
+    mPagoMoneda = m;
+    document.getElementById('mMontoTag').textContent = m;
+    document.getElementById('btnMonedaUSD').style.background = m==='USD'?'var(--blue-dim)':'var(--surface3)';
+    document.getElementById('btnMonedaUSD').style.color    = m==='USD'?'var(--blue)':'var(--text3)';
+    document.getElementById('btnMonedaUSD').style.fontWeight = m==='USD'?'600':'400';
+    document.getElementById('btnMonedaARS').style.background = m==='ARS'?'var(--amber-dim)':'var(--surface3)';
+    document.getElementById('btnMonedaARS').style.color    = m==='ARS'?'var(--amber)':'var(--text3)';
+    document.getElementById('btnMonedaARS').style.fontWeight = m==='ARS'?'600':'400';
+    document.getElementById('fgCotizacion').style.display  = m==='ARS'?'grid':'none';
+    calcPreviewPago();
+}
+function onEstadoChange(){
+    var est = document.getElementById('mEstado').value;
+    document.getElementById('fgDeudaInfo').style.display = (est==='pendiente'||est==='vencido') ? 'block' : 'none';
+}
+function calcPreviewPago(){
+    if(mPagoMoneda!=='ARS') return;
+    var monto = parseFloat(document.getElementById('mMonto').value)||0;
+    var cot   = parseFloat(document.getElementById('mCotizacion').value)||0;
+    var el    = document.getElementById('mPreviewUSD');
+    if(monto>0 && cot>0){
+        el.textContent = 'U$S ' + Math.round(monto/cot).toLocaleString('es-AR');
+    } else {
+        el.textContent = '—';
+    }
+}
 function fillEtapaSel(sel){ document.getElementById('mEtapa').innerHTML=S.etapas.map(function(e){ return '<option value="'+e.id+'"'+(e.id===sel?' selected':'')+'>'+e.nombre+'</option>'; }).join(''); }
-function openNewPago(){ S.editPagoId=null; document.getElementById('mPagoTitle').textContent='Registrar pago'; document.getElementById('mFecha').value=new Date().toISOString().split('T')[0]; document.getElementById('mDesc').value=''; document.getElementById('mMonto').value=''; document.getElementById('mEstado').value='pagado'; fillEtapaSel(S.etapas[0]&&S.etapas[0].id); openModal('modalPago'); }
-function openEditPago(id){ S.editPagoId=id; var p=S.pagos.find(function(x){ return x.id===id; }); document.getElementById('mPagoTitle').textContent='Editar pago'; document.getElementById('mFecha').value=p.fecha; document.getElementById('mDesc').value=p.desc||''; document.getElementById('mMonto').value=Math.round(p.montoUSD); document.getElementById('mEstado').value=p.estado; fillEtapaSel(p.etapaId); openModal('modalPago'); }
+function openNewPago(){
+    S.editPagoId=null;
+    document.getElementById('mPagoTitle').textContent='Registrar pago';
+    document.getElementById('mFecha').value=new Date().toISOString().split('T')[0];
+    document.getElementById('mDesc').value='';
+    document.getElementById('mMonto').value='';
+    document.getElementById('mEstado').value='pagado';
+    document.getElementById('fgDeudaInfo').style.display='none';
+    document.getElementById('mCotizacion').value='';
+    document.getElementById('mPreviewUSD').textContent='—';
+    setMonedaPago('USD');
+    fillEtapaSel(S.etapas[0]&&S.etapas[0].id);
+    openModal('modalPago');
+}
+function openEditPago(id){
+    S.editPagoId=id;
+    var p=S.pagos.find(function(x){ return x.id===id; });
+    document.getElementById('mPagoTitle').textContent='Editar pago';
+    document.getElementById('mFecha').value=p.fecha;
+    document.getElementById('mDesc').value=p.desc||'';
+    document.getElementById('mMonto').value=Math.round(p.montoUSD);
+    document.getElementById('mEstado').value=p.estado;
+    document.getElementById('fgDeudaInfo').style.display=(p.estado==='pendiente'||p.estado==='vencido')?'block':'none';
+    document.getElementById('mCotizacion').value='';
+    document.getElementById('mPreviewUSD').textContent='—';
+    setMonedaPago('USD');
+    fillEtapaSel(p.etapaId);
+    openModal('modalPago');
+}
 async function savePago(){
-    var fecha=document.getElementById('mFecha').value, etapaId=parseInt(document.getElementById('mEtapa').value)||null, desc=document.getElementById('mDesc').value.trim(), raw=parseFloat(document.getElementById('mMonto').value), estado=document.getElementById('mEstado').value;
-    if(!fecha||!desc||!raw) return;
+    var fecha   = document.getElementById('mFecha').value;
+    var etapaId = parseInt(document.getElementById('mEtapa').value)||null;
+    var desc    = document.getElementById('mDesc').value.trim();
+    var rawInput= parseFloat(document.getElementById('mMonto').value);
+    var estado  = document.getElementById('mEstado').value;
+    if(!fecha||!desc||!rawInput){ alert('Completá fecha, descripción y monto.'); return; }
+
+    var montoUSD, montoARS;
+    if(mPagoMoneda==='ARS'){
+        var cot = parseFloat(document.getElementById('mCotizacion').value);
+        if(!cot){ alert('Ingresá la cotización del dólar para ese día.'); return; }
+        montoARS = rawInput;
+        montoUSD = rawInput / cot;
+    } else {
+        montoUSD = rawInput;
+        montoARS = rawInput * S.tcn;
+    }
+
     setSaveStatus('saving');
-    var payload={fecha:fecha,etapa_id:etapaId,descripcion:desc,monto_usd:raw,estado:estado};
-    var res = S.editPagoId ? await sb.from('obra_pagos').update(payload).eq('id',S.editPagoId) : await sb.from('obra_pagos').insert(payload);
+    var payload={fecha:fecha, etapa_id:etapaId, descripcion:desc, monto_usd:montoUSD, estado:estado};
+    var res = S.editPagoId
+        ? await sb.from('obra_pagos').update(payload).eq('id',S.editPagoId)
+        : await sb.from('obra_pagos').insert(payload);
     if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
+
+    // Si es pendiente/vencido y es nuevo → agregar como deuda en Balance
+    if(!S.editPagoId && (estado==='pendiente'||estado==='vencido')){
+        var deudaPayload = {
+            descripcion: desc + (etapaId ? ' ('+( S.etapas.find(function(e){return e.id===etapaId;})||{nombre:''}).nombre+')' : ''),
+            monto_usd: montoUSD,
+            cuotas: 1,
+            pagadas: 0,
+            fecha_inicio: fecha
+        };
+        var resD = await sb.from('obra_deudas').insert(deudaPayload);
+        if(resD.error) console.warn('No se pudo crear deuda automática:', resD.error.message);
+    }
+
     setSaveStatus('ok','Guardado'); closeModal('modalPago'); await loadAllData(); renderPagos(); renderAlerts(); updateSidebar();
 }
 async function marcarPagado(id){ setSaveStatus('saving'); var res=await sb.from('obra_pagos').update({estado:'pagado'}).eq('id',id); if(res.error){ setSaveStatus('error'); return; } setSaveStatus('ok','Guardado'); await loadAllData(); renderPagos(); renderAlerts(); updateSidebar(); }
