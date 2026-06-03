@@ -186,6 +186,10 @@
                 <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>Balance
             </button>
             <div class="nav-s">Sistema</div>
+            <button class="nav-item" onclick="goTo('notas')">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>Notas / Presupuestos
+            </button>
+            <div class="nav-s">Sistema</div>
             <button class="nav-item" onclick="goTo('config')">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>Configuración
             </button>
@@ -222,6 +226,7 @@
             <div id="page-etapas" class="page"></div>
             <div id="page-pagos" class="page"></div>
             <div id="page-balance" class="page"></div>
+            <div id="page-notas" class="page"></div>
             <div id="page-config" class="page"></div>
         </div>
     </div>
@@ -319,6 +324,27 @@
     </div>
 </div>
 
+<!-- MODAL NOTA -->
+<div class="modal-overlay" id="modalNota">
+    <div class="modal">
+        <div class="modal-hdr"><h3 id="mNotaTitle">Nueva fila</h3><button class="btn btn-sm" onclick="closeModal('modalNota')">✕</button></div>
+        <div class="modal-body">
+            <div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="nDesc" placeholder="Ej: Estructura metálica"></div></div>
+            <div class="form-row full"><div class="fg"><label>Categoría (para agrupar)</label><input type="text" id="nCat" placeholder="Ej: Estructura, Terminaciones..."></div></div>
+            <div class="form-row full"><div class="fg"><label>Nota aclaratoria</label><input type="text" id="nNota" placeholder="Ej: incluye mano de obra"></div></div>
+            <div class="form-row">
+                <div class="fg"><label id="lVal1">Proveedor 1 (U$S)</label><div class="amt-wrap"><input type="number" id="nVal1" placeholder="0" min="0"><span class="amt-tag">USD</span></div></div>
+                <div class="fg"><label id="lVal2">Proveedor 2 (U$S)</label><div class="amt-wrap"><input type="number" id="nVal2" placeholder="0" min="0"><span class="amt-tag">USD</span></div></div>
+            </div>
+            <div class="form-row">
+                <div class="fg"><label id="lVal3">Proveedor 3 (U$S)</label><div class="amt-wrap"><input type="number" id="nVal3" placeholder="0" min="0"><span class="amt-tag">USD</span></div></div>
+                <div class="fg"></div>
+            </div>
+        </div>
+        <div class="modal-ftr"><button class="btn" onclick="closeModal('modalNota')">Cancelar</button><button class="btn btn-primary" onclick="saveNota()">Guardar</button></div>
+    </div>
+</div>
+
 <!-- MODAL BALANCE -->
 <div class="modal-overlay" id="modalBalance">
     <div class="modal">
@@ -343,6 +369,7 @@ var MO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic
 var S = {
     startDate: '2026-04-01', tcn: 1200,
     rubros: [], pagos: [], etapas: [], ingresos: [], deudas: [], ajustes: [],
+    notas: [], proveedores: [], notaGeneral: '',
     editPagoId: null, editEtapaId: null, editBalType: null, editBalId: null,
     calc: { manoObra: '', materiales: '', otrosCostos: '', m2: '' }
 };
@@ -422,10 +449,13 @@ async function loadAllData() {
         sb.from('obra_etapas').select('*').order('orden'),
         sb.from('obra_ingresos').select('*').order('fecha'),
         sb.from('obra_deudas').select('*').order('created_at'),
-        sb.from('obra_ajustes').select('*').order('fecha')
+        sb.from('obra_ajustes').select('*').order('fecha'),
+        sb.from('obra_notas').select('*').order('orden'),
+        sb.from('obra_proveedores').select('*').order('posicion')
     ]);
     var cfg=results[0], pagos=results[1], etapas=results[2],
-        ingresos=results[3], deudas=results[4], ajustes=results[5];
+        ingresos=results[3], deudas=results[4], ajustes=results[5],
+        notas=results[6], proveedores=results[7];
 
     if (cfg.data) {
         S.startDate = cfg.data.start_date;
@@ -455,6 +485,11 @@ async function loadAllData() {
     });
     S.deudas   = (deudas.data||[]).map(function(x){ return {id:x.id, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd, cuotas:x.cuotas, pagadas:x.pagadas, fechaInicio:x.fecha_inicio}; });
     S.ajustes  = (ajustes.data||[]).map(function(x){ return {id:x.id, fecha:x.fecha, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd}; });
+    S.notas = (notas.data||[]).map(function(x){ return {id:x.id, categoria:x.categoria||'', desc:x.descripcion||'', nota:x.nota||'', val1:x.val1||0, val2:x.val2||0, val3:x.val3||0, orden:x.orden||0}; });
+    S.proveedores = (proveedores.data||[]).length > 0
+        ? (proveedores.data||[]).map(function(x){ return {id:x.id, nombre:x.nombre||'Proveedor '+(x.posicion+1), posicion:x.posicion}; })
+        : [{id:null,nombre:'Proveedor 1',posicion:0},{id:null,nombre:'Proveedor 2',posicion:1},{id:null,nombre:'Proveedor 3',posicion:2}];
+    S.notaGeneral = cfg.data && cfg.data.nota_general ? cfg.data.nota_general : '';
     updateSidebar();
 }
 
@@ -1424,6 +1459,202 @@ async function deleteBal(type,id){
 }
 
 // ═══════════════════════════════════════
+// PAGE: NOTAS / PRESUPUESTOS
+// ═══════════════════════════════════════
+var editNotaId = null;
+
+function renderNotas(){
+    var TH = 'padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap;background:var(--surface2);';
+    var p = S.proveedores;
+    while(p.length < 3) p.push({id:null, nombre:'Proveedor '+(p.length+1), posicion:p.length});
+
+    var provHeaders = p.map(function(pv,i){
+        return '<th style="'+TH+'text-align:right;min-width:160px;">' +
+            '<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">' +
+            '<span id="provLabel'+i+'" style="cursor:pointer;" ondblclick="editProvNombre('+i+')" title="Doble click para editar">'+pv.nombre+'</span>' +
+            '<button onclick="editProvNombre('+i+')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px;padding:0;">✎</button>' +
+            '</div></th>';
+    }).join('');
+
+    // agrupar por categoria
+    var cats = [];
+    S.notas.forEach(function(n){ if(cats.indexOf(n.categoria)<0) cats.push(n.categoria); });
+    if(!cats.length) cats = [''];
+
+    var bodyRows = '';
+    cats.forEach(function(cat){
+        var items = S.notas.filter(function(n){ return n.categoria===cat; });
+        if(cat){
+            bodyRows += '<tr><td colspan="5" style="padding:8px 14px 4px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);background:var(--surface2);border-bottom:1px solid var(--border);">'+cat+'</td></tr>';
+        }
+        items.forEach(function(n){
+            var vals = [n.val1,n.val2,n.val3];
+            var nonZero = vals.filter(function(v){ return v>0; });
+            var minVal = nonZero.length>1 ? Math.min.apply(null,nonZero) : null;
+            var valCells = vals.map(function(v,vi){
+                var isMin = minVal!==null && v===minVal;
+                return '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;">' +
+                    '<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;">' +
+                    '<input type="number" min="0" value="'+(v||'')+'" placeholder="—" ' +
+                    'onchange="updateNotaVal('+n.id+','+vi+',this.value)" ' +
+                    'style="width:100px;text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:'+(isMin?'var(--green)':'var(--text)')+';background:transparent;border:none;outline:none;border-bottom:1px solid var(--border2);padding:2px 4px;">' +
+                    (isMin?'<span title="Precio más bajo" style="color:var(--green);font-size:12px;">★</span>':'') +
+                    '</div></td>';
+            }).join('');
+            bodyRows += '<tr>' +
+                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);">' +
+                '<div style="font-size:13px;font-weight:500;color:var(--text);">'+n.desc+'</div>' +
+                (n.nota?'<div style="font-size:11px;color:var(--text3);margin-top:2px;">'+n.nota+'</div>':'') +
+                '</td>' +
+                valCells +
+                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);">' +
+                '<div style="display:flex;gap:3px;">' +
+                '<button class="btn btn-sm" onclick="openEditNota('+n.id+')">✎</button>' +
+                '<button class="btn btn-sm btn-danger" onclick="deleteNota('+n.id+')">✕</button>' +
+                '</div></td></tr>';
+        });
+    });
+
+    // totales por proveedor
+    var tots = [0,1,2].map(function(vi){
+        return S.notas.reduce(function(s,n){ return s+([n.val1,n.val2,n.val3][vi]||0); },0);
+    });
+    var nonZeroTots = tots.filter(function(v){ return v>0; });
+    var minTot = nonZeroTots.length>1 ? Math.min.apply(null,nonZeroTots) : null;
+    var totCells = tots.map(function(v){
+        var isMin = minTot!==null && v===minTot;
+        return '<td style="padding:10px 14px;border-top:2px solid var(--border2);text-align:right;">' +
+            '<span style="font-family:DM Mono,monospace;font-size:14px;font-weight:700;color:'+(isMin?'var(--green)':'var(--text)')+';">' +
+            (v>0?'U$S '+Math.round(v).toLocaleString('es-AR')+(isMin?' ★':''):'—')+'</span></td>';
+    }).join('');
+
+    var notaGen = S.notaGeneral || '';
+
+    document.getElementById('page-notas').innerHTML =
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">' +
+        '<div><div style="font-size:13px;font-weight:600;">Notas y comparativa de presupuestos</div>' +
+        '<div style="font-size:11px;color:var(--text3);margin-top:2px;">Comparar hasta 3 proveedores · ★ = precio más bajo · Doble click en nombre de proveedor para editar</div></div>' +
+        '<button class="btn btn-primary" onclick="openNewNota()">+ Nueva fila</button></div>' +
+
+        '<div class="card" style="margin-bottom:16px;overflow:hidden;">' +
+        '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">' +
+        '<thead><tr>' +
+        '<th style="'+TH+'text-align:left;min-width:220px;">Ítem / Descripción</th>' +
+        provHeaders +
+        '<th style="'+TH+'width:80px;"></th></tr></thead>' +
+        '<tbody>'+(bodyRows||'<tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text3);">Sin ítems. Hacé click en "+ Nueva fila" para agregar.</td></tr>')+'</tbody>' +
+        '<tfoot><tr>' +
+        '<td style="padding:10px 14px;border-top:2px solid var(--border2);font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text3);">Total general</td>' +
+        totCells +
+        '<td style="border-top:2px solid var(--border2);"></td>' +
+        '</tr></tfoot>' +
+        '</table></div></div>' +
+
+        '<div class="card"><div class="card-hdr"><h3>Notas generales</h3><span style="font-size:11px;color:var(--text3);">Se guarda automáticamente</span></div>' +
+        '<div class="card-body">' +
+        '<textarea id="notaGeneral" placeholder="Anotaciones libres, recordatorios, condiciones de pago, contactos de proveedores..." ' +
+        'style="width:100%;min-height:160px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:DM Sans,sans-serif;font-size:13px;padding:12px;resize:vertical;outline:none;line-height:1.6;" ' +
+        'oninput="scheduleNotaGenSave(this.value)">'+notaGen+'</textarea>' +
+        '</div></div>';
+}
+
+function editProvNombre(idx){
+    var pv = S.proveedores[idx];
+    var nombre = prompt('Nombre del proveedor:', pv.nombre);
+    if(!nombre) return;
+    pv.nombre = nombre.trim();
+    setSaveStatus('saving');
+    var p = pv.id
+        ? sb.from('obra_proveedores').update({nombre:pv.nombre}).eq('id',pv.id)
+        : sb.from('obra_proveedores').insert({nombre:pv.nombre, posicion:idx});
+    p.then(function(res){
+        if(!pv.id && res.data && res.data[0]) pv.id = res.data[0].id;
+        setSaveStatus('ok','Guardado');
+        renderNotas();
+    });
+}
+
+async function updateNotaVal(id, valIdx, raw){
+    var n = S.notas.find(function(x){ return x.id===id; });
+    if(!n) return;
+    var v = parseFloat(raw)||0;
+    var field = ['val1','val2','val3'][valIdx];
+    if(valIdx===0) n.val1=v; else if(valIdx===1) n.val2=v; else n.val3=v;
+    var upd = {}; upd[field]=v;
+    setSaveStatus('saving');
+    var res = await sb.from('obra_notas').update(upd).eq('id',id);
+    setSaveStatus(res.error?'error':'ok', res.error?'Error':'Guardado');
+    // re-render solo para actualizar stars y totales sin perder focus
+    renderNotas();
+}
+
+function openNewNota(){
+    editNotaId = null;
+    document.getElementById('mNotaTitle') && (document.getElementById('mNotaTitle').textContent='Nueva fila');
+    document.getElementById('nDesc').value='';
+    document.getElementById('nNota').value='';
+    document.getElementById('nCat').value='';
+    document.getElementById('nVal1').value='';
+    document.getElementById('nVal2').value='';
+    document.getElementById('nVal3').value='';
+    openModal('modalNota');
+}
+function openEditNota(id){
+    editNotaId = id;
+    var n = S.notas.find(function(x){ return x.id===id; });
+    document.getElementById('mNotaTitle').textContent='Editar fila';
+    document.getElementById('nDesc').value = n.desc;
+    document.getElementById('nNota').value = n.nota||'';
+    document.getElementById('nCat').value  = n.categoria||'';
+    document.getElementById('nVal1').value = n.val1||'';
+    document.getElementById('nVal2').value = n.val2||'';
+    document.getElementById('nVal3').value = n.val3||'';
+    openModal('modalNota');
+}
+async function saveNota(){
+    var desc = document.getElementById('nDesc').value.trim();
+    if(!desc){ alert('Ingresá una descripción.'); return; }
+    var payload = {
+        descripcion: desc,
+        nota: document.getElementById('nNota').value.trim(),
+        categoria: document.getElementById('nCat').value.trim(),
+        val1: parseFloat(document.getElementById('nVal1').value)||0,
+        val2: parseFloat(document.getElementById('nVal2').value)||0,
+        val3: parseFloat(document.getElementById('nVal3').value)||0,
+        orden: editNotaId ? (S.notas.find(function(x){return x.id===editNotaId;})||{orden:0}).orden : S.notas.length
+    };
+    setSaveStatus('saving');
+    var res = editNotaId
+        ? await sb.from('obra_notas').update(payload).eq('id',editNotaId)
+        : await sb.from('obra_notas').insert(payload);
+    if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
+    setSaveStatus('ok','Guardado');
+    closeModal('modalNota');
+    await loadAllData();
+    renderNotas();
+}
+async function deleteNota(id){
+    if(!confirm('Eliminar esta fila?')) return;
+    setSaveStatus('saving');
+    var res = await sb.from('obra_notas').delete().eq('id',id);
+    if(res.error){ setSaveStatus('error'); return; }
+    setSaveStatus('ok','Guardado');
+    await loadAllData();
+    renderNotas();
+}
+var notaGenTimer = null;
+function scheduleNotaGenSave(val){
+    S.notaGeneral = val;
+    clearTimeout(notaGenTimer);
+    notaGenTimer = setTimeout(function(){ saveNotaGeneral(val); }, 800);
+}
+async function saveNotaGeneral(val){
+    setSaveStatus('saving');
+    var res = await sb.from('obra_config').update({nota_general:val}).eq('id','main');
+    setSaveStatus(res.error?'error':'ok', res.error?'Error':'Guardado');
+}
+
+// ═══════════════════════════════════════
 // PAGE: CONFIG
 // ═══════════════════════════════════════
 function renderConfig(){
@@ -1480,8 +1711,8 @@ function makeDraggable(listId, arr, renderFn, dbTable){
 // NAVIGATION
 // ═══════════════════════════════════════
 var curPage = 'resumen';
-var PAGE_TITLES = {resumen:'Resumen general',etapas:'Etapas de obra',pagos:'Pagos',balance:'Balance personal',config:'Configuración'};
-var PAGE_ORDER  = ['resumen','etapas','pagos','balance','config'];
+var PAGE_TITLES = {resumen:'Resumen general',etapas:'Etapas de obra',pagos:'Pagos',balance:'Balance personal',notas:'Notas / Presupuestos',config:'Configuración'};
+var PAGE_ORDER  = ['resumen','etapas','pagos','balance','notas','config'];
 
 function goTo(page){
     curPage=page;
@@ -1499,6 +1730,7 @@ function renderCurrent(){
     else if(curPage==='rubros') renderRubros();
     else if(curPage==='pagos') renderPagos();
     else if(curPage==='balance') renderBalance();
+    else if(curPage==='notas') renderNotas();
     else if(curPage==='config') renderConfig();
     renderAlerts();
     updateSidebar();
