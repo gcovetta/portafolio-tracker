@@ -232,6 +232,56 @@
     </div>
 </div>
 
+<!-- MODAL PAGO PARCIAL -->
+<div class="modal-overlay" id="modalPagoParcial">
+    <div class="modal">
+        <div class="modal-hdr">
+            <div>
+                <h3 id="ppTitle">Pago parcial</h3>
+                <div style="font-size:11px;color:var(--text3);margin-top:2px;">Saldo actual: <span id="ppSaldo" style="color:var(--amber);font-weight:600;"></span> <span id="ppSaldoUSD" style="color:var(--text3);"></span></div>
+            </div>
+            <button class="btn btn-sm" onclick="closeModal('modalPagoParcial')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-row">
+                <div class="fg">
+                    <label style="display:flex;align-items:center;justify-content:space-between;">
+                        Monto a pagar
+                        <div style="display:flex;border:1px solid var(--border2);border-radius:4px;overflow:hidden;font-size:11px;">
+                            <button onclick="setPPMoneda('USD')" style="padding:2px 8px;border:none;cursor:pointer;background:var(--blue-dim);color:var(--blue);font-weight:600;font-family:DM Sans,sans-serif;font-size:11px;">USD</button>
+                            <button onclick="setPPMoneda('ARS')" style="padding:2px 8px;border:none;cursor:pointer;background:var(--surface3);color:var(--text3);font-family:DM Sans,sans-serif;font-size:11px;">ARS</button>
+                        </div>
+                    </label>
+                    <div class="amt-wrap">
+                        <input type="number" id="ppMonto" placeholder="0" min="0" oninput="calcPreviewPP()">
+                        <span class="amt-tag" id="ppMonedaTag">USD</span>
+                    </div>
+                </div>
+                <div class="fg" style="justify-content:flex-end;">
+                    <label>Equivalente USD</label>
+                    <div id="ppPreview" style="height:36px;display:flex;align-items:center;font-family:DM Mono,monospace;font-size:15px;font-weight:600;color:var(--blue);">—</div>
+                </div>
+            </div>
+            <div id="fgPPCotizacion" class="form-row" style="display:none;">
+                <div class="fg">
+                    <label>Cotización dólar ese día ($/USD)</label>
+                    <div class="amt-wrap"><input type="number" id="ppCotizacion" placeholder="Ej: 1430" min="1" oninput="calcPreviewPP()"><span class="amt-tag">$/USD</span></div>
+                </div>
+                <div class="fg"></div>
+            </div>
+            <div style="padding:10px 12px;background:var(--purple-dim);border:1px solid rgba(167,139,250,.2);border-radius:var(--radius-sm);font-size:12px;color:var(--purple);">
+                💡 Se descuenta del saldo pendiente y se registra un nuevo pago "pagado" por el monto ingresado.
+            </div>
+            <input type="hidden" id="ppId">
+            <input type="hidden" id="ppMoneda" value="USD">
+        </div>
+        <div class="modal-ftr">
+            <button class="btn" onclick="closeModal('modalPagoParcial')">Cancelar</button>
+            <button class="btn" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);" onclick="savePagoParcial()">Registrar pago parcial</button>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL PAGO -->
 <div class="modal-overlay" id="modalPago">
     <div class="modal">
@@ -487,7 +537,7 @@ async function loadAllData() {
         }
         return obj;
     });
-    S.deudas   = (deudas.data||[]).map(function(x){ return {id:x.id, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd, cuotas:x.cuotas, pagadas:x.pagadas, fechaInicio:x.fecha_inicio}; });
+    S.deudas   = (deudas.data||[]).map(function(x){ return {id:x.id, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd, cuotas:x.cuotas, pagadas:x.pagadas, fechaInicio:x.fecha_inicio, proyectado:x.proyectado||false}; });
     S.ajustes  = (ajustes.data||[]).map(function(x){ return {id:x.id, fecha:x.fecha, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd}; });
     S.notas = (notas.data||[]).map(function(x){ return {id:x.id, categoria:x.categoria||'', desc:x.descripcion||'', nota:x.nota||'', val1:x.val1||0, val2:x.val2||0, val3:x.val3||0, qty:x.qty||1, checked:x.checked||false, orden:x.orden||0, _expanded:false}; });
     S.proveedores = (proveedores.data||[]).length > 0
@@ -962,6 +1012,7 @@ function renderPagos(){
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><span class="badge '+p.estado+'">'+p.estado+'</span></td>' +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;gap:3px;">' +
                     '<button class="btn btn-sm btn-green" onclick="marcarPagado('+p.id+')" title="Marcar pagado">✓</button>' +
+                    '<button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);" onclick="openPagoParcial('+p.id+')" title="Pago parcial">$−</button>' +
                     '<button class="btn btn-sm" onclick="openEditPago('+p.id+')">✎</button>' +
                     '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>' +
                     '</div></td></tr>';
@@ -1183,6 +1234,84 @@ async function savePago(){
 
     setSaveStatus('ok','Guardado'); closeModal('modalPago'); await loadAllData(); renderPagos(); renderAlerts(); updateSidebar();
 }
+function openPagoParcial(id){
+    var p = S.pagos.find(function(x){ return x.id===id; });
+    if(!p) return;
+    document.getElementById('ppTitle').textContent = p.desc || 'Pago parcial';
+    document.getElementById('ppSaldo').textContent = fmtMain(p.montoARS);
+    document.getElementById('ppSaldoUSD').textContent = 'U$S ' + Math.round(p.montoUSD).toLocaleString('es-AR');
+    document.getElementById('ppId').value = id;
+    document.getElementById('ppMonedaTag').textContent = 'USD';
+    document.getElementById('ppMonto').value = '';
+    document.getElementById('ppCotizacion').value = '';
+    document.getElementById('ppPreview').textContent = '—';
+    document.getElementById('fgPPCotizacion').style.display = 'none';
+    document.getElementById('ppMoneda').value = 'USD';
+    openModal('modalPagoParcial');
+}
+function setPPMoneda(m){
+    document.getElementById('ppMoneda').value = m;
+    document.getElementById('ppMonedaTag').textContent = m;
+    document.getElementById('fgPPCotizacion').style.display = m==='ARS' ? 'grid' : 'none';
+    calcPreviewPP();
+}
+function calcPreviewPP(){
+    var m = document.getElementById('ppMoneda').value;
+    var monto = parseFloat(document.getElementById('ppMonto').value)||0;
+    var el = document.getElementById('ppPreview');
+    if(m==='ARS'){
+        var cot = parseFloat(document.getElementById('ppCotizacion').value)||0;
+        el.textContent = (monto>0&&cot>0) ? 'U$S '+Math.round(monto/cot).toLocaleString('es-AR') : '—';
+    } else {
+        el.textContent = monto>0 ? 'U$S '+Math.round(monto).toLocaleString('es-AR') : '—';
+    }
+}
+async function savePagoParcial(){
+    var id = parseInt(document.getElementById('ppId').value);
+    var p  = S.pagos.find(function(x){ return x.id===id; });
+    if(!p) return;
+    var m = document.getElementById('ppMoneda').value;
+    var rawInput = parseFloat(document.getElementById('ppMonto').value);
+    if(!rawInput||rawInput<=0){ alert('Ingresá un monto válido.'); return; }
+
+    var pagoUSD;
+    if(m==='ARS'){
+        var cot = parseFloat(document.getElementById('ppCotizacion').value);
+        if(!cot){ alert('Ingresá la cotización del dólar.'); return; }
+        pagoUSD = rawInput / cot;
+    } else {
+        pagoUSD = rawInput;
+    }
+
+    if(pagoUSD > p.montoUSD + 0.01){
+        alert('El pago parcial (U$S '+Math.round(pagoUSD).toLocaleString('es-AR')+') supera el saldo pendiente (U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+').');
+        return;
+    }
+
+    setSaveStatus('saving');
+    var nuevoSaldoUSD = Math.max(0, p.montoUSD - pagoUSD);
+    var nuevoEstado   = nuevoSaldoUSD < 0.01 ? 'pagado' : p.estado;
+    var res = await sb.from('obra_pagos').update({monto_usd: nuevoSaldoUSD, estado: nuevoEstado}).eq('id', id);
+    if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
+
+    // Registrar el pago parcial como nuevo pago pagado
+    var fechaHoy = new Date().toISOString().split('T')[0];
+    var descParcial = (p.desc||'Pago') + ' — parcial';
+    await sb.from('obra_pagos').insert({
+        fecha: fechaHoy,
+        etapa_id: p.etapaId,
+        descripcion: descParcial,
+        monto_usd: pagoUSD,
+        estado: 'pagado'
+    });
+
+    setSaveStatus('ok', nuevoEstado==='pagado'?'Saldo cancelado':'Pago parcial guardado');
+    closeModal('modalPagoParcial');
+    await loadAllData();
+    renderPagos();
+    renderAlerts();
+    updateSidebar();
+}
 async function marcarPagado(id){ setSaveStatus('saving'); var res=await sb.from('obra_pagos').update({estado:'pagado'}).eq('id',id); if(res.error){ setSaveStatus('error'); return; } setSaveStatus('ok','Guardado'); await loadAllData(); renderPagos(); renderAlerts(); updateSidebar(); }
 async function deletePago(id){ if(!confirm('Eliminar este pago?')) return; setSaveStatus('saving'); var res=await sb.from('obra_pagos').delete().eq('id',id); if(res.error){ setSaveStatus('error'); return; } setSaveStatus('ok','Guardado'); await loadAllData(); renderPagos(); renderAlerts(); updateSidebar(); }
 
@@ -1252,13 +1381,20 @@ function renderBalance() {
     // filas deudas
     var deuRows = S.deudas.map(function(x){
         var sal=x.montoARS*(x.cuotas-x.pagadas)/x.cuotas, pp=Math.round(x.pagadas/x.cuotas*100);
-        return '<tr>' +
-            '<td style="padding:9px 14px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:500;">'+x.desc+'</div>' +
+        var esProy = !!x.proyectado;
+        var rowStyle = esProy ? 'background:repeating-linear-gradient(135deg,transparent,transparent 5px,rgba(167,139,250,.05) 5px,rgba(167,139,250,.05) 10px);opacity:.85;' : '';
+        var bdStyle  = esProy ? '1px dashed rgba(167,139,250,.4)' : '1px solid var(--border)';
+        var TD = 'padding:9px 14px;border-bottom:'+bdStyle+';';
+        return '<tr style="'+rowStyle+'">' +
+            '<td style="'+TD+'"><div style="display:flex;align-items:flex-start;gap:7px;">' +
+            (esProy?'<span style="flex-shrink:0;margin-top:2px;font-size:10px;padding:1px 6px;border-radius:20px;background:var(--purple-dim);color:var(--purple);border:1px dashed rgba(167,139,250,.5);font-weight:600;white-space:nowrap;">proyectado</span>':'') +
+            '<div><div style="font-size:13px;font-weight:500;">'+x.desc+'</div>' +
             '<div style="font-size:11px;color:var(--text3);">'+x.pagadas+'/'+x.cuotas+' cuotas · inicio '+(x.fechaInicio||'—')+'</div>' +
-            '<div style="height:3px;background:var(--surface3);border-radius:2px;overflow:hidden;margin-top:5px;width:120px;"><div style="height:100%;width:'+pp+'%;background:'+(pp===100?'var(--green)':'var(--red)')+';border-radius:2px;"></div></div></td>' +
-            '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center;font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+pp+'%</td>' +
-            '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--red);">'+fmtUSD(sal)+'</td>' +
-            '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;"><div style="display:flex;gap:4px;justify-content:flex-end;">' +
+            '<div style="height:3px;background:var(--surface3);border-radius:2px;overflow:hidden;margin-top:5px;width:120px;"><div style="height:100%;width:'+pp+'%;background:'+(pp===100?'var(--green)':esProy?'var(--purple)':'var(--red)')+';border-radius:2px;"></div></div>' +
+            '</div></div></td>' +
+            '<td style="'+TD+'text-align:center;font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+pp+'%</td>' +
+            '<td style="'+TD+'text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:'+(esProy?'var(--purple)':'var(--red)')+';">'+fmtUSD(sal)+'</td>' +
+            '<td style="'+TD+'text-align:right;"><div style="display:flex;gap:4px;justify-content:flex-end;">' +
             '<button class="btn btn-sm btn-green" onclick="pagarCuota('+x.id+')" title="Pagar cuota">✓</button>' +
             '<button class="btn btn-sm" onclick="openEditBal(\'deuda\','+x.id+')">✎</button>' +
             '<button class="btn btn-sm btn-danger" onclick="deleteBal(\'deuda\','+x.id+')">✕</button>' +
@@ -1384,7 +1520,7 @@ async function toggleRealizado(id){ var x=S.ingresos.find(function(i){ return i.
 async function pagarCuota(id){ var d=S.deudas.find(function(x){ return x.id===id; }); if(!d||d.pagadas>=d.cuotas){ alert('Todas las cuotas ya pagadas.'); return; } d.pagadas++; setSaveStatus('saving'); var res=await sb.from('obra_deudas').update({pagadas:d.pagadas}).eq('id',id); setSaveStatus(res.error?'error':'ok',res.error?'Error':'Guardado'); renderBalance(); }
 
 function openNewBal(type){ S.editBalType=type; S.editBalId=null; document.getElementById('mBalTitle').textContent={ingreso:'Nuevo ingreso',deuda:'Nueva deuda',ajuste:'Nueva resta'}[type]; document.getElementById('mBalBody').innerHTML=buildBalFields(type,null); openModal('modalBalance'); }
-function openEditBal(type,id){ S.editBalType=type; S.editBalId=id; var arr=type==='ingreso'?S.ingresos:type==='deuda'?S.deudas:S.ajustes; var item=arr.find(function(x){ return x.id===id; }); document.getElementById('mBalTitle').textContent={ingreso:'Editar ingreso',deuda:'Editar deuda',ajuste:'Editar ajuste'}[type]; document.getElementById('mBalBody').innerHTML=buildBalFields(type,item); if(item){ document.getElementById('bMonto').value=Math.round(item.montoUSD); if(type==='ingreso'){ document.getElementById('bFecha').value=item.fecha; document.getElementById('bDesc').value=item.desc; var rc=document.getElementById('bRealizado'); if(rc) rc.checked=!!item.realizado; var rp=document.getElementById('bPeriod'); if(rp){ rp.value=item.periodicidad||'unico'; toggleModoIngreso(); } var rfh=document.getElementById('bFechaHasta'); if(rfh) rfh.value=item.fechaHasta||''; var rnc=document.getElementById('bNCuotas'); if(rnc) rnc.value=item.nCuotas||''; } else if(type==='ajuste'){ document.getElementById('bFecha').value=item.fecha; document.getElementById('bDesc').value=item.desc; } else { document.getElementById('bDesc').value=item.desc; document.getElementById('bCuotas').value=item.cuotas; document.getElementById('bPagadas').value=item.pagadas; var fd=document.getElementById('bFechaDeuda'); if(fd) fd.value=item.fechaInicio||new Date().toISOString().split('T')[0]; } } openModal('modalBalance'); }
+function openEditBal(type,id){ S.editBalType=type; S.editBalId=id; var arr=type==='ingreso'?S.ingresos:type==='deuda'?S.deudas:S.ajustes; var item=arr.find(function(x){ return x.id===id; }); document.getElementById('mBalTitle').textContent={ingreso:'Editar ingreso',deuda:'Editar deuda',ajuste:'Editar ajuste'}[type]; document.getElementById('mBalBody').innerHTML=buildBalFields(type,item); if(item){ document.getElementById('bMonto').value=Math.round(item.montoUSD); if(type==='ingreso'){ document.getElementById('bFecha').value=item.fecha; document.getElementById('bDesc').value=item.desc; var rc=document.getElementById('bRealizado'); if(rc) rc.checked=!!item.realizado; var rp=document.getElementById('bPeriod'); if(rp){ rp.value=item.periodicidad||'unico'; toggleModoIngreso(); } var rfh=document.getElementById('bFechaHasta'); if(rfh) rfh.value=item.fechaHasta||''; var rnc=document.getElementById('bNCuotas'); if(rnc) rnc.value=item.nCuotas||''; } else if(type==='ajuste'){ document.getElementById('bFecha').value=item.fecha; document.getElementById('bDesc').value=item.desc; } else { document.getElementById('bDesc').value=item.desc; document.getElementById('bCuotas').value=item.cuotas; document.getElementById('bPagadas').value=item.pagadas; var fd=document.getElementById('bFechaDeuda'); if(fd) fd.value=item.fechaInicio||new Date().toISOString().split('T')[0]; var fp=document.getElementById('bProyectado'); if(fp) fp.checked=!!item.proyectado; } } openModal('modalBalance'); }
 
 function buildBalFields(type,item){
     var amtField='<div class="fg"><label>Monto por cuota (U$S)</label><div class="amt-wrap"><input type="number" id="bMonto" placeholder="0" min="0"><span class="amt-tag">USD</span></div></div>';
@@ -1403,7 +1539,11 @@ function buildBalFields(type,item){
             +'<div style="display:flex;align-items:center;gap:10px;margin-top:4px;padding:10px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);"><input type="checkbox" id="bRealizado" '+chk+' style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0;"><label for="bRealizado" style="font-size:13px;cursor:pointer;user-select:none;">Ya fue <strong style="color:var(--green)">acreditado</strong> (primera cuota)</label></div>';
     }
     if(type==='ajuste') return '<div class="form-row"><div class="fg"><label>Fecha</label><input type="date" id="bFecha" value="'+new Date().toISOString().split('T')[0]+'"></div>'+amtField+'</div><div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="bDesc" placeholder="Ej: Gastos varios"></div></div>';
-    return '<div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="bDesc" placeholder="Ej: Prestamo banco"></div></div><div class="form-row"><div class="fg"><label>Fecha inicio</label><input type="date" id="bFechaDeuda" value="'+new Date().toISOString().split('T')[0]+'"></div>'+amtField+'</div><div class="form-row"><div class="fg"><label>Total cuotas</label><input type="number" id="bCuotas" min="1" value="1"></div><div class="fg"><label>Cuotas pagadas</label><input type="number" id="bPagadas" min="0" value="0"></div></div>';
+    return '<div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="bDesc" placeholder="Ej: Prestamo banco"></div></div><div class="form-row"><div class="fg"><label>Fecha inicio</label><input type="date" id="bFechaDeuda" value="'+new Date().toISOString().split('T')[0]+'"></div>'+amtField+'</div><div class="form-row"><div class="fg"><label>Total cuotas</label><input type="number" id="bCuotas" min="1" value="1"></div><div class="fg"><label>Cuotas pagadas</label><input type="number" id="bPagadas" min="0" value="0"></div></div>' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-top:4px;padding:10px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);">' +
+        '<input type="checkbox" id="bProyectado" style="width:16px;height:16px;accent-color:var(--purple);cursor:pointer;flex-shrink:0;">' +
+        '<label for="bProyectado" style="font-size:13px;cursor:pointer;user-select:none;">Es un gasto <strong style="color:var(--purple)">proyectado</strong> (aún no confirmado) — se muestra con línea punteada</label>' +
+        '</div>';
 }
 function toggleFechaHasta(){ toggleModoIngreso(); }
 function toggleModoIngreso(){
@@ -1446,7 +1586,8 @@ async function saveBalanceItem(){
         res = S.editBalId ? await sb.from('obra_ajustes').update(p2).eq('id',S.editBalId) : await sb.from('obra_ajustes').insert(p2);
     } else {
         var cuotas=parseInt(document.getElementById('bCuotas').value)||1, pagadas=Math.min(parseInt(document.getElementById('bPagadas').value)||0,cuotas), fechaD=document.getElementById('bFechaDeuda').value||new Date().toISOString().split('T')[0];
-        var p3={descripcion:desc,monto_usd:raw,cuotas:cuotas,pagadas:pagadas,fecha_inicio:fechaD};
+        var proyectado=!!(document.getElementById('bProyectado')&&document.getElementById('bProyectado').checked);
+        var p3={descripcion:desc,monto_usd:raw,cuotas:cuotas,pagadas:pagadas,fecha_inicio:fechaD,proyectado:proyectado};
         res = S.editBalId ? await sb.from('obra_deudas').update(p3).eq('id',S.editBalId) : await sb.from('obra_deudas').insert(p3);
     }
     if(res&&res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
