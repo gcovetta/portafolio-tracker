@@ -926,9 +926,14 @@ function renderPagos(){
     var _rubroPalette = ['#4C8EF5','#3ECF8E','#A78BFA','#F5A623','#F56565','#38BDF8','#FB923C','#A3E635','#E879F9','#34D399'];
     function _sumusd(pagos, fn){ return Math.round(pagos.filter(fn).reduce(function(s,p){return s+p.montoUSD;},0)); }
 
-    // 1. Todos los rubros
+    // 1. Todos los rubros excepto MO y Materiales (que tienen gráfico propio)
     var _allRubros = [];
-    S.pagos.forEach(function(p){ var r=(p.rubro||'Sin rubro').trim(); if(_allRubros.indexOf(r)<0) _allRubros.push(r); });
+    S.pagos.forEach(function(p){
+        var r=(p.rubro||'Sin rubro').trim();
+        var rl=r.toLowerCase();
+        if(rl.indexOf('mano')>=0||rl==='mo'||rl.indexOf('material')>=0) return;
+        if(_allRubros.indexOf(r)<0) _allRubros.push(r);
+    });
     _allRubros.sort();
 
     // 2. Filtro MO: rubro que contenga "mano" (case-insensitive)
