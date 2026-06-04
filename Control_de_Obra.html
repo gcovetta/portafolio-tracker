@@ -521,7 +521,7 @@ async function loadAllData() {
         S.calc.total      = cfg.data.calc_tot != null ? String(cfg.data.calc_tot) : '';
         S.calc.m2         = cfg.data.calc_m2  != null ? String(cfg.data.calc_m2)  : '';
     }
-    S.pagos    = (pagos.data||[]).map(function(p){ var tieneARS=p.monto_ars!=null&&p.monto_ars>0; return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, rubro:p.rubro||'', desc:p.descripcion, montoUSD:p.monto_usd, montoARS:tieneARS?p.monto_ars:(p.monto_usd*S.tcn), montoARSoriginal:tieneARS?p.monto_ars:null, cotizacion:p.cotizacion||null, estado:p.estado}; });
+    S.pagos    = (pagos.data||[]).map(function(p){ var tieneARS=p.monto_ars!=null&&p.monto_ars>0; return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, rubro:p.rubro||'', desc:p.descripcion, montoUSD:p.monto_usd, montoARS:tieneARS?p.monto_ars:(p.monto_usd*S.tcn), montoARSoriginal:tieneARS?p.monto_ars:null, cotizacion:p.cotizacion||null, estado:p.estado, cuotas:p.cuotas||null, cuotasPagadas:p.cuotas_pagadas||0}; });
     S.etapas   = (etapas.data||[]).map(function(e){
         var fi=e.fecha_ini||'', ff=e.fecha_fin||'';
         var dias=e.dias||0;
@@ -873,6 +873,21 @@ async function deleteEtapa(id){
 var pagoFilter='todos', pagoSearch='';
 var chartPagos = null;
 
+function cuotasBar(p) {
+    if (!p.cuotas || p.cuotas <= 1) return '';
+    var pagadas = p.cuotasPagadas || 0;
+    var pct = Math.round(pagadas / p.cuotas * 100);
+    var restantes = p.cuotas - pagadas;
+    var barColor = pct === 100 ? 'var(--green)' : p.estado === 'vencido' ? 'var(--red)' : 'var(--amber)';
+    return '<div style="margin-top:5px;display:flex;align-items:center;gap:6px;">' +
+        '<div style="flex:1;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;">' +
+        '<div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:2px;transition:width .3s;"></div>' +
+        '</div>' +
+        '<span style="font-size:10px;font-family:DM Mono,monospace;color:var(--text3);white-space:nowrap;">' +
+        pagadas+'/'+p.cuotas+(restantes>0?' · '+restantes+' pend.':'') +
+        '</span>' +
+        '</div>';
+}
 function arsCellHTML(p, color) {
     if (!p.montoARSoriginal) return '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;color:var(--text3);font-size:11px;">—</td>';
     return '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;">' +
@@ -990,7 +1005,7 @@ function renderPagos(){
             pagados.map(function(p){
                 var e=S.etapas.find(function(x){return x.id===p.etapaId;});
                 return '<tr><td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>' +
-                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div></div></td>' +
+                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div>'+cuotasBar(p)+'</div></td>' +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:var(--green);">U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+'</td>' +
                     arsCellHTML(p, 'var(--green)') +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;gap:3px;">' +
@@ -1016,7 +1031,7 @@ function renderPagos(){
                 var e=S.etapas.find(function(x){return x.id===p.etapaId;});
                 var pColor = p.estado==='vencido'?'var(--red)':'var(--amber)';
                 return '<tr><td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>' +
-                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div></div></td>' +
+                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div>'+cuotasBar(p)+'</div></td>' +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:'+pColor+';">U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+'</td>' +
                     arsCellHTML(p, pColor) +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><span class="badge '+p.estado+'">'+p.estado+'</span></td>' +
@@ -1224,7 +1239,9 @@ async function savePago(){
     setSaveStatus('saving');
     var cotizacionGuardar = (mPagoMoneda==='ARS') ? parseFloat(document.getElementById('mCotizacion').value)||null : null;
     var montoARSGuardar   = (mPagoMoneda==='ARS') ? montoARS : null;
-    var payload={fecha:fecha, rubro:rubro, descripcion:desc, monto_usd:montoUSD, monto_ars:montoARSGuardar, cotizacion:cotizacionGuardar, estado:estado};
+    var cuotasVal = (estado==='pendiente'||estado==='vencido') ? (parseInt(document.getElementById('mCuotas').value)||null) : null;
+    var cuotasPagVal = cuotasVal ? (parseInt(document.getElementById('mCuotasPagadas').value)||0) : null;
+    var payload={fecha:fecha, rubro:rubro, descripcion:desc, monto_usd:montoUSD, monto_ars:montoARSGuardar, cotizacion:cotizacionGuardar, estado:estado, cuotas:cuotasVal, cuotas_pagadas:cuotasPagVal};
     var res = S.editPagoId
         ? await sb.from('obra_pagos').update(payload).eq('id',S.editPagoId)
         : await sb.from('obra_pagos').insert(payload);
