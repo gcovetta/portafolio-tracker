@@ -973,20 +973,25 @@ function renderPagos(){
         '<div style="font-size:11px;color:var(--text3);margin-top:2px;">'+pendientes.length+' pago'+(pendientes.length!==1?'s':'')+'</div></div></div>' +
         '</div>' +
 
-        // Gráficos por etapa
-        '<div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:16px;align-items:start;">' +
-        // Gráfico principal (sin Casa General)
-        '<div class="card" style="margin-bottom:0;">' +
-        '<div class="card-hdr"><h3>Pagos por etapa</h3>' +
-        '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);">' +
+        // Leyenda compartida
+        '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);margin-bottom:10px;">' +
         '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.7);margin-right:4px;vertical-align:middle;"></span>Pagado</span>' +
-        '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,166,35,.6);margin-right:4px;vertical-align:middle;"></span>Pendiente</span>' +
-        '</div></div>' +
-        '<div class="card-body"><div style="position:relative;width:100%;height:200px;"><canvas id="chartPagosEtapa"></canvas></div></div></div>' +
-        // Gráfico Casa General
-        '<div class="card" style="margin-bottom:0;min-width:220px;">' +
-        '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Casa General</h3></div>' +
-        '<div class="card-body" style="padding:12px 14px;"><div style="position:relative;width:200px;height:200px;"><canvas id="chartPagosGrande"></canvas></div></div></div>' +
+        '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,166,35,.55);margin-right:4px;vertical-align:middle;"></span>Pendiente / Vencido</span>' +
+        '</div>' +
+        // 3 gráficos en fila
+        '<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:16px;align-items:start;">' +
+        // Gráfico 1: Por rubro
+        '<div class="card" style="margin-bottom:0;">' +
+        '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Por rubro</h3></div>' +
+        '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosRubro"></canvas></div></div></div>' +
+        // Gráfico 2: Mano de Obra
+        '<div class="card" style="margin-bottom:0;">' +
+        '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Mano de Obra</h3></div>' +
+        '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosMO"></canvas></div></div></div>' +
+        // Gráfico 3: Materiales
+        '<div class="card" style="margin-bottom:0;">' +
+        '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Materiales</h3></div>' +
+        '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosMat"></canvas></div></div></div>' +
         '</div>' +
 
         // Dos tablas lado a lado
@@ -1048,104 +1053,90 @@ function renderPagos(){
 
         '</div>'; // fin grid 2 col
 
-    // Separar Casa General del resto
-    var ETAPA_GRANDE = 'Casa general';
-    var labelsResto=[],colorsResto=[],pagResto=[],pendResto=[];
-    chartLabels.forEach(function(l,i){
-        if(l!==ETAPA_GRANDE){
-            labelsResto.push(l); colorsResto.push(chartColors[i]);
-            pagResto.push(chartPagData[i]); pendResto.push(chartPendData[i]);
-        }
-    });
-
-    // Para Casa General: agrupar por descripcion
-    var etapaG = S.etapas.find(function(e){ return e.nombre===ETAPA_GRANDE; });
-    var pagosG = etapaG ? S.pagos.filter(function(p){ return p.etapaId===etapaG.id; }) : [];
-    var descsG = [];
-    pagosG.forEach(function(p){ if(descsG.indexOf(p.desc)===-1) descsG.push(p.desc); });
-    var pagGrandeData  = descsG.map(function(d){ return Math.round(pagosG.filter(function(p){ return p.desc===d&&p.estado==='pagado'; }).reduce(function(s,p){return s+p.montoARS;},0)/S.tcn); });
-    var pendGrandeData = descsG.map(function(d){ return Math.round(pagosG.filter(function(p){ return p.desc===d&&p.estado!=='pagado'; }).reduce(function(s,p){return s+p.montoARS;},0)/S.tcn); });
-    var colorG = etapaG ? etapaG.color : '#F5A623';
-
-    if(chartPagos) { chartPagos.destroy(); chartPagos=null; }
-    if(window.chartPagosG) { window.chartPagosG.destroy(); window.chartPagosG=null; }
-
-    // Gráfico principal — colores por etapa en dataset pagado, ámbar fijo en pendiente
-    var ctxResto = document.getElementById('chartPagosEtapa');
-    if(ctxResto && labelsResto.length){
-        chartPagos = new Chart(ctxResto.getContext('2d'),{
+    // ── Helpers ──────────────────────────────────────────────────
+    function chartOpts(labels, pagData, pendData, colors) {
+        var bgPag  = Array.isArray(colors) ? colors.map(function(c){return c+'99';}) : colors+'99';
+        var brPag  = colors;
+        return {
             type:'bar',
-            data:{
-                labels: labelsResto,
-                datasets:[
-                    {
-                        label:'Pagado',
-                        data: pagResto,
-                        backgroundColor: colorsResto.map(function(c){return c+'99';}),
-                        borderColor: colorsResto,
-                        borderWidth: 2,
-                        borderRadius: 4,
-                        borderSkipped: false
-                    },
-                    {
-                        label:'Pendiente',
-                        data: pendResto,
-                        backgroundColor: 'rgba(245,166,35,.3)',
-                        borderColor: '#F5A623',
-                        borderWidth: 2,
-                        borderRadius: 4,
-                        borderSkipped: false
-                    }
-                ]
-            },
+            data:{ labels:labels, datasets:[
+                {label:'Pagado',    data:pagData,  backgroundColor:bgPag, borderColor:brPag, borderWidth:2, borderRadius:4, borderSkipped:false},
+                {label:'Pendiente', data:pendData, backgroundColor:'rgba(245,166,35,.35)', borderColor:'#F5A623', borderWidth:2, borderRadius:4, borderSkipped:false}
+            ]},
             options:{
                 responsive:true, maintainAspectRatio:false,
                 plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(v){return v.dataset.label+': U$S '+Math.round(v.raw).toLocaleString('es-AR');}}}},
                 scales:{
-                    x:{ticks:{color:'#565C7A',font:{size:11}},grid:{color:'rgba(255,255,255,.03)'}},
-                    y:{ticks:{color:'#565C7A',font:{size:10},callback:function(v){var a=Math.abs(v);return a>=1000?'U$S '+(a/1000).toFixed(0)+'k':'U$S '+Math.round(a);}},grid:{color:'rgba(255,255,255,.04)'}}
+                    x:{ticks:{color:'#565C7A',font:{size:10},maxRotation:40,autoSkip:false}, grid:{color:'rgba(255,255,255,.03)'}},
+                    y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){var a=Math.abs(v);return a>=1000?'U$S '+(a/1000).toFixed(0)+'k':'U$S '+Math.round(a);}}, grid:{color:'rgba(255,255,255,.04)'}}
                 }
             }
-        });
+        };
     }
 
-    // Gráfico Casa General — por descripción de pago
-    var ctxGrande = document.getElementById('chartPagosGrande');
-    if(ctxGrande && descsG.length){
-        window.chartPagosG = new Chart(ctxGrande.getContext('2d'),{
-            type:'bar',
-            data:{
-                labels: descsG,
-                datasets:[
-                    {
-                        label:'Pagado',
-                        data: pagGrandeData,
-                        backgroundColor: colorG+'99',
-                        borderColor: colorG,
-                        borderWidth: 2,
-                        borderRadius: 4,
-                        borderSkipped: false
-                    },
-                    {
-                        label:'Pendiente',
-                        data: pendGrandeData,
-                        backgroundColor: 'rgba(245,166,35,.3)',
-                        borderColor: '#F5A623',
-                        borderWidth: 2,
-                        borderRadius: 4,
-                        borderSkipped: false
-                    }
-                ]
-            },
-            options:{
-                responsive:true, maintainAspectRatio:false,
-                plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(v){return v.dataset.label+': U$S '+Math.round(v.raw).toLocaleString('es-AR');}}}},
-                scales:{
-                    x:{ticks:{color:'#565C7A',font:{size:11}},grid:{color:'rgba(255,255,255,.03)'}},
-                    y:{ticks:{color:'#565C7A',font:{size:10},callback:function(v){var a=Math.abs(v);return a>=1000?'U$S '+(a/1000).toFixed(0)+'k':'U$S '+Math.round(a);}},grid:{color:'rgba(255,255,255,.04)'}}
-                }
-            }
-        });
+    function sumUSD(arr, filtFn) {
+        return Math.round(arr.filter(filtFn).reduce(function(s,p){return s+p.montoUSD;},0));
+    }
+
+    // ── Gráfico 1: Por rubro ──────────────────────────────────────
+    var rubros = [];
+    S.pagos.forEach(function(p){ var r=p.rubro||'Sin rubro'; if(rubros.indexOf(r)<0) rubros.push(r); });
+    rubros.sort();
+    var rubroPag  = rubros.map(function(r){ return sumUSD(S.pagos, function(p){return (p.rubro||'Sin rubro')===r&&p.estado==='pagado';}); });
+    var rubroPend = rubros.map(function(r){ return sumUSD(S.pagos, function(p){return (p.rubro||'Sin rubro')===r&&p.estado!=='pagado';}); });
+    var rubroColors = ['#4C8EF5','#3ECF8E','#A78BFA','#F5A623','#F56565','#38BDF8','#FB923C','#A3E635','#E879F9','#34D399'];
+
+    // ── Gráfico 2: Mano de Obra (rubros que contienen "mano" o "mo") ──
+    var pagosMO = S.pagos.filter(function(p){
+        var r=(p.rubro||'').toLowerCase();
+        return r.indexOf('mano')>=0||r==='mo'||r.indexOf('mano de obra')>=0;
+    });
+    var descsMO = [];
+    pagosMO.forEach(function(p){ var d=p.desc||'Sin desc'; if(descsMO.indexOf(d)<0) descsMO.push(d); });
+    var moPag  = descsMO.map(function(d){ return sumUSD(pagosMO, function(p){return (p.desc||'Sin desc')===d&&p.estado==='pagado';}); });
+    var moPend = descsMO.map(function(d){ return sumUSD(pagosMO, function(p){return (p.desc||'Sin desc')===d&&p.estado!=='pagado';}); });
+
+    // ── Gráfico 3: Materiales ─────────────────────────────────────
+    var pagosMat = S.pagos.filter(function(p){
+        var r=(p.rubro||'').toLowerCase();
+        return r.indexOf('material')>=0||r.indexOf('mat.')>=0||r==='materiales';
+    });
+    var descsMat = [];
+    pagosMat.forEach(function(p){ var d=p.desc||'Sin desc'; if(descsMat.indexOf(d)<0) descsMat.push(d); });
+    var matPag  = descsMat.map(function(d){ return sumUSD(pagosMat, function(p){return (p.desc||'Sin desc')===d&&p.estado==='pagado';}); });
+    var matPend = descsMat.map(function(d){ return sumUSD(pagosMat, function(p){return (p.desc||'Sin desc')===d&&p.estado!=='pagado';}); });
+
+    // ── Destruir charts previos ───────────────────────────────────
+    if(chartPagos) { chartPagos.destroy(); chartPagos=null; }
+    if(window.chartPagosG)  { window.chartPagosG.destroy();  window.chartPagosG=null; }
+    if(window.chartPagosMO) { window.chartPagosMO.destroy(); window.chartPagosMO=null; }
+    if(window.chartPagosMat){ window.chartPagosMat.destroy();window.chartPagosMat=null; }
+
+    // Render gráfico 1
+    var ctx1 = document.getElementById('chartPagosRubro');
+    if(ctx1 && rubros.length){
+        var cols1 = rubros.map(function(_,i){ return rubroColors[i%rubroColors.length]; });
+        chartPagos = new Chart(ctx1.getContext('2d'), chartOpts(rubros, rubroPag, rubroPend, cols1));
+    }
+
+    // Render gráfico 2 — Mano de Obra
+    var ctx2 = document.getElementById('chartPagosMO');
+    if(ctx2){
+        if(descsMO.length){
+            window.chartPagosMO = new Chart(ctx2.getContext('2d'), chartOpts(descsMO, moPag, moPend, '#A78BFA'));
+        } else {
+            ctx2.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:12px;">Sin pagos de Mano de Obra</div>';
+        }
+    }
+
+    // Render gráfico 3 — Materiales
+    var ctx3 = document.getElementById('chartPagosMat');
+    if(ctx3){
+        if(descsMat.length){
+            window.chartPagosMat = new Chart(ctx3.getContext('2d'), chartOpts(descsMat, matPag, matPend, '#3ECF8E'));
+        } else {
+            ctx3.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:12px;">Sin pagos de Materiales</div>';
+        }
     }
 }
 // Moneda activa en modal pago
