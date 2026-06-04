@@ -932,9 +932,9 @@ function renderPagos(){
     _allRubros.sort();
 
     // 2. Filtro MO: rubro que contenga "mano" (case-insensitive)
-    var _pagosMO  = S.pagos.filter(function(p){ return (p.rubro||'').toLowerCase().indexOf('mano')>=0; });
+    var _pagosMO  = S.pagos.filter(function(p){ var r=(p.rubro||'').toLowerCase().trim(); return r.indexOf('mano')>=0||r==='mo'; });
     // 3. Filtro Mat: rubro que contenga "material" (case-insensitive)
-    var _pagosMat = S.pagos.filter(function(p){ return (p.rubro||'').toLowerCase().indexOf('material')>=0; });
+    var _pagosMat = S.pagos.filter(function(p){ var r=(p.rubro||'').toLowerCase().trim(); return r.indexOf('material')>=0; });
 
     // Grupos por descripcion para MO y Mat
     function _descsOf(pagos){ var d=[]; pagos.forEach(function(p){ var v=(p.desc||'Sin desc').trim(); if(d.indexOf(v)<0) d.push(v); }); return d; }
@@ -1151,9 +1151,12 @@ function renderPagos(){
     if(window.chartPagosMO) { window.chartPagosMO.destroy(); window.chartPagosMO=null; }
     if(window.chartPagosMat){ window.chartPagosMat.destroy();window.chartPagosMat=null; }
 
-    chartPagos          = buildChart(document.getElementById('chartPagosRubro'), _allRubros, _rubPag,  _rubPend,  _rubCols,  'Sin pagos registrados');
-    window.chartPagosMO = buildChart(document.getElementById('chartPagosMO'),    _descsMO,   _moPag,   _moPend,   '#A78BFA', 'Sin pagos de Mano de Obra');
-    window.chartPagosMat= buildChart(document.getElementById('chartPagosMat'),   _descsMat,  _matPag,  _matPend,  '#3ECF8E', 'Sin pagos de Materiales');
+    // Render después de que el DOM esté listo
+    setTimeout(function(){
+        chartPagos          = buildChart(document.getElementById('chartPagosRubro'), _allRubros, _rubPag,  _rubPend,  _rubCols,  'Sin pagos registrados');
+        window.chartPagosMO = buildChart(document.getElementById('chartPagosMO'),    _descsMO,   _moPag,   _moPend,   '#A78BFA', 'Sin pagos de Mano de Obra');
+        window.chartPagosMat= buildChart(document.getElementById('chartPagosMat'),   _descsMat,  _matPag,  _matPend,  '#3ECF8E', 'Sin pagos de Materiales');
+    }, 50);
 }
 // Moneda activa en modal pago
 var mPagoMoneda = 'USD';
