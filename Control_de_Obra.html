@@ -1389,7 +1389,30 @@ async function savePagoParcial(){
     renderAlerts();
     updateSidebar();
 }
-async function marcarPagado(id){ setSaveStatus('saving'); var res=await sb.from('obra_pagos').update({estado:'pagado'}).eq('id',id); if(res.error){ setSaveStatus('error'); return; } setSaveStatus('ok','Guardado'); await loadAllData(); renderPagos(); renderAlerts(); updateSidebar(); }
+async function marcarPagado(id){
+    var p = S.pagos.find(function(x){ return x.id===id; });
+    if(!p) return;
+    setSaveStatus('saving');
+    var payload;
+    if(p.cuotas && p.cuotas > 1){
+        // Pago con cuotas: sumar 1 cuota pagada
+        var nuevasPagadas = Math.min((p.cuotasPagadas||0) + 1, p.cuotas);
+        var nuevoEstado   = nuevasPagadas >= p.cuotas ? 'pagado' : p.estado;
+        payload = {cuotas_pagadas: nuevasPagadas, estado: nuevoEstado};
+        var msg = nuevasPagadas >= p.cuotas
+            ? 'Todas las cuotas pagadas ✓'
+            : 'Cuota '+nuevasPagadas+'/'+p.cuotas+' registrada';
+        var res = await sb.from('obra_pagos').update(payload).eq('id',id);
+        if(res.error){ setSaveStatus('error'); return; }
+        setSaveStatus('ok', msg);
+    } else {
+        // Pago simple: marcar pagado directamente
+        var res = await sb.from('obra_pagos').update({estado:'pagado'}).eq('id',id);
+        if(res.error){ setSaveStatus('error'); return; }
+        setSaveStatus('ok','Guardado');
+    }
+    await loadAllData(); renderPagos(); renderAlerts(); updateSidebar();
+}
 async function deletePago(id){ if(!confirm('Eliminar este pago?')) return; setSaveStatus('saving'); var res=await sb.from('obra_pagos').delete().eq('id',id); if(res.error){ setSaveStatus('error'); return; } setSaveStatus('ok','Guardado'); await loadAllData(); renderPagos(); renderAlerts(); updateSidebar(); }
 
 // ═══════════════════════════════════════
