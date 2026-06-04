@@ -921,14 +921,25 @@ function renderPagos(){
     var totalPag  = pagados.reduce(function(s,p){ return s+p.montoARS; },0);
     var totalPend = pendientes.reduce(function(s,p){ return s+p.montoARS; },0);
 
-    // --- Datos gráfico por etapa ---
-    var etapasConPagos = S.etapas.filter(function(e){
-        return S.pagos.some(function(p){ return p.etapaId===e.id; });
-    });
-    var chartLabels = etapasConPagos.map(function(e){ return e.nombre; });
-    var chartColors = etapasConPagos.map(function(e){ return e.color; });
-    var chartPagData  = etapasConPagos.map(function(e){ return Math.round(S.pagos.filter(function(p){ return p.etapaId===e.id&&p.estado==='pagado'; }).reduce(function(s,p){ return s+p.montoARS; },0)/S.tcn); });
-    var chartPendData = etapasConPagos.map(function(e){ return Math.round(S.pagos.filter(function(p){ return p.etapaId===e.id&&p.estado!=='pagado'; }).reduce(function(s,p){ return s+p.montoARS; },0)/S.tcn); });
+    // --- Datos gráficos por rubro ---
+    // Paleta de colores por rubro
+    var _rubroPalette = ['#4C8EF5','#3ECF8E','#A78BFA','#F5A623','#F56565','#38BDF8','#FB923C','#A3E635','#E879F9','#34D399'];
+    function _sumusd(pagos, fn){ return Math.round(pagos.filter(fn).reduce(function(s,p){return s+p.montoUSD;},0)); }
+
+    // 1. Todos los rubros
+    var _allRubros = [];
+    S.pagos.forEach(function(p){ var r=(p.rubro||'Sin rubro').trim(); if(_allRubros.indexOf(r)<0) _allRubros.push(r); });
+    _allRubros.sort();
+
+    // 2. Filtro MO: rubro que contenga "mano" (case-insensitive)
+    var _pagosMO  = S.pagos.filter(function(p){ return (p.rubro||'').toLowerCase().indexOf('mano')>=0; });
+    // 3. Filtro Mat: rubro que contenga "material" (case-insensitive)
+    var _pagosMat = S.pagos.filter(function(p){ return (p.rubro||'').toLowerCase().indexOf('material')>=0; });
+
+    // Grupos por descripcion para MO y Mat
+    function _descsOf(pagos){ var d=[]; pagos.forEach(function(p){ var v=(p.desc||'Sin desc').trim(); if(d.indexOf(v)<0) d.push(v); }); return d; }
+    var _descsMO  = _descsOf(_pagosMO);
+    var _descsMat = _descsOf(_pagosMat);
 
     // Si hay filtro activo mostramos tabla unificada
     if(pagoFilter!=='todos'){
@@ -1053,11 +1064,47 @@ function renderPagos(){
 
         '</div>'; // fin grid 2 col
 
-    // ── Helpers ──────────────────────────────────────────────────
-    function chartOpts(labels, pagData, pendData, colors) {
-        var bgPag  = Array.isArray(colors) ? colors.map(function(c){return c+'99';}) : colors+'99';
-        var brPag  = colors;
-        return {
+    // ── Build chart ──────────────────────────────────────────────
+    function buildChart(ctx, labels, pagData, pendData, colors, emptyMsg) {
+        if(!ctx) return null;
+        if(!labels.length){
+            ctx.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:12px;">'+(emptyMsg||'Sin datos')+'</div>';
+            return null;
+        }
+        var bgPag = Array.isArray(colors) ? colors.map(function(c){return c+'99';}) : colors+'99';
+        var brPag = colors;
+        // Plugin para dibujar % encima de cada grupo
+        var pctPlugin = {
+            id:'pctLabel',
+            afterDatasetsDraw: function(chart){
+                var ctx2 = chart.ctx;
+                ctx2.save();
+                var ds = chart.data.datasets;
+                chart.data.labels.forEach(function(_,i){
+                    var pag  = ds[0].data[i]||0;
+                    var pend = ds[1].data[i]||0;
+                    var tot  = pag+pend;
+                    if(!tot) return;
+                    var pct  = Math.round(pag/tot*100);
+                    // posición: encima de la barra más alta
+                    var meta0 = chart.getDatasetMeta(0);
+                    var meta1 = chart.getDatasetMeta(1);
+                    var bar0  = meta0.data[i];
+                    var bar1  = meta1.data[i];
+                    var topY  = Math.min(
+                        pag  > 0 ? bar0.y : Infinity,
+                        pend > 0 ? bar1.y : Infinity
+                    );
+                    if(topY === Infinity) return;
+                    ctx2.fillStyle = pct===100 ? '#3ECF8E' : pct===0 ? '#F56565' : '#E8EAF2';
+                    ctx2.font = 'bold 10px DM Sans, sans-serif';
+                    ctx2.textAlign = 'center';
+                    ctx2.fillText(pct+'%', bar0.x, topY - 6);
+                });
+                ctx2.restore();
+            }
+        };
+        return new Chart(ctx.getContext('2d'), {
             type:'bar',
             data:{ labels:labels, datasets:[
                 {label:'Pagado',    data:pagData,  backgroundColor:bgPag, borderColor:brPag, borderWidth:2, borderRadius:4, borderSkipped:false},
@@ -1065,79 +1112,48 @@ function renderPagos(){
             ]},
             options:{
                 responsive:true, maintainAspectRatio:false,
-                plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(v){return v.dataset.label+': U$S '+Math.round(v.raw).toLocaleString('es-AR');}}}},
+                layout:{ padding:{ top:18 } },
+                plugins:{
+                    legend:{display:false},
+                    tooltip:{callbacks:{label:function(v){
+                        var pag  = v.chart.data.datasets[0].data[v.dataIndex]||0;
+                        var pend = v.chart.data.datasets[1].data[v.dataIndex]||0;
+                        var tot  = pag+pend;
+                        var pct  = tot>0?Math.round(pag/tot*100):0;
+                        return [v.dataset.label+': U$S '+Math.round(v.raw).toLocaleString('es-AR'), 'Pagado: '+pct+'% del total'];
+                    }}}
+                },
                 scales:{
                     x:{ticks:{color:'#565C7A',font:{size:10},maxRotation:40,autoSkip:false}, grid:{color:'rgba(255,255,255,.03)'}},
                     y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){var a=Math.abs(v);return a>=1000?'U$S '+(a/1000).toFixed(0)+'k':'U$S '+Math.round(a);}}, grid:{color:'rgba(255,255,255,.04)'}}
                 }
-            }
-        };
+            },
+            plugins:[pctPlugin]
+        });
     }
 
-    function sumUSD(arr, filtFn) {
-        return Math.round(arr.filter(filtFn).reduce(function(s,p){return s+p.montoUSD;},0));
-    }
+    // ── Data por rubro ────────────────────────────────────────────
+    var _rubPag  = _allRubros.map(function(r){ return _sumusd(S.pagos,  function(p){return (p.rubro||'Sin rubro').trim()===r&&p.estado==='pagado';}); });
+    var _rubPend = _allRubros.map(function(r){ return _sumusd(S.pagos,  function(p){return (p.rubro||'Sin rubro').trim()===r&&p.estado!=='pagado';}); });
+    var _rubCols = _allRubros.map(function(_,i){ return _rubroPalette[i%_rubroPalette.length]; });
 
-    // ── Gráfico 1: Por rubro ──────────────────────────────────────
-    var rubros = [];
-    S.pagos.forEach(function(p){ var r=p.rubro||'Sin rubro'; if(rubros.indexOf(r)<0) rubros.push(r); });
-    rubros.sort();
-    var rubroPag  = rubros.map(function(r){ return sumUSD(S.pagos, function(p){return (p.rubro||'Sin rubro')===r&&p.estado==='pagado';}); });
-    var rubroPend = rubros.map(function(r){ return sumUSD(S.pagos, function(p){return (p.rubro||'Sin rubro')===r&&p.estado!=='pagado';}); });
-    var rubroColors = ['#4C8EF5','#3ECF8E','#A78BFA','#F5A623','#F56565','#38BDF8','#FB923C','#A3E635','#E879F9','#34D399'];
+    // ── Data MO ───────────────────────────────────────────────────
+    var _moPag  = _descsMO.map(function(d){ return _sumusd(_pagosMO,  function(p){return (p.desc||'Sin desc').trim()===d&&p.estado==='pagado';}); });
+    var _moPend = _descsMO.map(function(d){ return _sumusd(_pagosMO,  function(p){return (p.desc||'Sin desc').trim()===d&&p.estado!=='pagado';}); });
 
-    // ── Gráfico 2: Mano de Obra (rubros que contienen "mano" o "mo") ──
-    var pagosMO = S.pagos.filter(function(p){
-        var r=(p.rubro||'').toLowerCase();
-        return r.indexOf('mano')>=0||r==='mo'||r.indexOf('mano de obra')>=0;
-    });
-    var descsMO = [];
-    pagosMO.forEach(function(p){ var d=p.desc||'Sin desc'; if(descsMO.indexOf(d)<0) descsMO.push(d); });
-    var moPag  = descsMO.map(function(d){ return sumUSD(pagosMO, function(p){return (p.desc||'Sin desc')===d&&p.estado==='pagado';}); });
-    var moPend = descsMO.map(function(d){ return sumUSD(pagosMO, function(p){return (p.desc||'Sin desc')===d&&p.estado!=='pagado';}); });
-
-    // ── Gráfico 3: Materiales ─────────────────────────────────────
-    var pagosMat = S.pagos.filter(function(p){
-        var r=(p.rubro||'').toLowerCase();
-        return r.indexOf('material')>=0||r.indexOf('mat.')>=0||r==='materiales';
-    });
-    var descsMat = [];
-    pagosMat.forEach(function(p){ var d=p.desc||'Sin desc'; if(descsMat.indexOf(d)<0) descsMat.push(d); });
-    var matPag  = descsMat.map(function(d){ return sumUSD(pagosMat, function(p){return (p.desc||'Sin desc')===d&&p.estado==='pagado';}); });
-    var matPend = descsMat.map(function(d){ return sumUSD(pagosMat, function(p){return (p.desc||'Sin desc')===d&&p.estado!=='pagado';}); });
+    // ── Data Materiales ───────────────────────────────────────────
+    var _matPag  = _descsMat.map(function(d){ return _sumusd(_pagosMat, function(p){return (p.desc||'Sin desc').trim()===d&&p.estado==='pagado';}); });
+    var _matPend = _descsMat.map(function(d){ return _sumusd(_pagosMat, function(p){return (p.desc||'Sin desc').trim()===d&&p.estado!=='pagado';}); });
 
     // ── Destruir charts previos ───────────────────────────────────
-    if(chartPagos) { chartPagos.destroy(); chartPagos=null; }
+    if(chartPagos)          { chartPagos.destroy();          chartPagos=null; }
     if(window.chartPagosG)  { window.chartPagosG.destroy();  window.chartPagosG=null; }
     if(window.chartPagosMO) { window.chartPagosMO.destroy(); window.chartPagosMO=null; }
     if(window.chartPagosMat){ window.chartPagosMat.destroy();window.chartPagosMat=null; }
 
-    // Render gráfico 1
-    var ctx1 = document.getElementById('chartPagosRubro');
-    if(ctx1 && rubros.length){
-        var cols1 = rubros.map(function(_,i){ return rubroColors[i%rubroColors.length]; });
-        chartPagos = new Chart(ctx1.getContext('2d'), chartOpts(rubros, rubroPag, rubroPend, cols1));
-    }
-
-    // Render gráfico 2 — Mano de Obra
-    var ctx2 = document.getElementById('chartPagosMO');
-    if(ctx2){
-        if(descsMO.length){
-            window.chartPagosMO = new Chart(ctx2.getContext('2d'), chartOpts(descsMO, moPag, moPend, '#A78BFA'));
-        } else {
-            ctx2.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:12px;">Sin pagos de Mano de Obra</div>';
-        }
-    }
-
-    // Render gráfico 3 — Materiales
-    var ctx3 = document.getElementById('chartPagosMat');
-    if(ctx3){
-        if(descsMat.length){
-            window.chartPagosMat = new Chart(ctx3.getContext('2d'), chartOpts(descsMat, matPag, matPend, '#3ECF8E'));
-        } else {
-            ctx3.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:12px;">Sin pagos de Materiales</div>';
-        }
-    }
+    chartPagos          = buildChart(document.getElementById('chartPagosRubro'), _allRubros, _rubPag,  _rubPend,  _rubCols,  'Sin pagos registrados');
+    window.chartPagosMO = buildChart(document.getElementById('chartPagosMO'),    _descsMO,   _moPag,   _moPend,   '#A78BFA', 'Sin pagos de Mano de Obra');
+    window.chartPagosMat= buildChart(document.getElementById('chartPagosMat'),   _descsMat,  _matPag,  _matPend,  '#3ECF8E', 'Sin pagos de Materiales');
 }
 // Moneda activa en modal pago
 var mPagoMoneda = 'USD';
