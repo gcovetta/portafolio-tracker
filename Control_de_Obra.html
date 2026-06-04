@@ -1146,10 +1146,11 @@ function renderPagos(){
     var _matPend = _descsMat.map(function(d){ return _sumusd(_pagosMat, function(p){return (p.desc||'Sin desc').trim()===d&&p.estado!=='pagado';}); });
 
     // ── Destruir charts previos ───────────────────────────────────
-    if(chartPagos)          { chartPagos.destroy();          chartPagos=null; }
-    if(window.chartPagosG)  { window.chartPagosG.destroy();  window.chartPagosG=null; }
-    if(window.chartPagosMO) { window.chartPagosMO.destroy(); window.chartPagosMO=null; }
-    if(window.chartPagosMat){ window.chartPagosMat.destroy();window.chartPagosMat=null; }
+    function safeDestroy(c){ if(c && typeof c.destroy==='function') c.destroy(); }
+    safeDestroy(chartPagos);          chartPagos=null;
+    safeDestroy(window.chartPagosG);  window.chartPagosG=null;
+    safeDestroy(window.chartPagosMO); window.chartPagosMO=null;
+    safeDestroy(window.chartPagosMat);window.chartPagosMat=null;
 
     // Render después de que el DOM esté listo
     setTimeout(function(){
