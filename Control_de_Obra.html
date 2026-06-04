@@ -1256,8 +1256,8 @@ function openEditPago(id){
     var isPend = p.estado==='pendiente'||p.estado==='vencido';
     document.getElementById('fgDeudaInfo').style.display  = isPend ? 'block' : 'none';
     document.getElementById('fgCuotasPago').style.display = isPend ? 'block' : 'none';
-    document.getElementById('mCuotas').value = '1';
-    document.getElementById('mCuotasPagadas').value = '0';
+    document.getElementById('mCuotas').value = (p.cuotas && p.cuotas > 1) ? p.cuotas : '1';
+    document.getElementById('mCuotasPagadas').value = p.cuotasPagadas || '0';
     document.getElementById('mCotizacion').value='';
     document.getElementById('mPreviewUSD').textContent='—';
     setMonedaPago('USD');
