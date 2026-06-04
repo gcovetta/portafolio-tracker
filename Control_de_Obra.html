@@ -918,8 +918,41 @@ function renderPagos(){
     var pendientes= S.pagos.filter(function(p){ return p.estado!=='pagado'   && busqueda(p); }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
     var filtrados = pagoFilter==='pagado' ? pagados : pagoFilter==='pendiente'||pagoFilter==='vencido' ? S.pagos.filter(function(p){ return p.estado===pagoFilter && busqueda(p); }) : null;
 
-    var totalPag  = pagados.reduce(function(s,p){ return s+p.montoARS; },0);
-    var totalPend = pendientes.reduce(function(s,p){ return s+p.montoARS; },0);
+    // Totales considerando cuotas (monto x cuotas totales)
+    function _totalConCuotas(lista){
+        return lista.reduce(function(s,p){
+            var factor = (p.cuotas&&p.cuotas>1) ? p.cuotas : 1;
+            return s + p.montoUSD * factor;
+        }, 0);
+    }
+    function _totalARSConCuotas(lista){
+        return lista.reduce(function(s,p){
+            var factor = (p.cuotas&&p.cuotas>1) ? p.cuotas : 1;
+            return s + (p.montoARSoriginal ? p.montoARSoriginal*factor : p.montoUSD*factor*S.tcn);
+        }, 0);
+    }
+    var totalPag      = pagados.reduce(function(s,p){ return s+p.montoARS; },0);
+    var totalPend     = pendientes.reduce(function(s,p){ return s+p.montoARS; },0);
+    var totalPagUSD   = _totalConCuotas(pagados);
+    // Pendientes: solo lo que FALTA pagar (cuotas restantes, no el total)
+    var totalPendUSD  = pendientes.reduce(function(s,p){
+        if(p.cuotas&&p.cuotas>1){
+            var restantes = p.cuotas - (p.cuotasPagadas||0);
+            return s + p.montoUSD * restantes;
+        }
+        return s + p.montoUSD;
+    }, 0);
+    var totalPagARS   = _totalARSConCuotas(pagados);
+    var totalPendARS  = pendientes.reduce(function(s,p){
+        if(p.cuotas&&p.cuotas>1){
+            var restantes = p.cuotas - (p.cuotasPagadas||0);
+            var arsUnit = p.montoARSoriginal ? p.montoARSoriginal : p.montoUSD*S.tcn;
+            return s + arsUnit * restantes;
+        }
+        return s + (p.montoARSoriginal ? p.montoARSoriginal : p.montoUSD*S.tcn);
+    }, 0);
+    var hayPagARS     = pagados.some(function(p){ return p.montoARSoriginal; });
+    var hayPendARS    = pendientes.some(function(p){ return p.montoARSoriginal; });
 
     // --- Datos gráficos por rubro ---
     // Paleta de colores por rubro
@@ -1035,7 +1068,11 @@ function renderPagos(){
                     '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>' +
                     '</div></td></tr>';
             }).join('') +
-            '</tbody></table>'
+            '</tbody></table>' +
+            '<div style="padding:10px 14px;background:var(--green-dim);border-top:2px solid rgba(62,207,142,.2);display:flex;align-items:center;justify-content:flex-end;gap:24px;flex-wrap:wrap;">' +
+            '<span style="font-size:11px;color:var(--text3);">Total U$S <strong style="font-family:DM Mono,monospace;font-size:13px;color:var(--green);">U$S '+Math.round(totalPagUSD).toLocaleString('es-AR')+'</strong></span>' +
+            (hayPagARS?'<span style="font-size:11px;color:var(--text3);">Total $ <strong style="font-family:DM Mono,monospace;font-size:13px;color:var(--green);">$'+Math.round(totalPagARS).toLocaleString('es-AR')+'</strong></span>':'') +
+            '</div>'
         : '<div class="empty" style="padding:2rem;">Sin pagos realizados</div>') +
         '</div></div>' +
 
@@ -1065,7 +1102,11 @@ function renderPagos(){
                     '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>' +
                     '</div></td></tr>';
             }).join('') +
-            '</tbody></table>'
+            '</tbody></table>' +
+            '<div style="padding:10px 14px;background:var(--amber-dim);border-top:2px solid rgba(245,166,35,.2);display:flex;align-items:center;justify-content:flex-end;gap:24px;flex-wrap:wrap;">' +
+            '<span style="font-size:11px;color:var(--text3);">Total U$S <strong style="font-family:DM Mono,monospace;font-size:13px;color:var(--amber);">U$S '+Math.round(totalPendUSD).toLocaleString('es-AR')+'</strong></span>' +
+            (hayPendARS?'<span style="font-size:11px;color:var(--text3);">Total $ <strong style="font-family:DM Mono,monospace;font-size:13px;color:var(--amber);">$'+Math.round(totalPendARS).toLocaleString('es-AR')+'</strong></span>':'') +
+            '</div>'
         : '<div class="empty" style="padding:2rem;">Sin pagos pendientes</div>') +
         '</div></div>' +
 
@@ -1400,17 +1441,26 @@ async function marcarPagado(id){
     var p = S.pagos.find(function(x){ return x.id===id; });
     if(!p) return;
     setSaveStatus('saving');
-    var payload;
     if(p.cuotas && p.cuotas > 1){
         // Pago con cuotas: sumar 1 cuota pagada
         var nuevasPagadas = Math.min((p.cuotasPagadas||0) + 1, p.cuotas);
         var nuevoEstado   = nuevasPagadas >= p.cuotas ? 'pagado' : p.estado;
-        payload = {cuotas_pagadas: nuevasPagadas, estado: nuevoEstado};
-        var msg = nuevasPagadas >= p.cuotas
-            ? 'Todas las cuotas pagadas ✓'
-            : 'Cuota '+nuevasPagadas+'/'+p.cuotas+' registrada';
-        var res = await sb.from('obra_pagos').update(payload).eq('id',id);
+        // Actualizar el pago original
+        var res = await sb.from('obra_pagos').update({cuotas_pagadas: nuevasPagadas, estado: nuevoEstado}).eq('id',id);
         if(res.error){ setSaveStatus('error'); return; }
+        // Insertar nueva fila "pagado" por esta cuota
+        var fechaHoy = new Date().toISOString().split('T')[0];
+        var descCuota = (p.desc||'Pago') + ' — cuota '+nuevasPagadas+'/'+p.cuotas;
+        await sb.from('obra_pagos').insert({
+            fecha: fechaHoy,
+            rubro: p.rubro||null,
+            descripcion: descCuota,
+            monto_usd: p.montoUSD,
+            monto_ars: p.montoARSoriginal||null,
+            cotizacion: p.cotizacion||null,
+            estado: 'pagado'
+        });
+        var msg = nuevasPagadas >= p.cuotas ? 'Todas las cuotas pagadas ✓' : 'Cuota '+nuevasPagadas+'/'+p.cuotas+' registrada';
         setSaveStatus('ok', msg);
     } else {
         // Pago simple: marcar pagado directamente
