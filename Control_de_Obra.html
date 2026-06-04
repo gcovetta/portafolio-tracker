@@ -289,7 +289,7 @@
         <div class="modal-body">
             <div class="form-row">
                 <div class="fg"><label>Fecha</label><input type="date" id="mFecha"></div>
-                <div class="fg"><label>Etapa</label><select id="mEtapa"></select></div>
+                <div class="fg"><label>Rubro</label><input type="text" id="mEtapa" placeholder="Ej: Estructura, Materiales..."></div>
             </div>
             <div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="mDesc" placeholder="Descripción del pago"></div></div>
             <div class="form-row">
@@ -521,7 +521,7 @@ async function loadAllData() {
         S.calc.total      = cfg.data.calc_tot != null ? String(cfg.data.calc_tot) : '';
         S.calc.m2         = cfg.data.calc_m2  != null ? String(cfg.data.calc_m2)  : '';
     }
-    S.pagos    = (pagos.data||[]).map(function(p){ var tieneARS=p.monto_ars!=null&&p.monto_ars>0; return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, desc:p.descripcion, montoUSD:p.monto_usd, montoARS:tieneARS?p.monto_ars:(p.monto_usd*S.tcn), montoARSoriginal:tieneARS?p.monto_ars:null, cotizacion:p.cotizacion||null, estado:p.estado}; });
+    S.pagos    = (pagos.data||[]).map(function(p){ var tieneARS=p.monto_ars!=null&&p.monto_ars>0; return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, rubro:p.rubro||'', desc:p.descripcion, montoUSD:p.monto_usd, montoARS:tieneARS?p.monto_ars:(p.monto_usd*S.tcn), montoARSoriginal:tieneARS?p.monto_ars:null, cotizacion:p.cotizacion||null, estado:p.estado}; });
     S.etapas   = (etapas.data||[]).map(function(e){
         var fi=e.fecha_ini||'', ff=e.fecha_fin||'';
         var dias=e.dias||0;
@@ -990,7 +990,7 @@ function renderPagos(){
             pagados.map(function(p){
                 var e=S.etapas.find(function(x){return x.id===p.etapaId;});
                 return '<tr><td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>' +
-                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:6px;"><span style="width:6px;height:6px;border-radius:1px;background:'+(e?e.color:'#888')+';flex-shrink:0;display:inline-block;"></span><div><div style="font-size:12px;font-weight:500;">'+(e?e.nombre:'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div></div></div></td>' +
+                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div></div></td>' +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:var(--green);">U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+'</td>' +
                     arsCellHTML(p, 'var(--green)') +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;gap:3px;">' +
@@ -1016,7 +1016,7 @@ function renderPagos(){
                 var e=S.etapas.find(function(x){return x.id===p.etapaId;});
                 var pColor = p.estado==='vencido'?'var(--red)':'var(--amber)';
                 return '<tr><td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>' +
-                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:6px;"><span style="width:6px;height:6px;border-radius:1px;background:'+(e?e.color:'#888')+';flex-shrink:0;display:inline-block;"></span><div><div style="font-size:12px;font-weight:500;">'+(e?e.nombre:'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div></div></div></td>' +
+                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div></div></td>' +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:'+pColor+';">U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+'</td>' +
                     arsCellHTML(p, pColor) +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><span class="badge '+p.estado+'">'+p.estado+'</span></td>' +
@@ -1164,7 +1164,7 @@ function calcPreviewPago(){
         el.textContent = '—';
     }
 }
-function fillEtapaSel(sel){ document.getElementById('mEtapa').innerHTML=S.etapas.map(function(e){ return '<option value="'+e.id+'"'+(e.id===sel?' selected':'')+'>'+e.nombre+'</option>'; }).join(''); }
+function fillEtapaSel(sel){ /* Rubro es texto libre - no necesita populate */ }
 function openNewPago(){
     S.editPagoId=null;
     document.getElementById('mPagoTitle').textContent='Registrar pago';
@@ -1179,7 +1179,7 @@ function openNewPago(){
     document.getElementById('mCotizacion').value='';
     document.getElementById('mPreviewUSD').textContent='—';
     setMonedaPago('USD');
-    fillEtapaSel(S.etapas[0]&&S.etapas[0].id);
+    document.getElementById('mEtapa').value = '';
     openModal('modalPago');
 }
 function openEditPago(id){
@@ -1190,6 +1190,7 @@ function openEditPago(id){
     document.getElementById('mDesc').value=p.desc||'';
     document.getElementById('mMonto').value=Math.round(p.montoUSD);
     document.getElementById('mEstado').value=p.estado;
+    document.getElementById('mEtapa').value=p.rubro||'';
     var isPend = p.estado==='pendiente'||p.estado==='vencido';
     document.getElementById('fgDeudaInfo').style.display  = isPend ? 'block' : 'none';
     document.getElementById('fgCuotasPago').style.display = isPend ? 'block' : 'none';
@@ -1203,7 +1204,7 @@ function openEditPago(id){
 }
 async function savePago(){
     var fecha   = document.getElementById('mFecha').value;
-    var etapaId = parseInt(document.getElementById('mEtapa').value)||null;
+    var rubro   = document.getElementById('mEtapa').value.trim();
     var desc    = document.getElementById('mDesc').value.trim();
     var rawInput= parseFloat(document.getElementById('mMonto').value);
     var estado  = document.getElementById('mEstado').value;
@@ -1223,7 +1224,7 @@ async function savePago(){
     setSaveStatus('saving');
     var cotizacionGuardar = (mPagoMoneda==='ARS') ? parseFloat(document.getElementById('mCotizacion').value)||null : null;
     var montoARSGuardar   = (mPagoMoneda==='ARS') ? montoARS : null;
-    var payload={fecha:fecha, etapa_id:etapaId, descripcion:desc, monto_usd:montoUSD, monto_ars:montoARSGuardar, cotizacion:cotizacionGuardar, estado:estado};
+    var payload={fecha:fecha, rubro:rubro, descripcion:desc, monto_usd:montoUSD, monto_ars:montoARSGuardar, cotizacion:cotizacionGuardar, estado:estado};
     var res = S.editPagoId
         ? await sb.from('obra_pagos').update(payload).eq('id',S.editPagoId)
         : await sb.from('obra_pagos').insert(payload);
@@ -1234,7 +1235,7 @@ async function savePago(){
         var cuotas  = Math.max(1, parseInt(document.getElementById('mCuotas').value)||1);
         var pagadas = Math.min(cuotas, Math.max(0, parseInt(document.getElementById('mCuotasPagadas').value)||0));
         var deudaPayload = {
-            descripcion: desc + (etapaId ? ' ('+(S.etapas.find(function(e){return e.id===etapaId;})||{nombre:''}).nombre+')' : ''),
+            descripcion: desc + (rubro ? ' ('+rubro+')' : ''),
             monto_usd: montoUSD,
             cuotas: cuotas,
             pagadas: pagadas,
