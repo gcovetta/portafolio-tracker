@@ -1132,18 +1132,54 @@ function renderPagos(){
         });
     }
 
+    // ── Helpers de cálculo considerando cuotas ───────────────────
+    // pagado = suma de pagos con estado=pagado + (cuotas_pagadas * montoUSD) de pendientes con cuotas
+    // pendiente = (cuotas_restantes * montoUSD) de pendientes con cuotas + pendientes sin cuotas
+    function _calcPagPend(lista) {
+        var pagado = 0, pendiente = 0;
+        lista.forEach(function(p) {
+            if (p.estado === 'pagado') {
+                pagado += p.montoUSD;
+            } else {
+                // tiene cuotas definidas
+                if (p.cuotas && p.cuotas > 1) {
+                    var cuotaUSD = p.montoUSD; // montoUSD ya es el valor de 1 cuota
+                    var pagadas  = p.cuotasPagadas || 0;
+                    var restantes = p.cuotas - pagadas;
+                    pagado    += cuotaUSD * pagadas;
+                    pendiente += cuotaUSD * restantes;
+                } else {
+                    pendiente += p.montoUSD;
+                }
+            }
+        });
+        return { pag: Math.round(pagado), pend: Math.round(pendiente) };
+    }
+
     // ── Data por rubro ────────────────────────────────────────────
-    var _rubPag  = _allRubros.map(function(r){ return _sumusd(S.pagos,  function(p){return (p.rubro||'Sin rubro').trim()===r&&p.estado==='pagado';}); });
-    var _rubPend = _allRubros.map(function(r){ return _sumusd(S.pagos,  function(p){return (p.rubro||'Sin rubro').trim()===r&&p.estado!=='pagado';}); });
+    var _rubPag=[], _rubPend=[];
+    _allRubros.forEach(function(r){
+        var lista = S.pagos.filter(function(p){ return (p.rubro||'Sin rubro').trim()===r; });
+        var res = _calcPagPend(lista);
+        _rubPag.push(res.pag); _rubPend.push(res.pend);
+    });
     var _rubCols = _allRubros.map(function(_,i){ return _rubroPalette[i%_rubroPalette.length]; });
 
-    // ── Data MO ───────────────────────────────────────────────────
-    var _moPag  = _descsMO.map(function(d){ return _sumusd(_pagosMO,  function(p){return (p.desc||'Sin desc').trim()===d&&p.estado==='pagado';}); });
-    var _moPend = _descsMO.map(function(d){ return _sumusd(_pagosMO,  function(p){return (p.desc||'Sin desc').trim()===d&&p.estado!=='pagado';}); });
+    // ── Data MO por descripción ───────────────────────────────────
+    var _moPag=[], _moPend=[];
+    _descsMO.forEach(function(d){
+        var lista = _pagosMO.filter(function(p){ return (p.desc||'Sin desc').trim()===d; });
+        var res = _calcPagPend(lista);
+        _moPag.push(res.pag); _moPend.push(res.pend);
+    });
 
-    // ── Data Materiales ───────────────────────────────────────────
-    var _matPag  = _descsMat.map(function(d){ return _sumusd(_pagosMat, function(p){return (p.desc||'Sin desc').trim()===d&&p.estado==='pagado';}); });
-    var _matPend = _descsMat.map(function(d){ return _sumusd(_pagosMat, function(p){return (p.desc||'Sin desc').trim()===d&&p.estado!=='pagado';}); });
+    // ── Data Materiales por descripción ──────────────────────────
+    var _matPag=[], _matPend=[];
+    _descsMat.forEach(function(d){
+        var lista = _pagosMat.filter(function(p){ return (p.desc||'Sin desc').trim()===d; });
+        var res = _calcPagPend(lista);
+        _matPag.push(res.pag); _matPend.push(res.pend);
+    });
 
     // ── Destruir charts previos ───────────────────────────────────
     function safeDestroy(c){ if(c && typeof c.destroy==='function') c.destroy(); }
