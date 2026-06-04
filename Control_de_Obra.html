@@ -1021,13 +1021,14 @@ function renderPagos(){
         '<div style="overflow-x:auto;">' +
         (pagados.length ?
             '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>' +
-            '<th style="'+THS+'text-align:left;">Fecha</th><th style="'+THS+'text-align:left;">Etapa / Desc</th><th style="'+THS+'text-align:right;">U$S</th><th style="'+THS+'text-align:right;">Pesos</th><th style="'+THS+'"></th>' +
+            '<th style="'+THS+'text-align:left;">Fecha</th><th style="'+THS+'text-align:left;">Etapa / Desc</th><th style="'+THS+'text-align:right;">U$S</th><th style="'+THS+'text-align:right;">Total U$S</th><th style="'+THS+'text-align:right;">Pesos</th><th style="'+THS+'"></th>' +
             '</tr></thead><tbody>'+
             pagados.map(function(p){
                 var e=S.etapas.find(function(x){return x.id===p.etapaId;});
                 return '<tr><td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>' +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div>'+cuotasBar(p)+'</div></td>' +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:var(--green);">U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+'</td>' +
+                    (p.cuotas&&p.cuotas>1?'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;"><div style="font-family:DM Mono,monospace;font-size:12px;font-weight:700;color:var(--green);">U$S '+Math.round(p.montoUSD*p.cuotas).toLocaleString('es-AR')+'</div><div style="font-size:10px;color:var(--text3);margin-top:1px;">'+p.cuotas+' cuotas</div></td>':'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;color:var(--text3);font-size:11px;">—</td>') +
                     arsCellHTML(p, 'var(--green)') +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;gap:3px;">' +
                     '<button class="btn btn-sm" onclick="openEditPago('+p.id+')">✎</button>' +
@@ -1046,7 +1047,7 @@ function renderPagos(){
         '<div style="overflow-x:auto;">' +
         (pendientes.length ?
             '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>' +
-            '<th style="'+THS+'text-align:left;">Fecha</th><th style="'+THS+'text-align:left;">Etapa / Desc</th><th style="'+THS+'text-align:right;">U$S</th><th style="'+THS+'text-align:right;">Pesos</th><th style="'+THS+'">Estado</th><th style="'+THS+'"></th>' +
+            '<th style="'+THS+'text-align:left;">Fecha</th><th style="'+THS+'text-align:left;">Etapa / Desc</th><th style="'+THS+'text-align:right;">U$S</th><th style="'+THS+'text-align:right;">Total U$S</th><th style="'+THS+'text-align:right;">Pesos</th><th style="'+THS+'">Estado</th><th style="'+THS+'"></th>' +
             '</tr></thead><tbody>'+
             pendientes.map(function(p){
                 var e=S.etapas.find(function(x){return x.id===p.etapaId;});
@@ -1054,6 +1055,7 @@ function renderPagos(){
                 return '<tr><td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>' +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div>'+cuotasBar(p)+'</div></td>' +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:'+pColor+';">U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+'</td>' +
+                    (p.cuotas&&p.cuotas>1?'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;"><div style="font-family:DM Mono,monospace;font-size:12px;font-weight:700;color:'+pColor+';">U$S '+Math.round(p.montoUSD*p.cuotas).toLocaleString('es-AR')+'</div><div style="font-size:10px;color:var(--text3);margin-top:1px;">'+p.cuotas+' cuotas</div></td>':'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;color:var(--text3);font-size:11px;">—</td>') +
                     arsCellHTML(p, pColor) +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><span class="badge '+p.estado+'">'+p.estado+'</span></td>' +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;gap:3px;">' +
