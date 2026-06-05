@@ -974,10 +974,10 @@ function renderPagos(){
     // 3. Filtro Mat: rubro que contenga "material" (case-insensitive)
     var _pagosMat = S.pagos.filter(function(p){ var r=(p.rubro||'').toLowerCase().trim(); return r.indexOf('material')>=0; });
 
-    // Grupos por descripcion para MO y Mat
-    function _descsOf(pagos){ var d=[]; pagos.forEach(function(p){ var v=(p.desc||'Sin desc').trim(); if(d.indexOf(v)<0) d.push(v); }); return d; }
-    var _descsMO  = _descsOf(_pagosMO);
-    var _descsMat = _descsOf(_pagosMat);
+    // Grupos por RUBRO para MO y Mat (no por desc)
+    function _rubrosOf(pagos){ var d=[]; pagos.forEach(function(p){ var v=(p.rubro||'Sin rubro').trim(); if(d.indexOf(v)<0) d.push(v); }); return d; }
+    var _descsMO  = _rubrosOf(_pagosMO);
+    var _descsMat = _rubrosOf(_pagosMat);
 
     // Si hay filtro activo mostramos tabla unificada
     if(pagoFilter!=='todos'){
@@ -1213,18 +1213,18 @@ function renderPagos(){
     });
     var _rubCols = _allRubros.map(function(_,i){ return _rubroPalette[i%_rubroPalette.length]; });
 
-    // ── Data MO por descripción ───────────────────────────────────
+    // ── Data MO por rubro ─────────────────────────────────────────
     var _moPag=[], _moPend=[];
-    _descsMO.forEach(function(d){
-        var lista = _pagosMO.filter(function(p){ return (p.desc||'Sin desc').trim()===d; });
+    _descsMO.forEach(function(r){
+        var lista = _pagosMO.filter(function(p){ return (p.rubro||'Sin rubro').trim()===r; });
         var res = _calcPagPend(lista);
         _moPag.push(res.pag); _moPend.push(res.pend);
     });
 
-    // ── Data Materiales por descripción ──────────────────────────
+    // ── Data Materiales por rubro ─────────────────────────────────
     var _matPag=[], _matPend=[];
-    _descsMat.forEach(function(d){
-        var lista = _pagosMat.filter(function(p){ return (p.desc||'Sin desc').trim()===d; });
+    _descsMat.forEach(function(r){
+        var lista = _pagosMat.filter(function(p){ return (p.rubro||'Sin rubro').trim()===r; });
         var res = _calcPagPend(lista);
         _matPag.push(res.pag); _matPend.push(res.pend);
     });
@@ -1298,12 +1298,23 @@ function openEditPago(id){
     document.getElementById('mPagoTitle').textContent='Editar pago';
     document.getElementById('mFecha').value=p.fecha;
     document.getElementById('mDesc').value=p.desc||'';
-    document.getElementById('mMonto').value=Math.round(p.montoUSD);
     document.getElementById('mEstado').value=p.estado;
     document.getElementById('mEtapa').value=p.rubro||'';
     var isPend = p.estado==='pendiente'||p.estado==='vencido';
     document.getElementById('fgDeudaInfo').style.display  = isPend ? 'block' : 'none';
     document.getElementById('fgCuotasPago').style.display = isPend ? 'block' : 'none';
+    // Abrir en la moneda original
+    if(p.montoARSoriginal && p.cotizacion){
+        setMonedaPago('ARS');
+        document.getElementById('mMonto').value = Math.round(p.montoARSoriginal);
+        document.getElementById('mCotizacion').value = Math.round(p.cotizacion);
+        calcPreviewPago();
+    } else {
+        setMonedaPago('USD');
+        document.getElementById('mMonto').value = Math.round(p.montoUSD);
+        document.getElementById('mCotizacion').value = '';
+        document.getElementById('mPreviewUSD').textContent = '—';
+    }
     document.getElementById('mCuotas').value = (p.cuotas && p.cuotas > 1) ? p.cuotas : '1';
     document.getElementById('mCuotasPagadas').value = p.cuotasPagadas || '0';
     document.getElementById('mCotizacion').value='';
