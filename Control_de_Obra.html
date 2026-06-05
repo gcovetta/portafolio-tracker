@@ -1092,7 +1092,13 @@ function renderPagos(){
                 return '<tr><td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>' +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div>'+cuotasBar(p)+'</div></td>' +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:'+pColor+';">U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+'</td>' +
-                    (p.cuotas&&p.cuotas>1?'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;"><div style="font-family:DM Mono,monospace;font-size:12px;font-weight:700;color:'+pColor+';">U$S '+Math.round(p.montoUSD*p.cuotas).toLocaleString('es-AR')+'</div><div style="font-size:10px;color:var(--text3);margin-top:1px;">'+p.cuotas+' cuotas</div></td>':'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;color:var(--text3);font-size:11px;">—</td>') +
+                    (p.cuotas&&p.cuotas>1?(function(){
+                        var _pag=p.cuotasPagadas||0, _rest=p.cuotas-_pag, _tot=Math.round(p.montoUSD*p.cuotas), _saldo=Math.round(p.montoUSD*_rest);
+                        return '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;">' +
+                            '<div style="font-family:DM Mono,monospace;font-size:12px;font-weight:700;color:'+pColor+';">U$S '+_saldo.toLocaleString('es-AR')+'</div>' +
+                            '<div style="font-size:10px;color:var(--text3);margin-top:1px;">'+_rest+' de '+p.cuotas+' cuotas · total U$S '+_tot.toLocaleString('es-AR')+'</div>' +
+                            '</td>';
+                    })():'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;color:var(--text3);font-size:11px;">—</td>') +
                     arsCellHTML(p, pColor) +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><span class="badge '+p.estado+'">'+p.estado+'</span></td>' +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;gap:3px;">' +
@@ -1505,6 +1511,15 @@ async function savePagoParcial(){
     renderPagos();
     renderAlerts();
     updateSidebar();
+}
+// Busca la deuda en Balance que corresponde a un pago
+function _findDeudaForPago(p){
+    var descA = (p.rubro ? p.rubro+' — ' : '') + (p.desc||'');
+    var descB = (p.desc||'') + (p.rubro ? ' ('+p.rubro+')' : '');
+    return S.deudas.find(function(d){
+        return d.desc===descA || d.desc===descB ||
+               (p.desc && d.desc.indexOf(p.desc)>=0 && (!p.cuotas||d.cuotas===p.cuotas));
+    });
 }
 async function marcarPagado(id){
     var p = S.pagos.find(function(x){ return x.id===id; });
