@@ -1183,16 +1183,22 @@ function renderPagos(){
     // ── Helpers de cálculo considerando cuotas ───────────────────
     // pagado = suma de pagos con estado=pagado + (cuotas_pagadas * montoUSD) de pendientes con cuotas
     // pendiente = (cuotas_restantes * montoUSD) de pendientes con cuotas + pendientes sin cuotas
+    // Detecta filas auto-generadas al pagar cuotas (descripcion contiene "— cuota X/Y")
+    function _esCuotaAutoGenerada(p) {
+        return p.estado==='pagado' && /—\s*cuota\s+\d+\/\d+/i.test(p.desc||'');
+    }
     function _calcPagPend(lista) {
         var pagado = 0, pendiente = 0;
         lista.forEach(function(p) {
+            // Ignorar filas auto-generadas al pagar cuotas: ya están contadas en el registro pendiente
+            if (_esCuotaAutoGenerada(p)) return;
             if (p.estado === 'pagado') {
                 pagado += p.montoUSD;
             } else {
                 // tiene cuotas definidas
                 if (p.cuotas && p.cuotas > 1) {
-                    var cuotaUSD = p.montoUSD; // montoUSD ya es el valor de 1 cuota
-                    var pagadas  = p.cuotasPagadas || 0;
+                    var cuotaUSD  = p.montoUSD;
+                    var pagadas   = p.cuotasPagadas || 0;
                     var restantes = p.cuotas - pagadas;
                     pagado    += cuotaUSD * pagadas;
                     pendiente += cuotaUSD * restantes;
