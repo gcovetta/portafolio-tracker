@@ -1412,9 +1412,11 @@ async function savePago(){
         if(!_montoDeudaUSD || _montoDeudaUSD <= 0){
             console.warn('montoUSD inválido para deuda:', _montoDeudaUSD, 'raw:', rawInput, 'moneda:', mPagoMoneda);
         } else {
+            // monto_usd en Balance = valor de 1 cuota (Balance maneja cuotas internamente)
+            // El saldo total = monto_usd * (cuotas - pagadas)
             var deudaPayload = {
                 descripcion: (rubro ? rubro+' — ' : '') + desc,
-                monto_usd: _montoDeudaUSD,
+                monto_usd: _montoDeudaUSD * _cuotas, // total de la deuda
                 cuotas: _cuotas,
                 pagadas: _pagadas,
                 fecha_inicio: fecha
