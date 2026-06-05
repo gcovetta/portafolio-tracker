@@ -1529,6 +1529,17 @@ async function marcarPagado(id){
             cotizacion: p.cotizacion||null,
             estado: 'pagado'
         });
+        // Sincronizar deuda en Balance: avanzar 1 cuota pagada
+        var descDeudaPag = (p.rubro ? p.rubro+' — ' : '') + (p.desc||'');
+        var descDeudaAlt  = (p.desc||'') + (p.rubro ? ' ('+p.rubro+')' : '');
+        var deudaSync = S.deudas.find(function(d){
+            return d.desc===descDeudaPag || d.desc===descDeudaAlt ||
+                   (d.desc.indexOf(p.desc||'')>=0 && d.cuotas===p.cuotas);
+        });
+        if(deudaSync){
+            var nuevasPagadasDeuda = Math.min((deudaSync.pagadas||0)+1, deudaSync.cuotas);
+            await sb.from('obra_deudas').update({pagadas: nuevasPagadasDeuda}).eq('id', deudaSync.id);
+        }
         var msg = nuevasPagadas >= p.cuotas ? 'Todas las cuotas pagadas ✓' : 'Cuota '+nuevasPagadas+'/'+p.cuotas+' registrada';
         setSaveStatus('ok', msg);
     } else {
