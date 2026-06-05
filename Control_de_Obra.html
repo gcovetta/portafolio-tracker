@@ -1553,7 +1553,12 @@ async function marcarPagado(id){
         });
         if(deudaSync){
             var nuevasPagadasDeuda = Math.min((deudaSync.pagadas||0)+1, deudaSync.cuotas);
-            await sb.from('obra_deudas').update({pagadas: nuevasPagadasDeuda}).eq('id', deudaSync.id);
+            if(nuevasPagadasDeuda >= deudaSync.cuotas){
+                // Última cuota — eliminar la deuda de Balance
+                await sb.from('obra_deudas').delete().eq('id', deudaSync.id);
+            } else {
+                await sb.from('obra_deudas').update({pagadas: nuevasPagadasDeuda}).eq('id', deudaSync.id);
+            }
         }
         var msg = nuevasPagadas >= p.cuotas ? 'Todas las cuotas pagadas ✓' : 'Cuota '+nuevasPagadas+'/'+p.cuotas+' registrada';
         setSaveStatus('ok', msg);
@@ -1561,15 +1566,15 @@ async function marcarPagado(id){
         // Pago simple: marcar pagado directamente
         var res = await sb.from('obra_pagos').update({estado:'pagado'}).eq('id',id);
         if(res.error){ setSaveStatus('error'); return; }
-        // Buscar deuda asociada por descripción y marcarla como completamente pagada
+        // Buscar deuda asociada y eliminarla de Balance
         var descBuscar = (p.rubro ? p.rubro+' — ' : '') + (p.desc||'');
         var descAlt    = (p.desc||'') + (p.rubro ? ' ('+p.rubro+')' : '');
         var deudaMatch = S.deudas.find(function(d){
             return d.desc === descBuscar || d.desc === descAlt ||
                    d.desc.indexOf(p.desc||'') >= 0;
         });
-        if(deudaMatch && deudaMatch.pagadas < deudaMatch.cuotas){
-            await sb.from('obra_deudas').update({pagadas: deudaMatch.cuotas}).eq('id', deudaMatch.id);
+        if(deudaMatch){
+            await sb.from('obra_deudas').delete().eq('id', deudaMatch.id);
         }
         setSaveStatus('ok','Guardado');
     }
