@@ -1405,17 +1405,23 @@ async function savePago(){
 
     // Si es pendiente/vencido y es nuevo → agregar como deuda en Balance
     if(!S.editPagoId && (estado==='pendiente'||estado==='vencido')){
-        var cuotas  = Math.max(1, parseInt(document.getElementById('mCuotas').value)||1);
-        var pagadas = Math.min(cuotas, Math.max(0, parseInt(document.getElementById('mCuotasPagadas').value)||0));
-        var deudaPayload = {
-            descripcion: desc + (rubro ? ' ('+rubro+')' : ''),
-            monto_usd: montoUSD,
-            cuotas: cuotas,
-            pagadas: pagadas,
-            fecha_inicio: fecha
-        };
-        var resD = await sb.from('obra_deudas').insert(deudaPayload);
-        if(resD.error) console.warn('No se pudo crear deuda automática:', resD.error.message);
+        var _cuotas  = Math.max(1, parseInt(document.getElementById('mCuotas').value)||1);
+        var _pagadas = Math.min(_cuotas, Math.max(0, parseInt(document.getElementById('mCuotasPagadas').value)||0));
+        // montoUSD ya fue calculado arriba (sea ARS o USD el input)
+        var _montoDeudaUSD = montoUSD;
+        if(!_montoDeudaUSD || _montoDeudaUSD <= 0){
+            console.warn('montoUSD inválido para deuda:', _montoDeudaUSD, 'raw:', rawInput, 'moneda:', mPagoMoneda);
+        } else {
+            var deudaPayload = {
+                descripcion: (rubro ? rubro+' — ' : '') + desc,
+                monto_usd: _montoDeudaUSD,
+                cuotas: _cuotas,
+                pagadas: _pagadas,
+                fecha_inicio: fecha
+            };
+            var resD = await sb.from('obra_deudas').insert(deudaPayload);
+            if(resD.error) console.warn('No se pudo crear deuda automática:', resD.error.message);
+        }
     }
 
     setSaveStatus('ok','Guardado'); closeModal('modalPago'); await loadAllData(); renderPagos(); renderAlerts(); updateSidebar();
@@ -1527,6 +1533,16 @@ async function marcarPagado(id){
         // Pago simple: marcar pagado directamente
         var res = await sb.from('obra_pagos').update({estado:'pagado'}).eq('id',id);
         if(res.error){ setSaveStatus('error'); return; }
+        // Buscar deuda asociada por descripción y marcarla como completamente pagada
+        var descBuscar = (p.rubro ? p.rubro+' — ' : '') + (p.desc||'');
+        var descAlt    = (p.desc||'') + (p.rubro ? ' ('+p.rubro+')' : '');
+        var deudaMatch = S.deudas.find(function(d){
+            return d.desc === descBuscar || d.desc === descAlt ||
+                   d.desc.indexOf(p.desc||'') >= 0;
+        });
+        if(deudaMatch && deudaMatch.pagadas < deudaMatch.cuotas){
+            await sb.from('obra_deudas').update({pagadas: deudaMatch.cuotas}).eq('id', deudaMatch.id);
+        }
         setSaveStatus('ok','Guardado');
     }
     await loadAllData(); renderPagos(); renderAlerts(); updateSidebar();
