@@ -1113,7 +1113,7 @@ function renderPagos(){
         '</div>'; // fin grid 2 col
 
     // ── Build chart ──────────────────────────────────────────────
-    function buildChart(ctx, labels, pagData, pendData, colors, emptyMsg) {
+    function buildChart(ctx, labels, pagData, pendData, colors, emptyMsg, detailData) {
         if(!ctx) return null;
         if(!labels.length){
             ctx.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:12px;">'+(emptyMsg||'Sin datos')+'</div>';
@@ -1163,13 +1163,35 @@ function renderPagos(){
                 layout:{ padding:{ top:18 } },
                 plugins:{
                     legend:{display:false},
-                    tooltip:{callbacks:{label:function(v){
-                        var pag  = v.chart.data.datasets[0].data[v.dataIndex]||0;
-                        var pend = v.chart.data.datasets[1].data[v.dataIndex]||0;
-                        var tot  = pag+pend;
-                        var pct  = tot>0?Math.round(pag/tot*100):0;
-                        return [v.dataset.label+': U$S '+Math.round(v.raw).toLocaleString('es-AR'), 'Pagado: '+pct+'% del total'];
-                    }}}
+                    tooltip:{
+                        callbacks:{
+                            label: function(v){ return null; }, // handled by afterBody
+                            afterBody: function(items){
+                                if(!items.length) return [];
+                                var v   = items[0];
+                                var idx = v.dataIndex;
+                                var pag  = v.chart.data.datasets[0].data[idx]||0;
+                                var pend = v.chart.data.datasets[1].data[idx]||0;
+                                var tot  = pag+pend;
+                                var pct  = tot>0?Math.round(pag/tot*100):0;
+                                var lines = [
+                                    '✓ Pagado:    U$S '+Math.round(pag).toLocaleString('es-AR'),
+                                    '⏳ Pendiente: U$S '+Math.round(pend).toLocaleString('es-AR'),
+                                    'Completado: '+pct+'%',
+                                    '─────────────────────'
+                                ];
+                                if(detailData && detailData[idx]){
+                                    detailData[idx].forEach(function(d){
+                                        var montoStr = d.ars
+                                            ? '$'+Math.round(d.ars).toLocaleString('es-AR')+' (U$S '+Math.round(d.usd).toLocaleString('es-AR')+')'
+                                            : 'U$S '+Math.round(d.usd).toLocaleString('es-AR');
+                                        lines.push((d.pagado?'✓ ':'⏳ ')+ d.desc +': '+ montoStr);
+                                    });
+                                }
+                                return lines;
+                            }
+                        }
+                    }
                 },
                 scales:{
                     x:{ticks:{color:'#565C7A',font:{size:10},maxRotation:40,autoSkip:false}, grid:{color:'rgba(255,255,255,.03)'}},
@@ -1235,6 +1257,28 @@ function renderPagos(){
         _matPag.push(res.pag); _matPend.push(res.pend);
     });
 
+    // ── Construir detalle para tooltips ──────────────────────────
+    function _buildDetail(etiquetas, pagosOrigen, keyFn) {
+        return etiquetas.map(function(lbl){
+            var lista = pagosOrigen.filter(function(p){ return keyFn(p)===lbl && !_esCuotaAutoGenerada(p); });
+            var rows = [];
+            lista.forEach(function(p){
+                if(p.cuotas && p.cuotas > 1){
+                    var pagadas   = p.cuotasPagadas||0;
+                    var restantes = p.cuotas - pagadas;
+                    if(pagadas>0) rows.push({desc:p.desc+' ('+pagadas+' pagadas)', usd:p.montoUSD*pagadas, ars:p.montoARSoriginal?p.montoARSoriginal*pagadas:null, pagado:true});
+                    if(restantes>0) rows.push({desc:p.desc+' ('+restantes+' pend.)', usd:p.montoUSD*restantes, ars:p.montoARSoriginal?p.montoARSoriginal*restantes:null, pagado:false});
+                } else {
+                    rows.push({desc:p.desc||'Sin desc', usd:p.montoUSD, ars:p.montoARSoriginal||null, pagado:p.estado==='pagado'});
+                }
+            });
+            return rows;
+        });
+    }
+    var _detRubro = _buildDetail(_allRubros, S.pagos,    function(p){ return (p.rubro||'Sin rubro').trim(); });
+    var _detMO    = _buildDetail(_descsMO,   _pagosMO,   function(p){ return (p.rubro||'Sin rubro').trim(); });
+    var _detMat   = _buildDetail(_descsMat,  _pagosMat,  function(p){ return (p.rubro||'Sin rubro').trim(); });
+
     // ── Destruir charts previos ───────────────────────────────────
     function safeDestroy(c){ if(c && typeof c.destroy==='function') c.destroy(); }
     safeDestroy(chartPagos);          chartPagos=null;
@@ -1244,9 +1288,9 @@ function renderPagos(){
 
     // Render después de que el DOM esté listo
     setTimeout(function(){
-        chartPagos          = buildChart(document.getElementById('chartPagosRubro'), _allRubros, _rubPag,  _rubPend,  _rubCols,  'Sin pagos registrados');
-        window.chartPagosMO = buildChart(document.getElementById('chartPagosMO'),    _descsMO,   _moPag,   _moPend,   '#A78BFA', 'Sin pagos de Mano de Obra');
-        window.chartPagosMat= buildChart(document.getElementById('chartPagosMat'),   _descsMat,  _matPag,  _matPend,  '#3ECF8E', 'Sin pagos de Materiales');
+        chartPagos          = buildChart(document.getElementById('chartPagosRubro'), _allRubros, _rubPag,  _rubPend,  _rubCols,  'Sin pagos registrados',      _detRubro);
+        window.chartPagosMO = buildChart(document.getElementById('chartPagosMO'),    _descsMO,   _moPag,   _moPend,   '#A78BFA', 'Sin pagos de Mano de Obra',  _detMO);
+        window.chartPagosMat= buildChart(document.getElementById('chartPagosMat'),   _descsMat,  _matPag,  _matPend,  '#3ECF8E', 'Sin pagos de Materiales',    _detMat);
     }, 50);
 }
 // Moneda activa en modal pago
