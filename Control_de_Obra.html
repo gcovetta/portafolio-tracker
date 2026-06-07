@@ -1521,22 +1521,38 @@ async function savePagoParcial(){
 
     setSaveStatus('saving');
 
-    // Calcular nuevo saldo en el pago original
-    // Para pagos simples: reducir monto_usd. Para cuotas: no tocamos monto_usd (es por cuota), solo actualizamos estado si saldo=0
     var nuevoEstado = p.estado;
     var updatePayload = {};
-    if(p.cuotas&&p.cuotas>1){
-        // Con cuotas: si el pago cubre todo el saldo restante -> pagado
-        var pagoEnTerminosCuotas = pagoUSD / p.montoUSD; // cuántas cuotas equivale
-        if(pagoUSD >= saldoUSD - 0.01) nuevoEstado = 'pagado';
-        updatePayload = {estado: nuevoEstado};
+
+    if(p.cuotas && p.cuotas > 1){
+        // PAGOS CON CUOTAS: convertir monto pagado a cuotas equivalentes
+        // Cada cuota vale montoUSD en USD o montoARSoriginal en ARS
+        var valorCuotaUSD = p.montoUSD;
+        var cuotasEquiv = pagoUSD / valorCuotaUSD; // puede ser fraccionario
+        var cuotasEnteras = Math.floor(cuotasEquiv + 0.01); // redondear si es casi entero
+        var nuevasPagadas = Math.min(p.cuotas, (p.cuotasPagadas||0) + cuotasEnteras);
+        // Si el pago cubre todo el saldo restante -> marcar pagado
+        if(pagoUSD >= saldoUSD - 0.01) {
+            nuevasPagadas = p.cuotas;
+            nuevoEstado = 'pagado';
+        }
+        updatePayload = {cuotas_pagadas: nuevasPagadas, estado: nuevoEstado};
     } else {
-        // Sin cuotas: descontar del monto
+        // PAGOS SIMPLES: descontar el monto directo
         var nuevoSaldoUSD = Math.max(0, p.montoUSD - pagoUSD);
         nuevoEstado = nuevoSaldoUSD < 0.01 ? 'pagado' : p.estado;
         updatePayload = {monto_usd: nuevoSaldoUSD, estado: nuevoEstado};
-        if(p.montoARSoriginal && pagoARS !== null){
-            var nuevoSaldoARS = Math.max(0, p.montoARSoriginal - pagoARS);
+        // Actualizar monto_ars si el pago original era en pesos
+        if(p.montoARSoriginal){
+            var nuevoSaldoARS;
+            if(pagoARS !== null){
+                // Pagó en ARS: descontar directo
+                nuevoSaldoARS = Math.max(0, p.montoARSoriginal - pagoARS);
+            } else {
+                // Pagó en USD: convertir con cotización del pago original
+                var cotOrig = p.cotizacion || S.tcn;
+                nuevoSaldoARS = Math.max(0, p.montoARSoriginal - pagoUSD * cotOrig);
+            }
             updatePayload.monto_ars = nuevoSaldoARS < 1 ? null : nuevoSaldoARS;
         }
     }
