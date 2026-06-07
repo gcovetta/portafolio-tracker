@@ -1437,16 +1437,32 @@ async function savePago(){
 function openPagoParcial(id){
     var p = S.pagos.find(function(x){ return x.id===id; });
     if(!p) return;
+    // Calcular saldo real considerando cuotas pendientes
+    var cuotasRest = (p.cuotas&&p.cuotas>1) ? Math.max(0, p.cuotas-(p.cuotasPagadas||0)) : 1;
+    var saldoUSD = p.montoUSD * cuotasRest;
+    var saldoARS = p.montoARSoriginal ? p.montoARSoriginal * cuotasRest : saldoUSD * S.tcn;
     document.getElementById('ppTitle').textContent = p.desc || 'Pago parcial';
-    document.getElementById('ppSaldo').textContent = fmtMain(p.montoARS);
-    document.getElementById('ppSaldoUSD').textContent = 'U$S ' + Math.round(p.montoUSD).toLocaleString('es-AR');
+    if(p.montoARSoriginal){
+        document.getElementById('ppSaldo').textContent = '$' + Math.round(saldoARS).toLocaleString('es-AR');
+        document.getElementById('ppSaldoUSD').textContent = 'aprox. U$S ' + Math.round(saldoUSD).toLocaleString('es-AR');
+    } else {
+        document.getElementById('ppSaldo').textContent = 'U$S ' + Math.round(saldoUSD).toLocaleString('es-AR');
+        document.getElementById('ppSaldoUSD').textContent = '';
+    }
     document.getElementById('ppId').value = id;
-    document.getElementById('ppMonedaTag').textContent = 'USD';
     document.getElementById('ppMonto').value = '';
-    document.getElementById('ppCotizacion').value = '';
+    document.getElementById('ppCotizacion').value = p.cotizacion ? Math.round(p.cotizacion) : '';
     document.getElementById('ppPreview').textContent = '—';
-    document.getElementById('fgPPCotizacion').style.display = 'none';
-    document.getElementById('ppMoneda').value = 'USD';
+    // Pre-seleccionar moneda según cómo fue cargado el pago original
+    if(p.montoARSoriginal){
+        document.getElementById('ppMoneda').value = 'ARS';
+        document.getElementById('ppMonedaTag').textContent = 'ARS';
+        document.getElementById('fgPPCotizacion').style.display = 'grid';
+    } else {
+        document.getElementById('ppMoneda').value = 'USD';
+        document.getElementById('ppMonedaTag').textContent = 'USD';
+        document.getElementById('fgPPCotizacion').style.display = 'none';
+    }
     openModal('modalPagoParcial');
 }
 function setPPMoneda(m){
@@ -1474,36 +1490,75 @@ async function savePagoParcial(){
     var rawInput = parseFloat(document.getElementById('ppMonto').value);
     if(!rawInput||rawInput<=0){ alert('Ingresá un monto válido.'); return; }
 
-    var pagoUSD;
+    var pagoUSD, pagoARS = null, cotUsada = null;
     if(m==='ARS'){
         var cot = parseFloat(document.getElementById('ppCotizacion').value);
         if(!cot){ alert('Ingresá la cotización del dólar.'); return; }
+        pagoARS = rawInput;
         pagoUSD = rawInput / cot;
+        cotUsada = cot;
     } else {
         pagoUSD = rawInput;
     }
 
-    if(pagoUSD > p.montoUSD + 0.01){
-        alert('El pago parcial (U$S '+Math.round(pagoUSD).toLocaleString('es-AR')+') supera el saldo pendiente (U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+').');
-        return;
+    // Saldo real: para cuotas, saldo = montoUSD * cuotas restantes
+    var cuotasRest = (p.cuotas&&p.cuotas>1) ? Math.max(0, p.cuotas-(p.cuotasPagadas||0)) : 1;
+    var saldoUSD = p.montoUSD * cuotasRest;
+    var saldoARS = p.montoARSoriginal ? p.montoARSoriginal * cuotasRest : null;
+
+    // Validar que no supere el saldo
+    if(m==='ARS' && saldoARS !== null){
+        if(pagoARS > saldoARS + 1){
+            alert('El pago ($'+Math.round(pagoARS).toLocaleString('es-AR')+') supera el saldo pendiente ($'+Math.round(saldoARS).toLocaleString('es-AR')+').');
+            return;
+        }
+    } else {
+        if(pagoUSD > saldoUSD + 0.01){
+            alert('El pago (U$S '+Math.round(pagoUSD).toLocaleString('es-AR')+') supera el saldo pendiente (U$S '+Math.round(saldoUSD).toLocaleString('es-AR')+').');
+            return;
+        }
     }
 
     setSaveStatus('saving');
-    var nuevoSaldoUSD = Math.max(0, p.montoUSD - pagoUSD);
-    var nuevoEstado   = nuevoSaldoUSD < 0.01 ? 'pagado' : p.estado;
-    var res = await sb.from('obra_pagos').update({monto_usd: nuevoSaldoUSD, estado: nuevoEstado}).eq('id', id);
+
+    // Calcular nuevo saldo en el pago original
+    // Para pagos simples: reducir monto_usd. Para cuotas: no tocamos monto_usd (es por cuota), solo actualizamos estado si saldo=0
+    var nuevoEstado = p.estado;
+    var updatePayload = {};
+    if(p.cuotas&&p.cuotas>1){
+        // Con cuotas: si el pago cubre todo el saldo restante -> pagado
+        var pagoEnTerminosCuotas = pagoUSD / p.montoUSD; // cuántas cuotas equivale
+        if(pagoUSD >= saldoUSD - 0.01) nuevoEstado = 'pagado';
+        updatePayload = {estado: nuevoEstado};
+    } else {
+        // Sin cuotas: descontar del monto
+        var nuevoSaldoUSD = Math.max(0, p.montoUSD - pagoUSD);
+        nuevoEstado = nuevoSaldoUSD < 0.01 ? 'pagado' : p.estado;
+        updatePayload = {monto_usd: nuevoSaldoUSD, estado: nuevoEstado};
+        if(p.montoARSoriginal && pagoARS !== null){
+            var nuevoSaldoARS = Math.max(0, p.montoARSoriginal - pagoARS);
+            updatePayload.monto_ars = nuevoSaldoARS < 1 ? null : nuevoSaldoARS;
+        }
+    }
+
+    var res = await sb.from('obra_pagos').update(updatePayload).eq('id', id);
     if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
 
-    // Registrar el pago parcial como nuevo pago pagado
+    // Registrar el pago parcial como nuevo pago pagado conservando moneda original
     var fechaHoy = new Date().toISOString().split('T')[0];
-    var descParcial = (p.desc||'Pago') + ' — parcial';
-    await sb.from('obra_pagos').insert({
+    var descParcial = (p.rubro ? p.rubro+' — ' : '') + (p.desc||'Pago') + ' (parcial)';
+    var insertPayload = {
         fecha: fechaHoy,
         etapa_id: p.etapaId,
+        rubro: p.rubro||null,
         descripcion: descParcial,
         monto_usd: pagoUSD,
         estado: 'pagado'
-    });
+    };
+    if(pagoARS !== null){ insertPayload.monto_ars = pagoARS; }
+    if(cotUsada !== null){ insertPayload.cotizacion = cotUsada; }
+
+    await sb.from('obra_pagos').insert(insertPayload);
 
     setSaveStatus('ok', nuevoEstado==='pagado'?'Saldo cancelado':'Pago parcial guardado');
     closeModal('modalPagoParcial');
