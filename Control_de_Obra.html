@@ -670,49 +670,148 @@ async function deleteEtapa(id){
 // ═══════════════════════════════════════
 // PAGE: PAGOS
 // ═══════════════════════════════════════
-var pagoFilter='todos', pagoSearch='';
+var pagoFilter='todos', pagoSearch='', chartPagosEtapa=null, chartPagosMens=null;
+
+function buildPagoRow(p, isPagado) {
+    var e=S.etapas.find(function(x){ return x.id===p.etapaId; });
+    var hasParcial=p.montoPagadoUSD>0&&!isPagado;
+    var pctPag=hasParcial?Math.min(100,Math.round(p.montoPagadoUSD/p.montoUSD*100)):0;
+    var estadoBadge=hasParcial?'parcial':p.estado;
+    var estadoLabel=hasParcial?'parcial':p.estado;
+    var montoCell=hasParcial
+        ? '<div><div style="font-family:DM Mono,monospace;font-size:12px;text-align:right;">'+fmtMain(p.montoARS)+'</div>' +
+          '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">' +
+          '<div style="flex:1;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;min-width:50px;"><div style="height:100%;width:'+pctPag+'%;background:var(--purple);border-radius:2px;"></div></div>' +
+          '<span style="font-size:10px;font-family:DM Mono,monospace;color:var(--purple);white-space:nowrap;">'+Math.round(p.montoPagadoUSD)+' / '+Math.round(p.montoUSD)+'</span></div></div>'
+        : '<span class="num-cell">'+fmtMain(p.montoARS)+'</span>';
+    return '<tr><td style="font-family:DM Mono,monospace;font-size:12px;">'+p.fecha+'</td>' +
+        '<td><span class="color-dot" style="background:'+(e?e.color:'#888')+'"></span>'+(e?e.nombre:'—')+'</td>' +
+        '<td>'+(p.desc||'')+'</td>' +
+        '<td style="text-align:right">'+montoCell+'</td>' +
+        '<td><span class="badge '+estadoBadge+'">'+estadoLabel+'</span></td>' +
+        '<td><div style="display:flex;gap:4px;">' +
+        (!isPagado?'<button class="btn btn-sm btn-green" onclick="marcarPagado('+p.id+')" title="Marcar pagado">✓</button>':'')+
+        (!isPagado?'<button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);" onclick="openParcial('+p.id+')" title="Pago parcial">½</button>':'')+
+        '<button class="btn btn-sm" onclick="openEditPago('+p.id+')">✎</button>' +
+        '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>' +
+        '</div></td></tr>';
+}
+
 function renderPagos(){
-    var lista = S.pagos.filter(function(p){
-        var hasParcial=p.montoPagadoUSD>0&&p.estado!=='pagado';
-        var estadoMatch = pagoFilter==='todos' ? true :
-            pagoFilter==='parcial' ? hasParcial :
-            (p.estado===pagoFilter && !hasParcial);
-        return estadoMatch &&
-               (!pagoSearch||(p.desc||'').toLowerCase().includes(pagoSearch.toLowerCase())||((S.etapas.find(function(e){return e.id===p.etapaId;})||{nombre:''}).nombre).toLowerCase().includes(pagoSearch.toLowerCase()));
-    }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
-    var rows = lista.map(function(p){
-        var e=S.etapas.find(function(x){ return x.id===p.etapaId; });
-        var isPend = p.estado!=='pagado';
-        var hasParcial = p.montoPagadoUSD>0 && p.estado!=='pagado';
-        var pctPag = hasParcial ? Math.min(100,Math.round(p.montoPagadoUSD/p.montoUSD*100)) : 0;
-        var estadoBadge = hasParcial ? 'parcial' : p.estado;
-        var estadoLabel = hasParcial ? 'parcial' : p.estado;
-        var montoCell = hasParcial
-            ? '<div><div style="font-family:DM Mono,monospace;font-size:12px;text-align:right;">'+fmtMain(p.montoARS)+'</div>' +
-              '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">' +
-              '<div style="flex:1;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;min-width:60px;"><div style="height:100%;width:'+pctPag+'%;background:var(--purple);border-radius:2px;"></div></div>' +
-              '<span style="font-size:10px;font-family:DM Mono,monospace;color:var(--purple);white-space:nowrap;">U$S '+Math.round(p.montoPagadoUSD).toLocaleString('es-AR')+' / '+Math.round(p.montoUSD).toLocaleString('es-AR')+'</span></div></div>'
-            : '<span class="num-cell">'+fmtMain(p.montoARS)+'</span>';
-        return '<tr><td style="font-family:DM Mono,monospace;font-size:12px;">'+p.fecha+'</td>' +
-            '<td><span class="color-dot" style="background:'+(e?e.color:'#888')+'"></span>'+(e?e.nombre:'—')+'</td>' +
-            '<td>'+(p.desc||'')+'</td>' +
-            '<td style="text-align:right">'+montoCell+'</td>' +
-            '<td><span class="badge '+estadoBadge+'">'+estadoLabel+'</span></td>' +
-            '<td><div style="display:flex;gap:4px;">' +
-            (isPend?'<button class="btn btn-sm btn-green" onclick="marcarPagado('+p.id+')" title="Marcar pagado">✓</button>':'')+
-            (isPend?'<button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);" onclick="openParcial('+p.id+')" title="Pago parcial">½</button>':'')+
-            '<button class="btn btn-sm" onclick="openEditPago('+p.id+')">✎</button>' +
-            '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>' +
-            '</div></td></tr>';
-    }).join('');
-    document.getElementById('page-pagos').innerHTML =
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">' +
-        '<div class="filter-bar"><input type="text" placeholder="Buscar..." style="width:170px;" oninput="pagoSearch=this.value;renderPagos()" value="'+pagoSearch+'">' +
-        '<select onchange="pagoFilter=this.value;renderPagos()"><option value="todos" '+(pagoFilter==='todos'?'selected':'')+'>Todos</option><option value="pagado" '+(pagoFilter==='pagado'?'selected':'')+'>Pagados</option><option value="pendiente" '+(pagoFilter==='pendiente'?'selected':'')+'>Pendientes</option><option value="parcial" '+(pagoFilter==='parcial'?'selected':'')+'>Parciales</option><option value="vencido" '+(pagoFilter==='vencido'?'selected':'')+'>Vencidos</option></select></div>' +
-        '<div style="display:flex;gap:8px;"><button class="btn btn-excel" onclick="exportarExcel()">Excel</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>' +
-        '<div class="card"><div class="table-wrap">' +
-        (lista.length?'<table><thead><tr><th>Fecha</th><th>Etapa</th><th>Descripción</th><th style="text-align:right">Monto</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'+rows+'</tbody></table>':'<div class="empty">Sin pagos</div>')+
-        '</div></div>';
+    var applySearch=function(p){ return !pagoSearch||(p.desc||'').toLowerCase().includes(pagoSearch.toLowerCase())||((S.etapas.find(function(e){return e.id===p.etapaId;})||{nombre:''}).nombre).toLowerCase().includes(pagoSearch.toLowerCase()); };
+    var THS='padding:8px 11px;font-size:10px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.4px;';
+
+    // — FILTRO ACTIVO: vista unificada —
+    if(pagoFilter!=='todos'){
+        var listaFilt=S.pagos.filter(function(p){
+            var hasParcial=p.montoPagadoUSD>0&&p.estado!=='pagado';
+            if(pagoFilter==='parcial') return hasParcial&&applySearch(p);
+            return p.estado===pagoFilter&&applySearch(p);
+        }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
+        var rowsFilt=listaFilt.map(function(p){ return buildPagoRow(p, p.estado==='pagado'); }).join('');
+        document.getElementById('page-pagos').innerHTML=
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">'+
+            '<div class="filter-bar"><input type="text" placeholder="Buscar..." style="width:170px;" oninput="pagoSearch=this.value;renderPagos()" value="'+pagoSearch+'">'+
+            '<select onchange="pagoFilter=this.value;renderPagos()"><option value="todos">Todos</option><option value="pagado" '+(pagoFilter==='pagado'?'selected':'')+'>Pagados</option><option value="pendiente" '+(pagoFilter==='pendiente'?'selected':'')+'>Pendientes</option><option value="parcial" '+(pagoFilter==='parcial'?'selected':'')+'>Parciales</option><option value="vencido" '+(pagoFilter==='vencido'?'selected':'')+'>Vencidos</option></select></div>'+
+            '<div style="display:flex;gap:8px;"><button class="btn btn-excel" onclick="exportarExcel()">Excel</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>'+
+            '<div class="card"><div class="table-wrap">'+
+            (listaFilt.length?'<table><thead><tr><th style="'+THS+'">Fecha</th><th style="'+THS+'">Etapa</th><th style="'+THS+'">Descripción</th><th style="'+THS+'text-align:right">Monto</th><th style="'+THS+'">Estado</th><th style="'+THS+'">Acciones</th></tr></thead><tbody>'+rowsFilt+'</tbody></table>':'<div class="empty">Sin pagos</div>')+
+            '</div></div>';
+        return;
+    }
+
+    // — VISTA PRINCIPAL: dos tablas + gráficos —
+    var pagados  =S.pagos.filter(function(p){ return p.estado==='pagado'&&applySearch(p); }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
+    var pendientes=S.pagos.filter(function(p){ return p.estado!=='pagado'&&applySearch(p); }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
+
+    var totalPag =pagados.reduce(function(s,p){ return s+p.montoARS; },0);
+    var totalPend=pendientes.reduce(function(s,p){ return s+p.montoARS; },0);
+
+    var rowsPag =pagados.map(function(p){ return buildPagoRow(p,true); }).join('');
+    var rowsPend=pendientes.map(function(p){ return buildPagoRow(p,false); }).join('');
+
+    document.getElementById('page-pagos').innerHTML=
+        // barra superior
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">'+
+        '<div class="filter-bar"><input type="text" placeholder="Buscar..." style="width:170px;" oninput="pagoSearch=this.value;renderPagos()" value="'+pagoSearch+'">'+
+        '<select onchange="pagoFilter=this.value;renderPagos()"><option value="todos" selected>Todos</option><option value="pagado">Pagados</option><option value="pendiente">Pendientes</option><option value="parcial">Parciales</option><option value="vencido">Vencidos</option></select></div>'+
+        '<div style="display:flex;gap:8px;"><button class="btn btn-excel" onclick="exportarExcel()">Excel</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>'+
+
+        // KPI cards
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">'+
+        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:14px;">'+
+        '<div style="width:40px;height:40px;border-radius:9px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
+        '<svg width="18" height="18" viewBox="0 0 20 20" fill="#3ECF8E"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>'+
+        '</div><div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Pagados</div>'+
+        '<div style="font-size:20px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">'+fmtMain(totalPag)+'</div>'+
+        '<div style="font-size:11px;color:var(--text3);margin-top:2px;">'+pagados.length+' pago'+(pagados.length!==1?'s':'')+'</div></div></div>'+
+        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:14px;">'+
+        '<div style="width:40px;height:40px;border-radius:9px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
+        '<svg width="18" height="18" viewBox="0 0 20 20" fill="#F5A623"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>'+
+        '</div><div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Pendientes / Vencidos</div>'+
+        '<div style="font-size:20px;font-weight:700;font-family:DM Mono,monospace;color:var(--amber);">'+fmtMain(totalPend)+'</div>'+
+        '<div style="font-size:11px;color:var(--text3);margin-top:2px;">'+pendientes.length+' pago'+(pendientes.length!==1?'s':'')+'</div></div></div>'+
+        '</div>'+
+
+        // Gráficos
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">'+
+        '<div class="card" style="margin-bottom:0;"><div class="card-hdr"><h3>Por etapa (U$S)</h3>'+
+        '<div style="display:flex;gap:10px;font-size:11px;color:var(--text3);">'+
+        '<span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:rgba(62,207,142,.7);margin-right:3px;vertical-align:middle;"></span>Pagado</span>'+
+        '<span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:rgba(245,166,35,.55);margin-right:3px;vertical-align:middle;"></span>Pendiente</span>'+
+        '</div></div>'+
+        '<div class="card-body"><div style="position:relative;width:100%;height:180px;"><canvas id="chartPagosEtapa"></canvas></div></div></div>'+
+        '<div class="card" style="margin-bottom:0;"><div class="card-hdr"><h3>Pagado por mes (U$S)</h3></div>'+
+        '<div class="card-body"><div style="position:relative;width:100%;height:180px;"><canvas id="chartPagosMens"></canvas></div></div></div>'+
+        '</div>'+
+
+        // Dos tablas
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'+
+        // tabla pagados
+        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--green-dim);border-bottom:1px solid rgba(62,207,142,.2);">'+
+        '<span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--green);">✓ Pagados</span>'+
+        '<span style="font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:var(--green);">'+fmtMain(totalPag)+'</span></div>'+
+        '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">'+
+        '<thead><tr><th style="'+THS+'">Fecha</th><th style="'+THS+'">Etapa</th><th style="'+THS+'">Descripción</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'">Acc.</th></tr></thead>'+
+        '<tbody>'+(rowsPag||'<tr><td colspan="5" style="padding:16px;text-align:center;color:var(--text3);">Sin pagos realizados</td></tr>')+'</tbody></table></div></div>'+
+        // tabla pendientes
+        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--amber-dim);border-bottom:1px solid rgba(245,166,35,.2);">'+
+        '<span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--amber);">⏳ Pendientes / Vencidos</span>'+
+        '<span style="font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:var(--amber);">'+fmtMain(totalPend)+'</span></div>'+
+        '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">'+
+        '<thead><tr><th style="'+THS+'">Fecha</th><th style="'+THS+'">Etapa</th><th style="'+THS+'">Descripción</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'">Estado</th><th style="'+THS+'">Acc.</th></tr></thead>'+
+        '<tbody>'+(rowsPend||'<tr><td colspan="6" style="padding:16px;text-align:center;color:var(--text3);">Sin pagos pendientes</td></tr>')+'</tbody></table></div></div>'+
+        '</div>';
+
+    // — Gráfico por etapa —
+    if(chartPagosEtapa) chartPagosEtapa.destroy();
+    var etLabels=S.etapas.map(function(e){ return e.nombre; });
+    var etPag=S.etapas.map(function(e){ return Math.round(S.pagos.filter(function(p){ return p.etapaId===e.id&&p.estado==='pagado'; }).reduce(function(s,p){ return s+p.montoARS; },0)/S.tcn); });
+    var etPend=S.etapas.map(function(e){ return Math.round(S.pagos.filter(function(p){ return p.etapaId===e.id&&p.estado!=='pagado'; }).reduce(function(s,p){ return s+p.montoARS; },0)/S.tcn); });
+    var etColors=S.etapas.map(function(e){ return e.color; });
+    chartPagosEtapa=new Chart(document.getElementById('chartPagosEtapa').getContext('2d'),{
+        type:'bar',
+        data:{labels:etLabels,datasets:[
+            {label:'Pagado',data:etPag,backgroundColor:etColors.map(function(c){ return c+'BB'; }),borderRadius:3,borderSkipped:false},
+            {label:'Pendiente',data:etPend,backgroundColor:'rgba(245,166,35,.45)',borderColor:'rgba(245,166,35,.6)',borderWidth:1,borderRadius:3,borderSkipped:false}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(15,17,23,.95)',borderColor:'rgba(255,255,255,.1)',borderWidth:1,padding:10,titleColor:'#E8EAF2',bodyColor:'#8B90A8',callbacks:{label:function(v){ return v.dataset.label+': U$S '+Math.round(v.raw).toLocaleString('es-AR'); }}}},
+        scales:{x:{ticks:{color:'#565C7A',font:{size:9},maxRotation:40},grid:{color:'rgba(255,255,255,.03)'}},y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){ return v>=1000?'U$S '+(v/1000).toFixed(0)+'k':'U$S '+Math.round(v); }},grid:{color:'rgba(255,255,255,.04)'}}}}
+    });
+
+    // — Gráfico mensual —
+    if(chartPagosMens) chartPagosMens.destroy();
+    var cm=curMonthOff();
+    var labM=Array.from({length:18},function(_,i){ return mLabel(i); });
+    var datM=labM.map(function(_,i){ var ms=mesStr(i); return S.pagos.filter(function(p){ return p.estado==='pagado'&&p.fecha.startsWith(ms); }).reduce(function(s,p){ return s+p.montoARS/S.tcn; },0); });
+    chartPagosMens=new Chart(document.getElementById('chartPagosMens').getContext('2d'),{
+        type:'bar',
+        data:{labels:labM,datasets:[{data:datM,backgroundColor:datM.map(function(_,i){ return i===cm?'#4C8EF5':'rgba(76,142,245,.4)'; }),borderRadius:4,borderSkipped:false}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(v){ return 'U$S '+Math.round(v.raw).toLocaleString('es-AR'); }}}}},
+        scales:{x:{ticks:{color:'#565C7A',font:{size:9},maxRotation:45,autoSkip:false},grid:{color:'rgba(255,255,255,.03)'}},y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){ return v>=1000?'U$S '+(v/1000).toFixed(0)+'k':'U$S '+Math.round(v); }},grid:{color:'rgba(255,255,255,.04)'}}}
+    });
 }
 function fillEtapaSel(sel){ document.getElementById('mEtapa').innerHTML=S.etapas.map(function(e){ return '<option value="'+e.id+'"'+(e.id===sel?' selected':'')+'>'+e.nombre+'</option>'; }).join(''); }
 function openNewPago(){ S.editPagoId=null; document.getElementById('mPagoTitle').textContent='Registrar pago'; document.getElementById('mFecha').value=new Date().toISOString().split('T')[0]; document.getElementById('mDesc').value=''; document.getElementById('mMonto').value=''; document.getElementById('mEstado').value='pagado'; fillEtapaSel(S.etapas[0]&&S.etapas[0].id); openModal('modalPago'); }
