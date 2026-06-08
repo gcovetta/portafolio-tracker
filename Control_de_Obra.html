@@ -1862,7 +1862,7 @@ function renderBalance() {
         '</div>' +
         // Grafico
         '<div style="'+CS+'margin-bottom:12px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Flujo mensual y neto acumulado</span>' +
-        '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.5);margin-right:3px;vertical-align:middle;"></span>Acreditado</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(76,142,245,.3);margin-right:3px;vertical-align:middle;"></span>Proyectado</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,101,101,.45);margin-right:3px;vertical-align:middle;"></span>Deuda</span><span><span style="display:inline-block;width:20px;height:2px;background:#F5A623;margin-right:3px;vertical-align:middle;"></span>Neto</span></div>' +
+        '<div style="display:flex;gap:10px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.5);margin-right:3px;vertical-align:middle;"></span>Acreditado</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(76,142,245,.3);margin-right:3px;vertical-align:middle;"></span>Proyectado</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,101,101,.35);margin-right:3px;vertical-align:middle;"></span>Deudas</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,166,35,.45);margin-right:3px;vertical-align:middle;"></span>Pagos obra</span><span><span style="display:inline-block;width:20px;height:2px;background:#A78BFA;margin-right:3px;vertical-align:middle;"></span>Neto</span></div>' +
         '</div><div style="padding:14px 18px;"><div style="position:relative;width:100%;height:220px;"><canvas id="chartBal"></canvas></div></div></div>' +
         // Acreditados
         '<div style="'+CS+'"><div style="'+HS+'">' +
@@ -1874,30 +1874,78 @@ function renderBalance() {
     // Chart
     if (chartBal) chartBal.destroy();
     var labelsB = Array.from({length:18}, function(_,i){ return mLabel(i); });
-    // Incluir desc en cada ocurrencia para el tooltip
     var allO2 = [];
     S.ingresos.forEach(function(x){ expandirIngreso(x).forEach(function(o){ allO2.push({fecha:o.fecha,montoARS:o.montoARS,realizado:o.realizado,desc:x.desc}); }); });
-    var cumIR=0,cumIP=0,cumDeu=0, dBR=[],dBP=[],dBD=[],dNeto=[];
-    var dBR_det=[],dBP_det=[],dBD_det=[];
+
+    // Pagos pendientes de obra por mes (egresos)
+    // Para cuotas: distribuir entre los meses futuros a partir de la fecha del pago
+    function egresosMes(ms, idx) {
+        var total = 0;
+        var det = [];
+        S.pagos.filter(function(p){ return p.estado !== 'pagado'; }).forEach(function(p){
+            var cot = p.cotizacion || S.tcn;
+            if(p.cuotas && p.cuotas > 1) {
+                // Cuotas: distribuir mes a mes a partir de la fecha del primer pago pendiente
+                var pagadas = p.cuotasPagadas || 0;
+                var restantes = p.cuotas - pagadas;
+                if(restantes <= 0) return;
+                // Fecha de inicio de las cuotas pendientes = fecha del pago + pagadas meses
+                var fechaBase = new Date(p.fecha + 'T00:00:00');
+                var fechaIniPend = new Date(fechaBase.getFullYear(), fechaBase.getMonth() + pagadas, 1);
+                for(var q = 0; q < restantes; q++) {
+                    var fechaCuota = new Date(fechaIniPend.getFullYear(), fechaIniPend.getMonth() + q, 1);
+                    var msCuota = fechaCuota.getFullYear() + '-' + String(fechaCuota.getMonth()+1).padStart(2,'0');
+                    if(msCuota === ms) {
+                        // Saldo de esta cuota (puede ser parcial si es la primera)
+                        var montoCuota = q === 0 && p.saldoCuotaActual != null
+                            ? (p.montoARSoriginal ? p.saldoCuotaActual / cot : p.saldoCuotaActual)
+                            : (p.montoARSoriginal ? p.montoARSoriginal / cot : p.montoUSD);
+                        total += montoCuota;
+                        det.push({desc: (p.rubro?p.rubro+' — ':'')+p.desc, monto: Math.round(montoCuota), cuota: pagadas+q+1, totalCuotas: p.cuotas});
+                    }
+                }
+            } else {
+                // Pago simple: usar su fecha
+                if(p.fecha.startsWith(ms)) {
+                    var montoUSD = p.montoARSoriginal ? p.montoARSoriginal / cot : p.montoUSD;
+                    total += montoUSD;
+                    det.push({desc: (p.rubro?p.rubro+' — ':'')+p.desc, monto: Math.round(montoUSD)});
+                }
+            }
+        });
+        return {total: total, det: det};
+    }
+
+    var cumIR=0,cumIP=0,cumDeu=0,cumEgr=0;
+    var dBR=[],dBP=[],dBD=[],dEgr=[],dNeto=[];
+    var dBR_det=[],dBP_det=[],dBD_det=[],dEgr_det=[];
     for(var i=0;i<18;i++){
         var ms=mesStr(i);
         var iRM=allO2.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms); }).reduce(function(s,o){ return s+o.montoARS; },0);
         var iPM=allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms); }).reduce(function(s,o){ return s+o.montoARS; },0);
         var dM=S.deudas.reduce(function(s,d){ var fi=d.fechaInicio||S.startDate; if(ms<fi.substring(0,7)) return s; var sd=new Date(fi+'T00:00:00'),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return s; return s+(d.montoARS/d.cuotas); },0);
-        cumIR+=iRM; cumIP+=iPM; cumDeu+=dM;
-        dBR.push(Math.round(iRM/S.tcn)); dBP.push(Math.round(iPM/S.tcn)); dBD.push(-Math.round(dM/S.tcn)); dNeto.push(Math.round((cumIR+cumIP-cumDeu)/S.tcn));
-        // Detalle para tooltip
+        var egrMes = egresosMes(ms, i);
+        var eM = egrMes.total; // ya en USD
+        cumIR+=iRM/S.tcn; cumIP+=iPM/S.tcn; cumDeu+=dM/S.tcn; cumEgr+=eM;
+        dBR.push(Math.round(iRM/S.tcn));
+        dBP.push(Math.round(iPM/S.tcn));
+        dBD.push(-Math.round(dM/S.tcn));
+        dEgr.push(-Math.round(eM));
+        // Neto acumulado = (acreditado + proyectado) - deudas Balance - egresos obra
+        dNeto.push(Math.round(cumIR + cumIP - cumDeu - cumEgr));
         dBR_det.push(allO2.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms); }).map(function(o){ return {desc:o.desc,monto:Math.round(o.montoARS/S.tcn)}; }));
         dBP_det.push(allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms); }).map(function(o){ return {desc:o.desc,monto:Math.round(o.montoARS/S.tcn)}; }));
         dBD_det.push(S.deudas.reduce(function(arr,d){ var fi=d.fechaInicio||S.startDate; if(ms<fi.substring(0,7)) return arr; var sd=new Date(fi+'T00:00:00'),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return arr; arr.push({desc:d.desc,monto:Math.round((d.montoARS/d.cuotas)/S.tcn),cuota:ix+1,total:d.cuotas}); return arr; },[]));
+        dEgr_det.push(egrMes.det);
     }
     chartBal = new Chart(document.getElementById('chartBal').getContext('2d'),{
         type:'bar',
         data:{labels:labelsB,datasets:[
             {label:'Acreditado',data:dBR,backgroundColor:'rgba(62,207,142,.5)',borderColor:'#3ECF8E',borderWidth:1,borderRadius:3,order:3},
             {label:'Proyectado',data:dBP,backgroundColor:'rgba(76,142,245,.28)',borderColor:'#4C8EF5',borderWidth:1,borderRadius:3,order:4},
-            {label:'Deuda',data:dBD,backgroundColor:'rgba(245,101,101,.45)',borderColor:'#F56565',borderWidth:1,borderRadius:3,order:5},
-            {label:'Neto acumulado',data:dNeto,type:'line',borderColor:'#F5A623',backgroundColor:'rgba(245,166,35,.06)',tension:.4,pointRadius:3,borderWidth:2,fill:true,order:1}
+            {label:'Deudas Balance',data:dBD,backgroundColor:'rgba(245,101,101,.35)',borderColor:'#F56565',borderWidth:1,borderRadius:3,order:5},
+            {label:'Pagos Obra',data:dEgr,backgroundColor:'rgba(245,166,35,.45)',borderColor:'#F5A623',borderWidth:1,borderRadius:3,order:6},
+            {label:'Neto acumulado',data:dNeto,type:'line',borderColor:'#A78BFA',backgroundColor:'rgba(167,139,250,.06)',tension:.4,pointRadius:3,borderWidth:2,fill:true,order:1}
         ]},
         options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
         plugins:{legend:{display:false},tooltip:{enabled:false,external:function(ctx){
@@ -1908,12 +1956,13 @@ function renderBalance() {
             }
             var tip=ctx.tooltip;
             if(!tip||tip.opacity===0){ el.style.opacity='0'; return; }
-            var dsColors=['#3ECF8E','#4C8EF5','#F56565','#F5A623'];
+            var dsColors=['#3ECF8E','#4C8EF5','#F56565','#F5A623','#A78BFA'];
             var html='<div style="font-size:12px;font-weight:700;color:#E8EAF2;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.08);">'+( tip.title&&tip.title[0]?tip.title[0]:'' )+'</div>';
             tip.dataPoints.forEach(function(dp){
                 var dsIdx=dp.datasetIndex, idx=dp.dataIndex;
                 var v=Math.round(Math.abs(dp.raw));
-                var lbl=dsIdx===2?'Deuda total':dp.dataset.label;
+                if(v===0) return;
+                var lbl=['Acreditado','Proyectado','Deudas Balance','Pagos Obra','Neto acumulado'][dsIdx]||dp.dataset.label;
                 html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
                 html+='<span style="width:9px;height:9px;border-radius:2px;background:'+dsColors[dsIdx]+';flex-shrink:0;display:inline-block;"></span>';
                 html+='<span style="color:#8B90A8;flex:1;">'+lbl+'</span>';
@@ -1922,8 +1971,13 @@ function renderBalance() {
                 var dets=[];
                 if(dsIdx===1&&dBP_det[idx]) dets=dBP_det[idx];
                 if(dsIdx===2&&dBD_det[idx]) dets=dBD_det[idx];
+                if(dsIdx===3&&dEgr_det[idx]) dets=dEgr_det[idx];
                 dets.forEach(function(d){
-                    var name=dsIdx===2?d.desc+' <span style="color:#565C7A;">(c.'+d.cuota+'/'+d.total+')</span>':d.desc;
+                    var name=dsIdx===2
+                        ? d.desc+' <span style="color:#565C7A;">(c.'+d.cuota+'/'+d.total+')</span>'
+                        : dsIdx===3&&d.cuota
+                            ? d.desc+' <span style="color:#565C7A;">(c.'+d.cuota+'/'+d.totalCuotas+')</span>'
+                            : d.desc;
                     html+='<div style="display:flex;align-items:baseline;gap:6px;padding:2px 0 2px 17px;">';
                     html+='<span style="color:#565C7A;flex-shrink:0;">·</span>';
                     html+='<span style="color:#6B7094;flex:1;">'+name+'</span>';
