@@ -2029,27 +2029,12 @@ async function deleteBal(type,id){
 // PAGE: NOTAS / PRESUPUESTOS
 // ═══════════════════════════════════════
 var editNotaId = null;
-var notasMoneda = 'USD'; // moneda global de la tabla
-
-// Los valores se guardan siempre en ARS (val1/val2/val3 son pesos)
-// Para mostrar en USD dividimos por TCN
-function notaToDisplay(ars){ return notasMoneda==='ARS' ? ars : ars/S.tcn; }
-function displayToARS(v){ return notasMoneda==='ARS' ? v : v*S.tcn; }
+// Presupuesto siempre en ARS
+function notaToDisplay(ars){ return ars; }
+function displayToARS(v){ return v; }
 function fmtNota(ars){
     if(!ars) return '—';
-    if(notasMoneda==='ARS') return '$'+Math.round(ars).toLocaleString('es-AR');
-    return 'U$S '+Math.round(ars/S.tcn).toLocaleString('es-AR');
-}
-
-function setNotasMoneda(m){
-    notasMoneda = m;
-    document.getElementById('btnNotaUSD').style.background = m==='USD'?'var(--blue-dim)':'var(--surface3)';
-    document.getElementById('btnNotaUSD').style.color      = m==='USD'?'var(--blue)':'var(--text3)';
-    document.getElementById('btnNotaUSD').style.fontWeight = m==='USD'?'600':'400';
-    document.getElementById('btnNotaARS').style.background = m==='ARS'?'var(--amber-dim)':'var(--surface3)';
-    document.getElementById('btnNotaARS').style.color      = m==='ARS'?'var(--amber)':'var(--text3)';
-    document.getElementById('btnNotaARS').style.fontWeight = m==='ARS'?'600':'400';
-    renderNotas();
+    return '$'+Math.round(ars).toLocaleString('es-AR');
 }
 
 async function toggleNotaCheck(id){
@@ -2195,11 +2180,6 @@ function renderNotas(){
         '<div style="font-size:11px;color:var(--text3);margin-top:2px;">★ = precio más bajo · ✓ = incluir en sumatoria · 📝 = notas de ítem</div>' +
         '</div>' +
         '<div style="display:flex;gap:8px;align-items:center;">' +
-        // Toggle moneda
-        '<div style="display:flex;border:1px solid var(--border2);border-radius:6px;overflow:hidden;font-size:12px;">' +
-        '<button id="btnNotaUSD" onclick="setNotasMoneda(\'USD\')" style="padding:5px 12px;border:none;cursor:pointer;background:'+(notasMoneda==='USD'?'var(--blue-dim)':'var(--surface3)')+';color:'+(notasMoneda==='USD'?'var(--blue)':'var(--text3)')+';font-weight:'+(notasMoneda==='USD'?'600':'400')+';font-family:DM Sans,sans-serif;font-size:12px;">USD</button>' +
-        '<button id="btnNotaARS" onclick="setNotasMoneda(\'ARS\')" style="padding:5px 12px;border:none;cursor:pointer;background:'+(notasMoneda==='ARS'?'var(--amber-dim)':'var(--surface3)')+';color:'+(notasMoneda==='ARS'?'var(--amber)':'var(--text3)')+';font-weight:'+(notasMoneda==='ARS'?'600':'400')+';font-family:DM Sans,sans-serif;font-size:12px;">ARS</button>' +
-        '</div>' +
         '<button class="btn btn-primary" onclick="openNewNota()">+ Nueva fila</button>' +
         '</div></div>' +
 
