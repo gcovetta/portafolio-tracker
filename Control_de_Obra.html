@@ -452,8 +452,13 @@ function expandirIngreso(x) {
     if (step === 0) {
         ocurrencias.push({fecha:x.fecha, montoARS:x.montoARS, realizado:x.realizado});
     } else {
+        var hoy = new Date();
+        hoy.setHours(0,0,0,0);
         while (d <= fechaHasta) {
-            ocurrencias.push({fecha:d.toISOString().split('T')[0], montoARS:x.montoARS, realizado:x.realizado&&ocurrencias.length===0});
+            // Si el ingreso está marcado como realizado, todas las ocurrencias
+            // hasta hoy se consideran acreditadas; las futuras son proyectadas
+            var estaOcurrenciaRealizada = x.realizado ? (d <= hoy) : false;
+            ocurrencias.push({fecha:d.toISOString().split('T')[0], montoARS:x.montoARS, realizado:estaOcurrenciaRealizada});
             d = new Date(d.getFullYear(), d.getMonth()+step, d.getDate());
         }
     }
