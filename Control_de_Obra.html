@@ -2107,7 +2107,7 @@ function renderNotas(){
                     (isMin?'<span style="color:var(--green);font-size:11px;">★</span>':'<span style="width:11px;display:inline-block;"></span>') +
                     '</div>' +
                     // total efectivo (qty > 1)
-                    (qty>1&&eff>0?'<div style="font-size:11px;color:'+colr+';font-family:DM Mono,monospace;font-weight:600;">= '+(notasMoneda==='ARS'?'$'+Math.round(effDisp).toLocaleString('es-AR'):'U$S '+Math.round(effDisp).toLocaleString('es-AR'))+(isMin?' ★':'')+'</div>':'') +
+                    (qty>1&&eff>0?'<div style="font-size:11px;color:'+colr+';font-family:DM Mono,monospace;font-weight:600;">= '+'$'+Math.round(effDisp).toLocaleString('es-AR')+(isMin?' ★':'')+'</div>':'') +
                     '</div></td>';
             }).join('');
 
@@ -2164,12 +2164,12 @@ function renderNotas(){
     function totCell(v, minV, extra){
         var isMin = minV!==null && v===minV && v>0;
         var disp = notaToDisplay(v);
-        var lbl = v>0 ? (notasMoneda==='ARS'?'$'+Math.round(disp).toLocaleString('es-AR'):'U$S '+Math.round(disp).toLocaleString('es-AR'))+(isMin?' ★':'') : '—';
+        var lbl = v>0 ? '$'+Math.round(disp).toLocaleString('es-AR')+(isMin?' ★':'') : '—';
         return '<td style="padding:10px 14px;border-top:2px solid var(--border2);text-align:right;'+(extra||'')+'">' +
             '<span style="font-family:DM Mono,monospace;font-size:14px;font-weight:700;color:'+(isMin?'var(--green)':'var(--text)')+';">'+lbl+'</span></td>';
     }
 
-    var monedaLabel = notasMoneda==='ARS'?'pesos':'dólares';
+    var monedaLabel = 'pesos';
     var nChecked = checkedItems.length;
 
     document.getElementById('page-notas').innerHTML =
@@ -2276,7 +2276,7 @@ function openNewNota(){
     document.getElementById('nVal3').value='';
     document.getElementById('nQty').value='1';
     // Actualizar labels moneda
-    var ml = notasMoneda==='ARS'?'($)':'(U$S)';
+    var ml = '($)';
     ['lVal1','lVal2','lVal3'].forEach(function(lid,i){
         document.getElementById(lid).textContent = (S.proveedores[i]?S.proveedores[i].nombre:'Proveedor '+(i+1))+' '+ml;
     });
@@ -2290,7 +2290,7 @@ function openEditNota(id){
     document.getElementById('nNota').value = n.nota||'';
     document.getElementById('nCat').value  = n.categoria||'';
     document.getElementById('nQty').value  = n.qty||1;
-    var ml = notasMoneda==='ARS'?'($)':'(U$S)';
+    var ml = '($)';
     ['lVal1','lVal2','lVal3'].forEach(function(lid,i){
         document.getElementById(lid).textContent = (S.proveedores[i]?S.proveedores[i].nombre:'Proveedor '+(i+1))+' '+ml;
     });
