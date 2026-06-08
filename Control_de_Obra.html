@@ -1907,7 +1907,7 @@ function renderBalance() {
         '</div>' +
         // Grafico
         '<div style="'+CS+'margin-bottom:12px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Flujo mensual y neto acumulado</span>' +
-        '<div style="display:flex;gap:10px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.5);margin-right:3px;vertical-align:middle;"></span>Acreditado</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(76,142,245,.3);margin-right:3px;vertical-align:middle;"></span>Proyectado</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,101,101,.35);margin-right:3px;vertical-align:middle;"></span>Deudas</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,166,35,.45);margin-right:3px;vertical-align:middle;"></span>Pagos obra</span><span><span style="display:inline-block;width:20px;height:2px;background:#A78BFA;margin-right:3px;vertical-align:middle;"></span>Neto</span></div>' +
+        '<div style="display:flex;gap:10px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.5);margin-right:3px;vertical-align:middle;"></span>Acreditado</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(76,142,245,.3);margin-right:3px;vertical-align:middle;"></span>Proyectado</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,101,101,.35);margin-right:3px;vertical-align:middle;"></span>Deudas</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,166,35,.45);margin-right:3px;vertical-align:middle;"></span>Pagos obra</span><span><span style="display:inline-block;width:20px;height:2px;background:linear-gradient(to right,#3ECF8E,#F56565);margin-right:3px;vertical-align:middle;"></span>Neto (verde=positivo / rojo=negativo)</span></div>' +
         '</div><div style="padding:14px 18px;"><div style="position:relative;width:100%;height:220px;"><canvas id="chartBal"></canvas></div></div></div>' +
         // Acreditados
         '<div style="'+CS+'"><div style="'+HS+'">' +
@@ -1990,7 +1990,12 @@ function renderBalance() {
             {label:'Proyectado',data:dBP,backgroundColor:'rgba(76,142,245,.28)',borderColor:'#4C8EF5',borderWidth:1,borderRadius:3,order:4},
             {label:'Deudas Balance',data:dBD,backgroundColor:'rgba(245,101,101,.35)',borderColor:'#F56565',borderWidth:1,borderRadius:3,order:5},
             {label:'Pagos Obra',data:dEgr,backgroundColor:'rgba(245,166,35,.45)',borderColor:'#F5A623',borderWidth:1,borderRadius:3,order:6},
-            {label:'Neto acumulado',data:dNeto,type:'line',borderColor:'#A78BFA',backgroundColor:'rgba(167,139,250,.06)',tension:.4,pointRadius:3,borderWidth:2,fill:true,order:1}
+            {label:'Neto acumulado',data:dNeto,type:'line',
+                borderColor:function(ctx){ return ctx.p0&&ctx.p0.parsed&&ctx.p0.parsed.y<0?'#F56565':'#3ECF8E'; },
+                segment:{borderColor:function(ctx){ return ctx.p0.parsed.y<0?'#F56565':'#3ECF8E'; }},
+                pointBackgroundColor:dNeto.map(function(v){ return v<0?'#F56565':'#3ECF8E'; }),
+                pointBorderColor:dNeto.map(function(v){ return v<0?'#F56565':'#3ECF8E'; }),
+                backgroundColor:'rgba(245,101,101,.04)',tension:.4,pointRadius:4,borderWidth:2.5,fill:false,order:1}
         ]},
         options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
         plugins:{legend:{display:false},tooltip:{enabled:false,external:function(ctx){
@@ -2001,7 +2006,7 @@ function renderBalance() {
             }
             var tip=ctx.tooltip;
             if(!tip||tip.opacity===0){ el.style.opacity='0'; return; }
-            var dsColors=['#3ECF8E','#4C8EF5','#F56565','#F5A623','#A78BFA'];
+            var dsColors=['#3ECF8E','#4C8EF5','#F56565','#F5A623','#3ECF8E'];
             var html='<div style="font-size:12px;font-weight:700;color:#E8EAF2;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.08);">'+( tip.title&&tip.title[0]?tip.title[0]:'' )+'</div>';
             tip.dataPoints.forEach(function(dp){
                 var dsIdx=dp.datasetIndex, idx=dp.dataIndex;
@@ -2009,7 +2014,8 @@ function renderBalance() {
                 if(v===0) return;
                 var lbl=['Acreditado','Proyectado','Deudas Balance','Pagos Obra','Neto acumulado'][dsIdx]||dp.dataset.label;
                 html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
-                html+='<span style="width:9px;height:9px;border-radius:2px;background:'+dsColors[dsIdx]+';flex-shrink:0;display:inline-block;"></span>';
+                var tipColor = dsIdx===4?(dp.raw<0?'#F56565':'#3ECF8E'):dsColors[dsIdx];
+                html+='<span style="width:9px;height:9px;border-radius:2px;background:'+tipColor+';flex-shrink:0;display:inline-block;"></span>';
                 html+='<span style="color:#8B90A8;flex:1;">'+lbl+'</span>';
                 html+='<span style="font-family:DM Mono,monospace;font-weight:600;color:#E8EAF2;">U$S '+v.toLocaleString('es-AR')+'</span>';
                 html+='</div>';
