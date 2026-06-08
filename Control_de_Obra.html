@@ -952,14 +952,19 @@ function renderPagos(){
     var totalPagUSD   = _totalConCuotas(pagados);
     // Pendientes: solo lo que FALTA pagar (cuotas restantes, no el total)
     var totalPendUSD  = pendientes.reduce(function(s,p){
+        var cot = p.cotizacion||S.tcn;
         if(p.cuotas&&p.cuotas>1){
             var restantes = Math.max(0, p.cuotas - (p.cuotasPagadas||0));
-            var saldoCuotaUSD = p.saldoCuotaActual!=null
-                ? (p.montoARSoriginal ? p.saldoCuotaActual/(p.cotizacion||S.tcn) : p.saldoCuotaActual)
-                : p.montoUSD;
-            return s + (restantes>0 ? (restantes-1)*p.montoUSD + saldoCuotaUSD : 0);
+            if(p.montoARSoriginal){
+                var saldoCuotaARS = p.saldoCuotaActual!=null ? p.saldoCuotaActual : p.montoARSoriginal;
+                var saldoARS = restantes>0 ? (restantes-1)*p.montoARSoriginal + saldoCuotaARS : 0;
+                return s + saldoARS/cot;
+            } else {
+                var saldoCuotaUSD = p.saldoCuotaActual!=null ? p.saldoCuotaActual : p.montoUSD;
+                return s + (restantes>0 ? (restantes-1)*p.montoUSD + saldoCuotaUSD : 0);
+            }
         }
-        return s + p.montoUSD;
+        return s + (p.montoARSoriginal ? p.montoARSoriginal/cot : p.montoUSD);
     }, 0);
     var totalPagARS   = _totalARSConCuotas(pagados);
     var totalPendARS  = pendientes.reduce(function(s,p){
@@ -1115,12 +1120,21 @@ function renderPagos(){
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div>'+cuotasBar(p)+'</div></td>' +
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:'+pColor+';">U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+'</td>' +
                     (p.cuotas&&p.cuotas>1?(function(){
-                        var _pag=p.cuotasPagadas||0, _rest=p.cuotas-_pag, _tot=Math.round(p.montoUSD*p.cuotas);
-                        // Saldo parcial de cuota actual: convertir a USD si el pago es en pesos
-                        var _saldoCuotaUSD = p.saldoCuotaActual!=null
-                            ? (p.montoARSoriginal ? p.saldoCuotaActual/(p.cotizacion||S.tcn) : p.saldoCuotaActual)
-                            : p.montoUSD;
-                        var _saldo = Math.round((_rest>0?(_rest-1)*p.montoUSD+_saldoCuotaUSD:0));
+                        var _pag=p.cuotasPagadas||0, _rest=p.cuotas-_pag;
+                        var _cot = p.cotizacion||S.tcn;
+                        if(p.montoARSoriginal){
+                            // Pago en pesos: calcular todo en ARS y convertir al final
+                            var _totARS = p.montoARSoriginal * p.cuotas;
+                            var _saldoCuotaARS = p.saldoCuotaActual!=null ? p.saldoCuotaActual : p.montoARSoriginal;
+                            var _saldoARS = _rest>0 ? (_rest-1)*p.montoARSoriginal + _saldoCuotaARS : 0;
+                            var _tot = Math.round(_totARS/_cot);
+                            var _saldo = Math.round(_saldoARS/_cot);
+                        } else {
+                            // Pago en USD: calcular en USD directo
+                            var _tot = Math.round(p.montoUSD*p.cuotas);
+                            var _saldoCuotaUSD = p.saldoCuotaActual!=null ? p.saldoCuotaActual : p.montoUSD;
+                            var _saldo = Math.round(_rest>0 ? (_rest-1)*p.montoUSD+_saldoCuotaUSD : 0);
+                        }
                         return '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;">' +
                             '<div style="font-family:DM Mono,monospace;font-size:12px;font-weight:700;color:'+pColor+';">U$S '+_saldo.toLocaleString('es-AR')+'</div>' +
                             '<div style="font-size:10px;color:var(--text3);margin-top:1px;">'+_rest+' de '+p.cuotas+' cuotas · total U$S '+_tot.toLocaleString('es-AR')+'</div>' +
@@ -1246,30 +1260,29 @@ function renderPagos(){
         var pagado = 0, pendiente = 0;
         lista.forEach(function(p) {
             if (_esCuotaAutoGenerada(p)) return;
-            // Para pagos en pesos, el valor USD es p.montoUSD (guardado en BD como referencia)
-            // Para cuotas: montoUSD es el valor por cuota en USD
+            var cot = p.cotizacion || S.tcn;
             if (p.estado === 'pagado') {
+                // Pago completado: usar montoUSD guardado (referencia exacta)
                 pagado += p.montoUSD;
             } else if (p.cuotas && p.cuotas > 1) {
-                var cuotaUSD = p.montoUSD; // valor por cuota en USD (nunca cambia)
-                var pagadas  = p.cuotasPagadas || 0;
+                var pagadas   = p.cuotasPagadas || 0;
                 var restantes = p.cuotas - pagadas;
-                pagado += cuotaUSD * pagadas;
-                // Saldo de la cuota actual en USD
-                if(restantes > 0){
-                    var saldoCuotaUSD;
-                    if(p.saldoCuotaActual != null){
-                        // saldoCuotaActual está en la moneda original del pago
-                        saldoCuotaUSD = p.montoARSoriginal
-                            ? p.saldoCuotaActual / (p.cotizacion || S.tcn)
-                            : p.saldoCuotaActual;
-                    } else {
-                        saldoCuotaUSD = cuotaUSD;
-                    }
-                    pendiente += (restantes - 1) * cuotaUSD + saldoCuotaUSD;
+                if(p.montoARSoriginal){
+                    // Cuotas en pesos: todo en ARS, convertir al final
+                    var pagadoARS = p.montoARSoriginal * pagadas;
+                    var saldoCuotaARS = p.saldoCuotaActual!=null ? p.saldoCuotaActual : p.montoARSoriginal;
+                    var pendienteARS = restantes>0 ? (restantes-1)*p.montoARSoriginal + saldoCuotaARS : 0;
+                    pagado    += pagadoARS / cot;
+                    pendiente += pendienteARS / cot;
+                } else {
+                    // Cuotas en USD
+                    var saldoCuotaUSD = p.saldoCuotaActual!=null ? p.saldoCuotaActual : p.montoUSD;
+                    pagado    += p.montoUSD * pagadas;
+                    pendiente += restantes>0 ? (restantes-1)*p.montoUSD + saldoCuotaUSD : 0;
                 }
             } else {
-                pendiente += p.montoUSD;
+                // Pago simple pendiente
+                pendiente += p.montoARSoriginal ? p.montoARSoriginal/cot : p.montoUSD;
             }
         });
         return { pag: Math.round(pagado), pend: Math.round(pendiente) };
