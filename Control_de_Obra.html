@@ -954,8 +954,10 @@ function renderPagos(){
     var totalPendUSD  = pendientes.reduce(function(s,p){
         if(p.cuotas&&p.cuotas>1){
             var restantes = Math.max(0, p.cuotas - (p.cuotasPagadas||0));
-            var saldoCuota = p.saldoCuotaActual!=null ? p.saldoCuotaActual : p.montoUSD;
-            return s + (restantes>0 ? (restantes-1)*p.montoUSD + saldoCuota : 0);
+            var saldoCuotaUSD = p.saldoCuotaActual!=null
+                ? (p.montoARSoriginal ? p.saldoCuotaActual/(p.cotizacion||S.tcn) : p.saldoCuotaActual)
+                : p.montoUSD;
+            return s + (restantes>0 ? (restantes-1)*p.montoUSD + saldoCuotaUSD : 0);
         }
         return s + p.montoUSD;
     }, 0);
@@ -1114,9 +1116,11 @@ function renderPagos(){
                     '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:'+pColor+';">U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+'</td>' +
                     (p.cuotas&&p.cuotas>1?(function(){
                         var _pag=p.cuotasPagadas||0, _rest=p.cuotas-_pag, _tot=Math.round(p.montoUSD*p.cuotas);
-                        // Saldo = cuotas completas restantes × montoUSD + saldo parcial de cuota actual
-                        var _saldoCuota = p.saldoCuotaActual!=null ? p.saldoCuotaActual : p.montoUSD;
-                        var _saldo = Math.round((_rest>0?(_rest-1)*p.montoUSD+_saldoCuota:0));
+                        // Saldo parcial de cuota actual: convertir a USD si el pago es en pesos
+                        var _saldoCuotaUSD = p.saldoCuotaActual!=null
+                            ? (p.montoARSoriginal ? p.saldoCuotaActual/(p.cotizacion||S.tcn) : p.saldoCuotaActual)
+                            : p.montoUSD;
+                        var _saldo = Math.round((_rest>0?(_rest-1)*p.montoUSD+_saldoCuotaUSD:0));
                         return '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;">' +
                             '<div style="font-family:DM Mono,monospace;font-size:12px;font-weight:700;color:'+pColor+';">U$S '+_saldo.toLocaleString('es-AR')+'</div>' +
                             '<div style="font-size:10px;color:var(--text3);margin-top:1px;">'+_rest+' de '+p.cuotas+' cuotas · total U$S '+_tot.toLocaleString('es-AR')+'</div>' +
