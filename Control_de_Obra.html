@@ -1241,21 +1241,31 @@ function renderPagos(){
     function _calcPagPend(lista) {
         var pagado = 0, pendiente = 0;
         lista.forEach(function(p) {
-            // Ignorar filas auto-generadas al pagar cuotas: ya están contadas en el registro pendiente
             if (_esCuotaAutoGenerada(p)) return;
+            // Para pagos en pesos, el valor USD es p.montoUSD (guardado en BD como referencia)
+            // Para cuotas: montoUSD es el valor por cuota en USD
             if (p.estado === 'pagado') {
                 pagado += p.montoUSD;
-            } else {
-                // tiene cuotas definidas
-                if (p.cuotas && p.cuotas > 1) {
-                    var cuotaUSD  = p.montoUSD;
-                    var pagadas   = p.cuotasPagadas || 0;
-                    var restantes = p.cuotas - pagadas;
-                    pagado    += cuotaUSD * pagadas;
-                    pendiente += cuotaUSD * restantes;
-                } else {
-                    pendiente += p.montoUSD;
+            } else if (p.cuotas && p.cuotas > 1) {
+                var cuotaUSD = p.montoUSD; // valor por cuota en USD (nunca cambia)
+                var pagadas  = p.cuotasPagadas || 0;
+                var restantes = p.cuotas - pagadas;
+                pagado += cuotaUSD * pagadas;
+                // Saldo de la cuota actual en USD
+                if(restantes > 0){
+                    var saldoCuotaUSD;
+                    if(p.saldoCuotaActual != null){
+                        // saldoCuotaActual está en la moneda original del pago
+                        saldoCuotaUSD = p.montoARSoriginal
+                            ? p.saldoCuotaActual / (p.cotizacion || S.tcn)
+                            : p.saldoCuotaActual;
+                    } else {
+                        saldoCuotaUSD = cuotaUSD;
+                    }
+                    pendiente += (restantes - 1) * cuotaUSD + saldoCuotaUSD;
                 }
+            } else {
+                pendiente += p.montoUSD;
             }
         });
         return { pag: Math.round(pagado), pend: Math.round(pendiente) };
@@ -1296,7 +1306,17 @@ function renderPagos(){
                     var pagadas   = p.cuotasPagadas||0;
                     var restantes = p.cuotas - pagadas;
                     if(pagadas>0) rows.push({desc:p.desc+' ('+pagadas+' pagadas)', usd:p.montoUSD*pagadas, ars:p.montoARSoriginal?p.montoARSoriginal*pagadas:null, pagado:true});
-                    if(restantes>0) rows.push({desc:p.desc+' ('+restantes+' pend.)', usd:p.montoUSD*restantes, ars:p.montoARSoriginal?p.montoARSoriginal*restantes:null, pagado:false});
+                    if(restantes>0){
+                        // Saldo real en USD para la cuota actual
+                        var saldoCuotaUSD = p.saldoCuotaActual!=null
+                            ? (p.montoARSoriginal ? p.saldoCuotaActual/(p.cotizacion||S.tcn) : p.saldoCuotaActual)
+                            : p.montoUSD;
+                        var saldoTotalUSD = (restantes-1)*p.montoUSD + saldoCuotaUSD;
+                        var saldoTotalARS = p.montoARSoriginal
+                            ? (p.saldoCuotaActual!=null ? (restantes-1)*p.montoARSoriginal+p.saldoCuotaActual : p.montoARSoriginal*restantes)
+                            : null;
+                        rows.push({desc:p.desc+' ('+restantes+' pend.)', usd:saldoTotalUSD, ars:saldoTotalARS, pagado:false});
+                    }
                 } else {
                     rows.push({desc:p.desc||'Sin desc', usd:p.montoUSD, ars:p.montoARSoriginal||null, pagado:p.estado==='pagado'});
                 }
