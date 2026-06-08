@@ -324,11 +324,27 @@
                 <div class="form-row">
                     <div class="fg">
                         <label>Cantidad de cuotas</label>
-                        <input type="number" id="mCuotas" min="1" value="1" placeholder="1">
+                        <input type="number" id="mCuotas" min="1" value="1" placeholder="1" oninput="calcCuotaDesdeTotal()">
                     </div>
                     <div class="fg">
                         <label>Cuotas pagadas</label>
                         <input type="number" id="mCuotasPagadas" min="0" value="0" placeholder="0">
+                    </div>
+                </div>
+                <div class="form-row" style="align-items:flex-end;">
+                    <div class="fg">
+                        <label style="display:flex;align-items:center;gap:6px;">
+                            Monto total
+                            <span style="font-size:10px;color:var(--text3);font-weight:400;">÷ cuotas = monto por cuota ↑</span>
+                        </label>
+                        <div class="amt-wrap">
+                            <input type="number" id="mMontoTotal" placeholder="Opcional" min="0" oninput="calcCuotaDesdeTotal()">
+                            <span class="amt-tag" id="mMontoTotalTag">USD</span>
+                        </div>
+                    </div>
+                    <div class="fg" style="justify-content:flex-end;">
+                        <label>Cuota calculada</label>
+                        <div id="mCuotaCalc" style="height:36px;display:flex;align-items:center;font-family:DM Mono,monospace;font-size:14px;font-weight:600;color:var(--green);">—</div>
                     </div>
                 </div>
             </div>
@@ -1367,6 +1383,9 @@ function renderPagos(){
 // Moneda activa en modal pago
 var mPagoMoneda = 'USD';
 function setMonedaPago(m){
+    var tag = document.getElementById('mMontoTotalTag');
+    if(tag) tag.textContent = m;
+    calcCuotaDesdeTotal();
     mPagoMoneda = m;
     document.getElementById('mMontoTag').textContent = m;
     document.getElementById('btnMonedaUSD').style.background = m==='USD'?'var(--blue-dim)':'var(--surface3)';
@@ -1396,12 +1415,35 @@ function calcPreviewPago(){
     }
 }
 function fillEtapaSel(sel){ /* Rubro es texto libre - no necesita populate */ }
+function calcCuotaDesdeTotal(){
+    var total = parseFloat(document.getElementById('mMontoTotal').value)||0;
+    var cuotas = parseInt(document.getElementById('mCuotas').value)||1;
+    var el = document.getElementById('mCuotaCalc');
+    var moneda = document.getElementById('ppMoneda') ? document.getElementById('mMontoTag').textContent : 'USD';
+    var tag = document.getElementById('mMontoTotalTag');
+    if(tag) tag.textContent = document.getElementById('mMontoTag').textContent;
+    if(total > 0 && cuotas > 0){
+        var cuota = total / cuotas;
+        var fmt = document.getElementById('mMontoTag').textContent === 'ARS'
+            ? '$'+Math.round(cuota).toLocaleString('es-AR')
+            : 'U$S '+Math.round(cuota*100)/100;
+        el.textContent = fmt;
+        // Rellenar campo Monto automáticamente
+        document.getElementById('mMonto').value = Math.round(cuota*100)/100;
+        calcPreviewPago();
+    } else {
+        el.textContent = '—';
+    }
+}
+
 function openNewPago(){
     S.editPagoId=null;
     document.getElementById('mPagoTitle').textContent='Registrar pago';
     document.getElementById('mFecha').value=new Date().toISOString().split('T')[0];
     document.getElementById('mDesc').value='';
     document.getElementById('mMonto').value='';
+    document.getElementById('mMontoTotal').value='';
+    document.getElementById('mCuotaCalc').textContent='—';
     document.getElementById('mEstado').value='pagado';
     document.getElementById('fgDeudaInfo').style.display='none';
     document.getElementById('fgCuotasPago').style.display='none';
