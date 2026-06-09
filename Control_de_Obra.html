@@ -297,12 +297,6 @@ var S = {
 // HELPERS
 // ═══════════════════════════════════════
 function fmtUSD(ars) { return 'U$S ' + Math.round(ars / S.tcn).toLocaleString('es-AR'); }
-function fmtARS(ars) { return '$ ' + Math.round(ars).toLocaleString('es-AR'); }
-// Formatea un ingreso en su moneda original
-function fmtIngreso(x) {
-    if (x.moneda === 'ars') return fmtARS(x.montoARS);
-    return 'U$S ' + Math.round(x.montoUSD).toLocaleString('es-AR');
-}
 function fmtMain(ars) { return fmtUSD(ars); }
 function pct(a, b) { return b > 0 ? Math.min(Math.round(a / b * 100), 999) : 0; }
 function getRubro(id) { return S.rubros.find(function(r){ return r.id === id; }); }
@@ -346,14 +340,7 @@ function updateTCN(v) {
     S.tcn = parseFloat(v) || 1200;
     S.rubros.forEach(function(r){ r.presupARS = r.presupUSD * S.tcn; });
     S.pagos.forEach(function(p){ p.montoARS = p.montoUSD * S.tcn; });
-    S.ingresos.forEach(function(x){
-        if(x.moneda === 'ars') {
-            // ARS fijos: solo actualizar montoUSD referencial
-            x.montoUSD = x.cotizacion && x.cotizacion > 0 ? x.montoARS / x.cotizacion : x.montoARS / S.tcn;
-        } else {
-            x.montoARS = x.montoUSD * S.tcn;
-        }
-    });
+    S.ingresos.forEach(function(x){ x.montoARS = x.montoUSD * S.tcn; });
     S.deudas.forEach(function(x){ x.montoARS = x.montoUSD * S.tcn; });
     S.ajustes.forEach(function(x){ x.montoARS = x.montoUSD * S.tcn; });
     renderCurrent();
@@ -399,18 +386,7 @@ async function loadAllData() {
     S.pagos    = (pagos.data||[]).map(function(p){ return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, desc:p.descripcion, montoARS:p.monto_usd*S.tcn, montoUSD:p.monto_usd, estado:p.estado}; });
     S.etapas   = (etapas.data||[]).map(function(e){ return {id:e.id, nombre:e.nombre, mesIni:e.mes_ini||1, mesFin:e.mes_fin||1, color:e.color, avance:e.avance, orden:e.orden, finalizado:e.finalizado||false, fechaIni:e.fecha_ini||'', fechaFin:e.fecha_fin||''}; });
     S.ingresos = (ingresos.data||[]).map(function(x){
-        var moneda = x.moneda || 'usd';
-        var cotizacion = x.cotizacion || null;
-        var montoARS, montoUSD;
-        if (moneda === 'ars') {
-            // ingreso en pesos: montoARS es el valor real, montoUSD es referencia
-            montoARS = x.monto_usd; // columna reutilizada: guarda el monto en la moneda original
-            montoUSD = cotizacion && cotizacion > 0 ? montoARS / cotizacion : montoARS / S.tcn;
-        } else {
-            montoUSD = x.monto_usd;
-            montoARS = montoUSD * S.tcn;
-        }
-        var obj={id:x.id, fecha:x.fecha, desc:x.descripcion, montoARS:montoARS, montoUSD:montoUSD, realizado:x.realizado, periodicidad:x.periodicidad, fechaHasta:x.fecha_hasta||'', moneda:moneda, cotizacion:cotizacion};
+        var obj={id:x.id, fecha:x.fecha, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd, realizado:x.realizado, periodicidad:x.periodicidad, fechaHasta:x.fecha_hasta||'', moneda:x.moneda||'usd', cotizacion:x.cotizacion||null};
         // calcular nCuotas si tiene fechaHasta y es mensual
         if(x.periodicidad==='mensual'&&x.fecha_hasta){
             var d0=new Date(x.fecha+'T00:00:00'), d1=new Date(x.fecha_hasta+'T00:00:00');
@@ -719,15 +695,7 @@ function renderBalance() {
     var HS = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2);';
     var THS = 'padding:7px 14px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap;';
 
-    // Para KPIs y gráfico: convertir todo a USD usando cotizacion propia si ARS
-    function ingresoToUSD(x) {
-        if (x.moneda === 'ars') {
-            var cot = x.cotizacion && x.cotizacion > 0 ? x.cotizacion : S.tcn;
-            return x.montoARS / cot;
-        }
-        return x.montoUSD;
-    }
-    var allOcurr = []; S.ingresos.forEach(function(x){ expandirIngreso(x).forEach(function(o){ allOcurr.push(Object.assign({},o,{moneda:x.moneda,cotizacion:x.cotizacion,montoUSD:ingresoToUSD(x)})); }); });
+    var allOcurr = []; S.ingresos.forEach(function(x){ expandirIngreso(x).forEach(function(o){ allOcurr.push(o); }); });
     var ingReal = allOcurr.filter(function(o){ return o.realizado; }).reduce(function(s,o){ return s+o.montoARS; },0);
     var ingProy = allOcurr.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS; },0);
     var deu = totalDeudasARS(), aj = totalAjustesARS(), neto = ingReal+ingProy-deu-aj;
@@ -754,14 +722,10 @@ function renderBalance() {
         var per=x.periodicidad||'unico', occ=expandirIngreso(x).length;
         var cuotaLabel=x.nCuotas?(occ+'/'+x.nCuotas+' cuotas'):occ+' ocurr.';
         var sub=per==='unico'?x.fecha:x.fecha+(x.fechaHasta?' > '+x.fechaHasta:'')+' · '+cuotaLabel;
-        var isARS = x.moneda === 'ars';
-        var monedaBadge = isARS
-            ? '<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:var(--amber-dim);color:var(--amber);font-weight:700;margin-left:4px;">ARS</span>'
-            : '';
         return '<tr onclick="toggleRealizado('+x.id+')" style="cursor:pointer;">' +
-            '<td style="padding:9px 14px;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:8px;"><div style="width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0;"></div><div><div style="font-size:13px;font-weight:500;">'+x.desc+monedaBadge+'</div><div style="font-size:11px;color:var(--text3);">'+sub+'</div></div></div></td>' +
+            '<td style="padding:9px 14px;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:8px;"><div style="width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0;"></div><div><div style="font-size:13px;font-weight:500;">'+x.desc+'</div><div style="font-size:11px;color:var(--text3);">'+sub+'</div></div></div></td>' +
             '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;background:var(--surface3);color:var(--text3);">'+( PLABELS[per]||per)+'</span></td>' +
-            '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--text2);">'+fmtIngreso(x)+'</td>' +
+            '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--text2);">'+fmtUSD(x.montoARS)+'</td>' +
             '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;"><div style="display:flex;gap:4px;justify-content:flex-end;">' +
             '<button class="btn btn-sm" onclick="event.stopPropagation();openEditBal(\'ingreso\','+x.id+')">✎</button>' +
             '<button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteBal(\'ingreso\','+x.id+')">✕</button>' +
@@ -773,15 +737,11 @@ function renderBalance() {
         .sort(function(a,b){ return b.fecha.localeCompare(a.fecha); })
         .map(function(x){
             var per=x.periodicidad||'unico';
-            var isARS = x.moneda === 'ars';
-            var monedaBadge = isARS
-                ? '<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:var(--amber-dim);color:var(--amber);font-weight:700;margin-left:4px;">ARS</span>'
-                : '';
             return '<tr>' +
                 '<td style="padding:9px 14px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:12px;color:var(--text3);">'+x.fecha+'</td>' +
-                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:500;">'+x.desc+monedaBadge+'</div></td>' +
+                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:500;">'+x.desc+'</div></td>' +
                 '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;background:var(--blue-dim);color:var(--blue);">'+(PLABELS[per]||per)+'</span></td>' +
-                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--green);">'+fmtIngreso(x)+'</td>' +
+                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--green);">'+fmtUSD(x.montoARS)+'</td>' +
                 '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;"><div style="display:flex;gap:4px;justify-content:flex-end;">' +
                 '<button class="btn btn-sm" onclick="openEditBal(\'ingreso\','+x.id+')">✎</button>' +
                 '<button class="btn btn-sm btn-danger" onclick="deleteBal(\'ingreso\','+x.id+')">✕</button>' +
@@ -805,17 +765,7 @@ function renderBalance() {
     }).join('') || '<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--text3);">Sin deudas</td></tr>';
 
     var totalAcr = S.ingresos.filter(function(x){ return x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0);
-    var totalAcrUSD = S.ingresos.filter(function(x){ return x.realizado && x.moneda!=='ars'; }).reduce(function(s,x){ return s+x.montoUSD; },0);
-    var totalAcrARS = S.ingresos.filter(function(x){ return x.realizado && x.moneda==='ars'; }).reduce(function(s,x){ return s+x.montoARS; },0);
     var nAcr = S.ingresos.filter(function(x){ return x.realizado; }).length;
-    var ingProyUSD = S.ingresos.filter(function(x){ return !x.realizado && x.moneda!=='ars'; }).reduce(function(s,x){ return s+x.montoARS; },0);
-    var ingProyARS = S.ingresos.filter(function(x){ return !x.realizado && x.moneda==='ars'; }).reduce(function(s,x){ return s+x.montoARS; },0);
-    function fmtTotalMixto(arsAmt, usdAmt) {
-        var parts = [];
-        if(usdAmt > 0) parts.push('<span style="color:var(--green);">'+fmtUSD(usdAmt)+'</span>');
-        if(arsAmt > 0) parts.push('<span style="color:var(--amber);">'+fmtARS(arsAmt)+'</span>');
-        return parts.join(' + ') || '—';
-    }
 
     document.getElementById('page-balance').innerHTML =
         // insight cards
@@ -841,7 +791,7 @@ function renderBalance() {
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">' +
         '<div style="'+CS+'margin-bottom:0;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos proyectados</span><button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div>' +
         '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+THS+'text-align:left;">Descripción</th><th style="'+THS+'text-align:center;">Frecuencia</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'"></th></tr></thead><tbody>'+ingRows+'</tbody></table></div>' +
-        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total '+fmtTotalMixto(ingProyARS, ingProyUSD)+'</span></div></div>' +
+        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--text);">'+fmtUSD(ingProy)+'</strong></span></div></div>' +
         '<div style="'+CS+'margin-bottom:0;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Deudas</span><button class="btn btn-sm btn-danger" style="background:var(--red-dim);border-color:rgba(245,101,101,.3);" onclick="openNewBal(\'deuda\')">+ Nueva</button></div>' +
         '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+THS+'text-align:left;">Deuda</th><th style="'+THS+'text-align:center;">Avance</th><th style="'+THS+'text-align:right;">Saldo</th><th style="'+THS+'"></th></tr></thead><tbody>'+deuRows+'</tbody></table></div>' +
         '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--red);">'+fmtUSD(deu)+'</strong></span></div></div>' +
@@ -855,20 +805,14 @@ function renderBalance() {
         '<div style="display:flex;align-items:center;gap:10px;"><span style="width:9px;height:9px;border-radius:50%;background:var(--green);display:inline-block;"></span><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos acreditados</span><span style="font-size:11px;color:var(--text3);">'+nAcr+' registro'+(nAcr!==1?'s':'')+'</span></div>' +
         '<button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div>' +
         '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+THS+'text-align:left;">Fecha</th><th style="'+THS+'text-align:left;">Descripción</th><th style="'+THS+'text-align:center;">Frecuencia</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'"></th></tr></thead><tbody>'+acrRows+'</tbody></table></div>' +
-        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total acreditado '+fmtTotalMixto(totalAcrARS, totalAcrUSD)+'</span></div></div>';
+        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total acreditado <strong style="font-family:DM Mono,monospace;color:var(--green);">'+fmtUSD(totalAcr)+'</strong></span></div></div>';
 
     // Chart
     if (chartBal) chartBal.destroy();
     var labelsB = Array.from({length:18}, function(_,i){ return mLabel(i); });
     // Incluir desc en cada ocurrencia para el tooltip
     var allO2 = [];
-    S.ingresos.forEach(function(x){
-        var cot = (x.moneda === 'ars') ? (x.cotizacion && x.cotizacion > 0 ? x.cotizacion : S.tcn) : S.tcn;
-        expandirIngreso(x).forEach(function(o){
-            var usd = x.moneda === 'ars' ? o.montoARS / cot : o.montoARS / S.tcn;
-            allO2.push({fecha:o.fecha, montoARS:usd*S.tcn, realizado:o.realizado, desc:x.desc, moneda:x.moneda});
-        });
-    });
+    S.ingresos.forEach(function(x){ expandirIngreso(x).forEach(function(o){ allO2.push({fecha:o.fecha,montoARS:o.montoARS,realizado:o.realizado,desc:x.desc}); }); });
     var cumIR=0,cumIP=0,cumDeu=0, dBR=[],dBP=[],dBD=[],dNeto=[];
     var dBR_det=[],dBP_det=[],dBD_det=[];
     for(var i=0;i<18;i++){
@@ -939,31 +883,16 @@ async function toggleRealizado(id){ var x=S.ingresos.find(function(i){ return i.
 async function pagarCuota(id){ var d=S.deudas.find(function(x){ return x.id===id; }); if(!d||d.pagadas>=d.cuotas){ alert('Todas las cuotas ya pagadas.'); return; } d.pagadas++; setSaveStatus('saving'); var res=await sb.from('obra_deudas').update({pagadas:d.pagadas}).eq('id',id); setSaveStatus(res.error?'error':'ok',res.error?'Error':'Guardado'); renderBalance(); }
 
 function openNewBal(type){ S.editBalType=type; S.editBalId=null; document.getElementById('mBalTitle').textContent={ingreso:'Nuevo ingreso',deuda:'Nueva deuda',ajuste:'Nueva resta'}[type]; document.getElementById('mBalBody').innerHTML=buildBalFields(type,null); openModal('modalBalance'); }
-function openEditBal(type,id){ S.editBalType=type; S.editBalId=id; var arr=type==='ingreso'?S.ingresos:type==='deuda'?S.deudas:S.ajustes; var item=arr.find(function(x){ return x.id===id; }); document.getElementById('mBalTitle').textContent={ingreso:'Editar ingreso',deuda:'Editar deuda',ajuste:'Editar ajuste'}[type]; document.getElementById('mBalBody').innerHTML=buildBalFields(type,item); if(item){ document.getElementById('bMonto').value=item.moneda==='ars'?Math.round(item.montoARS):Math.round(item.montoUSD); if(type==='ingreso'){ document.getElementById('bFecha').value=item.fecha; document.getElementById('bDesc').value=item.desc; var rc=document.getElementById('bRealizado'); if(rc) rc.checked=!!item.realizado; var rp=document.getElementById('bPeriod'); if(rp){ rp.value=item.periodicidad||'unico'; toggleModoIngreso(); } var rfh=document.getElementById('bFechaHasta'); if(rfh) rfh.value=item.fechaHasta||''; var rnc=document.getElementById('bNCuotas'); if(rnc) rnc.value=item.nCuotas||''; } else if(type==='ajuste'){ document.getElementById('bFecha').value=item.fecha; document.getElementById('bDesc').value=item.desc; } else { document.getElementById('bDesc').value=item.desc; document.getElementById('bCuotas').value=item.cuotas; document.getElementById('bPagadas').value=item.pagadas; var fd=document.getElementById('bFechaDeuda'); if(fd) fd.value=item.fechaInicio||new Date().toISOString().split('T')[0]; } } openModal('modalBalance'); }
+function openEditBal(type,id){ S.editBalType=type; S.editBalId=id; var arr=type==='ingreso'?S.ingresos:type==='deuda'?S.deudas:S.ajustes; var item=arr.find(function(x){ return x.id===id; }); document.getElementById('mBalTitle').textContent={ingreso:'Editar ingreso',deuda:'Editar deuda',ajuste:'Editar ajuste'}[type]; document.getElementById('mBalBody').innerHTML=buildBalFields(type,item); if(item){ document.getElementById('bMonto').value=Math.round(item.montoUSD); if(type==='ingreso'){ document.getElementById('bFecha').value=item.fecha; document.getElementById('bDesc').value=item.desc; var rc=document.getElementById('bRealizado'); if(rc) rc.checked=!!item.realizado; var rp=document.getElementById('bPeriod'); if(rp){ rp.value=item.periodicidad||'unico'; toggleModoIngreso(); } var rfh=document.getElementById('bFechaHasta'); if(rfh) rfh.value=item.fechaHasta||''; var rnc=document.getElementById('bNCuotas'); if(rnc) rnc.value=item.nCuotas||''; } else if(type==='ajuste'){ document.getElementById('bFecha').value=item.fecha; document.getElementById('bDesc').value=item.desc; } else { document.getElementById('bDesc').value=item.desc; document.getElementById('bCuotas').value=item.cuotas; document.getElementById('bPagadas').value=item.pagadas; var fd=document.getElementById('bFechaDeuda'); if(fd) fd.value=item.fechaInicio||new Date().toISOString().split('T')[0]; } } openModal('modalBalance'); }
 
 function buildBalFields(type,item){
+    var amtField='<div class="fg"><label>Monto por cuota (U$S)</label><div class="amt-wrap"><input type="number" id="bMonto" placeholder="0" min="0"><span class="amt-tag">USD</span></div></div>';
     if(type==='ingreso'){
         var chk=(item&&item.realizado)?'checked':'', per=item&&item.periodicidad?item.periodicidad:'unico', fh=item&&item.fechaHasta?item.fechaHasta:'';
         var nCuotas=item&&item.nCuotas?item.nCuotas:'';
         var isCuotas=(per==='cuotas');
-        var moneda=item&&item.moneda?item.moneda:'usd';
-        var cotizacion=item&&item.cotizacion?item.cotizacion:'';
-        var isARS=(moneda==='ars');
         var perOpts=['unico','mensual','bimestral','trimestral','semestral','anual','cuotas'].map(function(v){ var L={unico:'Único (pago único)',mensual:'Mensual',bimestral:'Bimestral (c/2 meses)',trimestral:'Trimestral (c/3 meses)',semestral:'Semestral (c/6 meses)',anual:'Anual',cuotas:'En cuotas mensuales'}; return '<option value="'+v+'"'+(per===v?' selected':'')+'>'+L[v]+'</option>'; }).join('');
-        var montoVal=item?(isARS?Math.round(item.montoARS):Math.round(item.montoUSD)):'';
-        return '<div class="form-row"><div class="fg"><label>Fecha primer cobro</label><input type="date" id="bFecha" value="'+new Date().toISOString().split('T')[0]+'"></div>'
-            // Toggle moneda
-            +'<div class="fg"><label>Moneda</label>'
-            +'<div style="display:flex;gap:6px;">'
-            +'<button type="button" id="btnMonUSD" onclick="setMonedaIngreso(\'usd\')" class="btn btn-sm'+(isARS?'':' btn-primary')+'" style="flex:1;justify-content:center;">U$S USD</button>'
-            +'<button type="button" id="btnMonARS" onclick="setMonedaIngreso(\'ars\')" class="btn btn-sm'+(isARS?' btn-primary':'')+'" style="flex:1;justify-content:center;">$ Pesos</button>'
-            +'</div></div>'
-            +'</div>'
-            // Monto + cotización
-            +'<div class="form-row">'
-            +'<div class="fg"><label id="bMontoLabel">Monto '+(isARS?'($ ARS)':'(U$S)')+' por cuota</label><div class="amt-wrap"><input type="number" id="bMonto" placeholder="0" min="0" value="'+montoVal+'"><span class="amt-tag" id="bMontoTag">'+(isARS?'ARS':'USD')+'</span></div></div>'
-            +'<div class="fg" id="fgCotizacion" style="'+(isARS?'':'opacity:.4;pointer-events:none;')+'"><label>Cotización U$S al cobrar</label><div class="amt-wrap"><input type="number" id="bCotizacion" placeholder="'+S.tcn+'" min="1" step="50" value="'+cotizacion+'"><span class="amt-tag">TCN</span></div></div>'
-            +'</div>'
+        return '<div class="form-row"><div class="fg"><label>Fecha primer cobro</label><input type="date" id="bFecha" value="'+new Date().toISOString().split('T')[0]+'"></div>'+amtField+'</div>'
             +'<div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="bDesc" placeholder="Ej: Sueldo"></div></div>'
             +'<div class="form-row">'
             +'<div class="fg"><label>Modalidad</label><select id="bPeriod" onchange="toggleModoIngreso()">'+perOpts+'</select></div>'
@@ -972,22 +901,8 @@ function buildBalFields(type,item){
             +'<div class="fg" id="fgFechaHasta" style="margin-bottom:12px;'+(per==='unico'||per==='cuotas'?'opacity:.4;pointer-events:none;':'')+'"><label>Fecha hasta (para cobros recurrentes)</label><input type="date" id="bFechaHasta" value="'+fh+'"></div>'
             +'<div style="display:flex;align-items:center;gap:10px;margin-top:4px;padding:10px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);"><input type="checkbox" id="bRealizado" '+chk+' style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0;"><label for="bRealizado" style="font-size:13px;cursor:pointer;user-select:none;">Ya fue <strong style="color:var(--green)">acreditado</strong> (primera cuota)</label></div>';
     }
-    var amtField='<div class="fg"><label>Monto por cuota (U$S)</label><div class="amt-wrap"><input type="number" id="bMonto" placeholder="0" min="0"><span class="amt-tag">USD</span></div></div>';
     if(type==='ajuste') return '<div class="form-row"><div class="fg"><label>Fecha</label><input type="date" id="bFecha" value="'+new Date().toISOString().split('T')[0]+'"></div>'+amtField+'</div><div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="bDesc" placeholder="Ej: Gastos varios"></div></div>';
     return '<div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="bDesc" placeholder="Ej: Prestamo banco"></div></div><div class="form-row"><div class="fg"><label>Fecha inicio</label><input type="date" id="bFechaDeuda" value="'+new Date().toISOString().split('T')[0]+'"></div>'+amtField+'</div><div class="form-row"><div class="fg"><label>Total cuotas</label><input type="number" id="bCuotas" min="1" value="1"></div><div class="fg"><label>Cuotas pagadas</label><input type="number" id="bPagadas" min="0" value="0"></div></div>';
-}
-function setMonedaIngreso(moneda){
-    var isARS = moneda === 'ars';
-    var btnUSD = document.getElementById('btnMonUSD');
-    var btnARS = document.getElementById('btnMonARS');
-    var label  = document.getElementById('bMontoLabel');
-    var tag    = document.getElementById('bMontoTag');
-    var fgCot  = document.getElementById('fgCotizacion');
-    if(btnUSD) { btnUSD.className = 'btn btn-sm' + (isARS ? '' : ' btn-primary'); }
-    if(btnARS) { btnARS.className = 'btn btn-sm' + (isARS ? ' btn-primary' : ''); }
-    if(label)  label.textContent = 'Monto ' + (isARS ? '($ ARS)' : '(U$S)') + ' por cuota';
-    if(tag)    tag.textContent = isARS ? 'ARS' : 'USD';
-    if(fgCot)  { fgCot.style.opacity = isARS ? '1' : '0.4'; fgCot.style.pointerEvents = isARS ? 'auto' : 'none'; }
 }
 function toggleFechaHasta(){ toggleModoIngreso(); }
 function toggleModoIngreso(){
@@ -1013,23 +928,17 @@ async function saveBalanceItem(){
         var periodicidad=document.getElementById('bPeriod')?document.getElementById('bPeriod').value:'unico';
         var fechaHasta=null;
         var nCuotas=null;
-        // Leer moneda desde el estado visual del botón
-        var moneda = (document.getElementById('btnMonARS') && document.getElementById('btnMonARS').classList.contains('btn-primary')) ? 'ars' : 'usd';
-        var cotizacion = null;
-        if (moneda === 'ars') {
-            var cotEl = document.getElementById('bCotizacion');
-            cotizacion = cotEl && cotEl.value ? parseFloat(cotEl.value) : null;
-        }
         if(periodicidad==='cuotas'){
+            // cuotas mensuales: calcular fechaHasta desde fecha + (nCuotas-1) meses
             nCuotas=parseInt(document.getElementById('bNCuotas').value)||1;
             var dInicio=new Date(fecha+'T00:00:00');
             var dFin=new Date(dInicio.getFullYear(), dInicio.getMonth()+(nCuotas-1), dInicio.getDate());
             fechaHasta=dFin.toISOString().split('T')[0];
-            periodicidad='mensual';
+            periodicidad='mensual'; // se guarda como mensual con fechaHasta calculado
         } else if(periodicidad!=='unico'){
             fechaHasta=document.getElementById('bFechaHasta')?document.getElementById('bFechaHasta').value||null:null;
         }
-        var p={fecha:fecha,descripcion:desc,monto_usd:raw,realizado:realizado,periodicidad:periodicidad,fecha_hasta:fechaHasta,moneda:moneda,cotizacion:cotizacion};
+        var p={fecha:fecha,descripcion:desc,monto_usd:raw,realizado:realizado,periodicidad:periodicidad,fecha_hasta:fechaHasta};
         res = S.editBalId ? await sb.from('obra_ingresos').update(p).eq('id',S.editBalId) : await sb.from('obra_ingresos').insert(p);
     } else if(type==='ajuste'){
         var p2={fecha:document.getElementById('bFecha').value,descripcion:desc,monto_usd:raw};
