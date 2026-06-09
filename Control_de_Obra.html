@@ -1876,7 +1876,7 @@ function renderBalance() {
     }
 
     // filas ingresos proyectados
-    var ingRows = S.ingresos.filter(function(x){ return !x.realizado; }).map(function(x){
+    var ingRows = S.ingresos.filter(function(x){ return !x.realizado && x.moneda!=='ars'; }).map(function(x){
         var per=x.periodicidad||'unico', occ=expandirIngreso(x).length;
         var cuotaLabel=x.nCuotas?(occ+'/'+x.nCuotas+' cuotas'):occ+' ocurr.';
         var sub=per==='unico'?x.fecha:x.fecha+(x.fechaHasta?' > '+x.fechaHasta:'')+' · '+cuotaLabel;
@@ -1913,7 +1913,7 @@ function renderBalance() {
     var totalARS = S.ingresos.filter(function(x){ return x.moneda==='ars'; }).reduce(function(s,x){ return s+x.montoARS; }, 0);
 
     // filas ingresos acreditados
-    var acrRows = S.ingresos.filter(function(x){ return x.realizado; })
+    var acrRows = S.ingresos.filter(function(x){ return x.realizado && x.moneda!=='ars'; })
         .sort(function(a,b){ return b.fecha.localeCompare(a.fecha); })
         .map(function(x){
             var per=x.periodicidad||'unico';
@@ -1951,8 +1951,8 @@ function renderBalance() {
             '</div></td></tr>';
     }).join('') || '<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--text3);">Sin deudas</td></tr>';
 
-    var totalAcr = S.ingresos.filter(function(x){ return x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0);
-    var nAcr = S.ingresos.filter(function(x){ return x.realizado; }).length;
+    var totalAcr = S.ingresos.filter(function(x){ return x.realizado && x.moneda!=='ars'; }).reduce(function(s,x){ return s+x.montoARS; },0);
+    var nAcr = S.ingresos.filter(function(x){ return x.realizado && x.moneda!=='ars'; }).length;
 
     document.getElementById('page-balance').innerHTML =
         // insight cards
