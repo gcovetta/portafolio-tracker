@@ -386,7 +386,7 @@ async function loadAllData() {
     S.pagos    = (pagos.data||[]).map(function(p){ return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, desc:p.descripcion, montoARS:p.monto_usd*S.tcn, montoUSD:p.monto_usd, estado:p.estado}; });
     S.etapas   = (etapas.data||[]).map(function(e){ return {id:e.id, nombre:e.nombre, mesIni:e.mes_ini||1, mesFin:e.mes_fin||1, color:e.color, avance:e.avance, orden:e.orden, finalizado:e.finalizado||false, fechaIni:e.fecha_ini||'', fechaFin:e.fecha_fin||''}; });
     S.ingresos = (ingresos.data||[]).map(function(x){
-        var obj={id:x.id, fecha:x.fecha, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd, realizado:x.realizado, periodicidad:x.periodicidad, fechaHasta:x.fecha_hasta||'', moneda:x.moneda||'usd', cotizacion:x.cotizacion||null};
+        var obj={id:x.id, fecha:x.fecha, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd, realizado:x.realizado, periodicidad:x.periodicidad, fechaHasta:x.fecha_hasta||''};
         // calcular nCuotas si tiene fechaHasta y es mensual
         if(x.periodicidad==='mensual'&&x.fecha_hasta){
             var d0=new Date(x.fecha+'T00:00:00'), d1=new Date(x.fecha_hasta+'T00:00:00');
@@ -741,7 +741,7 @@ function renderBalance() {
                 '<td style="padding:9px 14px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:12px;color:var(--text3);">'+x.fecha+'</td>' +
                 '<td style="padding:9px 14px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:500;">'+x.desc+'</div></td>' +
                 '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;background:var(--blue-dim);color:var(--blue);">'+(PLABELS[per]||per)+'</span></td>' +
-                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--green);">'+(x.moneda==='ars'?'$ '+Math.round(x.montoARS).toLocaleString('es-AR'):fmtUSD(x.montoARS))+'</td>' +
+                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--green);">'+fmtUSD(x.montoARS)+'</td>' +
                 '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;"><div style="display:flex;gap:4px;justify-content:flex-end;">' +
                 '<button class="btn btn-sm" onclick="openEditBal(\'ingreso\','+x.id+')">✎</button>' +
                 '<button class="btn btn-sm btn-danger" onclick="deleteBal(\'ingreso\','+x.id+')">✕</button>' +
@@ -892,39 +892,17 @@ function buildBalFields(type,item){
         var nCuotas=item&&item.nCuotas?item.nCuotas:'';
         var isCuotas=(per==='cuotas');
         var perOpts=['unico','mensual','bimestral','trimestral','semestral','anual','cuotas'].map(function(v){ var L={unico:'Único (pago único)',mensual:'Mensual',bimestral:'Bimestral (c/2 meses)',trimestral:'Trimestral (c/3 meses)',semestral:'Semestral (c/6 meses)',anual:'Anual',cuotas:'En cuotas mensuales'}; return '<option value="'+v+'"'+(per===v?' selected':'')+'>'+L[v]+'</option>'; }).join('');
-        var isARS=(item&&item.moneda==='ars');
-        var cotVal=item&&item.cotizacion?item.cotizacion:'';
-        var montoVal=item?(isARS?Math.round(item.montoARS):Math.round(item.montoUSD)):'';
-        var amtFieldIngreso='<div class="fg"><label id="bMontoLabel">Monto '+(isARS?'($ ARS)':'(U$S)')+'</label><div class="amt-wrap"><input type="number" id="bMonto" placeholder="0" min="0" value="'+montoVal+'"><span class="amt-tag" id="bMontoTag">'+(isARS?'ARS':'USD')+'</span></div></div>';
-        return '<div class="form-row">'
-            +'<div class="fg"><label>Fecha primer cobro</label><input type="date" id="bFecha" value="'+new Date().toISOString().split('T')[0]+'"></div>'
-            +'<div class="fg"><label>Moneda</label><div style="display:flex;gap:6px;">'
-            +'<button type="button" id="btnMonUSD" onclick="setMonedaIngreso(\'usd\')" class="btn btn-sm'+(isARS?'':' btn-primary')+'" style="flex:1;justify-content:center;">U$S</button>'
-            +'<button type="button" id="btnMonARS" onclick="setMonedaIngreso(\'ars\')" class="btn btn-sm'+(isARS?' btn-primary':'')+'" style="flex:1;justify-content:center;">$ Pesos</button>'
-            +'</div></div></div>'
-            +amtFieldIngreso
-            +'<div class="fg" id="fgCotizacion" style="margin-bottom:12px;'+(isARS?'':'opacity:.4;pointer-events:none;')+'"><label>Cotización U$S al cobrar</label><div class="amt-wrap"><input type="number" id="bCotizacion" placeholder="'+S.tcn+'" min="1" step="50" value="'+cotVal+'"><span class="amt-tag">TCN</span></div></div>'
+        return '<div class="form-row"><div class="fg"><label>Fecha primer cobro</label><input type="date" id="bFecha" value="'+new Date().toISOString().split('T')[0]+'"></div>'+amtField+'</div>'
             +'<div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="bDesc" placeholder="Ej: Sueldo"></div></div>'
             +'<div class="form-row">'
             +'<div class="fg"><label>Modalidad</label><select id="bPeriod" onchange="toggleModoIngreso()">'+perOpts+'</select></div>'
-            +'<div class="fg" id="fgCuotas" style="'+(isCuotas?'':'opacity:.4;pointer-events:none;')+'><label>Cantidad de cuotas</label><input type="number" id="bNCuotas" min="1" max="360" placeholder="12" value="'+nCuotas+'"></div>'
+            +'<div class="fg" id="fgCuotas" style="'+(isCuotas?'':'opacity:.4;pointer-events:none;')+'"><label>Cantidad de cuotas</label><input type="number" id="bNCuotas" min="1" max="360" placeholder="12" value="'+nCuotas+'"></div>'
             +'</div>'
             +'<div class="fg" id="fgFechaHasta" style="margin-bottom:12px;'+(per==='unico'||per==='cuotas'?'opacity:.4;pointer-events:none;':'')+'"><label>Fecha hasta (para cobros recurrentes)</label><input type="date" id="bFechaHasta" value="'+fh+'"></div>'
             +'<div style="display:flex;align-items:center;gap:10px;margin-top:4px;padding:10px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);"><input type="checkbox" id="bRealizado" '+chk+' style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0;"><label for="bRealizado" style="font-size:13px;cursor:pointer;user-select:none;">Ya fue <strong style="color:var(--green)">acreditado</strong> (primera cuota)</label></div>';
     }
     if(type==='ajuste') return '<div class="form-row"><div class="fg"><label>Fecha</label><input type="date" id="bFecha" value="'+new Date().toISOString().split('T')[0]+'"></div>'+amtField+'</div><div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="bDesc" placeholder="Ej: Gastos varios"></div></div>';
     return '<div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="bDesc" placeholder="Ej: Prestamo banco"></div></div><div class="form-row"><div class="fg"><label>Fecha inicio</label><input type="date" id="bFechaDeuda" value="'+new Date().toISOString().split('T')[0]+'"></div>'+amtField+'</div><div class="form-row"><div class="fg"><label>Total cuotas</label><input type="number" id="bCuotas" min="1" value="1"></div><div class="fg"><label>Cuotas pagadas</label><input type="number" id="bPagadas" min="0" value="0"></div></div>';
-}
-function setMonedaIngreso(moneda){
-    var isARS=moneda==='ars';
-    var btnU=document.getElementById('btnMonUSD'), btnA=document.getElementById('btnMonARS');
-    var lbl=document.getElementById('bMontoLabel'), tag=document.getElementById('bMontoTag');
-    var fgCot=document.getElementById('fgCotizacion');
-    if(btnU) btnU.className='btn btn-sm'+(isARS?'':' btn-primary');
-    if(btnA) btnA.className='btn btn-sm'+(isARS?' btn-primary':'');
-    if(lbl) lbl.textContent='Monto '+(isARS?'($ ARS)':'(U$S)');
-    if(tag) tag.textContent=isARS?'ARS':'USD';
-    if(fgCot){ fgCot.style.opacity=isARS?'1':'0.4'; fgCot.style.pointerEvents=isARS?'auto':'none'; }
 }
 function toggleFechaHasta(){ toggleModoIngreso(); }
 function toggleModoIngreso(){
@@ -960,10 +938,7 @@ async function saveBalanceItem(){
         } else if(periodicidad!=='unico'){
             fechaHasta=document.getElementById('bFechaHasta')?document.getElementById('bFechaHasta').value||null:null;
         }
-        var moneda=(document.getElementById('btnMonARS')&&document.getElementById('btnMonARS').className.includes('btn-primary'))?'ars':'usd';
-        var cotizacion=null;
-        if(moneda==='ars'){ var cotEl=document.getElementById('bCotizacion'); cotizacion=cotEl&&cotEl.value?parseFloat(cotEl.value):null; }
-        var p={fecha:fecha,descripcion:desc,monto_usd:raw,realizado:realizado,periodicidad:periodicidad,fecha_hasta:fechaHasta,moneda:moneda,cotizacion:cotizacion};
+        var p={fecha:fecha,descripcion:desc,monto_usd:raw,realizado:realizado,periodicidad:periodicidad,fecha_hasta:fechaHasta};
         res = S.editBalId ? await sb.from('obra_ingresos').update(p).eq('id',S.editBalId) : await sb.from('obra_ingresos').insert(p);
     } else if(type==='ajuste'){
         var p2={fecha:document.getElementById('bFecha').value,descripcion:desc,monto_usd:raw};
