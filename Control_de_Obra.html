@@ -1811,7 +1811,7 @@ function renderBalance() {
     var HS = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2);';
     var THS = 'padding:7px 14px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap;';
 
-    var allOcurr = []; S.ingresos.forEach(function(x){ expandirIngreso(x).forEach(function(o){ allOcurr.push(o); }); });
+    var allOcurr = []; S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){ expandirIngreso(x).forEach(function(o){ allOcurr.push(o); }); });
     var ingRealUSD = allOcurr.filter(function(o){ return o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
     var ingProyUSD = allOcurr.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
     var ingReal = ingRealUSD * S.tcn; // para compatibilidad con fmtUSD abajo
@@ -2014,7 +2014,7 @@ function renderBalance() {
     if (chartBal) chartBal.destroy();
     var labelsB = Array.from({length:18}, function(_,i){ return mLabel(i); });
     var allO2 = [];
-    S.ingresos.forEach(function(x){ expandirIngreso(x).forEach(function(o){ allO2.push({fecha:o.fecha,montoARS:o.montoARS,realizado:o.realizado,desc:x.desc}); }); });
+    S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){ expandirIngreso(x).forEach(function(o){ allO2.push({fecha:o.fecha,montoARS:o.montoARS,realizado:o.realizado,desc:x.desc}); }); });
 
     // Pagos pendientes de obra por mes (egresos)
     // Para cuotas: distribuir entre los meses futuros a partir de la fecha del pago
