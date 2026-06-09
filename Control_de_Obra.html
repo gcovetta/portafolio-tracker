@@ -415,6 +415,23 @@
     </div>
 </div>
 
+<!-- MODAL BALANCE ARS -->
+<div class="modal-overlay" id="modalBalARS">
+    <div class="modal">
+        <div class="modal-hdr"><h3 id="mBalARSTitle">Nuevo ingreso en pesos</h3><button class="btn btn-sm" onclick="closeModal('modalBalARS')">✕</button></div>
+        <div class="modal-body">
+            <div class="form-row">
+                <div class="fg"><label>Fecha</label><input type="date" id="mBalARSFecha"></div>
+                <div class="fg"><label>Monto ($ ARS)</label><div class="amt-wrap"><input type="number" id="mBalARSMonto" placeholder="0" min="0"><span class="amt-tag" style="color:var(--amber);background:var(--amber-dim);">ARS</span></div></div>
+            </div>
+            <div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="mBalARSDesc" placeholder="Ej: Venta auto"></div></div>
+            <div class="form-row full"><div class="fg"><label>Cotización U$S al cobrar (opcional)</label><div class="amt-wrap"><input type="number" id="mBalARSCotizacion" placeholder="Ej: 1200" min="1" step="50"><span class="amt-tag">TCN</span></div></div></div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:4px;padding:10px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);"><input type="checkbox" id="mBalARSRealizado" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0;"><label for="mBalARSRealizado" style="font-size:13px;cursor:pointer;user-select:none;">Ya fue <strong style="color:var(--green)">acreditado</strong></label></div>
+        </div>
+        <div class="modal-ftr"><button class="btn" onclick="closeModal('modalBalARS')">Cancelar</button><button class="btn btn-primary" onclick="saveBalARS()">Guardar</button></div>
+    </div>
+</div>
+
 <!-- MODAL BALANCE -->
 <div class="modal-overlay" id="modalBalance">
     <div class="modal">
@@ -550,7 +567,7 @@ async function loadAllData() {
         return {id:e.id, nombre:e.nombre, mesIni:e.mes_ini||1, mesFin:e.mes_fin||1, color:e.color, avance:e.avance, orden:e.orden, finalizado:e.finalizado||false, fechaIni:fi, fechaFin:ff, dias:dias};
     });
     S.ingresos = (ingresos.data||[]).map(function(x){
-        var obj={id:x.id, fecha:x.fecha, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd, realizado:x.realizado, periodicidad:x.periodicidad, fechaHasta:x.fecha_hasta||''};
+        var obj={id:x.id, fecha:x.fecha, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd, realizado:x.realizado, periodicidad:x.periodicidad, fechaHasta:x.fecha_hasta||'', moneda:x.moneda||'usd', cotizacion:x.cotizacion||null};
         // calcular nCuotas si tiene fechaHasta y es mensual
         if(x.periodicidad==='mensual'&&x.fecha_hasta){
             var d0=new Date(x.fecha+'T00:00:00'), d1=new Date(x.fecha_hasta+'T00:00:00');
@@ -1873,6 +1890,28 @@ function renderBalance() {
             '</div></td></tr>';
     }).join('') || '<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--text3);">Sin ingresos proyectados</td></tr>';
 
+    // filas ingresos en pesos (tabla separada)
+    var arsRows = S.ingresos.filter(function(x){ return x.moneda==='ars'; })
+        .sort(function(a,b){ return b.fecha.localeCompare(a.fecha); })
+        .map(function(x){
+            var per=x.periodicidad||'unico';
+            var cotStr = x.cotizacion ? ' · TCN $'+x.cotizacion.toLocaleString('es-AR') : '';
+            var estadoBadge = x.realizado
+                ? '<span style="font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;background:var(--green-dim);color:var(--green);">Acreditado</span>'
+                : '<span style="font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;background:var(--surface3);color:var(--text3);">Proyectado</span>';
+            return '<tr>' +
+                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:12px;color:var(--text3);">'+x.fecha+'</td>' +
+                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:500;">'+x.desc+'</div><div style="font-size:11px;color:var(--text3);">'+(PLABELS[per]||per)+cotStr+'</div></td>' +
+                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center;">'+estadoBadge+'</td>' +
+                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--amber);">$ '+Math.round(x.montoARS).toLocaleString('es-AR')+'</td>' +
+                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+(x.cotizacion?'U$S '+Math.round(x.montoARS/x.cotizacion).toLocaleString('es-AR'):'')+'</td>' +
+                '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;"><div style="display:flex;gap:4px;justify-content:flex-end;">' +
+                '<button class="btn btn-sm" onclick="openEditBalARS('+x.id+')">✎</button>' +
+                '<button class="btn btn-sm btn-danger" onclick="deleteBal(\'ingreso\','+x.id+')">✕</button>' +
+                '</div></td></tr>';
+        }).join('') || '<tr><td colspan="6" style="padding:14px;text-align:center;color:var(--text3);">Sin ingresos en pesos</td></tr>';
+    var totalARS = S.ingresos.filter(function(x){ return x.moneda==='ars'; }).reduce(function(s,x){ return s+x.montoARS; }, 0);
+
     // filas ingresos acreditados
     var acrRows = S.ingresos.filter(function(x){ return x.realizado; })
         .sort(function(a,b){ return b.fecha.localeCompare(a.fecha); })
@@ -1956,7 +1995,20 @@ function renderBalance() {
         '<div style="display:flex;align-items:center;gap:10px;"><span style="width:9px;height:9px;border-radius:50%;background:var(--green);display:inline-block;"></span><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos acreditados</span><span style="font-size:11px;color:var(--text3);">'+nAcr+' registro'+(nAcr!==1?'s':'')+'</span></div>' +
         '<button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div>' +
         '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+THS+'text-align:left;">Fecha</th><th style="'+THS+'text-align:left;">Descripción</th><th style="'+THS+'text-align:center;">Frecuencia</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'"></th></tr></thead><tbody>'+acrRows+'</tbody></table></div>' +
-        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total acreditado <strong style="font-family:DM Mono,monospace;color:var(--green);">U$S '+Math.round(ingRealUSD).toLocaleString('es-AR')+'</strong></span></div></div>';
+        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total acreditado <strong style="font-family:DM Mono,monospace;color:var(--green);">U$S '+Math.round(ingRealUSD).toLocaleString('es-AR')+'</strong></span></div></div>' +
+        // Tabla ingresos en pesos
+        '<div style="margin-top:12px;'+CS+'"><div style="'+HS+'">' +
+        '<div style="display:flex;align-items:center;gap:10px;"><span style="width:9px;height:9px;border-radius:50%;background:var(--amber);display:inline-block;"></span><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos en Pesos</span></div>' +
+        '<button class="btn btn-sm" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,166,35,.3);" onclick="openNewBalARS()">+ Nuevo en $</button></div>' +
+        '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr>' +
+        '<th style="'+THS+'text-align:left;">Fecha</th>' +
+        '<th style="'+THS+'text-align:left;">Descripción</th>' +
+        '<th style="'+THS+'text-align:center;">Estado</th>' +
+        '<th style="'+THS+'text-align:right;">Monto $</th>' +
+        '<th style="'+THS+'text-align:right;">Ref. U$S</th>' +
+        '<th style="'+THS+'"></th>' +
+        '</tr></thead><tbody>'+arsRows+'</tbody></table></div>' +
+        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--amber);">$ '+Math.round(totalARS).toLocaleString('es-AR')+'</strong></span></div></div>';
 
     // Chart
     if (chartBal) chartBal.destroy();
@@ -2091,6 +2143,43 @@ function renderBalance() {
     });
 }
 
+function openNewBalARS(){
+    S.editBalId=null;
+    document.getElementById('mBalARSTitle').textContent='Nuevo ingreso en pesos';
+    document.getElementById('mBalARSFecha').value=new Date().toISOString().split('T')[0];
+    document.getElementById('mBalARSDesc').value='';
+    document.getElementById('mBalARSMonto').value='';
+    document.getElementById('mBalARSCotizacion').value='';
+    document.getElementById('mBalARSRealizado').checked=false;
+    openModal('modalBalARS');
+}
+function openEditBalARS(id){
+    S.editBalId=id;
+    var x=S.ingresos.find(function(i){ return i.id===id; });
+    if(!x) return;
+    document.getElementById('mBalARSTitle').textContent='Editar ingreso en pesos';
+    document.getElementById('mBalARSFecha').value=x.fecha;
+    document.getElementById('mBalARSDesc').value=x.desc;
+    document.getElementById('mBalARSMonto').value=Math.round(x.montoARS);
+    document.getElementById('mBalARSCotizacion').value=x.cotizacion||'';
+    document.getElementById('mBalARSRealizado').checked=!!x.realizado;
+    openModal('modalBalARS');
+}
+async function saveBalARS(){
+    var fecha=document.getElementById('mBalARSFecha').value;
+    var desc=document.getElementById('mBalARSDesc').value.trim();
+    var monto=parseFloat(document.getElementById('mBalARSMonto').value);
+    var cotizacion=parseFloat(document.getElementById('mBalARSCotizacion').value)||null;
+    var realizado=document.getElementById('mBalARSRealizado').checked;
+    if(!fecha||!desc||!monto) return;
+    setSaveStatus('saving');
+    var payload={fecha:fecha,descripcion:desc,monto_usd:monto,realizado:realizado,periodicidad:'unico',moneda:'ars',cotizacion:cotizacion};
+    var res=S.editBalId
+        ? await sb.from('obra_ingresos').update(payload).eq('id',S.editBalId)
+        : await sb.from('obra_ingresos').insert(payload);
+    if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
+    setSaveStatus('ok','Guardado'); closeModal('modalBalARS'); await loadAllData(); renderBalance(); updateSidebar();
+}
 async function toggleRealizado(id){ var x=S.ingresos.find(function(i){ return i.id===id; }); if(!x) return; x.realizado=!x.realizado; setSaveStatus('saving'); var res=await sb.from('obra_ingresos').update({realizado:x.realizado}).eq('id',id); setSaveStatus(res.error?'error':'ok',res.error?'Error':'Guardado'); renderBalance(); }
 async function pagarCuota(id){ var d=S.deudas.find(function(x){ return x.id===id; }); if(!d||d.pagadas>=d.cuotas){ alert('Todas las cuotas ya pagadas.'); return; } d.pagadas++; setSaveStatus('saving'); var res=await sb.from('obra_deudas').update({pagadas:d.pagadas}).eq('id',id); setSaveStatus(res.error?'error':'ok',res.error?'Error':'Guardado'); renderBalance(); }
 
