@@ -282,6 +282,26 @@
     </div>
 </div>
 
+<!-- MODAL PAGO ARS -->
+<div class="modal-overlay" id="modalPagoARS">
+    <div class="modal">
+        <div class="modal-hdr"><h3 id="mPagoARSTitle">Nuevo pago en pesos</h3><button class="btn btn-sm" onclick="closeModal('modalPagoARS')">✕</button></div>
+        <div class="modal-body">
+            <div class="form-row">
+                <div class="fg"><label>Fecha</label><input type="date" id="mPagoARSFecha"></div>
+                <div class="fg"><label>Etapa</label><select id="mPagoARSEtapa"></select></div>
+            </div>
+            <div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="mPagoARSDesc" placeholder="Descripción del pago"></div></div>
+            <div class="form-row">
+                <div class="fg"><label>Monto ($ ARS)</label><div class="amt-wrap"><input type="number" id="mPagoARSMonto" placeholder="0" min="0"><span class="amt-tag" style="color:var(--amber);background:var(--amber-dim);">ARS</span></div></div>
+                <div class="fg"><label>Estado</label><select id="mPagoARSEstado"><option value="pagado">Pagado</option><option value="pendiente">Pendiente</option><option value="vencido">Vencido</option></select></div>
+            </div>
+            <div class="form-row full"><div class="fg"><label>Cotización U$S al pagar (opcional)</label><div class="amt-wrap"><input type="number" id="mPagoARSCotizacion" placeholder="Ej: 1200" min="1" step="50"><span class="amt-tag">TCN</span></div></div></div>
+        </div>
+        <div class="modal-ftr"><button class="btn" onclick="closeModal('modalPagoARS')">Cancelar</button><button class="btn btn-primary" onclick="savePagoARS()">Guardar</button></div>
+    </div>
+</div>
+
 <!-- MODAL PAGO -->
 <div class="modal-overlay" id="modalPago">
     <div class="modal">
@@ -559,7 +579,7 @@ async function loadAllData() {
         S.calc.total      = cfg.data.calc_tot != null ? String(cfg.data.calc_tot) : '';
         S.calc.m2         = cfg.data.calc_m2  != null ? String(cfg.data.calc_m2)  : '';
     }
-    S.pagos    = (pagos.data||[]).map(function(p){ var tieneARS=p.monto_ars!=null&&p.monto_ars>0; var montoUSDunitario=p.monto_usd; var montoARSunitario=tieneARS?p.monto_ars:null; return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, rubro:p.rubro||'', desc:p.descripcion, montoUSD:montoUSDunitario, montoARS:tieneARS?p.monto_ars:(p.monto_usd*S.tcn), montoARSoriginal:montoARSunitario, cotizacion:p.cotizacion||null, estado:p.estado, cuotas:p.cuotas||null, cuotasPagadas:p.cuotas_pagadas||0, saldoCuotaActual:p.saldo_cuota_actual!=null?p.saldo_cuota_actual:null}; });
+    S.pagos    = (pagos.data||[]).map(function(p){ var tieneARS=p.monto_ars!=null&&p.monto_ars>0; var montoUSDunitario=p.monto_usd; var montoARSunitario=tieneARS?p.monto_ars:null; return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, rubro:p.rubro||'', desc:p.descripcion, montoUSD:montoUSDunitario, montoARS:tieneARS?p.monto_ars:(p.monto_usd*S.tcn), montoARSoriginal:montoARSunitario, cotizacion:p.cotizacion||null, estado:p.estado, cuotas:p.cuotas||null, cuotasPagadas:p.cuotas_pagadas||0, saldoCuotaActual:p.saldo_cuota_actual!=null?p.saldo_cuota_actual:null, moneda:p.moneda||'usd'}; });
     S.etapas   = (etapas.data||[]).map(function(e){
         var fi=e.fecha_ini||'', ff=e.fecha_fin||'';
         var dias=e.dias||0;
@@ -968,8 +988,8 @@ function buildPagoRows(lista) {
 function renderPagos(){
     var busqueda = function(p){ return !pagoSearch||(p.desc||'').toLowerCase().includes(pagoSearch.toLowerCase())||((S.etapas.find(function(e){return e.id===p.etapaId;})||{nombre:''}).nombre).toLowerCase().includes(pagoSearch.toLowerCase()); };
 
-    var pagados   = S.pagos.filter(function(p){ return p.estado==='pagado'   && busqueda(p); }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
-    var pendientes= S.pagos.filter(function(p){ return p.estado!=='pagado'   && busqueda(p); }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
+    var pagados   = S.pagos.filter(function(p){ return p.moneda!=='ars' && p.estado==='pagado'   && busqueda(p); }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
+    var pendientes= S.pagos.filter(function(p){ return p.moneda!=='ars' && p.estado!=='pagado'   && busqueda(p); }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
     var filtrados = pagoFilter==='pagado' ? pagados : pagoFilter==='pendiente'||pagoFilter==='vencido' ? S.pagos.filter(function(p){ return p.estado===pagoFilter && busqueda(p); }) : null;
 
     // Totales considerando cuotas (monto x cuotas totales)
@@ -1195,7 +1215,22 @@ function renderPagos(){
         : '<div class="empty" style="padding:2rem;">Sin pagos pendientes</div>') +
         '</div></div>' +
 
-        '</div>'; // fin grid 2 col
+        '</div>' + // fin grid 2 col
+
+        // ── Tabla pagos en pesos ──
+        '<div style="margin-top:22px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
+        '<span style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block;"></span>' +
+        '<span style="font-size:13px;font-weight:600;">Pagos en Pesos</span>' +
+        '<span style="font-size:11px;color:var(--text3);" id="pagoARSCount"></span>' +
+        '</div>' +
+        '<button class="btn btn-sm" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,166,35,.3);" onclick="openNewPagoARS()">+ Nuevo en $</button>' +
+        '</div>' +
+        '<div id="pagoARSTable"></div>' +
+        '</div>';
+
+    renderPagosARS();
 
     // ── Build chart ──────────────────────────────────────────────
     function buildChart(ctx, labels, pagData, pendData, colors, emptyMsg, detailData) {
@@ -1739,6 +1774,93 @@ function _findDeudaForPago(p){
         return d.desc===descA || d.desc===descB ||
                (p.desc && d.desc.indexOf(p.desc)>=0 && (!p.cuotas||d.cuotas===p.cuotas));
     });
+}
+function renderPagosARS(){
+    var listaARS = S.pagos.filter(function(p){ return p.moneda==='ars'; })
+        .sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
+    var countEl = document.getElementById('pagoARSCount');
+    var tableEl = document.getElementById('pagoARSTable');
+    if(!countEl||!tableEl) return;
+    countEl.textContent = listaARS.length+' registro'+(listaARS.length!==1?'s':'');
+    var THS = 'padding:7px 11px;font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.4px;border-bottom:1px solid var(--border);text-transform:uppercase;';
+    var totalARS = listaARS.reduce(function(s,p){ return s+p.montoARS; }, 0);
+    var rows = listaARS.map(function(p){
+        var e=S.etapas.find(function(x){return x.id===p.etapaId;});
+        var cotStr = p.cotizacion ? 'cot. $'+p.cotizacion.toLocaleString('es-AR') : '';
+        var refUSD = p.cotizacion ? 'U$S '+Math.round(p.montoARS/p.cotizacion).toLocaleString('es-AR') : '—';
+        return '<tr>' +
+            '<td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>' +
+            '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(e?e.nombre:'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div></td>' +
+            '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--amber);">$ '+Math.round(p.montoARS).toLocaleString('es-AR')+'</td>' +
+            '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+refUSD+'</td>' +
+            '<td style="padding:8px 11px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text3);">'+cotStr+'</td>' +
+            '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><span class="badge '+p.estado+'">'+p.estado+'</span></td>' +
+            '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;gap:3px;">' +
+            (p.estado!=='pagado'?'<button class="btn btn-sm btn-green" onclick="marcarPagadoARS('+p.id+')" title="Marcar pagado">✓</button>':'')+
+            '<button class="btn btn-sm" onclick="openEditPagoARS('+p.id+')">✎</button>' +
+            '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>' +
+            '</div></td></tr>';
+    }).join('') || '<tr><td colspan="7" style="padding:2rem;text-align:center;color:var(--text3);">Sin pagos en pesos</td></tr>';
+    tableEl.innerHTML =
+        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">' +
+        '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>' +
+        '<th style="'+THS+'text-align:left;">Fecha</th>' +
+        '<th style="'+THS+'text-align:left;">Etapa / Desc</th>' +
+        '<th style="'+THS+'text-align:right;">Monto $</th>' +
+        '<th style="'+THS+'text-align:right;">Ref. U$S</th>' +
+        '<th style="'+THS+'">Cotización</th>' +
+        '<th style="'+THS+'">Estado</th>' +
+        '<th style="'+THS+'"></th>' +
+        '</tr></thead><tbody>'+rows+'</tbody></table>' +
+        '<div style="padding:8px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;">' +
+        '<span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--amber);">$ '+Math.round(totalARS).toLocaleString('es-AR')+'</strong></span>' +
+        '</div></div>';
+}
+function openNewPagoARS(){
+    S.editPagoId=null;
+    document.getElementById('mPagoARSTitle').textContent='Nuevo pago en pesos';
+    document.getElementById('mPagoARSFecha').value=new Date().toISOString().split('T')[0];
+    document.getElementById('mPagoARSDesc').value='';
+    document.getElementById('mPagoARSMonto').value='';
+    document.getElementById('mPagoARSCotizacion').value='';
+    document.getElementById('mPagoARSEstado').value='pagado';
+    document.getElementById('mPagoARSEtapa').innerHTML='<option value="">— Sin etapa —</option>'+S.etapas.map(function(e){ return '<option value="'+e.id+'">'+e.nombre+'</option>'; }).join('');
+    openModal('modalPagoARS');
+}
+function openEditPagoARS(id){
+    S.editPagoId=id;
+    var p=S.pagos.find(function(x){ return x.id===id; });
+    if(!p) return;
+    document.getElementById('mPagoARSTitle').textContent='Editar pago en pesos';
+    document.getElementById('mPagoARSFecha').value=p.fecha;
+    document.getElementById('mPagoARSDesc').value=p.desc||'';
+    document.getElementById('mPagoARSMonto').value=Math.round(p.montoARS);
+    document.getElementById('mPagoARSCotizacion').value=p.cotizacion||'';
+    document.getElementById('mPagoARSEstado').value=p.estado;
+    document.getElementById('mPagoARSEtapa').innerHTML='<option value="">— Sin etapa —</option>'+S.etapas.map(function(e){ return '<option value="'+e.id+'"'+(e.id===p.etapaId?' selected':'')+'>'+e.nombre+'</option>'; }).join('');
+    openModal('modalPagoARS');
+}
+async function savePagoARS(){
+    var fecha=document.getElementById('mPagoARSFecha').value;
+    var desc=document.getElementById('mPagoARSDesc').value.trim();
+    var monto=parseFloat(document.getElementById('mPagoARSMonto').value);
+    var cotizacion=parseFloat(document.getElementById('mPagoARSCotizacion').value)||null;
+    var estado=document.getElementById('mPagoARSEstado').value;
+    var etapaId=parseInt(document.getElementById('mPagoARSEtapa').value)||null;
+    if(!fecha||!desc||!monto) return;
+    setSaveStatus('saving');
+    var payload={fecha:fecha,etapa_id:etapaId,descripcion:desc,monto_usd:monto,estado:estado,moneda:'ars',cotizacion:cotizacion};
+    var res=S.editPagoId
+        ? await sb.from('obra_pagos').update(payload).eq('id',S.editPagoId)
+        : await sb.from('obra_pagos').insert(payload);
+    if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
+    setSaveStatus('ok','Guardado'); closeModal('modalPagoARS'); await loadAllData(); renderPagos(); renderPagosARS();
+}
+async function marcarPagadoARS(id){
+    setSaveStatus('saving');
+    var res=await sb.from('obra_pagos').update({estado:'pagado'}).eq('id',id);
+    if(res.error){ setSaveStatus('error'); return; }
+    setSaveStatus('ok','Guardado'); await loadAllData(); renderPagosARS();
 }
 async function marcarPagado(id){
     var p = S.pagos.find(function(x){ return x.id===id; });
