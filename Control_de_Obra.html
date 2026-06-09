@@ -1849,7 +1849,7 @@ async function savePagoARS(){
     var rubro=document.getElementById('mPagoARSRubro').value.trim();
     if(!fecha||!desc||!monto) return;
     setSaveStatus('saving');
-    var payload={fecha:fecha,rubro:rubro,descripcion:desc,monto_usd:monto,estado:estado,moneda:'ars',cotizacion:cotizacion};
+    var payload={fecha:fecha,rubro:rubro,descripcion:desc,monto_usd:0,monto_ars:monto,estado:estado,moneda:'ars',cotizacion:cotizacion};
     var res=S.editPagoId
         ? await sb.from('obra_pagos').update(payload).eq('id',S.editPagoId)
         : await sb.from('obra_pagos').insert(payload);
