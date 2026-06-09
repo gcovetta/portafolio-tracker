@@ -289,7 +289,7 @@
         <div class="modal-body">
             <div class="form-row">
                 <div class="fg"><label>Fecha</label><input type="date" id="mPagoARSFecha"></div>
-                <div class="fg"><label>Etapa</label><select id="mPagoARSEtapa"></select></div>
+                <div class="fg"><label>Rubro</label><input type="text" id="mPagoARSRubro" placeholder="Ej: Materiales"></div>
             </div>
             <div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="mPagoARSDesc" placeholder="Descripción del pago"></div></div>
             <div class="form-row">
@@ -1790,7 +1790,7 @@ function renderPagosARS(){
         var refUSD = p.cotizacion ? 'U$S '+Math.round(p.montoARS/p.cotizacion).toLocaleString('es-AR') : '—';
         return '<tr>' +
             '<td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>' +
-            '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(e?e.nombre:'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div></td>' +
+            '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div></td>' +
             '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--amber);">$ '+Math.round(p.montoARS).toLocaleString('es-AR')+'</td>' +
             '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+refUSD+'</td>' +
             '<td style="padding:8px 11px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text3);">'+cotStr+'</td>' +
@@ -1805,7 +1805,7 @@ function renderPagosARS(){
         '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">' +
         '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>' +
         '<th style="'+THS+'text-align:left;">Fecha</th>' +
-        '<th style="'+THS+'text-align:left;">Etapa / Desc</th>' +
+        '<th style="'+THS+'text-align:left;">Rubro / Desc</th>' +
         '<th style="'+THS+'text-align:right;">Monto $</th>' +
         '<th style="'+THS+'text-align:right;">Ref. U$S</th>' +
         '<th style="'+THS+'">Cotización</th>' +
@@ -1824,7 +1824,7 @@ function openNewPagoARS(){
     document.getElementById('mPagoARSMonto').value='';
     document.getElementById('mPagoARSCotizacion').value='';
     document.getElementById('mPagoARSEstado').value='pagado';
-    document.getElementById('mPagoARSEtapa').innerHTML='<option value="">— Sin etapa —</option>'+S.etapas.map(function(e){ return '<option value="'+e.id+'">'+e.nombre+'</option>'; }).join('');
+    document.getElementById('mPagoARSRubro').value='';
     openModal('modalPagoARS');
 }
 function openEditPagoARS(id){
@@ -1837,7 +1837,7 @@ function openEditPagoARS(id){
     document.getElementById('mPagoARSMonto').value=Math.round(p.montoARS);
     document.getElementById('mPagoARSCotizacion').value=p.cotizacion||'';
     document.getElementById('mPagoARSEstado').value=p.estado;
-    document.getElementById('mPagoARSEtapa').innerHTML='<option value="">— Sin etapa —</option>'+S.etapas.map(function(e){ return '<option value="'+e.id+'"'+(e.id===p.etapaId?' selected':'')+'>'+e.nombre+'</option>'; }).join('');
+    document.getElementById('mPagoARSRubro').value=p.rubro||'';
     openModal('modalPagoARS');
 }
 async function savePagoARS(){
@@ -1846,10 +1846,10 @@ async function savePagoARS(){
     var monto=parseFloat(document.getElementById('mPagoARSMonto').value);
     var cotizacion=parseFloat(document.getElementById('mPagoARSCotizacion').value)||null;
     var estado=document.getElementById('mPagoARSEstado').value;
-    var etapaId=parseInt(document.getElementById('mPagoARSEtapa').value)||null;
+    var rubro=document.getElementById('mPagoARSRubro').value.trim();
     if(!fecha||!desc||!monto) return;
     setSaveStatus('saving');
-    var payload={fecha:fecha,etapa_id:etapaId,descripcion:desc,monto_usd:monto,estado:estado,moneda:'ars',cotizacion:cotizacion};
+    var payload={fecha:fecha,rubro:rubro,descripcion:desc,monto_usd:monto,estado:estado,moneda:'ars',cotizacion:cotizacion};
     var res=S.editPagoId
         ? await sb.from('obra_pagos').update(payload).eq('id',S.editPagoId)
         : await sb.from('obra_pagos').insert(payload);
