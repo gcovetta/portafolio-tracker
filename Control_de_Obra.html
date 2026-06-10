@@ -1451,7 +1451,8 @@ function renderPagos(){
             saldoInfo = '<div style="font-size:10px;color:var(--text3);margin-top:1px;">'+rest+' pend. · saldo $ '+Math.round(rest*montoCuota).toLocaleString('es-AR')+'</div>';
         }
         var acciones = isPend
-            ? '<button class="btn btn-sm btn-green" onclick="marcarPagadoARS('+p.id+')" title="Marcar pagado">✓</button>'
+            ? '<button class="btn btn-sm btn-green" onclick="marcarPagado('+p.id+')" title="Marcar pagado / cuota">✓</button>'
+            + '<button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);" onclick="openPagoParcial('+p.id+')" title="Pago parcial">$−</button>'
             + '<button class="btn btn-sm" onclick="openEditPagoARS('+p.id+')">✎</button>'
             + '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>'
             : '<button class="btn btn-sm" onclick="openEditPagoARS('+p.id+')">✎</button>'
@@ -1777,7 +1778,7 @@ async function savePagoParcial(){
         await sb.from('obra_pagos').insert({
             fecha: fechaHoy, etapa_id: p.etapaId, rubro: p.rubro||null,
             descripcion: descParcial, monto_usd: pagoUSD, monto_ars: pagoARS,
-            cotizacion: cotizacion, estado: 'pagado'
+            cotizacion: cotizacion, estado: 'pagado', moneda: p.moneda||'usd'
         });
         setSaveStatus('ok', nuevoEstado==='pagado'?'Saldo cancelado':'Pago parcial guardado');
 
@@ -1934,7 +1935,8 @@ async function marcarPagado(id){
             monto_usd: p.montoUSD,
             monto_ars: p.montoARSoriginal||null,
             cotizacion: p.cotizacion||null,
-            estado: 'pagado'
+            estado: 'pagado',
+            moneda: p.moneda||'usd'
         });
         // Sincronizar deuda en Balance: avanzar 1 cuota pagada
         var descDeudaPag = (p.rubro ? p.rubro+' — ' : '') + (p.desc||'');
