@@ -597,7 +597,10 @@ async function loadAllData() {
         return {id:e.id, nombre:e.nombre, mesIni:e.mes_ini||1, mesFin:e.mes_fin||1, color:e.color, avance:e.avance, orden:e.orden, finalizado:e.finalizado||false, fechaIni:fi, fechaFin:ff, dias:dias};
     });
     S.ingresos = (ingresos.data||[]).map(function(x){
-        var obj={id:x.id, fecha:x.fecha, desc:x.descripcion, montoARS:x.monto_usd*S.tcn, montoUSD:x.monto_usd, realizado:x.realizado, periodicidad:x.periodicidad, fechaHasta:x.fecha_hasta||'', moneda:x.moneda||'usd', cotizacion:x.cotizacion||null};
+        var _moneda=x.moneda||'usd';
+        var _montoARS=(_moneda==='ars') ? x.monto_usd : x.monto_usd*S.tcn;
+        var _montoUSD=(_moneda==='ars') ? (x.cotizacion&&x.cotizacion>0 ? x.monto_usd/x.cotizacion : x.monto_usd/S.tcn) : x.monto_usd;
+        var obj={id:x.id, fecha:x.fecha, desc:x.descripcion, montoARS:_montoARS, montoUSD:_montoUSD, realizado:x.realizado, periodicidad:x.periodicidad, fechaHasta:x.fecha_hasta||'', moneda:_moneda, cotizacion:x.cotizacion||null};
         // calcular nCuotas si tiene fechaHasta y es mensual
         if(x.periodicidad==='mensual'&&x.fecha_hasta){
             var d0=new Date(x.fecha+'T00:00:00'), d1=new Date(x.fecha_hasta+'T00:00:00');
