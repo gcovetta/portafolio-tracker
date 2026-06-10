@@ -293,10 +293,20 @@
             </div>
             <div class="form-row full"><div class="fg"><label>Descripción</label><input type="text" id="mPagoARSDesc" placeholder="Descripción del pago"></div></div>
             <div class="form-row">
-                <div class="fg"><label>Monto ($ ARS)</label><div class="amt-wrap"><input type="number" id="mPagoARSMonto" placeholder="0" min="0"><span class="amt-tag" style="color:var(--amber);background:var(--amber-dim);">ARS</span></div></div>
                 <div class="fg"><label>Estado</label><select id="mPagoARSEstado"><option value="pagado">Pagado</option><option value="pendiente">Pendiente</option><option value="vencido">Vencido</option></select></div>
+                <div class="fg"><label>Cotización U$S (opcional)</label><div class="amt-wrap"><input type="number" id="mPagoARSCotizacion" placeholder="Ej: 1200" min="1" step="50"><span class="amt-tag">TCN</span></div></div>
             </div>
-            <div class="form-row full"><div class="fg"><label>Cotización U$S al pagar (opcional)</label><div class="amt-wrap"><input type="number" id="mPagoARSCotizacion" placeholder="Ej: 1200" min="1" step="50"><span class="amt-tag">TCN</span></div></div></div>
+            <div style="border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;">
+                <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">Monto</div>
+                <div class="form-row" style="margin-bottom:8px;">
+                    <div class="fg"><label>Valor por cuota ($)</label><div class="amt-wrap"><input type="number" id="mPagoARSCuotaVal" placeholder="0" min="0" oninput="calcARSCuotas('cuota')"><span class="amt-tag" style="color:var(--amber);background:var(--amber-dim);">ARS</span></div></div>
+                    <div class="fg"><label>Valor total ($)</label><div class="amt-wrap"><input type="number" id="mPagoARSTotalVal" placeholder="0" min="0" oninput="calcARSCuotas('total')"><span class="amt-tag" style="color:var(--amber);background:var(--amber-dim);">ARS</span></div></div>
+                </div>
+                <div class="form-row" style="margin-bottom:0;">
+                    <div class="fg"><label>Cant. cuotas</label><input type="number" id="mPagoARSCuotas" placeholder="1" min="1" value="1" oninput="calcARSCuotas('cuotas')"></div>
+                    <div class="fg"><label>Cuotas pagadas</label><input type="number" id="mPagoARSCuotasPag" placeholder="0" min="0" value="0"></div>
+                </div>
+            </div>
         </div>
         <div class="modal-ftr"><button class="btn" onclick="closeModal('modalPagoARS')">Cancelar</button><button class="btn btn-primary" onclick="savePagoARS()">Guardar</button></div>
     </div>
@@ -1787,11 +1797,15 @@ function renderPagosARS(){
     var rows = listaARS.map(function(p){
         var e=S.etapas.find(function(x){return x.id===p.etapaId;});
         var cotStr = p.cotizacion ? 'cot. $'+p.cotizacion.toLocaleString('es-AR') : '';
-        var refUSD = p.cotizacion ? 'U$S '+Math.round(p.montoARS/p.cotizacion).toLocaleString('es-AR') : '—';
+        var cuotas = p.cuotas||1;
+        var cuotasPag = p.cuotasPagadas||0;
+        var montoCuota = p.montoARS;
+        var refUSD = p.cotizacion ? 'U$S '+Math.round(montoCuota/p.cotizacion).toLocaleString('es-AR') : '—';
+        var cuotasInfo = cuotas>1 ? '<div style="font-size:10px;color:var(--text3);margin-top:2px;">'+cuotasPag+'/'+cuotas+' cuotas · total $ '+Math.round(montoCuota*cuotas).toLocaleString('es-AR')+'</div>' : '';
         return '<tr>' +
             '<td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>' +
-            '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div></td>' +
-            '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--amber);">$ '+Math.round(p.montoARS).toLocaleString('es-AR')+'</td>' +
+            '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="font-size:12px;font-weight:500;color:var(--blue);">'+( p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+( p.desc||'')+'</div></td>' +
+            '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--amber);">$ '+Math.round(montoCuota).toLocaleString('es-AR')+''+cuotasInfo+'</td>' +
             '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+refUSD+'</td>' +
             '<td style="padding:8px 11px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text3);">'+cotStr+'</td>' +
             '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><span class="badge '+p.estado+'">'+p.estado+'</span></td>' +
@@ -1816,12 +1830,33 @@ function renderPagosARS(){
         '<span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--amber);">$ '+Math.round(totalARS).toLocaleString('es-AR')+'</strong></span>' +
         '</div></div>';
 }
+function calcARSCuotas(origen){
+    var cuotaEl=document.getElementById('mPagoARSCuotaVal');
+    var totalEl=document.getElementById('mPagoARSTotalVal');
+    var cantEl=document.getElementById('mPagoARSCuotas');
+    var cant=parseFloat(cantEl.value)||1;
+    if(origen==='cuota'){
+        var c=parseFloat(cuotaEl.value)||0;
+        if(c&&cant) totalEl.value=Math.round(c*cant);
+    } else if(origen==='total'){
+        var t=parseFloat(totalEl.value)||0;
+        if(t&&cant) cuotaEl.value=Math.round(t/cant);
+    } else if(origen==='cuotas'){
+        var c2=parseFloat(cuotaEl.value)||0;
+        var t2=parseFloat(totalEl.value)||0;
+        if(c2) totalEl.value=Math.round(c2*cant);
+        else if(t2) cuotaEl.value=Math.round(t2/cant);
+    }
+}
 function openNewPagoARS(){
     S.editPagoId=null;
     document.getElementById('mPagoARSTitle').textContent='Nuevo pago en pesos';
     document.getElementById('mPagoARSFecha').value=new Date().toISOString().split('T')[0];
     document.getElementById('mPagoARSDesc').value='';
-    document.getElementById('mPagoARSMonto').value='';
+    document.getElementById('mPagoARSCuotaVal').value='';
+    document.getElementById('mPagoARSTotalVal').value='';
+    document.getElementById('mPagoARSCuotas').value='1';
+    document.getElementById('mPagoARSCuotasPag').value='0';
     document.getElementById('mPagoARSCotizacion').value='';
     document.getElementById('mPagoARSEstado').value='pagado';
     document.getElementById('mPagoARSRubro').value='';
@@ -1834,7 +1869,12 @@ function openEditPagoARS(id){
     document.getElementById('mPagoARSTitle').textContent='Editar pago en pesos';
     document.getElementById('mPagoARSFecha').value=p.fecha;
     document.getElementById('mPagoARSDesc').value=p.desc||'';
-    document.getElementById('mPagoARSMonto').value=Math.round(p.montoARS);
+    var cuotaVal = p.montoARSoriginal || p.montoARS;
+    var cuotas = p.cuotas||1;
+    document.getElementById('mPagoARSCuotaVal').value=Math.round(cuotaVal);
+    document.getElementById('mPagoARSTotalVal').value=Math.round(cuotaVal*cuotas);
+    document.getElementById('mPagoARSCuotas').value=cuotas;
+    document.getElementById('mPagoARSCuotasPag').value=p.cuotasPagadas||0;
     document.getElementById('mPagoARSCotizacion').value=p.cotizacion||'';
     document.getElementById('mPagoARSEstado').value=p.estado;
     document.getElementById('mPagoARSRubro').value=p.rubro||'';
@@ -1843,13 +1883,18 @@ function openEditPagoARS(id){
 async function savePagoARS(){
     var fecha=document.getElementById('mPagoARSFecha').value;
     var desc=document.getElementById('mPagoARSDesc').value.trim();
-    var monto=parseFloat(document.getElementById('mPagoARSMonto').value);
+    var cuotaVal=parseFloat(document.getElementById('mPagoARSCuotaVal').value)||0;
+    var totalVal=parseFloat(document.getElementById('mPagoARSTotalVal').value)||0;
+    var cuotas=parseInt(document.getElementById('mPagoARSCuotas').value)||1;
+    var cuotasPag=Math.min(parseInt(document.getElementById('mPagoARSCuotasPag').value)||0, cuotas);
     var cotizacion=parseFloat(document.getElementById('mPagoARSCotizacion').value)||null;
     var estado=document.getElementById('mPagoARSEstado').value;
     var rubro=document.getElementById('mPagoARSRubro').value.trim();
-    if(!fecha||!desc||!monto) return;
+    // Calcular valor por cuota
+    var montoCuota = cuotaVal || (totalVal && cuotas ? Math.round(totalVal/cuotas) : 0);
+    if(!fecha||!desc||!montoCuota) return;
     setSaveStatus('saving');
-    var payload={fecha:fecha,rubro:rubro,descripcion:desc,monto_usd:0,monto_ars:monto,estado:estado,moneda:'ars',cotizacion:cotizacion};
+    var payload={fecha:fecha,rubro:rubro,descripcion:desc,monto_usd:0,monto_ars:montoCuota,estado:estado,moneda:'ars',cotizacion:cotizacion,cuotas:cuotas>1?cuotas:null,cuotas_pagadas:cuotas>1?cuotasPag:null};
     var res=S.editPagoId
         ? await sb.from('obra_pagos').update(payload).eq('id',S.editPagoId)
         : await sb.from('obra_pagos').insert(payload);
