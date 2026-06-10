@@ -2031,6 +2031,14 @@ function renderBalance() {
     // Balance neto total = acreditado + proyectado - deudas - pagos obra
     var netoUSD = ingRealUSD + ingProyUSD - deuUSD - pagosPendUSD;
     var isPos = netoUSD >= 0;
+    // Ingresos acreditados en pesos
+    var acreditadoPesos = S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0);
+    // Deudas en pesos: pagos ARS pendientes (monto total restante)
+    var deudasPesos = S.pagos.filter(function(p){ return p.moneda==='ars' && p.estado!=='pagado'; }).reduce(function(s,p){
+        var montoCuota = p.montoARSoriginal||p.montoARS;
+        if(p.cuotas&&p.cuotas>1){ var rest=Math.max(0,p.cuotas-(p.cuotasPagadas||0)); return s+rest*montoCuota; }
+        return s+montoCuota;
+    },0);
 
     // Meses cubiertos con acreditado vs (deudas + pagos obra por mes)
     var _saldoUSD = ingRealUSD, _mesesCub = 0;
@@ -2154,6 +2162,17 @@ function renderBalance() {
         '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Proyectado</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--text);">U$S '+Math.round(ingProyUSD).toLocaleString('es-AR')+'</div></div>' +
         '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Deudas Balance</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--red);">U$S '+Math.round(deuUSD).toLocaleString('es-AR')+'</div></div>' +
         '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Pagos Obra</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--amber);">U$S '+Math.round(pagosPendUSD).toLocaleString('es-AR')+'</div></div>' +
+        '</div>' +
+        // Fila pesos — separada con borde punteado
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;padding-top:10px;border-top:1px dashed var(--border2);">' +
+        '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;border-color:rgba(245,166,35,.25);">' +
+        '<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--amber);margin-bottom:3px;letter-spacing:.05em;">Acreditado Pesos</div>' +
+        '<div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--amber);">$ '+Math.round(acreditadoPesos).toLocaleString('es-AR')+'</div>' +
+        '</div>' +
+        '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;border-color:rgba(245,101,101,.2);">' +
+        '<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--red);margin-bottom:3px;letter-spacing:.05em;">Deudas en Pesos</div>' +
+        '<div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--red);">$ '+Math.round(deudasPesos).toLocaleString('es-AR')+'</div>' +
+        '</div>' +
         '</div>' +
         // Ingresos proyectados + Deudas
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">' +
