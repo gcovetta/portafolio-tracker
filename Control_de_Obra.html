@@ -1667,10 +1667,11 @@ async function savePago(){
 function openPagoParcial(id){
     var p = S.pagos.find(function(x){ return x.id===id; });
     if(!p) return;
-    var esPesos = !!p.montoARSoriginal;
+    var esPesos = !!p.montoARSoriginal || p.moneda==='ars';
+    var montoARSref = p.montoARSoriginal || (p.moneda==='ars' ? p.montoARS : null);
     var cuotasRest = (p.cuotas&&p.cuotas>1) ? Math.max(0, p.cuotas-(p.cuotasPagadas||0)) : 1;
     // Saldo siempre en la moneda original del pago
-    var saldoARS = esPesos ? p.montoARSoriginal * cuotasRest : null;
+    var saldoARS = esPesos ? montoARSref * cuotasRest : null;
     var saldoUSD = p.montoUSD * cuotasRest;
     document.getElementById('ppTitle').textContent = p.desc || 'Pago parcial';
     if(esPesos){
@@ -1717,7 +1718,8 @@ async function savePagoParcial(){
     var p  = S.pagos.find(function(x){ return x.id===id; });
     if(!p) return;
 
-    var esPesos = !!p.montoARSoriginal;
+    var esPesos = !!p.montoARSoriginal || p.moneda==='ars';
+    var montoARSref = p.montoARSoriginal || (p.moneda==='ars' ? p.montoARS : null);
     var m = document.getElementById('ppMoneda').value;
     var rawInput = parseFloat(document.getElementById('ppMonto').value);
     if(!rawInput||rawInput<=0){ alert('Ingresá un monto válido.'); return; }
@@ -1735,7 +1737,7 @@ async function savePagoParcial(){
             pagoUSD = rawInput;
             pagoARS = rawInput * cotizacion;
         }
-        var saldoARS = p.montoARSoriginal * cuotasRest;
+        var saldoARS = montoARSref * cuotasRest;
         if(pagoARS > saldoARS + 1){
             alert('El pago ($'+Math.round(pagoARS).toLocaleString('es-AR')+') supera el saldo pendiente ($'+Math.round(saldoARS).toLocaleString('es-AR')+').');
             return;
@@ -1748,7 +1750,7 @@ async function savePagoParcial(){
             // Cuotas en pesos: monto por cuota NO cambia.
             // Solo se actualiza el saldo de la cuota actual (saldo_cuota_actual).
             // Si el pago cubre la cuota actual completa, avanzar cuotas_pagadas y resetear saldo.
-            var saldoCuotaActual = p.saldoCuotaActual != null ? p.saldoCuotaActual : p.montoARSoriginal;
+            var saldoCuotaActual = p.saldoCuotaActual != null ? p.saldoCuotaActual : montoARSref;
             var nuevoSaldoCuota = saldoCuotaActual - pagoARS;
             if(nuevoSaldoCuota <= 1){
                 // Cuota actual completada: avanzar cuotas_pagadas
@@ -1761,7 +1763,7 @@ async function savePagoParcial(){
                 } else {
                     updatePayload.cuotas_pagadas = cuotasCompletadas;
                     // Si hubo sobrante, descontarlo de la siguiente cuota
-                    updatePayload.saldo_cuota_actual = sobrante > 1 ? p.montoARSoriginal - sobrante : null;
+                    updatePayload.saldo_cuota_actual = sobrante > 1 ? montoARSref - sobrante : null;
                 }
             } else {
                 // Cuota actual parcialmente pagada
