@@ -1436,8 +1436,13 @@ function renderPagos(){
     var pagARS_pend = pagosARS.filter(function(p){ return p.estado!=='pagado'; });
     var totPagARSpesos  = pagARS_pag.reduce(function(s,p){ return s+(p.montoARSoriginal||p.montoARS); },0);
     var totPendARSpesos = pagARS_pend.reduce(function(s,p){
-        if(p.cuotas&&p.cuotas>1){ var r=Math.max(0,p.cuotas-(p.cuotasPagadas||0)); return s+r*(p.montoARSoriginal||p.montoARS); }
-        return s+(p.montoARSoriginal||p.montoARS);
+        var montoCuota = p.montoARSoriginal||p.montoARS;
+        if(p.cuotas&&p.cuotas>1){
+            var r=Math.max(0,p.cuotas-(p.cuotasPagadas||0));
+            var saldoCuota = p.saldoCuotaActual!=null ? p.saldoCuotaActual : montoCuota;
+            return s + (r>0 ? (r-1)*montoCuota + saldoCuota : 0);
+        }
+        return s+(p.saldoCuotaActual!=null ? p.saldoCuotaActual : montoCuota);
     },0);
     var THS2 = 'padding:8px 11px;font-size:10px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.4px;';
     function rowARS(p, isPend){
@@ -1451,7 +1456,17 @@ function renderPagos(){
         var saldoInfo = '';
         if(isPend && cuotas>1){
             var rest = Math.max(0, cuotas-cuotasPag);
-            saldoInfo = '<div style="font-size:10px;color:var(--text3);margin-top:1px;">'+rest+' pend. · saldo $ '+Math.round(rest*montoCuota).toLocaleString('es-AR')+'</div>';
+            // Si hay pago parcial en la cuota actual, usar saldoCuotaActual
+            var saldoCuotaActual = p.saldoCuotaActual!=null ? p.saldoCuotaActual : montoCuota;
+            var saldoTotal = rest > 0 ? (rest-1)*montoCuota + saldoCuotaActual : 0;
+            var parcialStr = p.saldoCuotaActual!=null ? ' <span style="color:var(--purple);">· parcial: $ '+Math.round(saldoCuotaActual).toLocaleString('es-AR')+' de $ '+Math.round(montoCuota).toLocaleString('es-AR')+'</span>' : '';
+            saldoInfo = '<div style="font-size:10px;color:var(--text3);margin-top:1px;">'+rest+' pend. · saldo $ '+Math.round(saldoTotal).toLocaleString('es-AR')+parcialStr+'</div>';
+        } else if(isPend && cuotas===1){
+            // Pago simple: saldoCuotaActual refleja el parcial
+            var saldoSimple = p.saldoCuotaActual!=null ? p.saldoCuotaActual : montoCuota;
+            if(p.saldoCuotaActual!=null){
+                saldoInfo = '<div style="font-size:10px;color:var(--purple);margin-top:1px;">saldo $ '+Math.round(saldoSimple).toLocaleString('es-AR')+'</div>';
+            }
         }
         var acciones = isPend
             ? '<button class="btn btn-sm btn-green" onclick="marcarPagado('+p.id+')" title="Marcar pagado / cuota">✓</button>'
