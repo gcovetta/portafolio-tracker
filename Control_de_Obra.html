@@ -2053,8 +2053,12 @@ function renderBalance() {
     // Deudas en pesos: pagos ARS pendientes (monto total restante)
     var deudasPesos = S.pagos.filter(function(p){ return p.moneda==='ars' && p.estado!=='pagado'; }).reduce(function(s,p){
         var montoCuota = p.montoARSoriginal||p.montoARS;
-        if(p.cuotas&&p.cuotas>1){ var rest=Math.max(0,p.cuotas-(p.cuotasPagadas||0)); return s+rest*montoCuota; }
-        return s+montoCuota;
+        if(p.cuotas&&p.cuotas>1){
+            var rest=Math.max(0,p.cuotas-(p.cuotasPagadas||0));
+            var saldoCuota=p.saldoCuotaActual!=null?p.saldoCuotaActual:montoCuota;
+            return s+(rest>0?(rest-1)*montoCuota+saldoCuota:0);
+        }
+        return s+(p.saldoCuotaActual!=null?p.saldoCuotaActual:montoCuota);
     },0);
 
     // Meses cubiertos con acreditado vs (deudas + pagos obra por mes)
