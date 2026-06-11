@@ -1514,11 +1514,18 @@ function renderPagos(){
             + '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>'
             : '<button class="btn btn-sm" onclick="openEditPagoARS('+p.id+')">✎</button>'
             + '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>';
+        var cotUsada = p.cotizacion || S.tcn;
+        var usdCuota = Math.round(montoCuota / cotUsada);
+        var usdCell = '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;">'
+            +'<div style="font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:var(--blue);">U$S '+usdCuota.toLocaleString('es-AR')+'</div>'
+            +'<div style="font-size:10px;color:var(--text3);margin-top:1px;">cot. $'+Math.round(cotUsada).toLocaleString('es-AR')+'</div>'
+            +'</td>';
         return '<tr>'
             +'<td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>'
             +'<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div></td>'
             +'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:'+col+';">$ '+Math.round(montoCuota).toLocaleString('es-AR')+cuotasInfo+'</td>'
-            +(isPend?'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+( p.cotizacion?'U$S '+Math.round(montoCuota/p.cotizacion).toLocaleString('es-AR'):'—')+saldoInfo+'</td>':'')
+            + usdCell
+            +(isPend?'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+saldoInfo+'</td>':'')
             +(isPend?'<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><span class="badge '+p.estado+'">'+p.estado+'</span></td>':'')
             +'<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;gap:3px;">'+acciones+'</div></td>'
             +'</tr>';
@@ -1538,7 +1545,7 @@ function renderPagos(){
         +'<div style="overflow-x:auto;">'
         +(pagARS_pag.length
             ?'<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>'
-            +'<th style="'+THS2+'text-align:left;">Fecha</th><th style="'+THS2+'text-align:left;">Rubro / Desc</th><th style="'+THS2+'text-align:right;">$ por cuota</th><th style="'+THS2+'"></th>'
+            +'<th style="'+THS2+'text-align:left;">Fecha</th><th style="'+THS2+'text-align:left;">Rubro / Desc</th><th style="'+THS2+'text-align:right;">$ por cuota</th><th style="'+THS2+'text-align:right;">U$S</th><th style="'+THS2+'"></th>'
             +'</tr></thead><tbody>'+pagARS_pag.map(function(p){return rowARS(p,false);}).join('')+'</tbody></table>'
             :'<div class="empty" style="padding:2rem;">Sin pagos realizados</div>')
         +'</div></div>'
@@ -1550,7 +1557,7 @@ function renderPagos(){
         +'<div style="overflow-x:auto;">'
         +(pagARS_pend.length
             ?'<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>'
-            +'<th style="'+THS2+'text-align:left;">Fecha</th><th style="'+THS2+'text-align:left;">Rubro / Desc</th><th style="'+THS2+'text-align:right;">$ por cuota</th><th style="'+THS2+'text-align:right;">Ref. U$S</th><th style="'+THS2+'">Estado</th><th style="'+THS2+'"></th>'
+            +'<th style="'+THS2+'text-align:left;">Fecha</th><th style="'+THS2+'text-align:left;">Rubro / Desc</th><th style="'+THS2+'text-align:right;">$ por cuota</th><th style="'+THS2+'text-align:right;">U$S</th><th style="'+THS2+'text-align:right;">Saldo</th><th style="'+THS2+'">Estado</th><th style="'+THS2+'"></th>'
             +'</tr></thead><tbody>'+pagARS_pend.map(function(p){return rowARS(p,true);}).join('')+'</tbody></table>'
             :'<div class="empty" style="padding:2rem;">Sin pagos pendientes</div>')
         +'</div></div>'
@@ -2083,6 +2090,33 @@ function renderBalance() {
     }
     var pagosPendUSD = 0;
     for(var qi0=0;qi0<18;qi0++){ pagosPendUSD += _egresosMesKPI(mesStr(qi0)); }
+    // DEBUG — detalle por pago
+    console.group('=== DEBUG pagosPendUSD = U$S '+Math.round(pagosPendUSD)+' ===');
+    S.pagos.filter(function(p){ return p.estado!=='pagado'; }).forEach(function(p){
+        var cot = p.cotizacion || S.tcn;
+        var aporte = 0;
+        if(p.cuotas && p.cuotas > 1){
+            var pagadas = p.cuotasPagadas||0, restantes = p.cuotas-pagadas;
+            var fechaBase = new Date(p.fecha+'T00:00:00');
+            var fechaIniPend = new Date(fechaBase.getFullYear(), fechaBase.getMonth()+pagadas, 1);
+            for(var q=0;q<restantes;q++){
+                var mc = (q===0 && p.saldoCuotaActual!=null)
+                    ? (p.montoARSoriginal ? p.saldoCuotaActual/cot : p.saldoCuotaActual)
+                    : (p.montoARSoriginal ? p.montoARSoriginal/cot : p.montoUSD);
+                aporte += mc;
+            }
+        } else {
+            aporte = p.montoARSoriginal ? p.montoARSoriginal/cot : p.montoUSD;
+        }
+        console.log(
+            p.fecha, '|', p.desc||'', '|', p.estado,
+            '| cuotas:', p.cuotas||1, '| pagadas:', p.cuotasPagadas||0,
+            '| montoUSD:', Math.round(p.montoUSD), '| montoARS:', p.montoARSoriginal||null,
+            '| cot:', cot,
+            '| APORTE USD:', Math.round(aporte)
+        );
+    });
+    console.groupEnd();
 
     // Balance neto total = acreditado + proyectado - deudas - pagos obra
     var netoUSD = ingRealUSD + ingProyUSD - deuUSD - pagosPendUSD;
