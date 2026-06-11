@@ -24,7 +24,12 @@
     *{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;}
     .layout{display:flex;min-height:100vh;}
-    .sidebar{width:228px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;}
+    .sidebar{width:228px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;transition:transform .25s cubic-bezier(.4,0,.2,1);}
+    .sidebar.collapsed{transform:translateX(-228px);}
+    .sb-toggle{position:fixed;top:10px;left:10px;z-index:200;width:34px;height:34px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:left .25s cubic-bezier(.4,0,.2,1),background .15s;}
+    .sb-toggle:hover{background:var(--surface2);}
+    .sb-toggle svg{width:16px;height:16px;fill:var(--text2);}
+    .sb-toggle.open{left:238px;}
     .sb-brand{padding:22px 18px 16px;border-bottom:1px solid var(--border);}
     .sb-icon{width:34px;height:34px;background:var(--blue-dim);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
     .sb-icon svg{fill:var(--blue);}
@@ -54,7 +59,8 @@
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
     .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px;}
     @keyframes spin{to{transform:rotate(360deg)}}
-    .main{margin-left:228px;flex:1;}
+    .main{margin-left:0;flex:1;transition:margin-left .25s cubic-bezier(.4,0,.2,1);padding-left:44px;}
+    .main.sb-open{margin-left:228px;padding-left:0;}
     .topbar{height:54px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:sticky;top:0;z-index:50;}
     .topbar h2{font-size:15px;font-weight:500;}
     .topbar .actions{display:flex;gap:8px;}
@@ -164,7 +170,10 @@
 </head>
 <body>
 <div class="layout">
-    <aside class="sidebar">
+    <button class="sb-toggle" id="sbToggle" onclick="toggleSidebar()" title="Menú">
+        <svg viewBox="0 0 20 20"><rect x="2" y="4" width="16" height="2" rx="1"/><rect x="2" y="9" width="16" height="2" rx="1"/><rect x="2" y="14" width="16" height="2" rx="1"/></svg>
+    </button>
+    <aside class="sidebar collapsed" id="sidebar" onmouseleave="closeSidebar()">
         <div class="sb-brand">
             <div class="sb-icon"><svg viewBox="0 0 20 20" width="18" height="18"><path d="M3 5a2 2 0 012-2h10a2 2 0 012 2v2H3V5zm0 4h14v8a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/></svg></div>
             <h1>Control de Obra</h1>
@@ -2937,6 +2946,33 @@ document.querySelectorAll('.modal-overlay').forEach(function(m){ m.addEventListe
 // ARRANQUE
 // ═══════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function(){ initApp(); });
+
+// ═══════════════════════════════════════
+// SIDEBAR TOGGLE
+// ═══════════════════════════════════════
+function toggleSidebar(){
+    var sb = document.getElementById('sidebar');
+    var main = document.querySelector('.main');
+    var btn = document.getElementById('sbToggle');
+    var isOpen = !sb.classList.contains('collapsed');
+    if(isOpen){
+        sb.classList.add('collapsed');
+        main.classList.remove('sb-open');
+        btn.classList.remove('open');
+    } else {
+        sb.classList.remove('collapsed');
+        main.classList.add('sb-open');
+        btn.classList.add('open');
+    }
+}
+function closeSidebar(){
+    var sb = document.getElementById('sidebar');
+    var main = document.querySelector('.main');
+    var btn = document.getElementById('sbToggle');
+    sb.classList.add('collapsed');
+    main.classList.remove('sb-open');
+    btn.classList.remove('open');
+}
 </script>
 </body>
 </html>
