@@ -1103,7 +1103,7 @@ function renderPagos(){
         // ── Separador Balance ───────────────────────────────────────
         (function(){
             var _allO = []; S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){ expandirIngreso(x).forEach(function(o){ _allO.push(o); }); });
-            var _acrUSD  = _allO.filter(function(o){ return o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
+            var _acrUSD  = _allO.filter(function(o){ return o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0) + netoARSusd;
             var _proyUSD = _allO.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
             var _deuUSD  = S.deudas.reduce(function(s,d){ return s+(d.montoARS*(d.cuotas-d.pagadas)/d.cuotas); },0)/S.tcn;
             var _pagPendUSD = 0;
