@@ -1097,6 +1097,20 @@ function renderPagos(){
     // 3. Filtro Mat: rubro que contenga "material" (case-insensitive)
     var _pagosMat = S.pagos.filter(function(p){ var r=(p.rubro||'').toLowerCase().trim(); return p.moneda!=='ars' && r.indexOf('material')>=0; });
 
+    // Versiones ARS: incluyen TODOS los pagos (USD + ARS)
+    var _allRubrosARS = [];
+    S.pagos.forEach(function(p){
+        var r=(p.rubro||'Sin rubro').trim();
+        var rl=r.toLowerCase();
+        if(rl.indexOf('mano')>=0||rl==='mo'||rl.indexOf('material')>=0) return;
+        if(_allRubrosARS.indexOf(r)<0) _allRubrosARS.push(r);
+    });
+    _allRubrosARS.sort();
+    var _pagosMO_ARS  = S.pagos.filter(function(p){ var r=(p.rubro||'').toLowerCase().trim(); return r.indexOf('mano')>=0||r==='mo'; });
+    var _pagosMat_ARS = S.pagos.filter(function(p){ var r=(p.rubro||'').toLowerCase().trim(); return r.indexOf('material')>=0; });
+    var _descsMO_ARS  = _rubrosOf(_pagosMO_ARS);
+    var _descsMat_ARS = _rubrosOf(_pagosMat_ARS);
+
     // Grupos por RUBRO para MO y Mat (no por desc)
     function _rubrosOf(pagos){ var d=[]; pagos.forEach(function(p){ var v=(p.rubro||'Sin rubro').trim(); if(d.indexOf(v)<0) d.push(v); }); return d; }
     var _descsMO  = _rubrosOf(_pagosMO);
@@ -1178,6 +1192,19 @@ function renderPagos(){
         '<div class="card" style="margin-bottom:0;">' +
         '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Materiales</h3></div>' +
         '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosMat"></canvas></div></div></div>' +
+        '</div>' +
+
+        // 3 gráficos en pesos
+        '<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:16px;align-items:start;">' +
+        '<div class="card" style="margin-bottom:0;">' +
+        '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Por rubro <span style="font-size:10px;color:var(--amber);font-weight:400;">$</span></h3></div>' +
+        '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosRubroARS"></canvas></div></div></div>' +
+        '<div class="card" style="margin-bottom:0;">' +
+        '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Mano de Obra <span style="font-size:10px;color:var(--amber);font-weight:400;">$</span></h3></div>' +
+        '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosMOARS"></canvas></div></div></div>' +
+        '<div class="card" style="margin-bottom:0;">' +
+        '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Materiales <span style="font-size:10px;color:var(--amber);font-weight:400;">$</span></h3></div>' +
+        '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosMatARS"></canvas></div></div></div>' +
         '</div>' +
 
         // Dos tablas lado a lado
@@ -1461,12 +1488,121 @@ function renderPagos(){
     safeDestroy(window.chartPagosG);  window.chartPagosG=null;
     safeDestroy(window.chartPagosMO); window.chartPagosMO=null;
     safeDestroy(window.chartPagosMat);window.chartPagosMat=null;
+    safeDestroy(window.chartPagosRubroARS); window.chartPagosRubroARS=null;
+    safeDestroy(window.chartPagosMOARS);    window.chartPagosMOARS=null;
+    safeDestroy(window.chartPagosMatARS);   window.chartPagosMatARS=null;
 
     // Render después de que el DOM esté listo
     setTimeout(function(){
         chartPagos          = buildChart(document.getElementById('chartPagosRubro'), _allRubros, _rubPag,  _rubPend,  _rubCols,  'Sin pagos registrados',      _detRubro);
         window.chartPagosMO = buildChart(document.getElementById('chartPagosMO'),    _descsMO,   _moPag,   _moPend,   '#A78BFA', 'Sin pagos de Mano de Obra',  _detMO);
         window.chartPagosMat= buildChart(document.getElementById('chartPagosMat'),   _descsMat,  _matPag,  _matPend,  '#3ECF8E', 'Sin pagos de Materiales',    _detMat);
+
+        // ── Gráficos ARS ──────────────────────────────────────────────
+        function buildChartARS(ctx, labels, pagData, pendData, colors, emptyMsg) {
+            if(!ctx) return null;
+            if(!labels.length){
+                ctx.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:12px;">'+(emptyMsg||'Sin datos')+'</div>';
+                return null;
+            }
+            var bgPag = Array.isArray(colors) ? colors.map(function(c){return c+'99';}) : colors+'99';
+            var pctPlugin = {
+                id:'pctLabelARS',
+                afterDatasetsDraw: function(chart){
+                    var ctx2=chart.ctx; ctx2.save();
+                    var ds=chart.data.datasets;
+                    chart.data.labels.forEach(function(_,i){
+                        var pag=ds[0].data[i]||0, pend=ds[1].data[i]||0, tot=pag+pend;
+                        if(!tot) return;
+                        var pct=Math.round(pag/tot*100);
+                        var meta0=chart.getDatasetMeta(0), meta1=chart.getDatasetMeta(1);
+                        var bar0=meta0.data[i], bar1=meta1.data[i];
+                        var topY=Math.min(pag>0?bar0.y:Infinity, pend>0?bar1.y:Infinity);
+                        if(topY===Infinity) return;
+                        ctx2.fillStyle=pct===100?'#3ECF8E':pct===0?'#F56565':'#E8EAF2';
+                        ctx2.font='bold 10px DM Sans,sans-serif';
+                        ctx2.textAlign='center';
+                        ctx2.fillText(pct+'%', bar0.x, topY-6);
+                    });
+                    ctx2.restore();
+                }
+            };
+            return new Chart(ctx.getContext('2d'), {
+                type:'bar',
+                data:{ labels:labels, datasets:[
+                    {label:'Pagado $',    data:pagData,  backgroundColor:bgPag, borderColor:colors, borderWidth:2, borderRadius:4, borderSkipped:false},
+                    {label:'Pendiente $', data:pendData, backgroundColor:'rgba(245,166,35,.35)', borderColor:'#F5A623', borderWidth:2, borderRadius:4, borderSkipped:false}
+                ]},
+                options:{
+                    responsive:true, maintainAspectRatio:false,
+                    layout:{ padding:{ top:18 } },
+                    plugins:{
+                        legend:{display:false},
+                        tooltip:{callbacks:{
+                            label:function(){ return null; },
+                            afterBody:function(items){
+                                if(!items.length) return [];
+                                var idx=items[0].dataIndex;
+                                var pag=items[0].chart.data.datasets[0].data[idx]||0;
+                                var pend=items[0].chart.data.datasets[1].data[idx]||0;
+                                var tot=pag+pend, pct=tot>0?Math.round(pag/tot*100):0;
+                                var fmt=function(v){ return v>=1000000?'$'+(v/1000000).toFixed(1)+'M':v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+Math.round(v); };
+                                return ['✓ Pagado:    '+fmt(pag),'⏳ Pendiente: '+fmt(pend),'Completado: '+pct+'%'];
+                            }
+                        }}
+                    },
+                    scales:{
+                        x:{ticks:{color:'#565C7A',font:{size:10},maxRotation:40,autoSkip:false}, grid:{color:'rgba(255,255,255,.03)'}},
+                        y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){ var a=Math.abs(v); return a>=1000000?'$'+(a/1000000).toFixed(1)+'M':a>=1000?'$'+(a/1000).toFixed(0)+'k':'$'+Math.round(a); }}, grid:{color:'rgba(255,255,255,.04)'}}
+                    }
+                },
+                plugins:[pctPlugin]
+            });
+        }
+
+        // Función _calcPagPendARS: igual que _calcPagPend pero en pesos
+        function _calcPagPendARS(lista) {
+            var pagado=0, pendiente=0;
+            lista.forEach(function(p){
+                if(_esCuotaAutoGenerada(p)) return;
+                var cot=p.cotizacion||S.tcn;
+                if(p.estado==='pagado'){
+                    pagado += p.montoARSoriginal ? p.montoARSoriginal : p.montoUSD*cot;
+                } else if(p.cuotas&&p.cuotas>1){
+                    var pagadas=p.cuotasPagadas||0, restantes=p.cuotas-pagadas;
+                    var mARS=p.montoARSoriginal ? p.montoARSoriginal : p.montoUSD*cot;
+                    var saldoCuota=p.saldoCuotaActual!=null?p.saldoCuotaActual:mARS;
+                    pagado    += mARS*pagadas;
+                    pendiente += restantes>0?(restantes-1)*mARS+saldoCuota:0;
+                } else {
+                    var mARS2=p.montoARSoriginal?p.montoARSoriginal:p.montoUSD*cot;
+                    pendiente += p.saldoCuotaActual!=null?p.saldoCuotaActual:mARS2;
+                }
+            });
+            return {pag:Math.round(pagado), pend:Math.round(pendiente)};
+        }
+
+        // Data ARS por rubro
+        var _rubPagARS=[], _rubPendARS=[];
+        _allRubrosARS.forEach(function(r){
+            var res=_calcPagPendARS(S.pagos.filter(function(p){return (p.rubro||'Sin rubro').trim()===r;}));
+            _rubPagARS.push(res.pag); _rubPendARS.push(res.pend);
+        });
+        var _moPagARS=[], _moPendARS=[];
+        _descsMO_ARS.forEach(function(r){
+            var res=_calcPagPendARS(_pagosMO_ARS.filter(function(p){return (p.rubro||'Sin rubro').trim()===r;}));
+            _moPagARS.push(res.pag); _moPendARS.push(res.pend);
+        });
+        var _matPagARS=[], _matPendARS=[];
+        _descsMat_ARS.forEach(function(r){
+            var res=_calcPagPendARS(_pagosMat_ARS.filter(function(p){return (p.rubro||'Sin rubro').trim()===r;}));
+            _matPagARS.push(res.pag); _matPendARS.push(res.pend);
+        });
+        var _rubColsARS = _allRubrosARS.map(function(_,i){ return _rubroPalette[i%_rubroPalette.length]; });
+
+        window.chartPagosRubroARS = buildChartARS(document.getElementById('chartPagosRubroARS'), _allRubrosARS, _rubPagARS, _rubPendARS, _rubColsARS, 'Sin pagos registrados');
+        window.chartPagosMOARS    = buildChartARS(document.getElementById('chartPagosMOARS'),    _descsMO_ARS,  _moPagARS,  _moPendARS,  '#A78BFA',   'Sin pagos de Mano de Obra');
+        window.chartPagosMatARS   = buildChartARS(document.getElementById('chartPagosMatARS'),   _descsMat_ARS, _matPagARS, _matPendARS, '#3ECF8E',   'Sin pagos de Materiales');
     }, 50);
 
     // ── Tabla pagos en pesos ──────────────────────────────────────
