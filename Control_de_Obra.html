@@ -1164,6 +1164,7 @@ function renderPagos(){
             var _allOcurrPag = []; S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){ expandirIngreso(x).forEach(function(o){ _allOcurrPag.push(o); }); });
             var acrUSD  = Math.round(_allOcurrPag.filter(function(o){ return o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0));
             var proyUSD = Math.round(_allOcurrPag.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0));
+            var acreditadoPesos = Math.round(S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0));
             return (
             // ── Grupo USD ──────────────────────────────────────────
             '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:8px;">' +
@@ -1218,7 +1219,7 @@ function renderPagos(){
             '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;">' +
             '<div style="padding:6px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;">' +
             '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--amber);">$ · Pesos</span></div>' +
-            '<div style="display:grid;grid-template-columns:1fr 1fr;">' +
+            '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;">' +
             '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);">' +
             '<div style="width:36px;height:36px;border-radius:8px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
             '<svg width="16" height="16" viewBox="0 0 20 20" fill="#F5A623"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>' +
@@ -1230,12 +1231,18 @@ function renderPagos(){
             '</div>' +
             '<div style="font-size:10px;color:var(--text3);margin-top:2px;">≈ U$S '+Math.round(kpiPagARSusd).toLocaleString('es-AR')+'</div>' +
             '</div></div>' +
-            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;">' +
+            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);">' +
             '<div style="width:36px;height:36px;border-radius:8px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
             '<svg width="16" height="16" viewBox="0 0 20 20" fill="#F5A623"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>' +
             '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--amber);margin-bottom:2px;">Pendientes $</div>' +
             '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:var(--amber);">$ '+Math.round(kpiPendARSpesos).toLocaleString('es-AR')+'</div>' +
             '<div style="font-size:10px;color:var(--text3);margin-top:2px;">≈ U$S '+Math.round(kpiPendARSusd).toLocaleString('es-AR')+'</div></div></div>' +
+            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;background:var(--surface2);">' +
+            '<div style="width:36px;height:36px;border-radius:8px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+            '<svg width="16" height="16" viewBox="0 0 20 20" fill="#F5A623"><rect x="2" y="4" width="16" height="13" rx="2" stroke="#F5A623" stroke-width="1.5" fill="none"/><path d="M6 2v4M14 2v4M2 8h16" stroke="#F5A623" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>' +
+            '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--amber);margin-bottom:2px;">Acreditado $</div>' +
+            '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:var(--amber);">$ '+Math.round(acreditadoPesos).toLocaleString('es-AR')+'</div>' +
+            '<div style="font-size:10px;color:var(--text3);margin-top:2px;">ingresos en pesos</div></div></div>' +
             '</div></div>'
             );
         })() +
@@ -2490,22 +2497,16 @@ function renderBalance() {
         (_mesQ===-1?'<div style="font-size:22px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);line-height:1;">Nunca</div>':'<div style="font-size:26px;font-weight:700;font-family:DM Mono,monospace;color:var(--red);line-height:1;">'+_mesQL+'<span style="font-size:12px;color:var(--red);opacity:.6;margin-left:6px;">mes '+_mesQ+'/18</span></div>') +
         '</div></div></div>' +
         // KPIs
-        '<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:8px;margin-bottom:14px;">' +
+        '<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:14px;">' +
         '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 16px;background:'+(isPos?'var(--green-dim)':'var(--red-dim)')+';border-color:'+(isPos?'rgba(62,207,142,.3)':'rgba(245,101,101,.3)')+';display:flex;align-items:center;justify-content:space-between;">' +
         '<div><div style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:'+(isPos?'var(--green)':'var(--red)')+';margin-bottom:3px;">Balance neto</div>' +
         '<div style="font-size:22px;font-weight:700;font-family:DM Mono,monospace;color:'+(isPos?'var(--green)':'var(--red)')+';">U$S '+Math.round(netoUSD).toLocaleString('es-AR')+'</div>' +
         '<div style="font-size:10px;color:var(--text3);margin-top:3px;">Acred.+Proy. − Deudas − Pagos obra</div></div></div>' +
-        '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Acreditado</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--green);">U$S '+Math.round(ingRealUSD).toLocaleString('es-AR')+'</div></div>' +
-        '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Proyectado</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--text);">U$S '+Math.round(ingProyUSD).toLocaleString('es-AR')+'</div></div>' +
         '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Deudas Balance</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--red);">U$S '+Math.round(deuUSD).toLocaleString('es-AR')+'</div></div>' +
         '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Pagos Obra</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--amber);">U$S '+Math.round(pagosPendUSD).toLocaleString('es-AR')+'</div></div>' +
         '</div>' +
         // Fila pesos — separada con borde punteado
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;padding-top:10px;border-top:1px dashed var(--border2);">' +
-        '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;border-color:rgba(245,166,35,.25);">' +
-        '<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--amber);margin-bottom:3px;letter-spacing:.05em;">Acreditado Pesos</div>' +
-        '<div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--amber);">$ '+Math.round(acreditadoPesos).toLocaleString('es-AR')+'</div>' +
-        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:14px;padding-top:10px;border-top:1px dashed var(--border2);">' +
         '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;border-color:rgba(245,101,101,.2);">' +
         '<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--red);margin-bottom:3px;letter-spacing:.05em;">Deudas en Pesos</div>' +
         '<div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--red);">$ '+Math.round(deudasPesos).toLocaleString('es-AR')+'</div>' +
