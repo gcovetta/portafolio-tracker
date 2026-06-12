@@ -942,6 +942,10 @@ function renderPagos(){
 
     var THS = 'padding:8px 11px;font-size:10px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.4px;';
 
+    // Neto pesos dolarizado — disponible en todo el scope de renderPagos
+    var _acredPesosOuter = Math.round(S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0));
+    var netoARSusd = Math.round((_acredPesosOuter - kpiPendARSpesos) / S.tcn);
+
     document.getElementById('page-pagos').innerHTML =
         // Barra superior
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">' +
@@ -962,7 +966,6 @@ function renderPagos(){
             var acrUSD  = Math.round(_allOcurrPag.filter(function(o){ return o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0));
             var proyUSD = Math.round(_allOcurrPag.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0));
             var acreditadoPesos = Math.round(S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0));
-            var netoARSusd = Math.round((acreditadoPesos - kpiPendARSpesos) / S.tcn);
             return (
             // ── Grupo USD ──────────────────────────────────────────
             '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:8px;">' +
