@@ -962,6 +962,7 @@ function renderPagos(){
             var acrUSD  = Math.round(_allOcurrPag.filter(function(o){ return o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0));
             var proyUSD = Math.round(_allOcurrPag.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0));
             var acreditadoPesos = Math.round(S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0));
+            var netoARSusd = Math.round((acreditadoPesos - kpiPendARSpesos) / S.tcn);
             return (
             // ── Grupo USD ──────────────────────────────────────────
             '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:8px;">' +
@@ -1007,7 +1008,9 @@ function renderPagos(){
             '<div style="width:32px;height:32px;border-radius:7px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
             '<svg width="14" height="14" viewBox="0 0 20 20" fill="#3ECF8E"><rect x="2" y="4" width="16" height="13" rx="2" stroke="#3ECF8E" stroke-width="1.5" fill="none"/><path d="M6 2v4M14 2v4M2 8h16" stroke="#3ECF8E" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>' +
             '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:1px;">Acreditado (Balance)</div>' +
-            '<div style="font-size:15px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">U$S '+acrUSD.toLocaleString('es-AR')+'</div></div></div>' +
+            '<div style="font-size:15px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">U$S '+(acrUSD+netoARSusd).toLocaleString('es-AR')+'</div>' +
+            (netoARSusd!==0?'<div style="display:flex;align-items:center;gap:4px;margin-top:4px;"><span style="font-size:9px;font-weight:700;background:rgba(168,139,250,.18);color:#A78BFA;border-radius:4px;padding:1px 5px;white-space:nowrap;">+ Neto $</span><span style="font-size:10px;color:#A78BFA;font-family:DM Mono,monospace;">U$S '+netoARSusd.toLocaleString('es-AR')+'</span></div>':'') +
+            '</div></div>' +
             '<div style="padding:11px 15px;display:flex;align-items:center;gap:11px;">' +
             '<div style="width:32px;height:32px;border-radius:7px;background:var(--surface3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
             '<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 3v7l4 2" stroke="#8B90A8" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="10" r="8" stroke="#8B90A8" stroke-width="1.5"/></svg>' +
