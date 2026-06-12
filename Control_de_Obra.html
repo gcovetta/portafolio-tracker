@@ -885,16 +885,6 @@ function renderPagos(){
         return s+(cuotas>1?Math.round(rest>0?(rest-1)*usdCuota+saldoCuotaUSD:0):Math.round(p.saldoCuotaActual!=null?p.saldoCuotaActual/cot:usdCuota));
     },0);
 
-    // Neto en pesos dolarizado (ingresos ARS acreditados − deudas en pesos − pagos ARS pendientes) / TCN
-    var _ingARSacred = S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0);
-    var _deudasPesos = S.deudas.reduce(function(s,d){ return s+d.montoARS; },0);
-    var _pagosARSpend = S.pagos.filter(function(p){ return p.moneda==='ars' && p.estado!=='pagado'; }).reduce(function(s,p){
-        var mc=p.montoARSoriginal||p.montoARS;
-        if(p.cuotas&&p.cuotas>1){ var r=Math.max(0,p.cuotas-(p.cuotasPagadas||0)); var sc=p.saldoCuotaActual!=null?p.saldoCuotaActual:mc; return s+(r>0?(r-1)*mc+sc:0); }
-        return s+(p.saldoCuotaActual!=null?p.saldoCuotaActual:mc);
-    },0);
-    var netoPesosUSD = Math.round((_ingARSacred - _deudasPesos - _pagosARSpend) / S.tcn);
-
     // --- Datos gráficos por rubro ---
     // Paleta de colores por rubro
     var _rubroPalette = ['#4C8EF5','#3ECF8E','#A78BFA','#F5A623','#F56565','#38BDF8','#FB923C','#A3E635','#E879F9','#34D399'];
@@ -988,12 +978,7 @@ function renderPagos(){
             '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">' +
             '<div style="flex:1;height:3px;background:var(--border2);border-radius:2px;overflow:hidden;"><div style="height:100%;width:'+pctPagUSD+'%;background:'+pctClrUSD+';border-radius:2px;"></div></div>' +
             '<span style="font-size:11px;font-weight:700;font-family:DM Mono,monospace;color:'+pctClrUSD+';">'+pctPagUSD+'%</span>' +
-            '</div>' +
-            (netoPesosUSD!==0?'<div style="display:flex;align-items:center;gap:5px;margin-top:6px;padding-top:5px;border-top:1px dashed rgba(168,139,250,.25);">' +
-            '<span style="font-size:9px;font-weight:700;background:rgba(168,139,250,.18);color:#A78BFA;border-radius:4px;padding:1px 5px;white-space:nowrap;">+ Neto $</span>' +
-            '<span style="font-size:11px;font-weight:600;font-family:DM Mono,monospace;color:'+(netoPesosUSD>=0?'#A78BFA':'var(--red)')+';white-space:nowrap;">'+(netoPesosUSD>=0?'':'-')+'U$S '+Math.abs(netoPesosUSD).toLocaleString('es-AR')+'</span>' +
-            '</div>':'') +
-            '</div></div>' +
+            '</div></div></div>' +
             '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);">' +
             '<div style="width:36px;height:36px;border-radius:8px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
             '<svg width="16" height="16" viewBox="0 0 20 20" fill="#F5A623"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>' +
@@ -2259,6 +2244,17 @@ function renderBalance() {
     var ingProyUSD = allOcurr.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
     var ingReal = ingRealUSD * S.tcn; // para compatibilidad con fmtUSD abajo
 
+    // Neto en pesos dolarizado — se suma al acreditado USD
+    var _ingARSacred = S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0);
+    var _deudasPesos = S.deudas.reduce(function(s,d){ return s+d.montoARS; },0);
+    var _pagosARSpend = S.pagos.filter(function(p){ return p.moneda==='ars' && p.estado!=='pagado'; }).reduce(function(s,p){
+        var mc=p.montoARSoriginal||p.montoARS;
+        if(p.cuotas&&p.cuotas>1){ var r=Math.max(0,p.cuotas-(p.cuotasPagadas||0)); var sc=p.saldoCuotaActual!=null?p.saldoCuotaActual:mc; return s+(r>0?(r-1)*mc+sc:0); }
+        return s+(p.saldoCuotaActual!=null?p.saldoCuotaActual:mc);
+    },0);
+    var netoPesosUSD = Math.round((_ingARSacred - _deudasPesos - _pagosARSpend) / S.tcn);
+    ingRealUSD += netoPesosUSD;
+
     // Egresos totales: deudas Balance + pagos obra pendientes
     var deuUSD = totalDeudasARS() / S.tcn;
 
@@ -2451,7 +2447,9 @@ function renderBalance() {
         '<div style="display:flex;align-items:center;gap:10px;"><span style="width:9px;height:9px;border-radius:50%;background:var(--green);display:inline-block;"></span><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos acreditados</span><span style="font-size:11px;color:var(--text3);">'+nAcr+' registro'+(nAcr!==1?'s':'')+'</span></div>' +
         '<button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div>' +
         '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+THS+'text-align:left;">Fecha</th><th style="'+THS+'text-align:left;">Descripción</th><th style="'+THS+'text-align:center;">Frecuencia</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'"></th></tr></thead><tbody>'+acrRows+'</tbody></table></div>' +
-        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--green);">U$S '+Math.round(ingRealUSD).toLocaleString('es-AR')+'</strong></span></div></div>' +
+        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--green);">U$S '+Math.round(ingRealUSD).toLocaleString('es-AR')+'</strong></span>' +
+        (netoPesosUSD!==0?' <span style="margin-left:10px;font-size:10px;background:rgba(168,139,250,.18);color:#A78BFA;border-radius:4px;padding:1px 7px;font-weight:700;">+ Neto $ dolarizado: '+(netoPesosUSD>=0?'':'-')+'U$S '+Math.abs(netoPesosUSD).toLocaleString('es-AR')+'</span>':'') +
+        '</div></div>' +
         // Ingresos en pesos
         '<div style="'+CS+'margin-bottom:0;"><div style="'+HS+'">' +
         '<div style="display:flex;align-items:center;gap:10px;"><span style="width:9px;height:9px;border-radius:50%;background:var(--amber);display:inline-block;"></span><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos en Pesos</span></div>' +
