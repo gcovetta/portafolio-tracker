@@ -354,9 +354,10 @@
                     <div id="mPreviewUSD" style="height:36px;display:flex;align-items:center;font-family:DM Mono,monospace;font-size:15px;font-weight:600;color:var(--blue);">—</div>
                 </div>
             </div>
-            <!-- Cuotas (solo visible si pendiente/vencido) -->
-            <div id="fgCuotasPago" style="display:none;">
-                <div class="form-row">
+            <!-- Cuotas — siempre visible -->
+            <div style="border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;">
+                <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">Cuotas / Frecuencia</div>
+                <div class="form-row" style="margin-bottom:8px;">
                     <div class="fg">
                         <label>Cantidad de cuotas</label>
                         <input type="number" id="mCuotas" min="1" value="1" placeholder="1" oninput="calcCuotaDesdeTotal()">
@@ -366,7 +367,7 @@
                         <input type="number" id="mCuotasPagadas" min="0" value="0" placeholder="0">
                     </div>
                 </div>
-                <div class="form-row" style="align-items:flex-end;">
+                <div class="form-row" style="margin-bottom:0;align-items:flex-end;">
                     <div class="fg">
                         <label style="display:flex;align-items:center;gap:6px;">
                             Monto total
@@ -1756,8 +1757,7 @@ function setMonedaPago(m){
 function onEstadoChange(){
     var est = document.getElementById('mEstado').value;
     var isPend = est==='pendiente'||est==='vencido';
-    document.getElementById('fgDeudaInfo').style.display    = isPend ? 'block' : 'none';
-    document.getElementById('fgCuotasPago').style.display   = isPend ? 'block' : 'none';
+    document.getElementById('fgDeudaInfo').style.display = isPend ? 'block' : 'none';
 }
 function calcPreviewPago(){
     if(mPagoMoneda!=='ARS') return;
@@ -1802,7 +1802,6 @@ function openNewPago(){
     document.getElementById('mCuotaCalc').textContent='—';
     document.getElementById('mEstado').value='pagado';
     document.getElementById('fgDeudaInfo').style.display='none';
-    document.getElementById('fgCuotasPago').style.display='none';
     document.getElementById('mCuotas').value='1';
     document.getElementById('mCuotasPagadas').value='0';
     document.getElementById('mCotizacion').value='';
@@ -1821,7 +1820,6 @@ function openEditPago(id){
     document.getElementById('mEtapa').value=p.rubro||'';
     var isPend = p.estado==='pendiente'||p.estado==='vencido';
     document.getElementById('fgDeudaInfo').style.display  = isPend ? 'block' : 'none';
-    document.getElementById('fgCuotasPago').style.display = isPend ? 'block' : 'none';
     // Abrir en la moneda original
     if(p.montoARSoriginal && p.cotizacion){
         setMonedaPago('ARS');
@@ -1864,7 +1862,8 @@ async function savePago(){
     setSaveStatus('saving');
     var cotizacionGuardar = (mPagoMoneda==='ARS') ? parseFloat(document.getElementById('mCotizacion').value)||null : null;
     var montoARSGuardar   = (mPagoMoneda==='ARS') ? montoARS : null;
-    var cuotasVal = (estado==='pendiente'||estado==='vencido') ? (parseInt(document.getElementById('mCuotas').value)||null) : null;
+    var cuotasVal = parseInt(document.getElementById('mCuotas').value)||null;
+    if(cuotasVal===1) cuotasVal=null; // 1 cuota = sin cuotas
     var cuotasPagVal = cuotasVal ? (parseInt(document.getElementById('mCuotasPagadas').value)||0) : null;
     var payload={fecha:fecha, rubro:rubro, descripcion:desc, monto_usd:montoUSD, monto_ars:montoARSGuardar, cotizacion:cotizacionGuardar, estado:estado, cuotas:cuotasVal, cuotas_pagadas:cuotasPagVal};
     var res = S.editPagoId
