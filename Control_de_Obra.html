@@ -1186,7 +1186,7 @@ function renderPagos(){
             '<div style="width:36px;height:36px;border-radius:8px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
             '<svg width="16" height="16" viewBox="0 0 20 20" fill="#F5A623"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>' +
             '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Pendientes</div>' +
-            '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:var(--amber);">'+fmtMain(totalPend)+'</div>' +
+            '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:'+(totalPendUSD>acrUSD?'var(--amber)':'var(--green)')+';">'+fmtMain(totalPend)+'</div>' +
             '<div style="font-size:10px;color:var(--text3);margin-top:2px;">'+pendientes.length+' pago'+(pendientes.length!==1?'s':'')+'</div></div></div>' +
             '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;background:var(--surface2);border-left:3px solid var(--red);">' +
             '<div style="width:36px;height:36px;border-radius:8px;background:var(--red-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
@@ -1245,8 +1245,8 @@ function renderPagos(){
                 '<div style="width:36px;height:36px;border-radius:8px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
                 '<svg width="16" height="16" viewBox="0 0 20 20" fill="#F5A623"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>' +
                 '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Próxima cuota $</div>' +
-                '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:var(--amber);">$ '+Math.round(proximaCuotaARS).toLocaleString('es-AR')+'</div>' +
-                '<div style="font-size:10px;color:var(--text3);margin-top:2px;">'+_pagARS_pend_kpi.length+' pago'+(  _pagARS_pend_kpi.length!==1?'s':'')+' pendientes</div></div></div>' +
+                '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:'+(proximaCuotaARS>acreditadoPesos?'var(--amber)':'var(--green)')+';">$ '+Math.round(proximaCuotaARS).toLocaleString('es-AR')+'</div>' +
+                '<div style="font-size:10px;color:var(--text3);margin-top:2px;">'+_pagARS_pend_kpi.length+' pago'+(_pagARS_pend_kpi.length!==1?'s':'')+' pendientes</div></div></div>' +
                 '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;background:var(--surface2);border-left:3px solid var(--red);">' +
                 '<div style="width:36px;height:36px;border-radius:8px;background:var(--red-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
                 '<svg width="16" height="16" viewBox="0 0 20 20" fill="#F56565"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg>' +
@@ -1287,21 +1287,23 @@ function renderPagos(){
             });
             var _neto = _acrUSD+_proyUSD-_deuUSD-_pagPendUSD;
             var _isPos = _neto>=0;
-            // Meses cubiertos
+            // Meses cubiertos — igual que Balance: descuenta deudas + pagos obra por mes
             var _sal=_acrUSD, _mc=0;
             for(var i=0;i<18;i++){
                 var ms=mesStr(i);
                 var dM=S.deudas.reduce(function(s,d){ var fi=d.fechaInicio||S.startDate; if(ms<fi.substring(0,7)) return s; var sd=new Date(fi+'T00:00:00'),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return s; return s+(d.montoARS/d.cuotas/S.tcn); },0);
-                if(_sal>=dM){ _sal-=dM; _mc++; } else break;
+                var eM=_egresosMesKPI(ms);
+                if(_sal>=(dM+eM)){ _sal-=(dM+eM); _mc++; } else break;
             }
-            // Mes en que neto pasa a negativo
-            var _mesQ=-1, _mesQL='', _cIR=0, _cIP=0, _cD=0;
+            // Mes en que neto pasa a negativo — igual que Balance: incluye pagos obra
+            var _mesQ=-1, _mesQL='', _cIR=0, _cIP=0, _cD=0, _cE=0;
             for(var i2=0;i2<18;i2++){
                 var ms2=mesStr(i2);
                 _cIR+=_allO.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
                 _cIP+=_allO.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
                 _cD+=S.deudas.reduce(function(s,d){ var fi=d.fechaInicio||S.startDate; if(ms2<fi.substring(0,7)) return s; var sd=new Date(fi+'T00:00:00'),td=monthDate(i2); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return s; return s+(d.montoARS/d.cuotas/S.tcn); },0);
-                if(_cIR+_cIP-_cD<0&&_mesQ===-1){ _mesQ=i2+1; _mesQL=mLabel(i2); }
+                _cE+=_egresosMesKPI(ms2);
+                if(_cIR+_cIP-_cD-_cE<0&&_mesQ===-1){ _mesQ=i2+1; _mesQL=mLabel(i2); }
             }
             return (
             '<div style="display:flex;align-items:center;gap:10px;margin:10px 0 8px;">' +
