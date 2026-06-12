@@ -1581,8 +1581,13 @@ function renderPagos(){
         });
         var _matPagARS=[], _matPendARS=[];
         _descsMat_ARS.forEach(function(r){
-            var res=_calcPagPendARS(_pagosMat_ARS.filter(function(p){return (p.rubro||'Sin rubro').trim()===r && p.moneda==='ars';}));
-            _matPagARS.push(res.pag); _matPendARS.push(res.pend);
+            // Pagado/Pendiente ARS: solo pagos moneda=ars
+            var resARS = _calcPagPendARS(_pagosMat_ARS.filter(function(p){ return (p.rubro||'Sin rubro').trim()===r && p.moneda==='ars'; }));
+            // Pendiente USD del mismo rubro convertido a pesos
+            var rubroIdx = _descsMat.indexOf(r);
+            var pendUSDenARS = rubroIdx >= 0 ? (_matPend[rubroIdx] || 0) * S.tcn : 0;
+            _matPagARS.push(resARS.pag);
+            _matPendARS.push(resARS.pend + Math.round(pendUSDenARS));
         });
         var _rubColsARS = _allRubrosARS.map(function(_,i){ return _rubroPalette[i%_rubroPalette.length]; });
 
