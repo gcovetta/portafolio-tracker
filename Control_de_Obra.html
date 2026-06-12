@@ -2495,11 +2495,12 @@ function renderBalance() {
                 var pagadas = p.cuotasPagadas || 0;
                 var restantes = p.cuotas - pagadas;
                 if(restantes <= 0) return;
-                // Fecha de inicio de las cuotas pendientes = fecha del pago + pagadas meses
+                // Fecha de inicio de las cuotas pendientes = fecha del pago + pagadas * frecuencia meses
                 var fechaBase = new Date(p.fecha + 'T00:00:00');
-                var fechaIniPend = new Date(fechaBase.getFullYear(), fechaBase.getMonth() + pagadas, 1);
+                var _freqC = p.frecuencia || 1;
+                var fechaIniPend = new Date(fechaBase.getFullYear(), fechaBase.getMonth() + pagadas * _freqC, 1);
                 for(var q = 0; q < restantes; q++) {
-                    var fechaCuota = new Date(fechaIniPend.getFullYear(), fechaIniPend.getMonth() + q, 1);
+                    var fechaCuota = new Date(fechaIniPend.getFullYear(), fechaIniPend.getMonth() + q * _freqC, 1);
                     var msCuota = fechaCuota.getFullYear() + '-' + String(fechaCuota.getMonth()+1).padStart(2,'0');
                     if(msCuota === ms) {
                         // Saldo de esta cuota (puede ser parcial si es la primera)
