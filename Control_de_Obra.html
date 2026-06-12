@@ -2244,15 +2244,14 @@ function renderBalance() {
     var ingProyUSD = allOcurr.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
     var ingReal = ingRealUSD * S.tcn; // para compatibilidad con fmtUSD abajo
 
-    // Neto en pesos dolarizado — se suma al acreditado USD
+    // Neto en pesos dolarizado — ingresos ARS acreditados menos pagos ARS pendientes (= Neto $ de Pagos)
     var _ingARSacred = S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0);
-    var _deudasPesos = S.deudas.reduce(function(s,d){ return s+d.montoARS; },0);
     var _pagosARSpend = S.pagos.filter(function(p){ return p.moneda==='ars' && p.estado!=='pagado'; }).reduce(function(s,p){
         var mc=p.montoARSoriginal||p.montoARS;
         if(p.cuotas&&p.cuotas>1){ var r=Math.max(0,p.cuotas-(p.cuotasPagadas||0)); var sc=p.saldoCuotaActual!=null?p.saldoCuotaActual:mc; return s+(r>0?(r-1)*mc+sc:0); }
         return s+(p.saldoCuotaActual!=null?p.saldoCuotaActual:mc);
     },0);
-    var netoPesosUSD = Math.round((_ingARSacred - _deudasPesos - _pagosARSpend) / S.tcn);
+    var netoPesosUSD = Math.round((_ingARSacred - _pagosARSpend) / S.tcn);
     ingRealUSD += netoPesosUSD;
 
     // Egresos totales: deudas Balance + pagos obra pendientes
