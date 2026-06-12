@@ -184,9 +184,6 @@
             <button class="nav-item active" onclick="goTo('resumen')">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h14a1 1 0 011 1v4H2V3zm0 6h14v8a1 1 0 01-1 1H3a1 1 0 01-1-1v-8z"/></svg>Resumen
             </button>
-            <button class="nav-item" onclick="goTo('etapas')">
-                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>Etapas
-            </button>
             <div class="nav-s">Finanzas</div>
             <button class="nav-item" onclick="goTo('pagos')">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg>Pagos
@@ -232,7 +229,6 @@
         <div class="content">
             <div class="alerts-banner" id="alertsBanner"></div>
             <div id="page-resumen" class="page active"></div>
-            <div id="page-etapas" class="page"></div>
             <div id="page-pagos" class="page"></div>
             <div id="page-balance" class="page"></div>
             <div id="page-notas" class="page"></div>
@@ -396,39 +392,6 @@
         <div class="modal-ftr"><button class="btn" onclick="closeModal('modalPago')">Cancelar</button><button class="btn btn-primary" onclick="savePago()">Guardar</button></div>
     </div>
 </div>
-
-<!-- MODAL ETAPA -->
-<div class="modal-overlay" id="modalEtapa">
-    <div class="modal">
-        <div class="modal-hdr"><h3 id="mEtapaTitle">Nueva etapa</h3><button class="btn btn-sm" onclick="closeModal('modalEtapa')">✕</button></div>
-        <div class="modal-body">
-            <div class="form-row full"><div class="fg"><label>Nombre</label><input type="text" id="eNombre" placeholder="Ej: Estructura"></div></div>
-            <div class="form-row">
-                <div class="fg"><label>Fecha inicio</label><input type="date" id="eFechaIni" oninput="recalcFechaFin()"></div>
-                <div class="fg"><label>Duración (días)</label><input type="number" id="eDias" min="1" placeholder="Ej: 30" oninput="recalcFechaFin()"></div>
-            </div>
-            <div class="form-row">
-                <div class="fg">
-                    <label>Fecha fin (calculada)</label>
-                    <input type="date" id="eFechaFin" oninput="recalcDias()" style="color:var(--text2);">
-                </div>
-                <div class="fg">
-                    <label style="display:flex;align-items:center;gap:6px;">
-                        Duración en meses
-                        <span id="eDurMeses" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--blue);background:var(--blue-dim);padding:1px 7px;border-radius:20px;">—</span>
-                    </label>
-                    <div style="height:36px;display:flex;align-items:center;font-size:12px;color:var(--text3);">Se calcula automáticamente</div>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="fg"><label>Color</label><input type="color" id="eColor" value="#4C8EF5"></div>
-                <div class="fg"><label>Avance real (%)</label><input type="number" id="eAvance" min="0" max="100" placeholder="0"></div>
-            </div>
-        </div>
-        <div class="modal-ftr"><button class="btn" onclick="closeModal('modalEtapa')">Cancelar</button><button class="btn btn-primary" onclick="saveEtapa()">Guardar</button></div>
-    </div>
-</div>
-
 <!-- MODAL NOTA -->
 <div class="modal-overlay" id="modalNota">
     <div class="modal" style="width:560px;">
@@ -768,186 +731,6 @@ async function saveCalc() {
     };
     await sb.from('obra_config').update(payload).eq('id','main');
 }
-async function toggleFinalizadoEtapa(id) {
-    var e = S.etapas.find(function(x){ return x.id===id; });
-    if (!e) return;
-    e.finalizado = !e.finalizado;
-    setSaveStatus('saving');
-    var res = await sb.from('obra_etapas').update({finalizado:e.finalizado}).eq('id',id);
-    if (res.error) { setSaveStatus('error'); return; }
-    setSaveStatus('ok','Guardado');
-    renderEtapas();
-    if (curPage==='resumen') renderResumen();
-}
-
-// ═══════════════════════════════════════
-// PAGE: ETAPAS
-// ═══════════════════════════════════════
-function renderEtapas() {
-    var cm = curMonthOff();
-    var mStrip = Array.from({length:18}, function(_,i){ var cl=i<cm?'past':i===cm?'current':'future'; return '<div class="mc '+cl+'">'+mLabel(i)+'</div>'; }).join('');
-    var gantt = S.etapas.map(function(e) {
-        var diasLabel='';
-        if(e.fechaIni&&e.fechaFin){
-            var _d0=new Date(e.fechaIni+'T00:00:00'),_d1=new Date(e.fechaFin+'T00:00:00');
-            diasLabel=' ('+( Math.round((_d1-_d0)/86400000)+1 )+'d)';
-        } else if(e.dias){ diasLabel=' ('+e.dias+'d)'; }
-        return '<div class="gantt-row"><div class="gantt-label" title="'+e.nombre+diasLabel+'">'+e.nombre+'<span style="font-size:9px;color:var(--text3);margin-left:4px;">'+diasLabel+'</span></div><div class="gantt-track">' +
-            Array.from({length:18}, function(_,i){ var inR=i>=e.mesIni-1&&i<=e.mesFin-1,isCur=i===cm&&inR; return '<div class="gantt-cell" title="'+mLabel(i)+'" style="background:'+(inR?(isCur?e.color:e.color+'66'):'transparent')+'"></div>'; }).join('') +
-            '</div></div>';
-    }).join('');
-    var activas = S.etapas.filter(function(e){ return !e.finalizado; });
-    var finalizadas = S.etapas.filter(function(e){ return e.finalizado; });
-    var items = activas.map(function(e,idx) {
-        var en=cm>=e.mesIni-1&&cm<e.mesFin, past=cm>=e.mesFin;
-        var cls=past&&e.avance<100?'atrasada':past?'completada':en?'en-curso':'pendiente';
-        var lbl={atrasada:'Atrasada',completada:'Completada','en-curso':'En curso',pendiente:'Pendiente'}[cls];
-        var fechaIniStr=e.fechaIni?e.fechaIni.split('-').reverse().join('/'):(e.mesIni?mLabel(e.mesIni-1):'—');
-        var fechaFinStr=e.fechaFin?e.fechaFin.split('-').reverse().join('/'):(e.mesFin?mLabel(e.mesFin-1):'—');
-        // Calcular días reales si hay fechas exactas
-        var diasStr='';
-        if(e.fechaIni&&e.fechaFin){
-            var _d0=new Date(e.fechaIni+'T00:00:00'),_d1=new Date(e.fechaFin+'T00:00:00');
-            var _dias=Math.round((_d1-_d0)/86400000)+1;
-            diasStr=' · <span style="font-family:DM Mono,monospace;font-weight:600;color:'+e.color+';">'+_dias+' días</span>';
-        } else if(e.dias) {
-            diasStr=' · <span style="font-family:DM Mono,monospace;font-weight:600;color:'+e.color+';">'+e.dias+' días</span>';
-        }
-        var tl = Array.from({length:18}, function(_,i){ var inR=i>=e.mesIni-1&&i<=e.mesFin-1,isCur=i===cm&&inR; return '<div class="etm-cell" style="background:'+(inR?(isCur?e.color:e.color+'55'):'var(--surface3)')+'"></div>'; }).join('');
-        return '<div class="drag-item" data-idx="'+idx+'">' +
-            '<div class="drag-handle"><span></span><span></span><span></span></div>' +
-            '<div class="di-dot" style="background:'+e.color+'"></div>' +
-            '<div class="di-info"><div class="di-name">'+e.nombre+'</div>' +
-            '<div class="di-sub">'+fechaIniStr+' → '+fechaFinStr+diasStr+'</div>' +
-            '<div class="etapa-prog-wrap"><div class="etapa-prog-track"><div class="etapa-prog-fill" style="width:'+e.avance+'%;background:'+e.color+'"></div></div>' +
-            '<span style="font-size:11px;font-family:DM Mono,monospace;color:'+e.color+';width:32px;text-align:right;">'+e.avance+'%</span></div>' +
-            '<div class="etapa-tl-mini">'+tl+'</div></div>' +
-            '<div class="di-actions"><span class="etapa-status '+cls+'">'+lbl+'</span>' +
-            '<button class="btn btn-sm" style="background:var(--green-dim);color:var(--green);" title="Marcar como finalizada" onclick="toggleFinalizadoEtapa('+e.id+')">✓</button>' +
-            '<button class="btn btn-sm" onclick="openEditEtapa('+e.id+')">Editar</button>' +
-            '<button class="btn btn-sm btn-danger" onclick="deleteEtapa('+e.id+')">✕</button></div></div>';
-    }).join('');
-    var itemsFinalizadas = finalizadas.map(function(e) {
-        var dur=e.mesFin-e.mesIni+1, d0=monthDate(e.mesIni-1), d1=monthDate(e.mesFin-1);
-        var fechaStr=MO[d0.getMonth()]+' '+d0.getFullYear()+' - '+MO[d1.getMonth()]+' '+d1.getFullYear();
-        return '<div class="drag-item" style="opacity:0.7;">' +
-            '<div style="width:24px;flex-shrink:0;"></div>' +
-            '<div class="di-dot" style="background:'+e.color+'"></div>' +
-            '<div class="di-info"><div class="di-name" style="text-decoration:line-through;color:var(--text3);">'+e.nombre+'</div>' +
-            '<div class="di-sub">'+fechaStr+' · '+dur+' mes'+(dur>1?'es':'')+'</div></div>' +
-            '<div class="di-actions"><span class="etapa-status completada">Finalizada</span>' +
-            '<button class="btn btn-sm" onclick="toggleFinalizadoEtapa('+e.id+')">Reabrir</button></div></div>';
-    }).join('');
-    document.getElementById('page-etapas').innerHTML =
-        '<div class="card" style="margin-bottom:16px;"><div class="card-hdr"><h3>Gantt</h3></div>' +
-        '<div class="card-body" style="overflow-x:auto;"><div style="min-width:560px;">' +
-        '<div class="gantt-row" style="margin-bottom:5px;"><div class="gantt-label" style="font-size:10px;color:var(--text3);text-align:right;padding-right:10px;">ETAPA</div>' +
-        '<div class="months-strip" style="margin-bottom:0;">'+mStrip+'</div></div>' + gantt +
-        '</div></div></div>' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
-        '<div><div style="font-size:13px;font-weight:600;">Etapas de obra</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Arrastrá para reordenar · ✓ para finalizar</div></div>' +
-        '<button class="btn btn-primary" onclick="openNewEtapa()">+ Nueva etapa</button></div>' +
-        '<div class="drag-list" id="etapasList">'+(items||'<div class="empty">Sin etapas</div>')+'</div>' +
-        (finalizadas.length ?
-            '<div style="margin-top:20px;">' +
-            '<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text2);">Etapas finalizadas <span style="font-size:11px;font-weight:400;color:var(--text3);">('+finalizadas.length+')</span></div>' +
-            '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 0;">'+itemsFinalizadas+'</div>' +
-            '</div>' : '');
-    makeDraggable('etapasList', activas, renderEtapas, 'obra_etapas');
-}
-function dateToMesOff(dateStr) {
-    if (!dateStr) return 1;
-    var d = new Date(dateStr+'T00:00:00'), s = new Date(S.startDate);
-    return Math.max(1, Math.min(18, (d.getFullYear()-s.getFullYear())*12+(d.getMonth()-s.getMonth())+1));
-}
-function recalcFechaFin() {
-    var fi = document.getElementById('eFechaIni').value;
-    var dias = parseInt(document.getElementById('eDias').value) || 0;
-    var ffEl = document.getElementById('eFechaFin');
-    var durEl = document.getElementById('eDurMeses');
-    if (fi && dias > 0) {
-        var d = new Date(fi + 'T00:00:00');
-        d.setDate(d.getDate() + dias - 1);
-        var ff = d.toISOString().split('T')[0];
-        if (ffEl) ffEl.value = ff;
-        updateDurMeses(fi, ff, durEl);
-    } else if (ffEl && !dias) {
-        if (durEl) durEl.textContent = '—';
-    }
-}
-function recalcDias() {
-    var fi = document.getElementById('eFechaIni').value;
-    var ff = document.getElementById('eFechaFin').value;
-    var diasEl = document.getElementById('eDias');
-    var durEl = document.getElementById('eDurMeses');
-    if (fi && ff && ff >= fi) {
-        var d0 = new Date(fi + 'T00:00:00'), d1 = new Date(ff + 'T00:00:00');
-        var dias = Math.round((d1 - d0) / 86400000) + 1;
-        if (diasEl) diasEl.value = dias;
-        updateDurMeses(fi, ff, durEl);
-    }
-}
-function updateDurMeses(fi, ff, durEl) {
-    if (!durEl || !fi || !ff) return;
-    var d0 = new Date(fi + 'T00:00:00'), d1 = new Date(ff + 'T00:00:00');
-    var mIni = dateToMesOff(fi), mFin = dateToMesOff(ff);
-    var meses = mFin - mIni + 1;
-    var dias = Math.round((d1 - d0) / 86400000) + 1;
-    durEl.textContent = meses + ' mes' + (meses !== 1 ? 'es' : '') + ' (' + dias + ' días)';
-}
-function openNewEtapa(){ S.editEtapaId=null; document.getElementById('mEtapaTitle').textContent='Nueva etapa'; document.getElementById('eNombre').value=''; document.getElementById('eFechaIni').value=''; document.getElementById('eFechaFin').value=''; document.getElementById('eDias').value=''; document.getElementById('eDurMeses').textContent='—'; document.getElementById('eColor').value='#4C8EF5'; document.getElementById('eAvance').value='0'; openModal('modalEtapa'); }
-function openEditEtapa(id){
-    S.editEtapaId=id;
-    var e=S.etapas.find(function(x){ return x.id===id; });
-    document.getElementById('mEtapaTitle').textContent='Editar etapa';
-    document.getElementById('eNombre').value=e.nombre;
-    document.getElementById('eFechaIni').value=e.fechaIni||'';
-    document.getElementById('eFechaFin').value=e.fechaFin||'';
-    document.getElementById('eColor').value=e.color;
-    document.getElementById('eAvance').value=e.avance;
-    // Calcular días desde fechas
-    var dias = '';
-    if (e.fechaIni && e.fechaFin) {
-        var d0 = new Date(e.fechaIni + 'T00:00:00'), d1 = new Date(e.fechaFin + 'T00:00:00');
-        dias = Math.round((d1 - d0) / 86400000) + 1;
-    }
-    document.getElementById('eDias').value = dias;
-    var durEl = document.getElementById('eDurMeses');
-    if (e.fechaIni && e.fechaFin) updateDurMeses(e.fechaIni, e.fechaFin, durEl);
-    else if (durEl) durEl.textContent = '—';
-    openModal('modalEtapa');
-}
-async function saveEtapa(){
-    var nombre=document.getElementById('eNombre').value.trim(), fechaIni=document.getElementById('eFechaIni').value, fechaFin=document.getElementById('eFechaFin').value, color=document.getElementById('eColor').value, avance=Math.min(100,Math.max(0,parseInt(document.getElementById('eAvance').value)||0));
-    var dias=parseInt(document.getElementById('eDias').value)||0;
-    if(!nombre){ alert('Ingresá el nombre de la etapa.'); return; }
-    // Si hay fechaIni y dias pero no fechaFin, calcularlo
-    if(fechaIni && dias>0 && !fechaFin){
-        var d=new Date(fechaIni+'T00:00:00'); d.setDate(d.getDate()+dias-1);
-        fechaFin=d.toISOString().split('T')[0];
-    }
-    var mesIni=dateToMesOff(fechaIni), mesFin=dateToMesOff(fechaFin);
-    if(fechaIni&&fechaFin&&fechaIni>fechaFin){ alert('La fecha de inicio no puede ser posterior a la de fin.'); return; }
-    setSaveStatus('saving');
-    // Recalcular dias exactos desde fechas
-    if(fechaIni&&fechaFin){
-        var d0=new Date(fechaIni+'T00:00:00'),d1=new Date(fechaFin+'T00:00:00');
-        dias=Math.round((d1-d0)/86400000)+1;
-    }
-    var payload={nombre:nombre,fecha_ini:fechaIni||null,fecha_fin:fechaFin||null,mes_ini:mesIni,mes_fin:mesFin,color:color,avance:avance,dias:dias||null};
-    var res = S.editEtapaId ? await sb.from('obra_etapas').update(payload).eq('id',S.editEtapaId) : await sb.from('obra_etapas').insert(Object.assign({},payload,{orden:S.etapas.length}));
-    if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
-    setSaveStatus('ok','Guardado'); closeModal('modalEtapa'); await loadAllData(); renderEtapas();
-}
-async function deleteEtapa(id){
-    if(!confirm('Eliminar esta etapa?')) return;
-    setSaveStatus('saving');
-    var res = await sb.from('obra_etapas').delete().eq('id',id);
-    if(res.error){ setSaveStatus('error'); return; }
-    setSaveStatus('ok','Guardado'); await loadAllData(); renderEtapas();
-}
-
-// ═══════════════════════════════════════
 // PAGE: PAGOS
 // ═══════════════════════════════════════
 var pagoFilter='todos', pagoSearch='';
@@ -2616,13 +2399,6 @@ function renderBalance() {
         '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Deudas Balance</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--red);">U$S '+Math.round(deuUSD).toLocaleString('es-AR')+'</div></div>' +
         '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Pagos Obra</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--amber);">U$S '+Math.round(pagosPendUSD).toLocaleString('es-AR')+'</div></div>' +
         '</div>' +
-        // Fila pesos — separada con borde punteado
-        '<div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:14px;padding-top:10px;border-top:1px dashed var(--border2);">' +
-        '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;border-color:rgba(245,101,101,.2);">' +
-        '<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--red);margin-bottom:3px;letter-spacing:.05em;">Deudas en Pesos</div>' +
-        '<div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--red);">$ '+Math.round(deudasPesos).toLocaleString('es-AR')+'</div>' +
-        '</div>' +
-        '</div>' +
         // Ingresos proyectados + Deudas
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">' +
         '<div style="'+CS+'margin-bottom:0;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos proyectados</span><button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div>' +
@@ -3291,8 +3067,8 @@ function makeDraggable(listId, arr, renderFn, dbTable){
 // NAVIGATION
 // ═══════════════════════════════════════
 var curPage = 'resumen';
-var PAGE_TITLES = {resumen:'Resumen general',etapas:'Etapas de obra',pagos:'Pagos',balance:'Balance personal',notas:'Presupuesto',config:'Configuración'};
-var PAGE_ORDER  = ['resumen','etapas','pagos','balance','notas','config'];
+var PAGE_TITLES = {resumen:'Resumen general',pagos:'Pagos',balance:'Balance personal',notas:'Presupuesto',config:'Configuración'};
+var PAGE_ORDER  = ['resumen','pagos','balance','notas','config'];
 
 function goTo(page){
     curPage=page;
@@ -3306,7 +3082,6 @@ function goTo(page){
 
 function renderCurrent(){
     if(curPage==='resumen') renderResumen();
-    else if(curPage==='etapas') renderEtapas();
     else if(curPage==='rubros') renderRubros();
     else if(curPage==='pagos') renderPagos();
     else if(curPage==='balance') renderBalance();
