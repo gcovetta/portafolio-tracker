@@ -363,9 +363,22 @@
                         <input type="number" id="mCuotas" min="1" value="1" placeholder="1" oninput="calcCuotaDesdeTotal()">
                     </div>
                     <div class="fg">
+                        <label>Frecuencia</label>
+                        <select id="mFrecuencia">
+                            <option value="1">Mensual (c/1 mes)</option>
+                            <option value="2">Bimestral (c/2 meses)</option>
+                            <option value="3">Trimestral (c/3 meses)</option>
+                            <option value="6">Semestral (c/6 meses)</option>
+                            <option value="12">Anual (c/12 meses)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-bottom:8px;">
+                    <div class="fg">
                         <label>Cuotas pagadas</label>
                         <input type="number" id="mCuotasPagadas" min="0" value="0" placeholder="0">
                     </div>
+                    <div class="fg"></div>
                 </div>
                 <div class="form-row" style="margin-bottom:0;align-items:flex-end;">
                     <div class="fg">
@@ -562,7 +575,7 @@ async function loadAllData() {
         S.calc.total      = cfg.data.calc_tot != null ? String(cfg.data.calc_tot) : '';
         S.calc.m2         = cfg.data.calc_m2  != null ? String(cfg.data.calc_m2)  : '';
     }
-    S.pagos    = (pagos.data||[]).map(function(p){ var tieneARS=p.monto_ars!=null&&p.monto_ars>0; var montoUSDunitario=p.monto_usd; var montoARSunitario=tieneARS?p.monto_ars:null; return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, rubro:p.rubro||'', desc:p.descripcion, montoUSD:montoUSDunitario, montoARS:tieneARS?p.monto_ars:(p.monto_usd*S.tcn), montoARSoriginal:montoARSunitario, cotizacion:p.cotizacion||null, estado:p.estado, cuotas:p.cuotas||null, cuotasPagadas:p.cuotas_pagadas||0, saldoCuotaActual:p.saldo_cuota_actual!=null?p.saldo_cuota_actual:null, moneda:p.moneda||'usd'}; });
+    S.pagos    = (pagos.data||[]).map(function(p){ var tieneARS=p.monto_ars!=null&&p.monto_ars>0; return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, rubro:p.rubro||'', desc:p.descripcion, montoUSD:p.monto_usd, montoARS:tieneARS?p.monto_ars:(p.monto_usd*S.tcn), montoARSoriginal:tieneARS?p.monto_ars:null, cotizacion:p.cotizacion||null, estado:p.estado, cuotas:p.cuotas||null, cuotasPagadas:p.cuotas_pagadas||0, saldoCuotaActual:p.saldo_cuota_actual!=null?p.saldo_cuota_actual:null, moneda:p.moneda||'usd', frecuencia:p.frecuencia||1}; });
     S.etapas   = (etapas.data||[]).map(function(e){
         var fi=e.fecha_ini||'', ff=e.fecha_fin||'';
         var dias=e.dias||0;
@@ -1113,9 +1126,10 @@ function renderPagos(){
                         var pagadas=p.cuotasPagadas||0, restantes=p.cuotas-pagadas;
                         if(restantes<=0) return;
                         var fechaBase=new Date(p.fecha+'T00:00:00');
-                        var fechaIniPend=new Date(fechaBase.getFullYear(),fechaBase.getMonth()+pagadas,1);
+                        var _freq=p.frecuencia||1;
+                        var fechaIniPend=new Date(fechaBase.getFullYear(),fechaBase.getMonth()+pagadas*_freq,1);
                         for(var q=0;q<restantes;q++){
-                            var fc=new Date(fechaIniPend.getFullYear(),fechaIniPend.getMonth()+q,1);
+                            var fc=new Date(fechaIniPend.getFullYear(),fechaIniPend.getMonth()+q*_freq,1);
                             var msc=fc.getFullYear()+'-'+String(fc.getMonth()+1).padStart(2,'0');
                             if(msc===ms){
                                 var mc=q===0&&p.saldoCuotaActual!=null?(p.montoARSoriginal?p.saldoCuotaActual/cot:p.saldoCuotaActual):(p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD);
@@ -1803,6 +1817,7 @@ function openNewPago(){
     document.getElementById('mEstado').value='pagado';
     document.getElementById('fgDeudaInfo').style.display='none';
     document.getElementById('mCuotas').value='1';
+    document.getElementById('mFrecuencia').value='1';
     document.getElementById('mCuotasPagadas').value='0';
     document.getElementById('mCotizacion').value='';
     document.getElementById('mPreviewUSD').textContent='—';
@@ -1833,6 +1848,7 @@ function openEditPago(id){
         document.getElementById('mPreviewUSD').textContent = '—';
     }
     document.getElementById('mCuotas').value = (p.cuotas && p.cuotas > 1) ? p.cuotas : '1';
+    document.getElementById('mFrecuencia').value = p.frecuencia || '1';
     document.getElementById('mCuotasPagadas').value = p.cuotasPagadas || '0';
     document.getElementById('mCotizacion').value='';
     document.getElementById('mPreviewUSD').textContent='—';
@@ -1865,7 +1881,8 @@ async function savePago(){
     var cuotasVal = parseInt(document.getElementById('mCuotas').value)||null;
     if(cuotasVal===1) cuotasVal=null; // 1 cuota = sin cuotas
     var cuotasPagVal = cuotasVal ? (parseInt(document.getElementById('mCuotasPagadas').value)||0) : null;
-    var payload={fecha:fecha, rubro:rubro, descripcion:desc, monto_usd:montoUSD, monto_ars:montoARSGuardar, cotizacion:cotizacionGuardar, estado:estado, cuotas:cuotasVal, cuotas_pagadas:cuotasPagVal};
+    var frecuenciaVal = cuotasVal ? (parseInt(document.getElementById('mFrecuencia').value)||1) : 1;
+    var payload={fecha:fecha, rubro:rubro, descripcion:desc, monto_usd:montoUSD, monto_ars:montoARSGuardar, cotizacion:cotizacionGuardar, estado:estado, cuotas:cuotasVal, cuotas_pagadas:cuotasPagVal, frecuencia:frecuenciaVal};
     var res = S.editPagoId
         ? await sb.from('obra_pagos').update(payload).eq('id',S.editPagoId)
         : await sb.from('obra_pagos').insert(payload);
@@ -2240,9 +2257,10 @@ function renderBalance() {
                 var pagadas = p.cuotasPagadas || 0, restantes = p.cuotas - pagadas;
                 if(restantes <= 0) return;
                 var fechaBase = new Date(p.fecha+'T00:00:00');
-                var fechaIniPend = new Date(fechaBase.getFullYear(), fechaBase.getMonth()+pagadas, 1);
+                var _freq2=p.frecuencia||1;
+                var fechaIniPend = new Date(fechaBase.getFullYear(), fechaBase.getMonth()+pagadas*_freq2, 1);
                 for(var q=0; q<restantes; q++){
-                    var fc = new Date(fechaIniPend.getFullYear(), fechaIniPend.getMonth()+q, 1);
+                    var fc = new Date(fechaIniPend.getFullYear(), fechaIniPend.getMonth()+q*_freq2, 1);
                     var msc = fc.getFullYear()+'-'+String(fc.getMonth()+1).padStart(2,'0');
                     if(msc === ms){
                         var mc = q===0 && p.saldoCuotaActual!=null
