@@ -1287,22 +1287,46 @@ function renderPagos(){
             });
             var _neto = _acrUSD+_proyUSD-_deuUSD-_pagPendUSD;
             var _isPos = _neto>=0;
-            // Meses cubiertos — igual que Balance: descuenta deudas + pagos obra por mes
+            // Función local de egresos por mes (replica _egresosMesKPI de Balance)
+            function _egrMesPag(ms){
+                var total=0;
+                S.pagos.filter(function(p){ return p.estado!=='pagado'; }).forEach(function(p){
+                    var cot=p.cotizacion||S.tcn;
+                    if(p.cuotas&&p.cuotas>1){
+                        var pagadas=p.cuotasPagadas||0, restantes=p.cuotas-pagadas;
+                        if(restantes<=0) return;
+                        var fechaBase=new Date(p.fecha+'T00:00:00');
+                        var fechaIniPend=new Date(fechaBase.getFullYear(),fechaBase.getMonth()+pagadas,1);
+                        for(var q=0;q<restantes;q++){
+                            var fc=new Date(fechaIniPend.getFullYear(),fechaIniPend.getMonth()+q,1);
+                            var msc=fc.getFullYear()+'-'+String(fc.getMonth()+1).padStart(2,'0');
+                            if(msc===ms){
+                                var mc=q===0&&p.saldoCuotaActual!=null?(p.montoARSoriginal?p.saldoCuotaActual/cot:p.saldoCuotaActual):(p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD);
+                                total+=mc;
+                            }
+                        }
+                    } else {
+                        if(p.fecha.startsWith(ms)) total+=p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD;
+                    }
+                });
+                return total;
+            }
+            // Meses cubiertos — descuenta deudas + pagos obra por mes
             var _sal=_acrUSD, _mc=0;
             for(var i=0;i<18;i++){
                 var ms=mesStr(i);
                 var dM=S.deudas.reduce(function(s,d){ var fi=d.fechaInicio||S.startDate; if(ms<fi.substring(0,7)) return s; var sd=new Date(fi+'T00:00:00'),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return s; return s+(d.montoARS/d.cuotas/S.tcn); },0);
-                var eM=_egresosMesKPI(ms);
+                var eM=_egrMesPag(ms);
                 if(_sal>=(dM+eM)){ _sal-=(dM+eM); _mc++; } else break;
             }
-            // Mes en que neto pasa a negativo — igual que Balance: incluye pagos obra
+            // Mes en que neto pasa a negativo
             var _mesQ=-1, _mesQL='', _cIR=0, _cIP=0, _cD=0, _cE=0;
             for(var i2=0;i2<18;i2++){
                 var ms2=mesStr(i2);
                 _cIR+=_allO.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
                 _cIP+=_allO.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
                 _cD+=S.deudas.reduce(function(s,d){ var fi=d.fechaInicio||S.startDate; if(ms2<fi.substring(0,7)) return s; var sd=new Date(fi+'T00:00:00'),td=monthDate(i2); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return s; return s+(d.montoARS/d.cuotas/S.tcn); },0);
-                _cE+=_egresosMesKPI(ms2);
+                _cE+=_egrMesPag(ms2);
                 if(_cIR+_cIP-_cD-_cE<0&&_mesQ===-1){ _mesQ=i2+1; _mesQL=mLabel(i2); }
             }
             return (
