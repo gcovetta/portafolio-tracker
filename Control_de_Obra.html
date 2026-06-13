@@ -2626,11 +2626,13 @@ function renderBalance() {
     // Gráfico 2 — Ingresos vs Egresos mensuales (barras agrupadas)
     var dIngMes=[], dEgrMes=[];
     for(var j=0;j<18;j++){
-        var msj=mesStr(j);
-        var ingMes = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(msj); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-        if(j===0) ingMes += ingRealUSD; // mes 0: sumar acreditado balance
-        dIngMes.push(Math.round(ingMes));
-        dEgrMes.push(Math.round(egresosMes(msj,j).total));
+        (function(j){
+            var msj=mesStr(j);
+            var ingMes = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(msj); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
+            if(j===0) ingMes += ingRealUSD;
+            dIngMes.push(Math.round(ingMes));
+            dEgrMes.push(Math.round(egresosMes(msj,j).total));
+        })(j);
     }
     if(window.chartBalIngEgr) window.chartBalIngEgr.destroy();
     window.chartBalIngEgr = new Chart(document.getElementById('chartBalIngEgr').getContext('2d'),{
