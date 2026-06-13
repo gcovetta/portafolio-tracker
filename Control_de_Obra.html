@@ -2575,69 +2575,48 @@ function renderBalance() {
         dBD_det.push(S.deudas.reduce(function(arr,d){ var fi=d.fechaInicio||S.startDate; if(ms<fi.substring(0,7)) return arr; var sd=new Date(fi+'T00:00:00'),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return arr; arr.push({desc:d.desc,monto:Math.round((d.montoARS/d.cuotas)/S.tcn),cuota:ix+1,total:d.cuotas}); return arr; },[]));
         dEgr_det.push(egrMes.det);
     }
+    // Nuevo gráfico: línea única de saldo neto
+    // Arranca con acreditado balance (USD + neto pesos dolarizado)
+    // Cada mes: + ingresos proyectados del mes - pagos pendientes del mes (USD + ARS dolarizado)
+    var _saldoInicial = ingRealUSD; // ya incluye netoPesosUSD
+    var dNetoSaldo = [];
+    var _saldo = _saldoInicial;
+    for(var i=0;i<18;i++){
+        var ms=mesStr(i);
+        // Ingresos proyectados que caen este mes
+        var iPM = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
+        // Egresos pendientes de este mes (función ya definida arriba)
+        var eM = egresosMes(ms, i).total;
+        _saldo += iPM - eM;
+        dNetoSaldo.push(Math.round(_saldo));
+    }
+
     chartBal = new Chart(document.getElementById('chartBal').getContext('2d'),{
-        type:'bar',
+        type:'line',
         data:{labels:labelsB,datasets:[
-            {label:'Acreditado',data:dBR,backgroundColor:'rgba(62,207,142,.5)',borderColor:'#3ECF8E',borderWidth:1,borderRadius:3,order:3},
-            {label:'Proyectado',data:dBP,backgroundColor:'rgba(76,142,245,.28)',borderColor:'#4C8EF5',borderWidth:1,borderRadius:3,order:4},
-            {label:'Deudas Balance',data:dBD,backgroundColor:'rgba(245,101,101,.35)',borderColor:'#F56565',borderWidth:1,borderRadius:3,order:5},
-            {label:'Pagos Obra',data:dEgr,backgroundColor:'rgba(245,166,35,.45)',borderColor:'#F5A623',borderWidth:1,borderRadius:3,order:6},
-            {label:'Neto acumulado',data:dNeto,type:'line',
-                borderColor:function(ctx){ return ctx.p0&&ctx.p0.parsed&&ctx.p0.parsed.y<0?'#F56565':'#3ECF8E'; },
-                segment:{borderColor:function(ctx){ return ctx.p0.parsed.y<0?'#F56565':'#3ECF8E'; }},
-                pointBackgroundColor:dNeto.map(function(v){ return v<0?'#F56565':'#3ECF8E'; }),
-                pointBorderColor:dNeto.map(function(v){ return v<0?'#F56565':'#3ECF8E'; }),
-                backgroundColor:'rgba(245,101,101,.04)',tension:.4,pointRadius:4,borderWidth:2.5,fill:false,order:1}
+            {label:'Saldo neto',data:dNetoSaldo,
+             borderColor:'#3ECF8E',
+             backgroundColor:'rgba(62,207,142,.08)',
+             segment:{borderColor:function(ctx){ return ctx.p0.parsed.y<0?'#F56565':'#3ECF8E'; },
+                      backgroundColor:function(ctx){ return ctx.p0.parsed.y<0?'rgba(245,101,101,.06)':'rgba(62,207,142,.08)'; }},
+             pointBackgroundColor:dNetoSaldo.map(function(v){ return v<0?'#F56565':'#3ECF8E'; }),
+             pointBorderColor:dNetoSaldo.map(function(v){ return v<0?'#F56565':'#3ECF8E'; }),
+             pointRadius:4, borderWidth:2.5, tension:.35, fill:true, order:1}
         ]},
         options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-        plugins:{legend:{display:false},tooltip:{enabled:false,external:function(ctx){
-            var el=document.getElementById('balTip');
-            if(!el){ el=document.createElement('div'); el.id='balTip';
-                el.style.cssText='position:fixed;z-index:9999;pointer-events:none;opacity:0;transition:opacity .15s;background:rgba(15,17,23,.97);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:14px 18px;min-width:300px;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:DM Sans,sans-serif;font-size:13px;';
-                document.body.appendChild(el);
+        plugins:{legend:{display:false},tooltip:{callbacks:{
+            title:function(items){ return items[0].label; },
+            label:function(item){
+                var v=Math.round(item.raw);
+                return 'Saldo: '+(v<0?'-':'')+'U$S '+Math.abs(v).toLocaleString('es-AR');
             }
-            var tip=ctx.tooltip;
-            if(!tip||tip.opacity===0){ el.style.opacity='0'; return; }
-            var dsColors=['#3ECF8E','#4C8EF5','#F56565','#F5A623','#3ECF8E'];
-            var html='<div style="font-size:12px;font-weight:700;color:#E8EAF2;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.08);">'+( tip.title&&tip.title[0]?tip.title[0]:'' )+'</div>';
-            tip.dataPoints.forEach(function(dp){
-                var dsIdx=dp.datasetIndex, idx=dp.dataIndex;
-                var v=Math.round(Math.abs(dp.raw));
-                if(v===0) return;
-                var lbl=['Acreditado','Proyectado','Deudas Balance','Pagos Obra','Neto acumulado'][dsIdx]||dp.dataset.label;
-                var prefix = (dsIdx===4 && dp.raw<0) ? '−' : (dsIdx>=2&&dsIdx<=3?'−':'');
-                html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
-                var tipColor = dsIdx===4?(dp.raw<0?'#F56565':'#3ECF8E'):dsColors[dsIdx];
-                html+='<span style="width:9px;height:9px;border-radius:2px;background:'+tipColor+';flex-shrink:0;display:inline-block;"></span>';
-                html+='<span style="color:#8B90A8;flex:1;">'+lbl+'</span>';
-                html+='<span style="font-family:DM Mono,monospace;font-weight:600;color:'+(dsIdx===4?(dp.raw<0?'#F56565':'#3ECF8E'):'#E8EAF2')+'">'+prefix+'U$S '+v.toLocaleString('es-AR')+'</span>';
-                html+='</div>';
-                var dets=[];
-                if(dsIdx===1&&dBP_det[idx]) dets=dBP_det[idx];
-                if(dsIdx===2&&dBD_det[idx]) dets=dBD_det[idx];
-                if(dsIdx===3&&dEgr_det[idx]) dets=dEgr_det[idx];
-                dets.forEach(function(d){
-                    var name=dsIdx===2
-                        ? d.desc+' <span style="color:#565C7A;">(c.'+d.cuota+'/'+d.total+')</span>'
-                        : dsIdx===3&&d.cuota
-                            ? d.desc+' <span style="color:#565C7A;">(c.'+d.cuota+'/'+d.totalCuotas+')</span>'
-                            : d.desc;
-                    html+='<div style="display:flex;align-items:baseline;gap:6px;padding:2px 0 2px 17px;">';
-                    html+='<span style="color:#565C7A;flex-shrink:0;">·</span>';
-                    html+='<span style="color:#6B7094;flex:1;">'+name+'</span>';
-                    html+='<span style="font-family:DM Mono,monospace;font-size:12px;color:#8B90A8;">U$S '+d.monto.toLocaleString('es-AR')+'</span>';
-                    html+='</div>';
-                });
-                if(dets.length) html+='<div style="height:6px;"></div>';
-            });
-            el.innerHTML=html; el.style.opacity='1';
-            var rect=ctx.chart.canvas.getBoundingClientRect();
-            var tx=rect.left+tip.caretX+16, ty=rect.top+tip.caretY-el.offsetHeight/2;
-            if(tx+el.offsetWidth>window.innerWidth-10) tx=rect.left+tip.caretX-el.offsetWidth-16;
-            if(ty<10) ty=10;
-            el.style.left=tx+'px'; el.style.top=ty+'px';
         }}},
-        scales:{x:{ticks:{color:'#565C7A',font:{size:9},maxRotation:45,autoSkip:false},grid:{color:'rgba(255,255,255,.03)'}},y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){ var a=Math.abs(v); return (v<0?'-':'')+'U$S '+(a>=1000?Math.round(a/1000)+'k':Math.round(a)); }},grid:{color:'rgba(255,255,255,.04)'},afterDataLimits:function(axis){ if(axis.min>0) axis.min=0; }}}}
+        scales:{
+            x:{ticks:{color:'#565C7A',font:{size:9},maxRotation:45,autoSkip:false},grid:{color:'rgba(255,255,255,.03)'}},
+            y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){ var a=Math.abs(v); return (v<0?'-':'')+'U$S '+(a>=1000?Math.round(a/1000)+'k':Math.round(a)); }},
+               grid:{color:'rgba(255,255,255,.04)'},
+               afterDataLimits:function(axis){ var r=axis.max-axis.min; axis.min-=r*.04; axis.max+=r*.04; }}
+        }}
     });
 }
 
