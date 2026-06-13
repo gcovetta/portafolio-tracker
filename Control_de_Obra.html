@@ -2582,16 +2582,14 @@ function renderBalance() {
     // Nuevo gráfico: línea única de saldo neto
     // Arranca con acreditado balance (USD + neto pesos dolarizado)
     // Cada mes: + ingresos proyectados del mes - pagos pendientes del mes (USD + ARS dolarizado)
-    var _saldoInicial = ingRealUSD; // ya incluye netoPesosUSD
+    var _saldoInicial = ingRealUSD;
     var dNetoSaldo = [];
     var _saldo = _saldoInicial;
-    for(var i=0;i<18;i++){
-        var ms=mesStr(i);
-        // Ingresos proyectados que caen este mes
-        var iPM = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-        // Egresos pendientes de este mes (función ya definida arriba)
-        var eM = egresosMes(ms, i).total;
-        _saldo += iPM - eM;
+    for(var ni=0;ni<18;ni++){
+        var msni=mesStr(ni);
+        var iPMni = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(msni); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
+        var eMni = egresosMes(msni, ni).total;
+        _saldo += iPMni - eMni;
         dNetoSaldo.push(Math.round(_saldo));
     }
 
@@ -2625,14 +2623,12 @@ function renderBalance() {
 
     // Gráfico 2 — Ingresos vs Egresos mensuales (barras agrupadas)
     var dIngMes=[], dEgrMes=[];
-    for(var j=0;j<18;j++){
-        (function(j){
-            var msj=mesStr(j);
-            var ingMes = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(msj); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-            if(j===0) ingMes += ingRealUSD;
-            dIngMes.push(Math.round(ingMes));
-            dEgrMes.push(Math.round(egresosMes(msj,j).total));
-        })(j);
+    for(var ji=0;ji<18;ji++){
+        var msji=mesStr(ji);
+        var ingMesVal = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(msji); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
+        if(ji===0) ingMesVal += ingRealUSD;
+        dIngMes.push(Math.round(ingMesVal));
+        dEgrMes.push(Math.round(egresosMes(msji, ji).total));
     }
     if(window.chartBalIngEgr) window.chartBalIngEgr.destroy();
     window.chartBalIngEgr = new Chart(document.getElementById('chartBalIngEgr').getContext('2d'),{
