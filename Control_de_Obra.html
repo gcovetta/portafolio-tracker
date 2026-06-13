@@ -2507,7 +2507,7 @@ function renderBalance() {
         '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--amber);">$ '+Math.round(totalARS).toLocaleString('es-AR')+'</strong></span></div></div>' +
         '</div>' +
         // Ingresos proyectados — abajo, más compacta
-        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos proyectados</span><button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div>' +
+        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos proyectados</span><div style="display:flex;gap:6px;"><button class="btn btn-excel btn-sm" onclick="exportarIngresosProyectados()">Excel</button><button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div></div>' +
         '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+THS+'text-align:left;">Descripción</th><th style="'+THS+'text-align:center;">Frecuencia</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'text-align:right;">Total U$S</th><th style="'+THS+'"></th></tr></thead><tbody>'+ingRows+'</tbody></table></div>' +
         '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--text);">U$S '+Math.round(ingProyUSD).toLocaleString('es-AR')+'</strong></span></div></div>';
 
@@ -3125,6 +3125,43 @@ function exportarExcel(){
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['ETAPAS'],['Etapa','Fecha inicio','Fecha fin','Avance %','Estado']].concat(S.etapas.map(function(e){ return [e.nombre,e.fechaIni||'',e.fechaFin||'',e.avance+'%',e.finalizado?'Finalizada':'Activa']; }))),'Etapas');
     XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['PAGOS'],['Fecha','Etapa','Descripcion','Monto USD','Estado']].concat([].concat(S.pagos).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); }).map(function(p){ var e=S.etapas.find(function(x){return x.id===p.etapaId;}); return [p.fecha,e?e.nombre:'—',p.desc||'',Math.round(p.montoUSD),p.estado]; }))),'Pagos');
     XLSX.writeFile(wb,'control-obra-'+new Date().toISOString().split('T')[0]+'.xlsx');
+}
+
+function exportarIngresosProyectados(){
+    var wb = XLSX.utils.book_new();
+    var rows = [['Descripción','Fecha inicio','Fecha hasta','Periodicidad','Moneda','Monto por ocurrencia (USD)','N° ocurrencias','Total USD','Realizado']];
+    S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){
+        var ocurr = expandirIngreso(x);
+        var nOcurr = ocurr.length;
+        var montoUSD = Math.round(x.montoARS / S.tcn);
+        var totalUSD = Math.round(x.montoARS * nOcurr / S.tcn);
+        rows.push([
+            x.desc||'',
+            x.fecha||'',
+            x.fechaHasta||'',
+            x.periodicidad||'unico',
+            'USD',
+            montoUSD,
+            nOcurr,
+            totalUSD,
+            x.realizado ? 'Sí' : 'No'
+        ]);
+    });
+    // Detalle de ocurrencias mes a mes
+    var rowsDet = [['','Descripción','Fecha','Monto USD','Realizado']];
+    S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){
+        expandirIngreso(x).forEach(function(o){
+            rowsDet.push(['', x.desc||'', o.fecha, Math.round(o.montoARS/S.tcn), o.realizado?'Sí':'No']);
+        });
+        rowsDet.push(['','','','','']);
+    });
+    var ws1 = XLSX.utils.aoa_to_sheet(rows);
+    ws1['!cols'] = [{wch:35},{wch:12},{wch:12},{wch:14},{wch:8},{wch:24},{wch:14},{wch:12},{wch:10}];
+    var ws2 = XLSX.utils.aoa_to_sheet(rowsDet);
+    ws2['!cols'] = [{wch:4},{wch:35},{wch:12},{wch:12},{wch:10}];
+    XLSX.utils.book_append_sheet(wb, ws1, 'Resumen');
+    XLSX.utils.book_append_sheet(wb, ws2, 'Detalle ocurrencias');
+    XLSX.writeFile(wb, 'ingresos-proyectados-'+new Date().toISOString().split('T')[0]+'.xlsx');
 }
 
 // ═══════════════════════════════════════
