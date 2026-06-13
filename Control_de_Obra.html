@@ -2624,13 +2624,19 @@ function renderBalance() {
     // Gráfico 2 — Ingresos vs Egresos mensuales (barras agrupadas)
     setTimeout(function(){
         if(window.chartBalIngEgr && typeof window.chartBalIngEgr.destroy === 'function') window.chartBalIngEgr.destroy();
-        var dIngMes=[], dEgrMes=[];
+        var dIngMes=[], dEgrMes=[], dIngDet=[], dEgrDet=[];
         for(var ji=0;ji<18;ji++){
             var msji=mesStr(ji);
-            var ingMesVal = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(msji); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-            if(ji===0) ingMesVal += ingRealUSD;
+            // Ingresos
+            var ingDetMes=[];
+            var ingMesVal = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(msji); }).reduce(function(s,o){ ingDetMes.push({desc:o.desc,monto:Math.round(o.montoARS/S.tcn)}); return s+o.montoARS/S.tcn; },0);
+            if(ji===0){ ingMesVal += ingRealUSD; ingDetMes.unshift({desc:'Acreditado Balance',monto:Math.round(ingRealUSD)}); }
             dIngMes.push(Math.round(ingMesVal));
-            dEgrMes.push(Math.round(egresosMes(msji, ji).total));
+            dIngDet.push(ingDetMes);
+            // Egresos
+            var egrRes=egresosMes(msji, ji);
+            dEgrMes.push(Math.round(egrRes.total));
+            dEgrDet.push(egrRes.det);
         }
         var canvIE = document.getElementById('chartBalIngEgr');
         if(!canvIE) return;
@@ -2640,10 +2646,41 @@ function renderBalance() {
                 {label:'Ingresos',data:dIngMes,backgroundColor:'rgba(62,207,142,.6)',borderColor:'#3ECF8E',borderWidth:1,borderRadius:3},
                 {label:'Egresos', data:dEgrMes,backgroundColor:'rgba(245,101,101,.5)',borderColor:'#F56565',borderWidth:1,borderRadius:3}
             ]},
-            options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-            plugins:{legend:{display:false},tooltip:{callbacks:{
-                title:function(items){ return items[0].label; },
-                label:function(item){ var v=Math.round(item.raw); return item.dataset.label+': U$S '+v.toLocaleString('es-AR'); }
+            options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'nearest',intersect:true},
+            plugins:{legend:{display:false},tooltip:{enabled:false,external:function(ctx){
+                var el=document.getElementById('balIETip');
+                if(!el){ el=document.createElement('div'); el.id='balIETip';
+                    el.style.cssText='position:fixed;z-index:9999;pointer-events:none;opacity:0;transition:opacity .15s;background:rgba(15,17,23,.97);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:14px 18px;min-width:220px;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:DM Sans,sans-serif;font-size:13px;';
+                    document.body.appendChild(el);
+                }
+                var tip=ctx.tooltip;
+                if(!tip||tip.opacity===0){ el.style.opacity='0'; return; }
+                var dp=tip.dataPoints&&tip.dataPoints[0]; if(!dp) return;
+                var idx=dp.dataIndex, dsIdx=dp.datasetIndex;
+                var isIng=dsIdx===0;
+                var color=isIng?'#3ECF8E':'#F56565';
+                var label=isIng?'Ingresos':'Egresos';
+                var total=Math.round(dp.raw);
+                var dets=isIng?dIngDet[idx]:dEgrDet[idx];
+                var html='<div style="font-size:12px;font-weight:700;color:#E8EAF2;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08);">'+tip.title[0]+' · '+label+'</div>';
+                html+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#8B90A8;">Total</span><span style="font-family:DM Mono,monospace;font-weight:700;color:'+color+';">U$S '+total.toLocaleString('es-AR')+'</span></div>';
+                if(dets&&dets.length){
+                    html+='<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:8px;">';
+                    dets.forEach(function(d){
+                        var name=d.desc+(d.cuota?' <span style="color:#565C7A;">(c.'+d.cuota+'/'+d.totalCuotas+')</span>':'');
+                        html+='<div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:4px;">';
+                        html+='<span style="color:#6B7094;font-size:12px;">'+name+'</span>';
+                        html+='<span style="font-family:DM Mono,monospace;font-size:12px;color:#8B90A8;white-space:nowrap;">U$S '+d.monto.toLocaleString('es-AR')+'</span>';
+                        html+='</div>';
+                    });
+                    html+='</div>';
+                }
+                el.innerHTML=html; el.style.opacity='1';
+                var rect=ctx.chart.canvas.getBoundingClientRect();
+                var tx=rect.left+tip.caretX+16, ty=rect.top+tip.caretY-el.offsetHeight/2;
+                if(tx+el.offsetWidth>window.innerWidth-10) tx=rect.left+tip.caretX-el.offsetWidth-16;
+                if(ty<10) ty=10;
+                el.style.left=tx+'px'; el.style.top=ty+'px';
             }}},
             scales:{
                 x:{ticks:{color:'#565C7A',font:{size:9},maxRotation:45,autoSkip:false},grid:{color:'rgba(255,255,255,.03)'}},
