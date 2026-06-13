@@ -2472,10 +2472,14 @@ function renderBalance() {
     var nAcr = S.ingresos.filter(function(x){ return x.realizado && x.moneda!=='ars'; }).length;
 
     document.getElementById('page-balance').innerHTML =
-        // Gráfico — full width PRIMERO
-        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Flujo mensual y neto acumulado</span>' +
-        '<div style="display:flex;gap:10px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.5);margin-right:3px;vertical-align:middle;"></span>Acreditado</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(76,142,245,.3);margin-right:3px;vertical-align:middle;"></span>Proyectado</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,166,35,.45);margin-right:3px;vertical-align:middle;"></span>Pagos obra</span><span><span style="display:inline-block;width:20px;height:2px;background:linear-gradient(to right,#3ECF8E,#F56565);margin-right:3px;vertical-align:middle;"></span>Neto</span></div>' +
-        '</div><div style="padding:14px 18px;"><div style="position:relative;width:100%;height:380px;"><canvas id="chartBal"></canvas></div></div></div>' +
+        // Gráfico 1 — Saldo neto acumulado
+        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Saldo neto acumulado</span>' +
+        '<div style="display:flex;gap:10px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:20px;height:2px;background:#3ECF8E;margin-right:3px;vertical-align:middle;"></span>Saldo disponible</span></div>' +
+        '</div><div style="padding:14px 18px;"><div style="position:relative;width:100%;height:300px;"><canvas id="chartBal"></canvas></div></div></div>' +
+        // Gráfico 2 — Ingresos vs Egresos mensuales
+        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos vs Egresos mensuales</span>' +
+        '<div style="display:flex;gap:10px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.6);margin-right:3px;vertical-align:middle;"></span>Ingresos</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,101,101,.5);margin-right:3px;vertical-align:middle;"></span>Egresos</span></div>' +
+        '</div><div style="padding:14px 18px;"><div style="position:relative;width:100%;height:300px;"><canvas id="chartBalIngEgr"></canvas></div></div></div>' +
         // Dos tablas lado a lado: Acreditados | Pesos
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">' +
         // Acreditados USD
@@ -2616,6 +2620,33 @@ function renderBalance() {
             y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){ var a=Math.abs(v); return (v<0?'-':'')+'U$S '+(a>=1000?Math.round(a/1000)+'k':Math.round(a)); }},
                grid:{color:'rgba(255,255,255,.04)'},
                afterDataLimits:function(axis){ var r=axis.max-axis.min; axis.min-=r*.04; axis.max+=r*.04; }}
+        }}
+    });
+
+    // Gráfico 2 — Ingresos vs Egresos mensuales (barras agrupadas)
+    var dIngMes=[], dEgrMes=[];
+    for(var j=0;j<18;j++){
+        var msj=mesStr(j);
+        var ingMes = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(msj); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
+        if(j===0) ingMes += ingRealUSD; // mes 0: sumar acreditado balance
+        dIngMes.push(Math.round(ingMes));
+        dEgrMes.push(Math.round(egresosMes(msj,j).total));
+    }
+    if(window.chartBalIngEgr) window.chartBalIngEgr.destroy();
+    window.chartBalIngEgr = new Chart(document.getElementById('chartBalIngEgr').getContext('2d'),{
+        type:'bar',
+        data:{labels:labelsB,datasets:[
+            {label:'Ingresos',data:dIngMes,backgroundColor:'rgba(62,207,142,.6)',borderColor:'#3ECF8E',borderWidth:1,borderRadius:3},
+            {label:'Egresos', data:dEgrMes,backgroundColor:'rgba(245,101,101,.5)',borderColor:'#F56565',borderWidth:1,borderRadius:3}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+        plugins:{legend:{display:false},tooltip:{callbacks:{
+            title:function(items){ return items[0].label; },
+            label:function(item){ var v=Math.round(item.raw); return item.dataset.label+': U$S '+v.toLocaleString('es-AR'); }
+        }}},
+        scales:{
+            x:{ticks:{color:'#565C7A',font:{size:9},maxRotation:45,autoSkip:false},grid:{color:'rgba(255,255,255,.03)'}},
+            y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){ return 'U$S '+(v>=1000?Math.round(v/1000)+'k':Math.round(v)); }},grid:{color:'rgba(255,255,255,.04)'}}
         }}
     });
 }
