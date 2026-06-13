@@ -652,11 +652,24 @@ function renderResumen() {
     var _pagARSusd = S.pagos.filter(function(p){ return p.estado==='pagado' && p.moneda==='ars'; }).reduce(function(s,p){ var cot=p.cotizacion||S.tcn, monto=p.montoARSoriginal||p.montoARS; return s+monto/cot; },0);
     var totalPagadoUSD = Math.round(_pagUSD + _pagARSusd);
 
+    var _pendUSD = S.pagos.filter(function(p){ return p.estado!=='pagado' && p.moneda!=='ars'; }).reduce(function(s,p){
+        var cot=p.cotizacion||S.tcn;
+        if(p.cuotas&&p.cuotas>1){ var r=Math.max(0,p.cuotas-(p.cuotasPagadas||0)); var sc=p.saldoCuotaActual!=null?p.saldoCuotaActual:p.montoUSD; return s+(r>0?(r-1)*p.montoUSD+sc:0); }
+        return s+p.montoUSD;
+    },0);
+    var _pendARSusd = S.pagos.filter(function(p){ return p.estado!=='pagado' && p.moneda==='ars'; }).reduce(function(s,p){
+        var cot=p.cotizacion||S.tcn, mc=p.montoARSoriginal||p.montoARS;
+        if(p.cuotas&&p.cuotas>1){ var r=Math.max(0,p.cuotas-(p.cuotasPagadas||0)); var sc=p.saldoCuotaActual!=null?p.saldoCuotaActual:mc; return s+(r>0?(r-1)*mc+sc:0)/cot; }
+        return s+mc/cot;
+    },0);
+    var totalAPagarUSD = Math.round(_pendUSD + _pendARSusd);
+    var avFinanciero = (totalPagadoUSD + totalAPagarUSD) > 0 ? Math.round(totalPagadoUSD / (totalPagadoUSD + totalAPagarUSD) * 100) : 0;
+
     document.getElementById('page-resumen').innerHTML =
         '<div class="metrics">' +
         '<div class="metric-card"><div class="ml">Total pagado</div><div class="mv c-green">U$S '+totalPagadoUSD.toLocaleString('es-AR')+'</div><div class="ms">USD + $ dolarizado</div></div>' +
-        '<div class="metric-card"><div class="ml">Comprometido</div><div class="mv c-amber">'+fmtMain(pe)+'</div><div class="ms">'+S.pagos.filter(function(p){return p.estado!=='pagado';}).length+' pagos pend.</div></div>' +
-        '<div class="metric-card"><div class="ml">Avance físico</div><div class="mv c-blue">'+avFisico+'%</div><div class="ms">'+etapasActivas.length+' etapas activas</div></div>' +
+        '<div class="metric-card"><div class="ml">Total a pagar</div><div class="mv c-amber">U$S '+totalAPagarUSD.toLocaleString('es-AR')+'</div><div class="ms">pend. USD + $ dolarizado</div></div>' +
+        '<div class="metric-card"><div class="ml">Avance financiero</div><div class="mv c-blue">'+avFinanciero+'%</div><div class="ms">pagado / (pagado + a pagar)</div></div>' +
         '<div class="metric-card"><div class="ml">Etapas finalizadas</div><div class="mv c-green">'+S.etapas.filter(function(e){return e.finalizado;}).length+'</div><div class="ms">de '+S.etapas.length+' totales</div></div>' +
         '</div>' +
         // Calculadora costo por m² (compacta / colapsable)
