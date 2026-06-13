@@ -2623,7 +2623,7 @@ function renderBalance() {
 
     // Gráfico 2 — Ingresos vs Egresos mensuales (barras agrupadas)
     setTimeout(function(){
-        if(window.chartBalIngEgr) window.chartBalIngEgr.destroy();
+        if(window.chartBalIngEgr && typeof window.chartBalIngEgr.destroy === 'function') window.chartBalIngEgr.destroy();
         var dIngMes=[], dEgrMes=[];
         for(var ji=0;ji<18;ji++){
             var msji=mesStr(ji);
