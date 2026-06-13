@@ -647,9 +647,14 @@ function renderResumen() {
     var _acredPesosR = S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0);
     var netoARSusd2 = Math.round((_acredPesosR - _kpiPendARSpesosR) / S.tcn);
 
+    // Total pagado: USD directo + ARS dolarizado con cotización del día de pago
+    var _pagUSD = S.pagos.filter(function(p){ return p.estado==='pagado' && p.moneda!=='ars'; }).reduce(function(s,p){ return s+(p.montoARS/(p.cotizacion||S.tcn)); },0);
+    var _pagARSusd = S.pagos.filter(function(p){ return p.estado==='pagado' && p.moneda==='ars'; }).reduce(function(s,p){ var cot=p.cotizacion||S.tcn, monto=p.montoARSoriginal||p.montoARS; return s+monto/cot; },0);
+    var totalPagadoUSD = Math.round(_pagUSD + _pagARSusd);
+
     document.getElementById('page-resumen').innerHTML =
         '<div class="metrics">' +
-        '<div class="metric-card"><div class="ml">Total pagado</div><div class="mv c-green">'+fmtMain(pd)+'</div><div class="ms">'+S.pagos.filter(function(p){return p.estado==='pagado';}).length+' pagos</div></div>' +
+        '<div class="metric-card"><div class="ml">Total pagado</div><div class="mv c-green">U$S '+totalPagadoUSD.toLocaleString('es-AR')+'</div><div class="ms">USD + $ dolarizado</div></div>' +
         '<div class="metric-card"><div class="ml">Comprometido</div><div class="mv c-amber">'+fmtMain(pe)+'</div><div class="ms">'+S.pagos.filter(function(p){return p.estado!=='pagado';}).length+' pagos pend.</div></div>' +
         '<div class="metric-card"><div class="ml">Avance físico</div><div class="mv c-blue">'+avFisico+'%</div><div class="ms">'+etapasActivas.length+' etapas activas</div></div>' +
         '<div class="metric-card"><div class="ml">Etapas finalizadas</div><div class="mv c-green">'+S.etapas.filter(function(e){return e.finalizado;}).length+'</div><div class="ms">de '+S.etapas.length+' totales</div></div>' +
@@ -996,7 +1001,7 @@ function renderPagos(){
 
         // KPI cards — grupo USD | separador | grupo ARS
         (function(){
-            var totalUSD = Math.round(totalPagUSD + totalPendUSD);
+            var totalUSD = Math.round(totalPendUSD + kpiPendARSusd);
             var pctPagUSD = totalUSD > 0 ? Math.round(totalPagUSD / totalUSD * 100) : 0;
             var totalARS = Math.round(kpiPagARSpesos + kpiPendARSpesos);
             var pctPagARS = totalARS > 0 ? Math.round(kpiPagARSpesos / totalARS * 100) : 0;
@@ -1042,7 +1047,7 @@ function renderPagos(){
             '<svg width="16" height="16" viewBox="0 0 20 20" fill="'+_iconUSD+'"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg>' +
             '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:'+_clrUSD+';margin-bottom:2px;">Total a pagar</div>' +
             '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:'+_clrUSD+';">U$S '+totalUSD.toLocaleString('es-AR')+'</div>' +
-            '<div style="font-size:10px;color:var(--text3);margin-top:2px;">pagado + pendiente</div></div></div>'
+            '<div style="font-size:10px;color:var(--text3);margin-top:2px;">pend. USD + pend. $ dolarizado</div></div></div>'
                 );
             })() +
             '</div>' +
