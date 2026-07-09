@@ -1223,7 +1223,7 @@ function renderPagos(){
                 var ms2=mesStr(i2);
                 _cIR+=_allO.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
                 _cIP+=_allO.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-                _cD+=S.deudas.reduce(function(s,d){ var fi=d.fechaInicio||S.startDate; if(ms2<fi.substring(0,7)) return s; var sd=new Date(fi+'T00:00:00'),td=monthDate(i2); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return s; return s+(d.montoARS/d.cuotas/S.tcn); },0);
+                _cD+=S.deudas.reduce(function(s,d){ var dPag=d.pagadas||0,dRest=d.cuotas-dPag; if(dRest<=0) return s; var fi=d.fechaInicio||S.startDate,fiB=new Date(fi+'T00:00:00'),sd=new Date(fiB.getFullYear(),fiB.getMonth()+dPag,1),td=monthDate(i2); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=dRest) return s; return s+(d.montoARS/d.cuotas/S.tcn); },0);
                 _cE+=_egrMesPag(ms2);
                 if(_cIR+_cIP-_cE<0&&_mesQ===-1){ _mesQ=i2+1; _mesQL=mLabel(i2); }
             }
@@ -2388,7 +2388,7 @@ function renderBalance() {
         var qms2=mesStr(qi2);
         _cumIR += allOcurr.filter(function(o){ return o.realizado&&o.fecha.startsWith(qms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
         _cumIP += allOcurr.filter(function(o){ return !o.realizado&&o.fecha.startsWith(qms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-        _cumDeu += S.deudas.reduce(function(s,d){ var fi=d.fechaInicio||S.startDate; if(qms2<fi.substring(0,7)) return s; var sd=new Date(fi+'T00:00:00'),td=monthDate(qi2); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return s; return s+(d.montoARS/d.cuotas/S.tcn); },0);
+        _cumDeu += S.deudas.reduce(function(s,d){ var dPag=d.pagadas||0,dRest=d.cuotas-dPag; if(dRest<=0) return s; var fi=d.fechaInicio||S.startDate,fiB=new Date(fi+'T00:00:00'),sd=new Date(fiB.getFullYear(),fiB.getMonth()+dPag,1),td=monthDate(qi2); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=dRest) return s; return s+(d.montoARS/d.cuotas/S.tcn); },0);
         _cumEgr += _egresosMesKPI(qms2);
         if(_cumIR+_cumIP-_cumEgr<0 && _mesQ===-1){ _mesQ=qi2+1; _mesQL=mLabel(qi2); }
     }
@@ -2567,7 +2567,7 @@ function renderBalance() {
         var ms=mesStr(i);
         var iRM=allO2.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms); }).reduce(function(s,o){ return s+o.montoARS; },0);
         var iPM=allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms); }).reduce(function(s,o){ return s+o.montoARS; },0);
-        var dM=S.deudas.reduce(function(s,d){ var fi=d.fechaInicio||S.startDate; if(ms<fi.substring(0,7)) return s; var sd=new Date(fi+'T00:00:00'),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return s; return s+(d.montoARS/d.cuotas); },0);
+        var dM=S.deudas.reduce(function(s,d){ var dPag=d.pagadas||0,dRest=d.cuotas-dPag; if(dRest<=0) return s; var fi=d.fechaInicio||S.startDate,fiB=new Date(fi+'T00:00:00'),sd=new Date(fiB.getFullYear(),fiB.getMonth()+dPag,1),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=dRest) return s; return s+(d.montoARS/d.cuotas); },0);
         var egrMes = egresosMes(ms, i);
         var eM = egrMes.total; // ya en USD
         cumIR+=iRM/S.tcn; cumIP+=iPM/S.tcn; cumDeu+=dM/S.tcn; cumEgr+=eM;
@@ -2579,7 +2579,7 @@ function renderBalance() {
         dNeto.push(Math.round(cumIR + cumIP - cumEgr));
         dBR_det.push(allO2.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms); }).map(function(o){ return {desc:o.desc,monto:Math.round(o.montoARS/S.tcn)}; }));
         dBP_det.push(allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms); }).map(function(o){ return {desc:o.desc,monto:Math.round(o.montoARS/S.tcn)}; }));
-        dBD_det.push(S.deudas.reduce(function(arr,d){ var fi=d.fechaInicio||S.startDate; if(ms<fi.substring(0,7)) return arr; var sd=new Date(fi+'T00:00:00'),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return arr; arr.push({desc:d.desc,monto:Math.round((d.montoARS/d.cuotas)/S.tcn),cuota:ix+1,total:d.cuotas}); return arr; },[]));
+        dBD_det.push(S.deudas.reduce(function(arr,d){ var dPag=d.pagadas||0,dRest=d.cuotas-dPag; if(dRest<=0) return arr; var fi=d.fechaInicio||S.startDate,fiB=new Date(fi+'T00:00:00'),sd=new Date(fiB.getFullYear(),fiB.getMonth()+dPag,1),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=dRest) return arr; arr.push({desc:d.desc,monto:Math.round((d.montoARS/d.cuotas)/S.tcn),cuota:dPag+ix+1,total:d.cuotas}); return arr; },[]));
         dEgr_det.push(egrMes.det);
     }
     // Nuevo gráfico: línea única de saldo neto
