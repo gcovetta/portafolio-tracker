@@ -2173,6 +2173,7 @@ function openNewPagoARS(){
     document.getElementById('mPagoARSCuotaVal').value='';
     document.getElementById('mPagoARSTotalVal').value='';
     document.getElementById('mPagoARSCuotas').value='1';
+    S._arsAnchor=null;
     document.getElementById('mPagoARSCuotasPag').value='0';
     document.getElementById('mPagoARSCotizacion').value='';
     document.getElementById('mPagoARSEstado').value='pagado';
@@ -2194,6 +2195,7 @@ function openEditPagoARS(id){
     document.getElementById('mPagoARSCuotasPag').value=p.cuotasPagadas||0;
     document.getElementById('mPagoARSCotizacion').value=p.cotizacion||'';
     document.getElementById('mPagoARSEstado').value=p.estado;
+    S._arsAnchor='cuota';
     openModal('modalPagoARS');
 }
 function calcARSCuotas(origen){
@@ -2201,12 +2203,14 @@ function calcARSCuotas(origen){
     var totalEl=document.getElementById('mPagoARSTotalVal');
     var cantEl=document.getElementById('mPagoARSCuotas');
     var cant=parseFloat(cantEl.value)||1;
-    if(origen==='cuota'){ var c=parseFloat(cuotaEl.value)||0; if(c&&cant) totalEl.value=Math.round(c*cant); }
-    else if(origen==='total'){ var t=parseFloat(totalEl.value)||0; if(t&&cant) cuotaEl.value=Math.round(t/cant); }
+    if(origen==='cuota'){ S._arsAnchor='cuota'; var c=parseFloat(cuotaEl.value)||0; if(c&&cant) totalEl.value=Math.round(c*cant); }
+    else if(origen==='total'){ S._arsAnchor='total'; var t=parseFloat(totalEl.value)||0; if(t&&cant) cuotaEl.value=Math.round(t/cant); }
     else if(origen==='cuotas'){
         var c2=parseFloat(cuotaEl.value)||0, t2=parseFloat(totalEl.value)||0;
-        if(c2) totalEl.value=Math.round(c2*cant);
+        if(S._arsAnchor==='total'&&t2) cuotaEl.value=Math.round(t2/cant);
+        else if(S._arsAnchor==='cuota'&&c2) totalEl.value=Math.round(c2*cant);
         else if(t2) cuotaEl.value=Math.round(t2/cant);
+        else if(c2) totalEl.value=Math.round(c2*cant);
     }
 }
 async function savePagoARS(){
