@@ -184,6 +184,9 @@
             <button class="nav-item active" onclick="goTo('resumen')">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 3a1 1 0 011-1h14a1 1 0 011 1v4H2V3zm0 6h14v8a1 1 0 01-1 1H3a1 1 0 01-1-1v-8z"/></svg>Resumen
             </button>
+            <button class="nav-item" onclick="goTo('etapas')">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>Etapas
+            </button>
             <div class="nav-s">Finanzas</div>
             <button class="nav-item" onclick="goTo('pagos')">
                 <svg viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg>Pagos
@@ -229,6 +232,7 @@
         <div class="content">
             <div class="alerts-banner" id="alertsBanner"></div>
             <div id="page-resumen" class="page active"></div>
+            <div id="page-etapas" class="page"></div>
             <div id="page-pagos" class="page"></div>
             <div id="page-balance" class="page"></div>
             <div id="page-notas" class="page"></div>
@@ -354,33 +358,19 @@
                     <div id="mPreviewUSD" style="height:36px;display:flex;align-items:center;font-family:DM Mono,monospace;font-size:15px;font-weight:600;color:var(--blue);">—</div>
                 </div>
             </div>
-            <!-- Cuotas — siempre visible -->
-            <div style="border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px;">
-                <div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">Cuotas / Frecuencia</div>
-                <div class="form-row" style="margin-bottom:8px;">
+            <!-- Cuotas (solo visible si pendiente/vencido) -->
+            <div id="fgCuotasPago" style="display:none;">
+                <div class="form-row">
                     <div class="fg">
                         <label>Cantidad de cuotas</label>
                         <input type="number" id="mCuotas" min="1" value="1" placeholder="1" oninput="calcCuotaDesdeTotal()">
                     </div>
                     <div class="fg">
-                        <label>Frecuencia</label>
-                        <select id="mFrecuencia">
-                            <option value="1">Mensual (c/1 mes)</option>
-                            <option value="2">Bimestral (c/2 meses)</option>
-                            <option value="3">Trimestral (c/3 meses)</option>
-                            <option value="6">Semestral (c/6 meses)</option>
-                            <option value="12">Anual (c/12 meses)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row" style="margin-bottom:8px;">
-                    <div class="fg">
                         <label>Cuotas pagadas</label>
                         <input type="number" id="mCuotasPagadas" min="0" value="0" placeholder="0">
                     </div>
-                    <div class="fg"></div>
                 </div>
-                <div class="form-row" style="margin-bottom:0;align-items:flex-end;">
+                <div class="form-row" style="align-items:flex-end;">
                     <div class="fg">
                         <label style="display:flex;align-items:center;gap:6px;">
                             Monto total
@@ -406,6 +396,39 @@
         <div class="modal-ftr"><button class="btn" onclick="closeModal('modalPago')">Cancelar</button><button class="btn btn-primary" onclick="savePago()">Guardar</button></div>
     </div>
 </div>
+
+<!-- MODAL ETAPA -->
+<div class="modal-overlay" id="modalEtapa">
+    <div class="modal">
+        <div class="modal-hdr"><h3 id="mEtapaTitle">Nueva etapa</h3><button class="btn btn-sm" onclick="closeModal('modalEtapa')">✕</button></div>
+        <div class="modal-body">
+            <div class="form-row full"><div class="fg"><label>Nombre</label><input type="text" id="eNombre" placeholder="Ej: Estructura"></div></div>
+            <div class="form-row">
+                <div class="fg"><label>Fecha inicio</label><input type="date" id="eFechaIni" oninput="recalcFechaFin()"></div>
+                <div class="fg"><label>Duración (días)</label><input type="number" id="eDias" min="1" placeholder="Ej: 30" oninput="recalcFechaFin()"></div>
+            </div>
+            <div class="form-row">
+                <div class="fg">
+                    <label>Fecha fin (calculada)</label>
+                    <input type="date" id="eFechaFin" oninput="recalcDias()" style="color:var(--text2);">
+                </div>
+                <div class="fg">
+                    <label style="display:flex;align-items:center;gap:6px;">
+                        Duración en meses
+                        <span id="eDurMeses" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--blue);background:var(--blue-dim);padding:1px 7px;border-radius:20px;">—</span>
+                    </label>
+                    <div style="height:36px;display:flex;align-items:center;font-size:12px;color:var(--text3);">Se calcula automáticamente</div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="fg"><label>Color</label><input type="color" id="eColor" value="#4C8EF5"></div>
+                <div class="fg"><label>Avance real (%)</label><input type="number" id="eAvance" min="0" max="100" placeholder="0"></div>
+            </div>
+        </div>
+        <div class="modal-ftr"><button class="btn" onclick="closeModal('modalEtapa')">Cancelar</button><button class="btn btn-primary" onclick="saveEtapa()">Guardar</button></div>
+    </div>
+</div>
+
 <!-- MODAL NOTA -->
 <div class="modal-overlay" id="modalNota">
     <div class="modal" style="width:560px;">
@@ -575,7 +598,7 @@ async function loadAllData() {
         S.calc.total      = cfg.data.calc_tot != null ? String(cfg.data.calc_tot) : '';
         S.calc.m2         = cfg.data.calc_m2  != null ? String(cfg.data.calc_m2)  : '';
     }
-    S.pagos    = (pagos.data||[]).map(function(p){ var tieneARS=p.monto_ars!=null&&p.monto_ars>0; return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, rubro:p.rubro||'', desc:p.descripcion, montoUSD:p.monto_usd, montoARS:tieneARS?p.monto_ars:(p.monto_usd*S.tcn), montoARSoriginal:tieneARS?p.monto_ars:null, cotizacion:p.cotizacion||null, estado:p.estado, cuotas:p.cuotas||null, cuotasPagadas:p.cuotas_pagadas||0, saldoCuotaActual:p.saldo_cuota_actual!=null?p.saldo_cuota_actual:null, moneda:p.moneda||'usd', frecuencia:p.frecuencia||1}; });
+    S.pagos    = (pagos.data||[]).map(function(p){ var tieneARS=p.monto_ars!=null&&p.monto_ars>0; var montoUSDunitario=p.monto_usd; var montoARSunitario=tieneARS?p.monto_ars:null; return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, rubro:p.rubro||'', desc:p.descripcion, montoUSD:montoUSDunitario, montoARS:tieneARS?p.monto_ars:(p.monto_usd*S.tcn), montoARSoriginal:montoARSunitario, cotizacion:p.cotizacion||null, estado:p.estado, cuotas:p.cuotas||null, cuotasPagadas:p.cuotas_pagadas||0, saldoCuotaActual:p.saldo_cuota_actual!=null?p.saldo_cuota_actual:null, moneda:p.moneda||'usd'}; });
     S.etapas   = (etapas.data||[]).map(function(e){
         var fi=e.fecha_ini||'', ff=e.fecha_fin||'';
         var dias=e.dias||0;
@@ -637,82 +660,14 @@ function renderResumen() {
         var cl = i<cm?'past':i===cm?'current':'future';
         return '<div class="mc '+cl+'">'+mLabel(i)+'</div>';
     }).join('');
-
-    // Neto pesos dolarizado para los 3 recuadros de Balance en Resumen
-    var _kpiPendARSpesosR = S.pagos.filter(function(p){ return p.moneda==='ars' && p.estado!=='pagado'; }).reduce(function(s,p){
-        var mc=p.montoARSoriginal||p.montoARS;
-        if(p.cuotas&&p.cuotas>1){ var r=Math.max(0,p.cuotas-(p.cuotasPagadas||0)); var sc=p.saldoCuotaActual!=null?p.saldoCuotaActual:mc; return s+(r>0?(r-1)*mc+sc:0); }
-        return s+(p.saldoCuotaActual!=null?p.saldoCuotaActual:mc);
-    },0);
-    var _acredPesosR = S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0);
-    var netoARSusd2 = Math.round((_acredPesosR - _kpiPendARSpesosR) / S.tcn);
-
-    // Total pagado: USD directo + ARS dolarizado con cotización del día de pago
-    var _pagUSD = S.pagos.filter(function(p){ return p.estado==='pagado' && p.moneda!=='ars'; }).reduce(function(s,p){ return s+(p.montoARS/(p.cotizacion||S.tcn)); },0);
-    var _pagARSusd = S.pagos.filter(function(p){ return p.estado==='pagado' && p.moneda==='ars'; }).reduce(function(s,p){ var cot=p.cotizacion||S.tcn, monto=p.montoARSoriginal||p.montoARS; return s+monto/cot; },0);
-    var totalPagadoUSD = Math.round(_pagUSD + _pagARSusd);
-
-    var _pendUSD = S.pagos.filter(function(p){ return p.estado!=='pagado' && p.moneda!=='ars'; }).reduce(function(s,p){
-        var cot=p.cotizacion||S.tcn;
-        if(p.cuotas&&p.cuotas>1){ var r=Math.max(0,p.cuotas-(p.cuotasPagadas||0)); var sc=p.saldoCuotaActual!=null?p.saldoCuotaActual:p.montoUSD; return s+(r>0?(r-1)*p.montoUSD+sc:0); }
-        return s+p.montoUSD;
-    },0);
-    var _pendARSusd = S.pagos.filter(function(p){ return p.estado!=='pagado' && p.moneda==='ars'; }).reduce(function(s,p){
-        var cot=p.cotizacion||S.tcn, mc=p.montoARSoriginal||p.montoARS;
-        if(p.cuotas&&p.cuotas>1){ var r=Math.max(0,p.cuotas-(p.cuotasPagadas||0)); var sc=p.saldoCuotaActual!=null?p.saldoCuotaActual:mc; return s+(r>0?(r-1)*mc+sc:0)/cot; }
-        return s+mc/cot;
-    },0);
-    var totalAPagarUSD = Math.round(_pendUSD + _pendARSusd);
-    var avFinanciero = (totalPagadoUSD + totalAPagarUSD) > 0 ? Math.round(totalPagadoUSD / (totalPagadoUSD + totalAPagarUSD) * 100) : 0;
-
     document.getElementById('page-resumen').innerHTML =
-        // Foto arriba ancho completo, más alta
-        '<div style="border-radius:var(--radius);overflow:hidden;margin-bottom:16px;border:1px solid var(--border);position:relative;height:500px;">' +
-        '<img src="Casa.jpeg" alt="Casa" style="width:100%;height:100%;object-fit:cover;object-position:center 50%;display:block;" onerror="this.parentElement.style.display=\'none\'">' +
-        '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(8,10,18,.85));"></div>' +
-        '<div style="position:absolute;bottom:0;left:0;right:0;padding:18px 22px;display:flex;justify-content:space-between;align-items:flex-end;">' +
-        '<div><div style="font-size:20px;font-weight:700;color:#fff;letter-spacing:.01em;">Control de Obra</div><div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:3px;">Proyecto en curso</div></div>' +
-        '<div style="display:flex;gap:16px;">' +
-        '<div style="text-align:right;"><div style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.05em;">Pagado</div><div style="font-size:16px;font-weight:700;font-family:DM Mono,monospace;color:#3ECF8E;">U$S '+totalPagadoUSD.toLocaleString('es-AR')+'</div></div>' +
-        '<div style="text-align:right;"><div style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.05em;">A pagar</div><div style="font-size:16px;font-weight:700;font-family:DM Mono,monospace;color:#F5A623;">U$S '+totalAPagarUSD.toLocaleString('es-AR')+'</div></div>' +
-        '<div style="text-align:right;"><div style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.05em;">Avance</div><div style="font-size:16px;font-weight:700;font-family:DM Mono,monospace;color:#4C8EF5;">'+avFinanciero+'%</div></div>' +
-        '</div></div></div>' +
-
-        // 3 recuadros Balance
-        (function(){
-            var _allO2=[]; S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){ expandirIngreso(x).forEach(function(o){ _allO2.push(o); }); });
-            var _acr2 = _allO2.filter(function(o){ return o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0) + netoARSusd2;
-            var _proy2 = _allO2.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-            var _pagPend2=0;
-            S.pagos.filter(function(p){ return p.estado!=='pagado'; }).forEach(function(p){
-                var cot=p.cotizacion||S.tcn;
-                if(p.cuotas&&p.cuotas>1){ var rest=p.cuotas-(p.cuotasPagadas||0); if(rest<=0) return; var saldo=p.saldoCuotaActual!=null?(p.montoARSoriginal?p.saldoCuotaActual/cot:p.saldoCuotaActual):(p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD); _pagPend2+=saldo+(rest-1)*(p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD); }
-                else { _pagPend2+=p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD; }
-            });
-            var _neto2=_acr2+_proy2-_pagPend2, _isPos2=_neto2>=0;
-            function _egrMes2(ms){ var t=0; S.pagos.filter(function(p){ return p.estado!=='pagado'; }).forEach(function(p){ var cot=p.cotizacion||S.tcn; if(p.cuotas&&p.cuotas>1){ var pagadas=p.cuotasPagadas||0,restantes=p.cuotas-pagadas; if(restantes<=0) return; var fechaBase=new Date(p.fecha+'T00:00:00'),_freq=p.frecuencia||1,fechaIniPend=new Date(fechaBase.getFullYear(),fechaBase.getMonth()+pagadas*_freq,1); for(var q=0;q<restantes;q++){ var fc=new Date(fechaIniPend.getFullYear(),fechaIniPend.getMonth()+q*_freq,1),msc=fc.getFullYear()+'-'+String(fc.getMonth()+1).padStart(2,'0'); if(msc===ms){ var mc=q===0&&p.saldoCuotaActual!=null?(p.montoARSoriginal?p.saldoCuotaActual/cot:p.saldoCuotaActual):(p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD); t+=mc; } } } else { if(p.fecha.startsWith(ms)) t+=p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD; } }); return t; }
-            var _sal2=_acr2,_mc2=0;
-            for(var i=0;i<18;i++){ var ms=mesStr(i),eM=_egrMes2(ms); if(_sal2>=eM){ _sal2-=eM; _mc2++; } else break; }
-            var _mesQ2=-1,_mesQL2='',_cIR2=_acr2,_cIP2=0,_cE2=0;
-            for(var i2=0;i2<18;i2++){ var ms2=mesStr(i2); _cIR2+=_allO2.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0); _cIP2+=_allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0); _cE2+=_egrMes2(ms2); if(_cIR2+_cIP2-_cE2<0&&_mesQ2===-1){ _mesQ2=i2+1; _mesQL2=mLabel(i2); } }
-            return '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;">' +
-            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);"><div style="width:36px;height:36px;border-radius:8px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="13" rx="2" stroke="#3ECF8E" stroke-width="1.5"/><path d="M6 2v4M14 2v4M2 8h16" stroke="#3ECF8E" stroke-width="1.5" stroke-linecap="round"/></svg></div>' +
-            '<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Meses cubiertos</div><div style="font-size:20px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">'+(_mc2>=18?'18+':_mc2)+'<span style="font-size:11px;font-weight:500;color:var(--text3);margin-left:3px;">meses</span></div><div style="font-size:10px;color:var(--text3);margin-top:1px;">con acreditado</div></div></div>' +
-            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);background:'+(_mesQ2===-1?'var(--green-dim)':'var(--red-dim)')+';"><div style="width:36px;height:36px;border-radius:8px;background:'+(_mesQ2===-1?'rgba(62,207,142,.15)':'rgba(245,101,101,.15)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 3v7l4 2" stroke="'+(_mesQ2===-1?'#3ECF8E':'#F56565')+'" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="10" r="8" stroke="'+(_mesQ2===-1?'#3ECF8E':'#F56565')+'" stroke-width="1.5"/></svg></div>' +
-            '<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:'+(_mesQ2===-1?'var(--green)':'var(--red)')+';margin-bottom:2px;">Neto negativo</div>'+(_mesQ2===-1?'<div style="font-size:18px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">Nunca</div>':'<div style="font-size:18px;font-weight:700;font-family:DM Mono,monospace;color:var(--red);">'+_mesQL2+'<span style="font-size:10px;color:var(--red);opacity:.7;margin-left:5px;">mes '+_mesQ2+'/18</span></div>')+'</div></div>' +
-            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;background:'+(_isPos2?'var(--green-dim)':'var(--red-dim)')+';"><div style="width:36px;height:36px;border-radius:8px;background:'+(_isPos2?'rgba(62,207,142,.15)':'rgba(245,101,101,.15)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 20 20" fill="'+(_isPos2?'#3ECF8E':'#F56565')+'"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg></div>' +
-            '<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:'+(_isPos2?'var(--green)':'var(--red)')+';margin-bottom:2px;">Balance neto</div><div style="font-size:18px;font-weight:700;font-family:DM Mono,monospace;color:'+(_isPos2?'var(--green)':'var(--red)')+';">U$S '+Math.round(_neto2).toLocaleString('es-AR')+'</div><div style="font-size:10px;color:var(--text3);margin-top:1px;">acred.+proy.−pagos</div></div></div>' +
-            '</div>';
-        })() +
-
-        // Grid: Cronograma | Gasto mensual
-        '<div class="grid2" style="margin-bottom:16px;">' +
-        '<div><div class="card" style="margin-bottom:0;"><div class="card-hdr"><h3>Cronograma</h3><span style="font-size:11px;color:var(--text3);">Mes '+Math.max(0,Math.min(18,cm+1))+' / 18</span></div>' +
-        '<div class="card-body"><div class="months-strip">'+mStrip+'</div></div></div></div>' +
-        '<div><div class="card" style="margin-bottom:0;"><div class="card-hdr"><h3>Gasto mensual (U$S)</h3></div><div class="card-body"><div style="position:relative;width:100%;height:180px;"><canvas id="chartMens"></canvas></div></div></div></div>' +
+        '<div class="metrics">' +
+        '<div class="metric-card"><div class="ml">Total pagado</div><div class="mv c-green">'+fmtMain(pd)+'</div><div class="ms">'+S.pagos.filter(function(p){return p.estado==='pagado';}).length+' pagos</div></div>' +
+        '<div class="metric-card"><div class="ml">Comprometido</div><div class="mv c-amber">'+fmtMain(pe)+'</div><div class="ms">'+S.pagos.filter(function(p){return p.estado!=='pagado';}).length+' pagos pend.</div></div>' +
+        '<div class="metric-card"><div class="ml">Avance físico</div><div class="mv c-blue">'+avFisico+'%</div><div class="ms">'+etapasActivas.length+' etapas activas</div></div>' +
+        '<div class="metric-card"><div class="ml">Etapas finalizadas</div><div class="mv c-green">'+S.etapas.filter(function(e){return e.finalizado;}).length+'</div><div class="ms">de '+S.etapas.length+' totales</div></div>' +
         '</div>' +
-
-        // Calculadora colapsable al final
+        // Calculadora costo por m² (compacta / colapsable)
         '<details class="card" style="margin-bottom:16px;">' +
         '<summary style="padding:10px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;list-style:none;-webkit-appearance:none;">' +
         '<div style="display:flex;align-items:center;gap:10px;">' +
@@ -727,16 +682,22 @@ function renderResumen() {
         '<div class="fg" style="min-width:90px;flex:1;"><label style="font-size:10px;">Superficie (m²)</label><div class="amt-wrap"><input type="number" id="calcM2" placeholder="0" min="0" value="'+(S.calc.m2||'')+'" style="height:28px;font-size:12px;" oninput="S.calc.m2=this.value;calcCostoM2();scheduleCalcSave()"><span class="amt-tag" style="font-size:10px;">m²</span></div></div>' +
         '</div>' +
         '<div id="calcResult" style="overflow-x:auto;"></div>' +
-        '</div></details>';
+        '</div></details>' +
+        '<div class="grid2">' +
+        '<div><div class="card"><div class="card-hdr"><h3>Avance de obra</h3><span style="font-size:18px;font-weight:600;font-family:DM Mono,monospace;color:var(--blue)">'+avFisico+'%</span></div>' +
+        '<div class="card-body">' +
+        '<div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden;margin-bottom:16px;"><div style="height:100%;width:'+avFisico+'%;background:var(--blue);border-radius:4px;"></div></div>' +
+        '<div style="font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;">Etapas</div>' + etapaRows +
+        '</div></div></div>' +
+        '<div><div class="card" style="margin-bottom:14px;"><div class="card-hdr"><h3>Cronograma</h3><span style="font-size:11px;color:var(--text3);">Mes '+Math.max(0,Math.min(18,cm+1))+' / 18</span></div>' +
+        '<div class="card-body"><div class="months-strip">'+mStrip+'</div></div></div>' +
+        '<div class="card"><div class="card-hdr"><h3>Gasto mensual (U$S)</h3></div><div class="card-body"><div style="position:relative;width:100%;height:180px;"><canvas id="chartMens"></canvas></div></div></div>' +
+        '</div></div>';
     if (chartMens) chartMens.destroy();
     var labels = Array.from({length:18}, function(_,i){ return mLabel(i); });
     var data = labels.map(function(_,i){
         var ms = mesStr(i);
-        return S.pagos.filter(function(p){ return p.estado==='pagado'&&p.fecha.startsWith(ms); }).reduce(function(s,p){
-            var cot = p.cotizacion || S.tcn;
-            var usd = p.montoARSoriginal ? p.montoARSoriginal / cot : p.montoARS / cot;
-            return s + usd;
-        }, 0);
+        return S.pagos.filter(function(p){ return p.estado==='pagado'&&p.fecha.startsWith(ms); }).reduce(function(s,p){ return s+p.montoARS/S.tcn; },0);
     });
     var cm2 = curMonthOff();
     chartMens = new Chart(document.getElementById('chartMens').getContext('2d'),{
@@ -807,6 +768,186 @@ async function saveCalc() {
     };
     await sb.from('obra_config').update(payload).eq('id','main');
 }
+async function toggleFinalizadoEtapa(id) {
+    var e = S.etapas.find(function(x){ return x.id===id; });
+    if (!e) return;
+    e.finalizado = !e.finalizado;
+    setSaveStatus('saving');
+    var res = await sb.from('obra_etapas').update({finalizado:e.finalizado}).eq('id',id);
+    if (res.error) { setSaveStatus('error'); return; }
+    setSaveStatus('ok','Guardado');
+    renderEtapas();
+    if (curPage==='resumen') renderResumen();
+}
+
+// ═══════════════════════════════════════
+// PAGE: ETAPAS
+// ═══════════════════════════════════════
+function renderEtapas() {
+    var cm = curMonthOff();
+    var mStrip = Array.from({length:18}, function(_,i){ var cl=i<cm?'past':i===cm?'current':'future'; return '<div class="mc '+cl+'">'+mLabel(i)+'</div>'; }).join('');
+    var gantt = S.etapas.map(function(e) {
+        var diasLabel='';
+        if(e.fechaIni&&e.fechaFin){
+            var _d0=new Date(e.fechaIni+'T00:00:00'),_d1=new Date(e.fechaFin+'T00:00:00');
+            diasLabel=' ('+( Math.round((_d1-_d0)/86400000)+1 )+'d)';
+        } else if(e.dias){ diasLabel=' ('+e.dias+'d)'; }
+        return '<div class="gantt-row"><div class="gantt-label" title="'+e.nombre+diasLabel+'">'+e.nombre+'<span style="font-size:9px;color:var(--text3);margin-left:4px;">'+diasLabel+'</span></div><div class="gantt-track">' +
+            Array.from({length:18}, function(_,i){ var inR=i>=e.mesIni-1&&i<=e.mesFin-1,isCur=i===cm&&inR; return '<div class="gantt-cell" title="'+mLabel(i)+'" style="background:'+(inR?(isCur?e.color:e.color+'66'):'transparent')+'"></div>'; }).join('') +
+            '</div></div>';
+    }).join('');
+    var activas = S.etapas.filter(function(e){ return !e.finalizado; });
+    var finalizadas = S.etapas.filter(function(e){ return e.finalizado; });
+    var items = activas.map(function(e,idx) {
+        var en=cm>=e.mesIni-1&&cm<e.mesFin, past=cm>=e.mesFin;
+        var cls=past&&e.avance<100?'atrasada':past?'completada':en?'en-curso':'pendiente';
+        var lbl={atrasada:'Atrasada',completada:'Completada','en-curso':'En curso',pendiente:'Pendiente'}[cls];
+        var fechaIniStr=e.fechaIni?e.fechaIni.split('-').reverse().join('/'):(e.mesIni?mLabel(e.mesIni-1):'—');
+        var fechaFinStr=e.fechaFin?e.fechaFin.split('-').reverse().join('/'):(e.mesFin?mLabel(e.mesFin-1):'—');
+        // Calcular días reales si hay fechas exactas
+        var diasStr='';
+        if(e.fechaIni&&e.fechaFin){
+            var _d0=new Date(e.fechaIni+'T00:00:00'),_d1=new Date(e.fechaFin+'T00:00:00');
+            var _dias=Math.round((_d1-_d0)/86400000)+1;
+            diasStr=' · <span style="font-family:DM Mono,monospace;font-weight:600;color:'+e.color+';">'+_dias+' días</span>';
+        } else if(e.dias) {
+            diasStr=' · <span style="font-family:DM Mono,monospace;font-weight:600;color:'+e.color+';">'+e.dias+' días</span>';
+        }
+        var tl = Array.from({length:18}, function(_,i){ var inR=i>=e.mesIni-1&&i<=e.mesFin-1,isCur=i===cm&&inR; return '<div class="etm-cell" style="background:'+(inR?(isCur?e.color:e.color+'55'):'var(--surface3)')+'"></div>'; }).join('');
+        return '<div class="drag-item" data-idx="'+idx+'">' +
+            '<div class="drag-handle"><span></span><span></span><span></span></div>' +
+            '<div class="di-dot" style="background:'+e.color+'"></div>' +
+            '<div class="di-info"><div class="di-name">'+e.nombre+'</div>' +
+            '<div class="di-sub">'+fechaIniStr+' → '+fechaFinStr+diasStr+'</div>' +
+            '<div class="etapa-prog-wrap"><div class="etapa-prog-track"><div class="etapa-prog-fill" style="width:'+e.avance+'%;background:'+e.color+'"></div></div>' +
+            '<span style="font-size:11px;font-family:DM Mono,monospace;color:'+e.color+';width:32px;text-align:right;">'+e.avance+'%</span></div>' +
+            '<div class="etapa-tl-mini">'+tl+'</div></div>' +
+            '<div class="di-actions"><span class="etapa-status '+cls+'">'+lbl+'</span>' +
+            '<button class="btn btn-sm" style="background:var(--green-dim);color:var(--green);" title="Marcar como finalizada" onclick="toggleFinalizadoEtapa('+e.id+')">✓</button>' +
+            '<button class="btn btn-sm" onclick="openEditEtapa('+e.id+')">Editar</button>' +
+            '<button class="btn btn-sm btn-danger" onclick="deleteEtapa('+e.id+')">✕</button></div></div>';
+    }).join('');
+    var itemsFinalizadas = finalizadas.map(function(e) {
+        var dur=e.mesFin-e.mesIni+1, d0=monthDate(e.mesIni-1), d1=monthDate(e.mesFin-1);
+        var fechaStr=MO[d0.getMonth()]+' '+d0.getFullYear()+' - '+MO[d1.getMonth()]+' '+d1.getFullYear();
+        return '<div class="drag-item" style="opacity:0.7;">' +
+            '<div style="width:24px;flex-shrink:0;"></div>' +
+            '<div class="di-dot" style="background:'+e.color+'"></div>' +
+            '<div class="di-info"><div class="di-name" style="text-decoration:line-through;color:var(--text3);">'+e.nombre+'</div>' +
+            '<div class="di-sub">'+fechaStr+' · '+dur+' mes'+(dur>1?'es':'')+'</div></div>' +
+            '<div class="di-actions"><span class="etapa-status completada">Finalizada</span>' +
+            '<button class="btn btn-sm" onclick="toggleFinalizadoEtapa('+e.id+')">Reabrir</button></div></div>';
+    }).join('');
+    document.getElementById('page-etapas').innerHTML =
+        '<div class="card" style="margin-bottom:16px;"><div class="card-hdr"><h3>Gantt</h3></div>' +
+        '<div class="card-body" style="overflow-x:auto;"><div style="min-width:560px;">' +
+        '<div class="gantt-row" style="margin-bottom:5px;"><div class="gantt-label" style="font-size:10px;color:var(--text3);text-align:right;padding-right:10px;">ETAPA</div>' +
+        '<div class="months-strip" style="margin-bottom:0;">'+mStrip+'</div></div>' + gantt +
+        '</div></div></div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+        '<div><div style="font-size:13px;font-weight:600;">Etapas de obra</div><div style="font-size:11px;color:var(--text3);margin-top:2px;">Arrastrá para reordenar · ✓ para finalizar</div></div>' +
+        '<button class="btn btn-primary" onclick="openNewEtapa()">+ Nueva etapa</button></div>' +
+        '<div class="drag-list" id="etapasList">'+(items||'<div class="empty">Sin etapas</div>')+'</div>' +
+        (finalizadas.length ?
+            '<div style="margin-top:20px;">' +
+            '<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text2);">Etapas finalizadas <span style="font-size:11px;font-weight:400;color:var(--text3);">('+finalizadas.length+')</span></div>' +
+            '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 0;">'+itemsFinalizadas+'</div>' +
+            '</div>' : '');
+    makeDraggable('etapasList', activas, renderEtapas, 'obra_etapas');
+}
+function dateToMesOff(dateStr) {
+    if (!dateStr) return 1;
+    var d = new Date(dateStr+'T00:00:00'), s = new Date(S.startDate);
+    return Math.max(1, Math.min(18, (d.getFullYear()-s.getFullYear())*12+(d.getMonth()-s.getMonth())+1));
+}
+function recalcFechaFin() {
+    var fi = document.getElementById('eFechaIni').value;
+    var dias = parseInt(document.getElementById('eDias').value) || 0;
+    var ffEl = document.getElementById('eFechaFin');
+    var durEl = document.getElementById('eDurMeses');
+    if (fi && dias > 0) {
+        var d = new Date(fi + 'T00:00:00');
+        d.setDate(d.getDate() + dias - 1);
+        var ff = d.toISOString().split('T')[0];
+        if (ffEl) ffEl.value = ff;
+        updateDurMeses(fi, ff, durEl);
+    } else if (ffEl && !dias) {
+        if (durEl) durEl.textContent = '—';
+    }
+}
+function recalcDias() {
+    var fi = document.getElementById('eFechaIni').value;
+    var ff = document.getElementById('eFechaFin').value;
+    var diasEl = document.getElementById('eDias');
+    var durEl = document.getElementById('eDurMeses');
+    if (fi && ff && ff >= fi) {
+        var d0 = new Date(fi + 'T00:00:00'), d1 = new Date(ff + 'T00:00:00');
+        var dias = Math.round((d1 - d0) / 86400000) + 1;
+        if (diasEl) diasEl.value = dias;
+        updateDurMeses(fi, ff, durEl);
+    }
+}
+function updateDurMeses(fi, ff, durEl) {
+    if (!durEl || !fi || !ff) return;
+    var d0 = new Date(fi + 'T00:00:00'), d1 = new Date(ff + 'T00:00:00');
+    var mIni = dateToMesOff(fi), mFin = dateToMesOff(ff);
+    var meses = mFin - mIni + 1;
+    var dias = Math.round((d1 - d0) / 86400000) + 1;
+    durEl.textContent = meses + ' mes' + (meses !== 1 ? 'es' : '') + ' (' + dias + ' días)';
+}
+function openNewEtapa(){ S.editEtapaId=null; document.getElementById('mEtapaTitle').textContent='Nueva etapa'; document.getElementById('eNombre').value=''; document.getElementById('eFechaIni').value=''; document.getElementById('eFechaFin').value=''; document.getElementById('eDias').value=''; document.getElementById('eDurMeses').textContent='—'; document.getElementById('eColor').value='#4C8EF5'; document.getElementById('eAvance').value='0'; openModal('modalEtapa'); }
+function openEditEtapa(id){
+    S.editEtapaId=id;
+    var e=S.etapas.find(function(x){ return x.id===id; });
+    document.getElementById('mEtapaTitle').textContent='Editar etapa';
+    document.getElementById('eNombre').value=e.nombre;
+    document.getElementById('eFechaIni').value=e.fechaIni||'';
+    document.getElementById('eFechaFin').value=e.fechaFin||'';
+    document.getElementById('eColor').value=e.color;
+    document.getElementById('eAvance').value=e.avance;
+    // Calcular días desde fechas
+    var dias = '';
+    if (e.fechaIni && e.fechaFin) {
+        var d0 = new Date(e.fechaIni + 'T00:00:00'), d1 = new Date(e.fechaFin + 'T00:00:00');
+        dias = Math.round((d1 - d0) / 86400000) + 1;
+    }
+    document.getElementById('eDias').value = dias;
+    var durEl = document.getElementById('eDurMeses');
+    if (e.fechaIni && e.fechaFin) updateDurMeses(e.fechaIni, e.fechaFin, durEl);
+    else if (durEl) durEl.textContent = '—';
+    openModal('modalEtapa');
+}
+async function saveEtapa(){
+    var nombre=document.getElementById('eNombre').value.trim(), fechaIni=document.getElementById('eFechaIni').value, fechaFin=document.getElementById('eFechaFin').value, color=document.getElementById('eColor').value, avance=Math.min(100,Math.max(0,parseInt(document.getElementById('eAvance').value)||0));
+    var dias=parseInt(document.getElementById('eDias').value)||0;
+    if(!nombre){ alert('Ingresá el nombre de la etapa.'); return; }
+    // Si hay fechaIni y dias pero no fechaFin, calcularlo
+    if(fechaIni && dias>0 && !fechaFin){
+        var d=new Date(fechaIni+'T00:00:00'); d.setDate(d.getDate()+dias-1);
+        fechaFin=d.toISOString().split('T')[0];
+    }
+    var mesIni=dateToMesOff(fechaIni), mesFin=dateToMesOff(fechaFin);
+    if(fechaIni&&fechaFin&&fechaIni>fechaFin){ alert('La fecha de inicio no puede ser posterior a la de fin.'); return; }
+    setSaveStatus('saving');
+    // Recalcular dias exactos desde fechas
+    if(fechaIni&&fechaFin){
+        var d0=new Date(fechaIni+'T00:00:00'),d1=new Date(fechaFin+'T00:00:00');
+        dias=Math.round((d1-d0)/86400000)+1;
+    }
+    var payload={nombre:nombre,fecha_ini:fechaIni||null,fecha_fin:fechaFin||null,mes_ini:mesIni,mes_fin:mesFin,color:color,avance:avance,dias:dias||null};
+    var res = S.editEtapaId ? await sb.from('obra_etapas').update(payload).eq('id',S.editEtapaId) : await sb.from('obra_etapas').insert(Object.assign({},payload,{orden:S.etapas.length}));
+    if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
+    setSaveStatus('ok','Guardado'); closeModal('modalEtapa'); await loadAllData(); renderEtapas();
+}
+async function deleteEtapa(id){
+    if(!confirm('Eliminar esta etapa?')) return;
+    setSaveStatus('saving');
+    var res = await sb.from('obra_etapas').delete().eq('id',id);
+    if(res.error){ setSaveStatus('error'); return; }
+    setSaveStatus('ok','Guardado'); await loadAllData(); renderEtapas();
+}
+
+// ═══════════════════════════════════════
 // PAGE: PAGOS
 // ═══════════════════════════════════════
 var pagoFilter='todos', pagoSearch='';
@@ -1004,10 +1145,6 @@ function renderPagos(){
 
     var THS = 'padding:8px 11px;font-size:10px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.4px;';
 
-    // Neto pesos dolarizado — disponible en todo el scope de renderPagos
-    var _acredPesosOuter = Math.round(S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0));
-    var netoARSusd = Math.round((_acredPesosOuter - kpiPendARSpesos) / S.tcn);
-
     document.getElementById('page-pagos').innerHTML =
         // Barra superior
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">' +
@@ -1015,269 +1152,74 @@ function renderPagos(){
         '<select onchange="pagoFilter=this.value;renderPagos()"><option value="todos" selected>Todos</option><option value="pagado">Pagados</option><option value="pendiente">Pendientes</option><option value="vencido">Vencidos</option></select></div>' +
         '<div style="display:flex;gap:8px;"><button class="btn btn-excel" onclick="exportarExcel()">Excel</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>' +
 
-        // KPI cards — grupo USD | separador | grupo ARS
-        (function(){
-            var totalUSD = Math.round(totalPendUSD + kpiPendARSusd);
-            var pctPagUSD = totalUSD > 0 ? Math.round(totalPagUSD / totalUSD * 100) : 0;
-            var totalARS = Math.round(kpiPagARSpesos + kpiPendARSpesos);
-            var pctPagARS = totalARS > 0 ? Math.round(kpiPagARSpesos / totalARS * 100) : 0;
-            var pctClrUSD = pctPagUSD >= 75 ? 'var(--green)' : pctPagUSD >= 40 ? 'var(--amber)' : 'var(--red)';
-            var pctClrARS = pctPagARS >= 75 ? 'var(--green)' : pctPagARS >= 40 ? 'var(--amber)' : 'var(--red)';
-            // Calcular acreditado y proyectado (misma lógica que Balance)
-            var _allOcurrPag = []; S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){ expandirIngreso(x).forEach(function(o){ _allOcurrPag.push(o); }); });
-            var acrUSD  = Math.round(_allOcurrPag.filter(function(o){ return o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0));
-            var proyUSD = Math.round(_allOcurrPag.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0));
-            var acreditadoPesos = Math.round(S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0));
-            return (
-            // ── Grupo USD ──────────────────────────────────────────
-            '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:8px;">' +
-            // Label grupo
-            '<div style="padding:6px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;">' +
-            '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--blue);">U$S · Dólares</span></div>' +
-            // Fila 1: Pagados | Pendientes | Total a pagar
-            '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border);">' +
-            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);">' +
-            '<div style="width:36px;height:36px;border-radius:8px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-            '<svg width="16" height="16" viewBox="0 0 20 20" fill="#3ECF8E"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>' +
-            '</div><div style="flex:1;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Pagados</div>' +
-            '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">'+fmtMain(totalPag)+'</div>' +
-            '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">' +
-            '<div style="flex:1;height:3px;background:var(--border2);border-radius:2px;overflow:hidden;"><div style="height:100%;width:'+pctPagUSD+'%;background:'+pctClrUSD+';border-radius:2px;"></div></div>' +
-            '<span style="font-size:11px;font-weight:700;font-family:DM Mono,monospace;color:'+pctClrUSD+';">'+pctPagUSD+'%</span>' +
-            '</div></div></div>' +
-            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);">' +
-            '<div style="width:36px;height:36px;border-radius:8px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-            '<svg width="16" height="16" viewBox="0 0 20 20" fill="#F5A623"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>' +
-            '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Pendientes</div>' +
-            '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:'+(totalPendUSD>acrUSD?'var(--amber)':'var(--green)')+';">'+fmtMain(totalPend)+'</div>' +
-            '<div style="font-size:10px;color:var(--text3);margin-top:2px;">'+pendientes.length+' pago'+(pendientes.length!==1?'s':'')+'</div></div></div>' +
-            (function(){
-                var _ref = acrUSD + proyUSD;
-                var _clrUSD = totalUSD <= _ref ? 'var(--green)' : totalUSD <= _ref*1.10 ? 'var(--green)' : totalUSD <= _ref*1.30 ? 'var(--amber)' : 'var(--red)';
-                var _brdUSD = totalUSD <= _ref*1.10 ? 'var(--green)' : totalUSD <= _ref*1.30 ? 'var(--amber)' : 'var(--red)';
-                var _bgUSD  = totalUSD <= _ref*1.10 ? 'var(--green-dim)' : totalUSD <= _ref*1.30 ? 'var(--amber-dim)' : 'var(--red-dim)';
-                var _iconUSD= totalUSD <= _ref*1.10 ? '#3ECF8E' : totalUSD <= _ref*1.30 ? '#F5A623' : '#F56565';
-                return (
-            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;background:var(--surface2);border-left:3px solid '+_brdUSD+';">' +
-            '<div style="width:36px;height:36px;border-radius:8px;background:'+_bgUSD+';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-            '<svg width="16" height="16" viewBox="0 0 20 20" fill="'+_iconUSD+'"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg>' +
-            '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:'+_clrUSD+';margin-bottom:2px;">Total a pagar</div>' +
-            '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:'+_clrUSD+';">U$S '+totalUSD.toLocaleString('es-AR')+'</div>' +
-            '<div style="font-size:10px;color:var(--text3);margin-top:2px;">pend. USD + pend. $ dolarizado</div></div></div>'
-                );
-            })() +
-            '</div>' +
-            // Fila 2: Acreditado | Proyectado
-            '<div style="display:grid;grid-template-columns:1fr 1fr;">' +
-            '<div style="padding:11px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);">' +
-            '<div style="width:32px;height:32px;border-radius:7px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-            '<svg width="14" height="14" viewBox="0 0 20 20" fill="#3ECF8E"><rect x="2" y="4" width="16" height="13" rx="2" stroke="#3ECF8E" stroke-width="1.5" fill="none"/><path d="M6 2v4M14 2v4M2 8h16" stroke="#3ECF8E" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>' +
-            '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:1px;">Acreditado (Balance)</div>' +
-            '<div style="font-size:15px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">U$S '+(acrUSD+netoARSusd).toLocaleString('es-AR')+'</div>' +
-            (netoARSusd!==0?'<div style="display:flex;align-items:center;gap:4px;margin-top:4px;"><span style="font-size:9px;font-weight:700;background:rgba(168,139,250,.18);color:#A78BFA;border-radius:4px;padding:1px 5px;white-space:nowrap;">+ Neto $</span><span style="font-size:10px;color:#A78BFA;font-family:DM Mono,monospace;">U$S '+netoARSusd.toLocaleString('es-AR')+'</span></div>':'') +
-            '</div></div>' +
-            '<div style="padding:11px 15px;display:flex;align-items:center;gap:11px;">' +
-            '<div style="width:32px;height:32px;border-radius:7px;background:var(--surface3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-            '<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 3v7l4 2" stroke="#8B90A8" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="10" r="8" stroke="#8B90A8" stroke-width="1.5"/></svg>' +
-            '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:1px;">Proyectado (Balance)</div>' +
-            '<div style="font-size:15px;font-weight:700;font-family:DM Mono,monospace;color:var(--text2);">U$S '+proyUSD.toLocaleString('es-AR')+'</div></div></div>' +
-            '</div>' +
-            '</div>' +
-            // ── Separador ──────────────────────────────────────────
-            '<div style="display:flex;align-items:center;gap:10px;margin:10px 0 8px;">' +
-            '<div style="flex:1;height:1px;background:var(--border);"></div>' +
-            '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);">Pesos</span>' +
-            '<div style="flex:1;height:1px;background:var(--border);"></div>' +
-            '</div>' +
-            // ── Grupo ARS ──────────────────────────────────────────
-            (function(){
-                // Próxima cuota pendiente ARS (suma de 1 cuota de cada pendiente)
-                var proximaCuotaARS = _pagARS_pend_kpi.reduce(function(s,p){
-                    var montoCuota = p.montoARSoriginal||p.montoARS;
-                    var saldo = p.saldoCuotaActual!=null ? p.saldoCuotaActual : montoCuota;
-                    return s + saldo;
-                },0);
-                var totalARSpagar = Math.round(kpiPagARSpesos + kpiPendARSpesos);
-                var pctARStotal = totalARSpagar > 0 ? Math.round(kpiPagARSpesos / totalARSpagar * 100) : 0;
-                return (
-                '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;">' +
-                '<div style="padding:6px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;">' +
-                '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--amber);">$ · Pesos</span></div>' +
-                // Fila 1: Pagados | Pendientes (próxima cuota) | Total a pagar
-                '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid var(--border);">' +
-                '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);">' +
-                '<div style="width:36px;height:36px;border-radius:8px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                '<svg width="16" height="16" viewBox="0 0 20 20" fill="#3ECF8E"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>' +
-                '</div><div style="flex:1;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Pagados $</div>' +
-                '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">$ '+Math.round(kpiPagARSpesos).toLocaleString('es-AR')+'</div>' +
-                '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">' +
-                '<div style="flex:1;height:3px;background:var(--border2);border-radius:2px;overflow:hidden;"><div style="height:100%;width:'+pctPagARS+'%;background:'+pctClrARS+';border-radius:2px;"></div></div>' +
-                '<span style="font-size:11px;font-weight:700;font-family:DM Mono,monospace;color:'+pctClrARS+';">'+pctPagARS+'%</span>' +
-                '</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">≈ U$S '+Math.round(kpiPagARSusd).toLocaleString('es-AR')+'</div>' +
-                '</div></div>' +
-                '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);">' +
-                '<div style="width:36px;height:36px;border-radius:8px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                '<svg width="16" height="16" viewBox="0 0 20 20" fill="#F5A623"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>' +
-                '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Próxima cuota $</div>' +
-                '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:'+(proximaCuotaARS>acreditadoPesos?'var(--amber)':'var(--green)')+';">$ '+Math.round(proximaCuotaARS).toLocaleString('es-AR')+'</div>' +
-                '<div style="font-size:10px;color:var(--text3);margin-top:2px;">'+_pagARS_pend_kpi.length+' pago'+(_pagARS_pend_kpi.length!==1?'s':'')+' pendientes</div></div></div>' +
-                (function(){
-                    var _refARS = acreditadoPesos;
-                    var _clrARS = kpiPendARSpesos <= _refARS ? 'var(--green)' : kpiPendARSpesos <= _refARS*1.10 ? 'var(--green)' : kpiPendARSpesos <= _refARS*1.40 ? 'var(--amber)' : 'var(--red)';
-                    var _brdARS = kpiPendARSpesos <= _refARS*1.10 ? 'var(--green)' : kpiPendARSpesos <= _refARS*1.40 ? 'var(--amber)' : 'var(--red)';
-                    var _bgARS  = kpiPendARSpesos <= _refARS*1.10 ? 'var(--green-dim)' : kpiPendARSpesos <= _refARS*1.40 ? 'var(--amber-dim)' : 'var(--red-dim)';
-                    var _iconARS= kpiPendARSpesos <= _refARS*1.10 ? '#3ECF8E' : kpiPendARSpesos <= _refARS*1.40 ? '#F5A623' : '#F56565';
-                    return (
-                '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;background:var(--surface2);border-left:3px solid '+_brdARS+';">' +
-                '<div style="width:36px;height:36px;border-radius:8px;background:'+_bgARS+';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                '<svg width="16" height="16" viewBox="0 0 20 20" fill="'+_iconARS+'"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg>' +
-                '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:'+_clrARS+';margin-bottom:2px;">Total a pagar $</div>' +
-                '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:'+_clrARS+';">$ '+Math.round(kpiPendARSpesos).toLocaleString('es-AR')+'</div>' +
-                '<div style="font-size:10px;color:var(--text3);margin-top:2px;">saldo total pendiente</div></div></div>'
-                    );
-                })() +
-                '</div>' +
-                // Fila 2: Acreditado $ | Neto $
-                '<div style="display:grid;grid-template-columns:1fr 1fr;">' +
-                '<div style="padding:11px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);">' +
-                '<div style="width:32px;height:32px;border-radius:7px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                '<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="13" rx="2" stroke="#3ECF8E" stroke-width="1.5"/><path d="M6 2v4M14 2v4M2 8h16" stroke="#3ECF8E" stroke-width="1.5" stroke-linecap="round"/></svg>' +
-                '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:1px;">Acreditado $ (Balance)</div>' +
-                '<div style="font-size:15px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">$ '+Math.round(acreditadoPesos).toLocaleString('es-AR')+'</div></div></div>' +
-                (function(){
-                    var _netoARS = acreditadoPesos - kpiPendARSpesos;
-                    var _clrNeto = _netoARS >= 0 ? 'var(--green)' : 'var(--red)';
-                    var _bgNeto  = _netoARS >= 0 ? 'var(--green-dim)' : 'var(--red-dim)';
-                    var _netoUSD = Math.round(_netoARS / S.tcn);
-                    return (
-                '<div style="padding:11px 15px;display:flex;align-items:center;gap:11px;">' +
-                '<div style="width:32px;height:32px;border-radius:7px;background:'+_bgNeto+';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                '<svg width="14" height="14" viewBox="0 0 20 20" fill="'+(_netoARS>=0?'#3ECF8E':'#F56565')+'"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>' +
-                '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:1px;">Neto $ (Acred. − Total a pagar)</div>' +
-                '<div style="font-size:15px;font-weight:700;font-family:DM Mono,monospace;color:'+_clrNeto+';">$ '+Math.round(_netoARS).toLocaleString('es-AR')+'</div>' +
-                '<div style="font-size:10px;color:var(--text3);margin-top:1px;">≈ U$S '+_netoUSD.toLocaleString('es-AR')+'</div>' +
-                '</div></div>'
-                    );
-                })() +
-                '</div></div>'
-                );
-            })()
-            );
-        })() +
-
-        // ── Separador Balance ───────────────────────────────────────
-        (function(){
-            var _allO = []; S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){ expandirIngreso(x).forEach(function(o){ _allO.push(o); }); });
-            var _acrUSD  = _allO.filter(function(o){ return o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0) + netoARSusd;
-            var _proyUSD = _allO.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-            var _deuUSD  = S.deudas.reduce(function(s,d){ return s+(d.montoARS*(d.cuotas-d.pagadas)/d.cuotas); },0)/S.tcn;
-            var _pagPendUSD = 0;
-            S.pagos.filter(function(p){ return p.estado!=='pagado'; }).forEach(function(p){
-                var cot=p.cotizacion||S.tcn;
-                if(p.cuotas&&p.cuotas>1){
-                    var rest=p.cuotas-(p.cuotasPagadas||0);
-                    if(rest<=0) return;
-                    var saldo=p.saldoCuotaActual!=null?(p.montoARSoriginal?p.saldoCuotaActual/cot:p.saldoCuotaActual):(p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD);
-                    _pagPendUSD += saldo + (rest-1)*(p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD);
-                } else {
-                    _pagPendUSD += p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD;
-                }
-            });
-            var _neto = _acrUSD+_proyUSD-_pagPendUSD;
-            var _isPos = _neto>=0;
-            // Función local de egresos por mes (replica _egresosMesKPI de Balance)
-            function _egrMesPag(ms){
-                var total=0;
-                S.pagos.filter(function(p){ return p.estado!=='pagado'; }).forEach(function(p){
-                    var cot=p.cotizacion||S.tcn;
-                    if(p.cuotas&&p.cuotas>1){
-                        var pagadas=p.cuotasPagadas||0, restantes=p.cuotas-pagadas;
-                        if(restantes<=0) return;
-                        var fechaBase=new Date(p.fecha+'T00:00:00');
-                        var _freq=p.frecuencia||1;
-                        var fechaIniPend=new Date(fechaBase.getFullYear(),fechaBase.getMonth()+pagadas*_freq,1);
-                        for(var q=0;q<restantes;q++){
-                            var fc=new Date(fechaIniPend.getFullYear(),fechaIniPend.getMonth()+q*_freq,1);
-                            var msc=fc.getFullYear()+'-'+String(fc.getMonth()+1).padStart(2,'0');
-                            if(msc===ms){
-                                var mc=q===0&&p.saldoCuotaActual!=null?(p.montoARSoriginal?p.saldoCuotaActual/cot:p.saldoCuotaActual):(p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD);
-                                total+=mc;
-                            }
-                        }
-                    } else {
-                        if(p.fecha.startsWith(ms)) total+=p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD;
-                    }
-                });
-                return total;
-            }
-            // Meses cubiertos — solo pagos obra por mes
-            var _sal=_acrUSD, _mc=0;
-            for(var i=0;i<18;i++){
-                var ms=mesStr(i);
-                var eM=_egrMesPag(ms);
-                if(_sal>=eM){ _sal-=eM; _mc++; } else break;
-            }
-            // Mes en que neto pasa a negativo
-            var _mesQ=-1, _mesQL='', _cIR=_acrUSD, _cIP=0, _cD=0, _cE=0;
-            for(var i2=0;i2<18;i2++){
-                var ms2=mesStr(i2);
-                _cIR+=_allO.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-                _cIP+=_allO.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-                _cD+=S.deudas.reduce(function(s,d){ var dPag=d.pagadas||0,dRest=d.cuotas-dPag; if(dRest<=0) return s; var fi=d.fechaInicio||S.startDate,fiB=new Date(fi+'T00:00:00'),sd=new Date(fiB.getFullYear(),fiB.getMonth()+dPag,1),td=monthDate(i2); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=dRest) return s; return s+(d.montoARS/d.cuotas/S.tcn); },0);
-                _cE+=_egrMesPag(ms2);
-                if(_cIR+_cIP-_cE<0&&_mesQ===-1){ _mesQ=i2+1; _mesQL=mLabel(i2); }
-            }
-            return (
-            '<div style="display:flex;align-items:center;gap:10px;margin:10px 0 8px;">' +
-            '<div style="flex:1;height:1px;background:var(--border);"></div>' +
-            '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);">Balance</span>' +
-            '<div style="flex:1;height:1px;background:var(--border);"></div>' +
-            '</div>' +
-            '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;">' +
-            // Meses cubiertos
-            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);">' +
-            '<div style="width:36px;height:36px;border-radius:8px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="13" rx="2" stroke="#3ECF8E" stroke-width="1.5"/><path d="M6 2v4M14 2v4M2 8h16" stroke="#3ECF8E" stroke-width="1.5" stroke-linecap="round"/></svg></div>' +
-            '<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Meses cubiertos</div>' +
-            '<div style="font-size:20px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">'+(_mc>=18?'18+':_mc)+'<span style="font-size:11px;font-weight:500;color:var(--text3);margin-left:3px;">meses</span></div>' +
-            '<div style="font-size:10px;color:var(--text3);margin-top:1px;">con acreditado</div></div></div>' +
-            // Neto pasa a negativo
-            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);background:'+(_mesQ===-1?'var(--green-dim)':'var(--red-dim)')+';border-color:'+(_mesQ===-1?'rgba(62,207,142,.25)':'rgba(245,101,101,.25)')+'">' +
-            '<div style="width:36px;height:36px;border-radius:8px;background:'+(_mesQ===-1?'rgba(62,207,142,.15)':'rgba(245,101,101,.15)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 3v7l4 2" stroke="'+(_mesQ===-1?'#3ECF8E':'#F56565')+'" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="10" r="8" stroke="'+(_mesQ===-1?'#3ECF8E':'#F56565')+'" stroke-width="1.5"/></svg></div>' +
-            '<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:'+(_mesQ===-1?'var(--green)':'var(--red)')+';margin-bottom:2px;">Neto negativo</div>' +
-            (_mesQ===-1?'<div style="font-size:18px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">Nunca</div>':'<div style="font-size:18px;font-weight:700;font-family:DM Mono,monospace;color:var(--red);">'+_mesQL+'<span style="font-size:10px;color:var(--red);opacity:.7;margin-left:5px;">mes '+_mesQ+'/18</span></div>') +
-            '</div></div>' +
-            // Balance neto
-            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;background:'+(_isPos?'var(--green-dim)':'var(--red-dim)')+';border-color:'+(_isPos?'rgba(62,207,142,.3)':'rgba(245,101,101,.3)')+'">' +
-            '<div style="width:36px;height:36px;border-radius:8px;background:'+(_isPos?'rgba(62,207,142,.15)':'rgba(245,101,101,.15)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 20 20" fill="'+(_isPos?'#3ECF8E':'#F56565')+'"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg></div>' +
-            '<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:'+(_isPos?'var(--green)':'var(--red)')+';margin-bottom:2px;">Balance neto</div>' +
-            '<div style="font-size:18px;font-weight:700;font-family:DM Mono,monospace;color:'+(_isPos?'var(--green)':'var(--red)')+';">U$S '+Math.round(_neto).toLocaleString('es-AR')+'</div>' +
-            '<div style="font-size:10px;color:var(--text3);margin-top:1px;">acred.+proy.−deudas−pagos</div></div></div>' +
-            '</div>'
-            );
-        })() +
+        // KPI cards
+        '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;">' +
+        // Card pagados USD — borde verde punteado
+        '<div style="background:var(--surface);border:2px dashed rgba(62,207,142,.4);border-radius:var(--radius);padding:13px 15px;display:flex;align-items:center;gap:11px;">' +
+        '<div style="width:36px;height:36px;border-radius:8px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+        '<svg width="16" height="16" viewBox="0 0 20 20" fill="#3ECF8E"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>' +
+        '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Pagados U$S</div>' +
+        '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">'+fmtMain(totalPag)+'</div>' +
+        '<div style="font-size:10px;color:var(--text3);margin-top:1px;">'+pagados.length+' pago'+(pagados.length!==1?'s':'')+'</div></div></div>' +
+        // Card pendientes USD — borde ámbar punteado
+        '<div style="background:var(--surface);border:2px dashed rgba(245,166,35,.4);border-radius:var(--radius);padding:13px 15px;display:flex;align-items:center;gap:11px;">' +
+        '<div style="width:36px;height:36px;border-radius:8px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+        '<svg width="16" height="16" viewBox="0 0 20 20" fill="#F5A623"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>' +
+        '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Pendientes U$S</div>' +
+        '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:var(--amber);">'+fmtMain(totalPend)+'</div>' +
+        '<div style="font-size:10px;color:var(--text3);margin-top:1px;">'+pendientes.length+' pago'+(pendientes.length!==1?'s':'')+'</div></div></div>' +
+        // Card total a pagar USD — borde azul punteado
+        '<div style="background:var(--blue-dim);border:2px dashed rgba(76,142,245,.5);border-radius:var(--radius);padding:13px 15px;display:flex;align-items:center;gap:11px;">' +
+        '<div style="width:36px;height:36px;border-radius:8px;background:rgba(76,142,245,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+        '<svg width="16" height="16" viewBox="0 0 20 20" fill="#4C8EF5"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg>' +
+        '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--blue);margin-bottom:2px;">Total a pagar U$S</div>' +
+        '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:var(--blue);">U$S '+(Math.round(totalPagUSD+totalPendUSD)).toLocaleString('es-AR')+'</div>' +
+        '<div style="font-size:10px;color:var(--text3);margin-top:1px;">pagado + pendiente</div></div></div>' +
+        // Card pagados ARS — borde verde punteado
+        '<div style="background:var(--surface);border:2px dashed rgba(62,207,142,.3);border-radius:var(--radius);padding:13px 15px;display:flex;align-items:center;gap:11px;">' +
+        '<div style="width:36px;height:36px;border-radius:8px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+        '<svg width="16" height="16" viewBox="0 0 20 20" fill="#3ECF8E"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>' +
+        '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--amber);margin-bottom:2px;">Pagados $</div>' +
+        '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">$ '+Math.round(kpiPagARSpesos).toLocaleString('es-AR')+'</div>' +
+        '<div style="font-size:10px;color:var(--text3);margin-top:1px;">≈ U$S '+Math.round(kpiPagARSusd).toLocaleString('es-AR')+'</div></div></div>' +
+        // Card pendientes ARS — borde ámbar punteado
+        '<div style="background:var(--surface);border:2px dashed rgba(245,166,35,.35);border-radius:var(--radius);padding:13px 15px;display:flex;align-items:center;gap:11px;">' +
+        '<div style="width:36px;height:36px;border-radius:8px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+        '<svg width="16" height="16" viewBox="0 0 20 20" fill="#F5A623"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"/></svg>' +
+        '</div><div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--amber);margin-bottom:2px;">Pendientes $</div>' +
+        '<div style="font-size:17px;font-weight:700;font-family:DM Mono,monospace;color:var(--amber);">$ '+Math.round(kpiPendARSpesos).toLocaleString('es-AR')+'</div>' +
+        '<div style="font-size:10px;color:var(--text3);margin-top:1px;">≈ U$S '+Math.round(kpiPendARSusd).toLocaleString('es-AR')+'</div></div></div>' +
+        '</div>' +
 
         // Leyenda compartida
         '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);margin-bottom:10px;">' +
         '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.7);margin-right:4px;vertical-align:middle;"></span>Pagado</span>' +
         '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,166,35,.55);margin-right:4px;vertical-align:middle;"></span>Pendiente / Vencido</span>' +
         '</div>' +
-        // 2 gráficos USD en fila
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;align-items:start;">' +
-        // Gráfico 1: Mano de Obra
+        // 3 gráficos en fila
+        '<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:16px;align-items:start;">' +
+        // Gráfico 1: Por rubro
+        '<div class="card" style="margin-bottom:0;">' +
+        '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Por rubro</h3></div>' +
+        '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosRubro"></canvas></div></div></div>' +
+        // Gráfico 2: Mano de Obra
         '<div class="card" style="margin-bottom:0;">' +
         '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Mano de Obra</h3></div>' +
         '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosMO"></canvas></div></div></div>' +
-        // Gráfico 2: Materiales
+        // Gráfico 3: Materiales
         '<div class="card" style="margin-bottom:0;">' +
         '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Materiales</h3></div>' +
         '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosMat"></canvas></div></div></div>' +
         '</div>' +
 
-        // 2 gráficos en pesos
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;align-items:start;">' +
+        // 3 gráficos en pesos
+        '<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:16px;align-items:start;">' +
         '<div class="card" style="margin-bottom:0;">' +
         '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Por rubro <span style="font-size:10px;color:var(--amber);font-weight:400;">$</span></h3></div>' +
         '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosRubroARS"></canvas></div></div></div>' +
+        '<div class="card" style="margin-bottom:0;">' +
+        '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Mano de Obra <span style="font-size:10px;color:var(--amber);font-weight:400;">$</span></h3></div>' +
+        '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosMOARS"></canvas></div></div></div>' +
         '<div class="card" style="margin-bottom:0;">' +
         '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Materiales <span style="font-size:10px;color:var(--amber);font-weight:400;">$</span></h3></div>' +
         '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosMatARS"></canvas></div></div></div>' +
@@ -1565,10 +1507,12 @@ function renderPagos(){
     safeDestroy(window.chartPagosMO); window.chartPagosMO=null;
     safeDestroy(window.chartPagosMat);window.chartPagosMat=null;
     safeDestroy(window.chartPagosRubroARS); window.chartPagosRubroARS=null;
+    safeDestroy(window.chartPagosMOARS);    window.chartPagosMOARS=null;
     safeDestroy(window.chartPagosMatARS);   window.chartPagosMatARS=null;
 
     // Render después de que el DOM esté listo
     setTimeout(function(){
+        chartPagos          = buildChart(document.getElementById('chartPagosRubro'), _allRubros, _rubPag,  _rubPend,  _rubCols,  'Sin pagos registrados',      _detRubro);
         window.chartPagosMO = buildChart(document.getElementById('chartPagosMO'),    _descsMO,   _moPag,   _moPend,   '#A78BFA', 'Sin pagos de Mano de Obra',  _detMO);
         window.chartPagosMat= buildChart(document.getElementById('chartPagosMat'),   _descsMat,  _matPag,  _matPend,  '#3ECF8E', 'Sin pagos de Materiales',    _detMat);
 
@@ -1659,27 +1603,23 @@ function renderPagos(){
         // Data ARS por rubro
         var _rubPagARS=[], _rubPendARS=[];
         _allRubrosARS.forEach(function(r){
-            var res=_calcPagPendARS(S.pagos.filter(function(p){return (p.rubro||'Sin rubro').trim()===r && p.moneda==='ars';}));
+            var res=_calcPagPendARS(S.pagos.filter(function(p){return (p.rubro||'Sin rubro').trim()===r;}));
             _rubPagARS.push(res.pag); _rubPendARS.push(res.pend);
         });
         var _moPagARS=[], _moPendARS=[];
         _descsMO_ARS.forEach(function(r){
-            var res=_calcPagPendARS(_pagosMO_ARS.filter(function(p){return (p.rubro||'Sin rubro').trim()===r && p.moneda==='ars';}));
+            var res=_calcPagPendARS(_pagosMO_ARS.filter(function(p){return (p.rubro||'Sin rubro').trim()===r;}));
             _moPagARS.push(res.pag); _moPendARS.push(res.pend);
         });
         var _matPagARS=[], _matPendARS=[];
         _descsMat_ARS.forEach(function(r){
-            // Pagado/Pendiente ARS: solo pagos moneda=ars
-            var resARS = _calcPagPendARS(_pagosMat_ARS.filter(function(p){ return (p.rubro||'Sin rubro').trim()===r && p.moneda==='ars'; }));
-            // Pendiente USD del mismo rubro convertido a pesos
-            var rubroIdx = _descsMat.indexOf(r);
-            var pendUSDenARS = rubroIdx >= 0 ? (_matPend[rubroIdx] || 0) * S.tcn : 0;
-            _matPagARS.push(resARS.pag);
-            _matPendARS.push(resARS.pend + Math.round(pendUSDenARS));
+            var res=_calcPagPendARS(_pagosMat_ARS.filter(function(p){return (p.rubro||'Sin rubro').trim()===r;}));
+            _matPagARS.push(res.pag); _matPendARS.push(res.pend);
         });
         var _rubColsARS = _allRubrosARS.map(function(_,i){ return _rubroPalette[i%_rubroPalette.length]; });
 
         window.chartPagosRubroARS = buildChartARS(document.getElementById('chartPagosRubroARS'), _allRubrosARS, _rubPagARS, _rubPendARS, _rubColsARS, 'Sin pagos registrados');
+        window.chartPagosMOARS    = buildChartARS(document.getElementById('chartPagosMOARS'),    _descsMO_ARS,  _moPagARS,  _moPendARS,  '#A78BFA',   'Sin pagos de Mano de Obra');
         window.chartPagosMatARS   = buildChartARS(document.getElementById('chartPagosMatARS'),   _descsMat_ARS, _matPagARS, _matPendARS, '#3ECF8E',   'Sin pagos de Materiales');
     }, 50);
 
@@ -1838,7 +1778,8 @@ function setMonedaPago(m){
 function onEstadoChange(){
     var est = document.getElementById('mEstado').value;
     var isPend = est==='pendiente'||est==='vencido';
-    document.getElementById('fgDeudaInfo').style.display = isPend ? 'block' : 'none';
+    document.getElementById('fgDeudaInfo').style.display    = isPend ? 'block' : 'none';
+    document.getElementById('fgCuotasPago').style.display   = isPend ? 'block' : 'none';
 }
 function calcPreviewPago(){
     if(mPagoMoneda!=='ARS') return;
@@ -1883,8 +1824,8 @@ function openNewPago(){
     document.getElementById('mCuotaCalc').textContent='—';
     document.getElementById('mEstado').value='pagado';
     document.getElementById('fgDeudaInfo').style.display='none';
+    document.getElementById('fgCuotasPago').style.display='none';
     document.getElementById('mCuotas').value='1';
-    document.getElementById('mFrecuencia').value='1';
     document.getElementById('mCuotasPagadas').value='0';
     document.getElementById('mCotizacion').value='';
     document.getElementById('mPreviewUSD').textContent='—';
@@ -1902,6 +1843,7 @@ function openEditPago(id){
     document.getElementById('mEtapa').value=p.rubro||'';
     var isPend = p.estado==='pendiente'||p.estado==='vencido';
     document.getElementById('fgDeudaInfo').style.display  = isPend ? 'block' : 'none';
+    document.getElementById('fgCuotasPago').style.display = isPend ? 'block' : 'none';
     // Abrir en la moneda original
     if(p.montoARSoriginal && p.cotizacion){
         setMonedaPago('ARS');
@@ -1915,7 +1857,6 @@ function openEditPago(id){
         document.getElementById('mPreviewUSD').textContent = '—';
     }
     document.getElementById('mCuotas').value = (p.cuotas && p.cuotas > 1) ? p.cuotas : '1';
-    document.getElementById('mFrecuencia').value = p.frecuencia || '1';
     document.getElementById('mCuotasPagadas').value = p.cuotasPagadas || '0';
     document.getElementById('mCotizacion').value='';
     document.getElementById('mPreviewUSD').textContent='—';
@@ -1945,11 +1886,9 @@ async function savePago(){
     setSaveStatus('saving');
     var cotizacionGuardar = (mPagoMoneda==='ARS') ? parseFloat(document.getElementById('mCotizacion').value)||null : null;
     var montoARSGuardar   = (mPagoMoneda==='ARS') ? montoARS : null;
-    var cuotasVal = parseInt(document.getElementById('mCuotas').value)||null;
-    if(cuotasVal===1) cuotasVal=null; // 1 cuota = sin cuotas
+    var cuotasVal = (estado==='pendiente'||estado==='vencido') ? (parseInt(document.getElementById('mCuotas').value)||null) : null;
     var cuotasPagVal = cuotasVal ? (parseInt(document.getElementById('mCuotasPagadas').value)||0) : null;
-    var frecuenciaVal = cuotasVal ? (parseInt(document.getElementById('mFrecuencia').value)||1) : 1;
-    var payload={fecha:fecha, rubro:rubro, descripcion:desc, monto_usd:montoUSD, monto_ars:montoARSGuardar, cotizacion:cotizacionGuardar, estado:estado, cuotas:cuotasVal, cuotas_pagadas:cuotasPagVal, frecuencia:frecuenciaVal};
+    var payload={fecha:fecha, rubro:rubro, descripcion:desc, monto_usd:montoUSD, monto_ars:montoARSGuardar, cotizacion:cotizacionGuardar, estado:estado, cuotas:cuotasVal, cuotas_pagadas:cuotasPagVal};
     var res = S.editPagoId
         ? await sb.from('obra_pagos').update(payload).eq('id',S.editPagoId)
         : await sb.from('obra_pagos').insert(payload);
@@ -2173,7 +2112,6 @@ function openNewPagoARS(){
     document.getElementById('mPagoARSCuotaVal').value='';
     document.getElementById('mPagoARSTotalVal').value='';
     document.getElementById('mPagoARSCuotas').value='1';
-    S._arsAnchor=null;
     document.getElementById('mPagoARSCuotasPag').value='0';
     document.getElementById('mPagoARSCotizacion').value='';
     document.getElementById('mPagoARSEstado').value='pagado';
@@ -2195,7 +2133,6 @@ function openEditPagoARS(id){
     document.getElementById('mPagoARSCuotasPag').value=p.cuotasPagadas||0;
     document.getElementById('mPagoARSCotizacion').value=p.cotizacion||'';
     document.getElementById('mPagoARSEstado').value=p.estado;
-    S._arsAnchor='cuota';
     openModal('modalPagoARS');
 }
 function calcARSCuotas(origen){
@@ -2203,14 +2140,12 @@ function calcARSCuotas(origen){
     var totalEl=document.getElementById('mPagoARSTotalVal');
     var cantEl=document.getElementById('mPagoARSCuotas');
     var cant=parseFloat(cantEl.value)||1;
-    if(origen==='cuota'){ S._arsAnchor='cuota'; var c=parseFloat(cuotaEl.value)||0; if(c&&cant) totalEl.value=Math.round(c*cant); }
-    else if(origen==='total'){ S._arsAnchor='total'; var t=parseFloat(totalEl.value)||0; if(t&&cant) cuotaEl.value=Math.round(t/cant); }
+    if(origen==='cuota'){ var c=parseFloat(cuotaEl.value)||0; if(c&&cant) totalEl.value=Math.round(c*cant); }
+    else if(origen==='total'){ var t=parseFloat(totalEl.value)||0; if(t&&cant) cuotaEl.value=Math.round(t/cant); }
     else if(origen==='cuotas'){
         var c2=parseFloat(cuotaEl.value)||0, t2=parseFloat(totalEl.value)||0;
-        if(S._arsAnchor==='total'&&t2) cuotaEl.value=Math.round(t2/cant);
-        else if(S._arsAnchor==='cuota'&&c2) totalEl.value=Math.round(c2*cant);
+        if(c2) totalEl.value=Math.round(c2*cant);
         else if(t2) cuotaEl.value=Math.round(t2/cant);
-        else if(c2) totalEl.value=Math.round(c2*cant);
     }
 }
 async function savePagoARS(){
@@ -2316,16 +2251,6 @@ function renderBalance() {
     var ingProyUSD = allOcurr.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
     var ingReal = ingRealUSD * S.tcn; // para compatibilidad con fmtUSD abajo
 
-    // Neto en pesos dolarizado — misma fórmula que "Neto $" en Pagos: acreditado ARS − pagos ARS pendientes
-    var _acreditadoPesosBAL = S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0);
-    var _kpiPendARSpesosBAL = S.pagos.filter(function(p){ return p.moneda==='ars' && p.estado!=='pagado'; }).reduce(function(s,p){
-        var mc=p.montoARSoriginal||p.montoARS;
-        if(p.cuotas&&p.cuotas>1){ var r=Math.max(0,p.cuotas-(p.cuotasPagadas||0)); var sc=p.saldoCuotaActual!=null?p.saldoCuotaActual:mc; return s+(r>0?(r-1)*mc+sc:0); }
-        return s+(p.saldoCuotaActual!=null?p.saldoCuotaActual:mc);
-    },0);
-    var netoPesosUSD = Math.round((_acreditadoPesosBAL - _kpiPendARSpesosBAL) / S.tcn);
-    ingRealUSD += netoPesosUSD;
-
     // Egresos totales: deudas Balance + pagos obra pendientes
     var deuUSD = totalDeudasARS() / S.tcn;
 
@@ -2338,10 +2263,9 @@ function renderBalance() {
                 var pagadas = p.cuotasPagadas || 0, restantes = p.cuotas - pagadas;
                 if(restantes <= 0) return;
                 var fechaBase = new Date(p.fecha+'T00:00:00');
-                var _freq2=p.frecuencia||1;
-                var fechaIniPend = new Date(fechaBase.getFullYear(), fechaBase.getMonth()+pagadas*_freq2, 1);
+                var fechaIniPend = new Date(fechaBase.getFullYear(), fechaBase.getMonth()+pagadas, 1);
                 for(var q=0; q<restantes; q++){
-                    var fc = new Date(fechaIniPend.getFullYear(), fechaIniPend.getMonth()+q*_freq2, 1);
+                    var fc = new Date(fechaIniPend.getFullYear(), fechaIniPend.getMonth()+q, 1);
                     var msc = fc.getFullYear()+'-'+String(fc.getMonth()+1).padStart(2,'0');
                     if(msc === ms){
                         var mc = q===0 && p.saldoCuotaActual!=null
@@ -2360,10 +2284,36 @@ function renderBalance() {
     }
     var pagosPendUSD = 0;
     for(var qi0=0;qi0<18;qi0++){ pagosPendUSD += _egresosMesKPI(mesStr(qi0)); }
-
+    // DEBUG — detalle por pago
+    console.group('=== DEBUG pagosPendUSD = U$S '+Math.round(pagosPendUSD)+' ===');
+    S.pagos.filter(function(p){ return p.estado!=='pagado'; }).forEach(function(p){
+        var cot = p.cotizacion || S.tcn;
+        var aporte = 0;
+        if(p.cuotas && p.cuotas > 1){
+            var pagadas = p.cuotasPagadas||0, restantes = p.cuotas-pagadas;
+            var fechaBase = new Date(p.fecha+'T00:00:00');
+            var fechaIniPend = new Date(fechaBase.getFullYear(), fechaBase.getMonth()+pagadas, 1);
+            for(var q=0;q<restantes;q++){
+                var mc = (q===0 && p.saldoCuotaActual!=null)
+                    ? (p.montoARSoriginal ? p.saldoCuotaActual/cot : p.saldoCuotaActual)
+                    : (p.montoARSoriginal ? p.montoARSoriginal/cot : p.montoUSD);
+                aporte += mc;
+            }
+        } else {
+            aporte = p.montoARSoriginal ? p.montoARSoriginal/cot : p.montoUSD;
+        }
+        console.log(
+            p.fecha, '|', p.desc||'', '|', p.estado,
+            '| cuotas:', p.cuotas||1, '| pagadas:', p.cuotasPagadas||0,
+            '| montoUSD:', Math.round(p.montoUSD), '| montoARS:', p.montoARSoriginal||null,
+            '| cot:', cot,
+            '| APORTE USD:', Math.round(aporte)
+        );
+    });
+    console.groupEnd();
 
     // Balance neto total = acreditado + proyectado - deudas - pagos obra
-    var netoUSD = ingRealUSD + ingProyUSD - pagosPendUSD;
+    var netoUSD = ingRealUSD + ingProyUSD - deuUSD - pagosPendUSD;
     var isPos = netoUSD >= 0;
     // Ingresos acreditados en pesos
     var acreditadoPesos = S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0);
@@ -2378,12 +2328,14 @@ function renderBalance() {
         return s+(p.saldoCuotaActual!=null?p.saldoCuotaActual:montoCuota);
     },0);
 
-    // Meses cubiertos con acreditado vs pagos obra por mes
+    // Meses cubiertos con acreditado vs (deudas + pagos obra por mes)
     var _saldoUSD = ingRealUSD, _mesesCub = 0;
     for(var qi=0;qi<18;qi++){
         var qms=mesStr(qi);
+        var dMesUSD=S.deudas.reduce(function(s,d){ var fi=d.fechaInicio||S.startDate; if(qms<fi.substring(0,7)) return s; var sd=new Date(fi+'T00:00:00'),td=monthDate(qi); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return s; return s+(d.montoARS/d.cuotas/S.tcn); },0);
         var eMesUSD = _egresosMesKPI(qms);
-        if(_saldoUSD >= eMesUSD){ _saldoUSD -= eMesUSD; _mesesCub++; } else break;
+        var totalEgrMes = dMesUSD + eMesUSD;
+        if(_saldoUSD >= totalEgrMes){ _saldoUSD -= totalEgrMes; _mesesCub++; } else break;
     }
 
     // Mes en que neto acumulado (acreditado+proyectado-deudas-pagos) pasa a negativo
@@ -2392,9 +2344,9 @@ function renderBalance() {
         var qms2=mesStr(qi2);
         _cumIR += allOcurr.filter(function(o){ return o.realizado&&o.fecha.startsWith(qms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
         _cumIP += allOcurr.filter(function(o){ return !o.realizado&&o.fecha.startsWith(qms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-        _cumDeu += S.deudas.reduce(function(s,d){ var dPag=d.pagadas||0,dRest=d.cuotas-dPag; if(dRest<=0) return s; var fi=d.fechaInicio||S.startDate,fiB=new Date(fi+'T00:00:00'),sd=new Date(fiB.getFullYear(),fiB.getMonth()+dPag,1),td=monthDate(qi2); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=dRest) return s; return s+(d.montoARS/d.cuotas/S.tcn); },0);
+        _cumDeu += S.deudas.reduce(function(s,d){ var fi=d.fechaInicio||S.startDate; if(qms2<fi.substring(0,7)) return s; var sd=new Date(fi+'T00:00:00'),td=monthDate(qi2); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return s; return s+(d.montoARS/d.cuotas/S.tcn); },0);
         _cumEgr += _egresosMesKPI(qms2);
-        if(_cumIR+_cumIP-_cumEgr<0 && _mesQ===-1){ _mesQ=qi2+1; _mesQL=mLabel(qi2); }
+        if(_cumIR+_cumIP-_cumDeu-_cumEgr<0 && _mesQ===-1){ _mesQ=qi2+1; _mesQL=mLabel(qi2); }
     }
 
     // filas ingresos proyectados
@@ -2402,17 +2354,15 @@ function renderBalance() {
         var per=x.periodicidad||'unico', occ=expandirIngreso(x).length;
         var cuotaLabel=x.nCuotas?(occ+'/'+x.nCuotas+' cuotas'):occ+' ocurr.';
         var sub=per==='unico'?x.fecha:x.fecha+(x.fechaHasta?' > '+x.fechaHasta:'')+' · '+cuotaLabel;
-        var totalCuotas = x.montoARS * occ;
         return '<tr onclick="toggleRealizado('+x.id+')" style="cursor:pointer;">' +
             '<td style="padding:9px 14px;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:8px;"><div style="width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0;"></div><div><div style="font-size:13px;font-weight:500;">'+x.desc+'</div><div style="font-size:11px;color:var(--text3);">'+sub+'</div></div></div></td>' +
             '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:center;"><span style="font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;background:var(--surface3);color:var(--text3);">'+( PLABELS[per]||per)+'</span></td>' +
             '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--text2);">'+fmtUSD(x.montoARS)+'</td>' +
-            '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:var(--green);">'+(occ>1?'U$S '+Math.round(totalCuotas/S.tcn).toLocaleString('es-AR'):'—')+'</td>' +
             '<td style="padding:9px 14px;border-bottom:1px solid var(--border);text-align:right;"><div style="display:flex;gap:4px;justify-content:flex-end;">' +
             '<button class="btn btn-sm" onclick="event.stopPropagation();openEditBal(\'ingreso\','+x.id+')">✎</button>' +
             '<button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteBal(\'ingreso\','+x.id+')">✕</button>' +
             '</div></td></tr>';
-    }).join('') || '<tr><td colspan="5" style="padding:14px;text-align:center;color:var(--text3);">Sin ingresos proyectados</td></tr>';
+    }).join('') || '<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--text3);">Sin ingresos proyectados</td></tr>';
 
     // filas ingresos en pesos (tabla separada)
     var arsRows = S.ingresos.filter(function(x){ return x.moneda==='ars'; })
@@ -2479,28 +2429,60 @@ function renderBalance() {
     var nAcr = S.ingresos.filter(function(x){ return x.realizado && x.moneda!=='ars'; }).length;
 
     document.getElementById('page-balance').innerHTML =
-        // Gráfico 1 — Saldo neto acumulado
-        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Saldo neto acumulado</span>' +
-        '<div style="display:flex;gap:10px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:20px;height:2px;background:#3ECF8E;margin-right:3px;vertical-align:middle;"></span>Saldo disponible</span></div>' +
-        '</div><div style="padding:14px 18px;"><div style="position:relative;width:100%;height:300px;"><canvas id="chartBal"></canvas></div></div></div>' +
-        // Gráfico 2 — Ingresos vs Egresos mensuales
-        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos vs Egresos mensuales</span>' +
-        '<div style="display:flex;gap:10px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.6);margin-right:3px;vertical-align:middle;"></span>Ingresos</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,101,101,.5);margin-right:3px;vertical-align:middle;"></span>Egresos</span></div>' +
-        '</div><div style="padding:14px 18px;"><div style="position:relative;width:100%;height:300px;"><canvas id="chartBalIngEgr"></canvas></div></div></div>' +
-        // Dos tablas lado a lado: Acreditados | Pesos
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">' +
-        // Acreditados USD
-        '<div style="'+CS+'margin-bottom:0;"><div style="'+HS+'">' +
+        // insight cards
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">' +
+        '<div style="'+CS.replace('overflow:hidden;','')+';padding:13px 16px;display:flex;align-items:center;gap:14px;">' +
+        '<div style="width:42px;height:42px;border-radius:10px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="13" rx="2" stroke="#3ECF8E" stroke-width="1.5"/><path d="M6 2v4M14 2v4M2 8h16" stroke="#3ECF8E" stroke-width="1.5" stroke-linecap="round"/></svg></div>' +
+        '<div><div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Meses cubiertos con acreditado</div>' +
+        '<div style="font-size:26px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);line-height:1;">'+(_mesesCub>=18?'18+':_mesesCub)+'<span style="font-size:13px;font-weight:500;color:var(--text3);margin-left:4px;">meses</span></div></div></div>' +
+        '<div style="'+CS.replace('overflow:hidden;','')+';padding:13px 16px;display:flex;align-items:center;gap:14px;background:'+(_mesQ===-1?'var(--green-dim)':'var(--red-dim)')+';border-color:'+(_mesQ===-1?'rgba(62,207,142,.25)':'rgba(245,101,101,.25)')+'">' +
+        '<div style="width:42px;height:42px;border-radius:10px;background:'+(_mesQ===-1?'rgba(62,207,142,.15)':'rgba(245,101,101,.15)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v7l4 2" stroke="'+(_mesQ===-1?'#3ECF8E':'#F56565')+'" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="10" r="8" stroke="'+(_mesQ===-1?'#3ECF8E':'#F56565')+'" stroke-width="1.5"/></svg></div>' +
+        '<div><div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:'+(_mesQ===-1?'var(--green)':'var(--red)')+';opacity:.75;margin-bottom:3px;">Neto pasa a negativo</div>' +
+        (_mesQ===-1?'<div style="font-size:22px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);line-height:1;">Nunca</div>':'<div style="font-size:26px;font-weight:700;font-family:DM Mono,monospace;color:var(--red);line-height:1;">'+_mesQL+'<span style="font-size:12px;color:var(--red);opacity:.6;margin-left:6px;">mes '+_mesQ+'/18</span></div>') +
+        '</div></div></div>' +
+        // KPIs
+        '<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:8px;margin-bottom:14px;">' +
+        '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 16px;background:'+(isPos?'var(--green-dim)':'var(--red-dim)')+';border-color:'+(isPos?'rgba(62,207,142,.3)':'rgba(245,101,101,.3)')+';display:flex;align-items:center;justify-content:space-between;">' +
+        '<div><div style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:'+(isPos?'var(--green)':'var(--red)')+';margin-bottom:3px;">Balance neto</div>' +
+        '<div style="font-size:22px;font-weight:700;font-family:DM Mono,monospace;color:'+(isPos?'var(--green)':'var(--red)')+';">U$S '+Math.round(netoUSD).toLocaleString('es-AR')+'</div>' +
+        '<div style="font-size:10px;color:var(--text3);margin-top:3px;">Acred.+Proy. − Deudas − Pagos obra</div></div></div>' +
+        '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Acreditado</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--green);">U$S '+Math.round(ingRealUSD).toLocaleString('es-AR')+'</div></div>' +
+        '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Proyectado</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--text);">U$S '+Math.round(ingProyUSD).toLocaleString('es-AR')+'</div></div>' +
+        '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Deudas Balance</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--red);">U$S '+Math.round(deuUSD).toLocaleString('es-AR')+'</div></div>' +
+        '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:3px;">Pagos Obra</div><div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--amber);">U$S '+Math.round(pagosPendUSD).toLocaleString('es-AR')+'</div></div>' +
+        '</div>' +
+        // Fila pesos — separada con borde punteado
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;padding-top:10px;border-top:1px dashed var(--border2);">' +
+        '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;border-color:rgba(245,166,35,.25);">' +
+        '<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--amber);margin-bottom:3px;letter-spacing:.05em;">Acreditado Pesos</div>' +
+        '<div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--amber);">$ '+Math.round(acreditadoPesos).toLocaleString('es-AR')+'</div>' +
+        '</div>' +
+        '<div style="'+CS.replace('overflow:hidden;','')+';padding:12px 14px;border-color:rgba(245,101,101,.2);">' +
+        '<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--red);margin-bottom:3px;letter-spacing:.05em;">Deudas en Pesos</div>' +
+        '<div style="font-size:16px;font-weight:600;font-family:DM Mono,monospace;color:var(--red);">$ '+Math.round(deudasPesos).toLocaleString('es-AR')+'</div>' +
+        '</div>' +
+        '</div>' +
+        // Ingresos proyectados + Deudas
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">' +
+        '<div style="'+CS+'margin-bottom:0;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos proyectados</span><button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div>' +
+        '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+THS+'text-align:left;">Descripción</th><th style="'+THS+'text-align:center;">Frecuencia</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'"></th></tr></thead><tbody>'+ingRows+'</tbody></table></div>' +
+        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--text);">'+('U$S '+Math.round(ingProyUSD).toLocaleString('es-AR'))+'</strong></span></div></div>' +
+        '<div style="'+CS+'margin-bottom:0;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Deudas</span><button class="btn btn-sm btn-danger" style="background:var(--red-dim);border-color:rgba(245,101,101,.3);" onclick="openNewBal(\'deuda\')">+ Nueva</button></div>' +
+        '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+THS+'text-align:left;">Deuda</th><th style="'+THS+'text-align:center;">Avance</th><th style="'+THS+'text-align:right;">Saldo</th><th style="'+THS+'"></th></tr></thead><tbody>'+deuRows+'</tbody></table></div>' +
+        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--red);">U$S '+Math.round(deuUSD).toLocaleString('es-AR')+'</strong></span></div></div>' +
+        '</div>' +
+        // Grafico
+        '<div style="'+CS+'margin-bottom:12px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Flujo mensual y neto acumulado</span>' +
+        '<div style="display:flex;gap:10px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.5);margin-right:3px;vertical-align:middle;"></span>Acreditado</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(76,142,245,.3);margin-right:3px;vertical-align:middle;"></span>Proyectado</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,101,101,.35);margin-right:3px;vertical-align:middle;"></span>Deudas</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,166,35,.45);margin-right:3px;vertical-align:middle;"></span>Pagos obra</span><span><span style="display:inline-block;width:20px;height:2px;background:linear-gradient(to right,#3ECF8E,#F56565);margin-right:3px;vertical-align:middle;"></span>Neto (verde=positivo / rojo=negativo)</span></div>' +
+        '</div><div style="padding:14px 18px;"><div style="position:relative;width:100%;height:420px;"><canvas id="chartBal"></canvas></div></div></div>' +
+        // Acreditados
+        '<div style="'+CS+'"><div style="'+HS+'">' +
         '<div style="display:flex;align-items:center;gap:10px;"><span style="width:9px;height:9px;border-radius:50%;background:var(--green);display:inline-block;"></span><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos acreditados</span><span style="font-size:11px;color:var(--text3);">'+nAcr+' registro'+(nAcr!==1?'s':'')+'</span></div>' +
         '<button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div>' +
         '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+THS+'text-align:left;">Fecha</th><th style="'+THS+'text-align:left;">Descripción</th><th style="'+THS+'text-align:center;">Frecuencia</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'"></th></tr></thead><tbody>'+acrRows+'</tbody></table></div>' +
-        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;">' +
-        '<span style="font-size:11px;color:var(--text3);">Acreditado U$S <strong style="font-family:DM Mono,monospace;color:var(--green);">U$S '+(Math.round(ingRealUSD-netoPesosUSD)).toLocaleString('es-AR')+'</strong></span>' +
-        (netoPesosUSD!==0?'<span style="font-size:10px;background:rgba(168,139,250,.18);color:#A78BFA;border-radius:4px;padding:2px 8px;font-weight:700;">+ Neto $ → U$S '+netoPesosUSD.toLocaleString('es-AR')+'</span>':'') +
-        '<span style="font-size:11px;color:var(--text3);">Total disponible <strong style="font-family:DM Mono,monospace;color:var(--green);">U$S '+Math.round(ingRealUSD).toLocaleString('es-AR')+'</strong></span>' +
-        '</div></div>' +
-        // Ingresos en pesos
-        '<div style="'+CS+'margin-bottom:0;"><div style="'+HS+'">' +
+        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total acreditado <strong style="font-family:DM Mono,monospace;color:var(--green);">U$S '+Math.round(ingRealUSD).toLocaleString('es-AR')+'</strong></span></div></div>' +
+        // Tabla ingresos en pesos
+        '<div style="margin-top:12px;'+CS+'"><div style="'+HS+'">' +
         '<div style="display:flex;align-items:center;gap:10px;"><span style="width:9px;height:9px;border-radius:50%;background:var(--amber);display:inline-block;"></span><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos en Pesos</span></div>' +
         '<button class="btn btn-sm" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,166,35,.3);" onclick="openNewBalARS()">+ Nuevo en $</button></div>' +
         '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr>' +
@@ -2511,16 +2493,12 @@ function renderBalance() {
         '<th style="'+THS+'text-align:right;">Ref. U$S</th>' +
         '<th style="'+THS+'"></th>' +
         '</tr></thead><tbody>'+arsRows+'</tbody></table></div>' +
-        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--amber);">$ '+Math.round(totalARS).toLocaleString('es-AR')+'</strong></span></div></div>' +
-        '</div>' +
-        // Ingresos proyectados — abajo, más compacta
-        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos proyectados</span><div style="display:flex;gap:6px;"><button class="btn btn-excel btn-sm" onclick="exportarIngresosProyectados()">Excel</button><button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div></div>' +
-        '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+THS+'text-align:left;">Descripción</th><th style="'+THS+'text-align:center;">Frecuencia</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'text-align:right;">Total U$S</th><th style="'+THS+'"></th></tr></thead><tbody>'+ingRows+'</tbody></table></div>' +
-        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--text);">U$S '+Math.round(ingProyUSD).toLocaleString('es-AR')+'</strong></span></div></div>';
+        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--amber);">$ '+Math.round(totalARS).toLocaleString('es-AR')+'</strong></span></div></div>';
 
     // Chart
     if (chartBal) chartBal.destroy();
-    var labelsB = Array.from({length:18}, function(_,i){ return mLabel(i); });
+    var cmB = curMonthOff();
+    var labelsB = Array.from({length:18}, function(_,i){ return mLabel(i); }).slice(Math.max(0,cmB));
     var allO2 = [];
     S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){ expandirIngreso(x).forEach(function(o){ allO2.push({fecha:o.fecha,montoARS:o.montoARS,realizado:o.realizado,desc:x.desc}); }); });
 
@@ -2536,12 +2514,11 @@ function renderBalance() {
                 var pagadas = p.cuotasPagadas || 0;
                 var restantes = p.cuotas - pagadas;
                 if(restantes <= 0) return;
-                // Fecha de inicio de las cuotas pendientes = fecha del pago + pagadas * frecuencia meses
+                // Fecha de inicio de las cuotas pendientes = fecha del pago + pagadas meses
                 var fechaBase = new Date(p.fecha + 'T00:00:00');
-                var _freqC = p.frecuencia || 1;
-                var fechaIniPend = new Date(fechaBase.getFullYear(), fechaBase.getMonth() + pagadas * _freqC, 1);
+                var fechaIniPend = new Date(fechaBase.getFullYear(), fechaBase.getMonth() + pagadas, 1);
                 for(var q = 0; q < restantes; q++) {
-                    var fechaCuota = new Date(fechaIniPend.getFullYear(), fechaIniPend.getMonth() + q * _freqC, 1);
+                    var fechaCuota = new Date(fechaIniPend.getFullYear(), fechaIniPend.getMonth() + q, 1);
                     var msCuota = fechaCuota.getFullYear() + '-' + String(fechaCuota.getMonth()+1).padStart(2,'0');
                     if(msCuota === ms) {
                         // Saldo de esta cuota (puede ser parcial si es la primera)
@@ -2571,130 +2548,86 @@ function renderBalance() {
         var ms=mesStr(i);
         var iRM=allO2.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms); }).reduce(function(s,o){ return s+o.montoARS; },0);
         var iPM=allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms); }).reduce(function(s,o){ return s+o.montoARS; },0);
-        var dM=S.deudas.reduce(function(s,d){ var dPag=d.pagadas||0,dRest=d.cuotas-dPag; if(dRest<=0) return s; var fi=d.fechaInicio||S.startDate,fiB=new Date(fi+'T00:00:00'),sd=new Date(fiB.getFullYear(),fiB.getMonth()+dPag,1),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=dRest) return s; return s+(d.montoARS/d.cuotas); },0);
+        var dM=S.deudas.reduce(function(s,d){ var fi=d.fechaInicio||S.startDate; if(ms<fi.substring(0,7)) return s; var sd=new Date(fi+'T00:00:00'),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return s; return s+(d.montoARS/d.cuotas); },0);
         var egrMes = egresosMes(ms, i);
         var eM = egrMes.total; // ya en USD
         cumIR+=iRM/S.tcn; cumIP+=iPM/S.tcn; cumDeu+=dM/S.tcn; cumEgr+=eM;
+        if(i<cmB) continue; // ocultar meses pasados; el acumulado ya quedo sumado arriba
         dBR.push(Math.round(iRM/S.tcn));
         dBP.push(Math.round(iPM/S.tcn));
         dBD.push(-Math.round(dM/S.tcn));
         dEgr.push(-Math.round(eM));
         // Neto acumulado = (acreditado + proyectado) - deudas Balance - egresos obra
-        dNeto.push(Math.round(cumIR + cumIP - cumEgr));
+        dNeto.push(Math.round(cumIR + cumIP - cumDeu - cumEgr));
         dBR_det.push(allO2.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms); }).map(function(o){ return {desc:o.desc,monto:Math.round(o.montoARS/S.tcn)}; }));
         dBP_det.push(allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms); }).map(function(o){ return {desc:o.desc,monto:Math.round(o.montoARS/S.tcn)}; }));
-        dBD_det.push(S.deudas.reduce(function(arr,d){ var dPag=d.pagadas||0,dRest=d.cuotas-dPag; if(dRest<=0) return arr; var fi=d.fechaInicio||S.startDate,fiB=new Date(fi+'T00:00:00'),sd=new Date(fiB.getFullYear(),fiB.getMonth()+dPag,1),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=dRest) return arr; arr.push({desc:d.desc,monto:Math.round((d.montoARS/d.cuotas)/S.tcn),cuota:dPag+ix+1,total:d.cuotas}); return arr; },[]));
+        dBD_det.push(S.deudas.reduce(function(arr,d){ var fi=d.fechaInicio||S.startDate; if(ms<fi.substring(0,7)) return arr; var sd=new Date(fi+'T00:00:00'),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=d.cuotas) return arr; arr.push({desc:d.desc,monto:Math.round((d.montoARS/d.cuotas)/S.tcn),cuota:ix+1,total:d.cuotas}); return arr; },[]));
         dEgr_det.push(egrMes.det);
     }
-    // Nuevo gráfico: línea única de saldo neto
-    // Arranca con acreditado balance (USD + neto pesos dolarizado)
-    // Cada mes: + ingresos proyectados del mes - pagos pendientes del mes (USD + ARS dolarizado)
-    var _saldoInicial = ingRealUSD;
-    var dNetoSaldo = [];
-    var _saldo = _saldoInicial;
-    for(var ni=0;ni<18;ni++){
-        var msni=mesStr(ni);
-        var iPMni = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(msni); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-        var eMni = egresosMes(msni, ni).total;
-        _saldo += iPMni - eMni;
-        dNetoSaldo.push(Math.round(_saldo));
-    }
-
     chartBal = new Chart(document.getElementById('chartBal').getContext('2d'),{
-        type:'line',
+        type:'bar',
         data:{labels:labelsB,datasets:[
-            {label:'Saldo neto',data:dNetoSaldo,
-             borderColor:'#3ECF8E',
-             backgroundColor:'rgba(62,207,142,.08)',
-             segment:{borderColor:function(ctx){ return ctx.p0.parsed.y<0?'#F56565':'#3ECF8E'; },
-                      backgroundColor:function(ctx){ return ctx.p0.parsed.y<0?'rgba(245,101,101,.06)':'rgba(62,207,142,.08)'; }},
-             pointBackgroundColor:dNetoSaldo.map(function(v){ return v<0?'#F56565':'#3ECF8E'; }),
-             pointBorderColor:dNetoSaldo.map(function(v){ return v<0?'#F56565':'#3ECF8E'; }),
-             pointRadius:4, borderWidth:2.5, tension:.35, fill:true, order:1}
+            {label:'Acreditado',data:dBR,backgroundColor:'rgba(62,207,142,.5)',borderColor:'#3ECF8E',borderWidth:1,borderRadius:3,order:3},
+            {label:'Proyectado',data:dBP,backgroundColor:'rgba(76,142,245,.28)',borderColor:'#4C8EF5',borderWidth:1,borderRadius:3,order:4},
+            {label:'Deudas Balance',data:dBD,backgroundColor:'rgba(245,101,101,.35)',borderColor:'#F56565',borderWidth:1,borderRadius:3,order:5},
+            {label:'Pagos Obra',data:dEgr,backgroundColor:'rgba(245,166,35,.45)',borderColor:'#F5A623',borderWidth:1,borderRadius:3,order:6},
+            {label:'Neto acumulado',data:dNeto,type:'line',
+                borderColor:function(ctx){ return ctx.p0&&ctx.p0.parsed&&ctx.p0.parsed.y<0?'#F56565':'#3ECF8E'; },
+                segment:{borderColor:function(ctx){ return ctx.p0.parsed.y<0?'#F56565':'#3ECF8E'; }},
+                pointBackgroundColor:dNeto.map(function(v){ return v<0?'#F56565':'#3ECF8E'; }),
+                pointBorderColor:dNeto.map(function(v){ return v<0?'#F56565':'#3ECF8E'; }),
+                backgroundColor:'rgba(245,101,101,.04)',tension:.4,pointRadius:4,borderWidth:2.5,fill:false,order:1}
         ]},
         options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-        plugins:{legend:{display:false},tooltip:{callbacks:{
-            title:function(items){ return items[0].label; },
-            label:function(item){
-                var v=Math.round(item.raw);
-                return 'Saldo: '+(v<0?'-':'')+'U$S '+Math.abs(v).toLocaleString('es-AR');
+        plugins:{legend:{display:false},tooltip:{enabled:false,external:function(ctx){
+            var el=document.getElementById('balTip');
+            if(!el){ el=document.createElement('div'); el.id='balTip';
+                el.style.cssText='position:fixed;z-index:9999;pointer-events:none;opacity:0;transition:opacity .15s;background:rgba(15,17,23,.97);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:14px 18px;min-width:300px;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:DM Sans,sans-serif;font-size:13px;';
+                document.body.appendChild(el);
             }
-        }}},
-        scales:{
-            x:{ticks:{color:'#565C7A',font:{size:9},maxRotation:45,autoSkip:false},grid:{color:'rgba(255,255,255,.03)'}},
-            y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){ var a=Math.abs(v); return (v<0?'-':'')+'U$S '+(a>=1000?Math.round(a/1000)+'k':Math.round(a)); }},
-               grid:{color:'rgba(255,255,255,.04)'},
-               afterDataLimits:function(axis){ var r=axis.max-axis.min; axis.min-=r*.04; axis.max+=r*.04; }}
-        }}
-    });
-
-    // Gráfico 2 — Ingresos vs Egresos mensuales (barras agrupadas)
-    setTimeout(function(){
-        if(window.chartBalIngEgr && typeof window.chartBalIngEgr.destroy === 'function') window.chartBalIngEgr.destroy();
-        var dIngMes=[], dEgrMes=[], dIngDet=[], dEgrDet=[];
-        for(var ji=0;ji<18;ji++){
-            var msji=mesStr(ji);
-            // Ingresos
-            var ingDetMes=[];
-            var ingMesVal = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(msji); }).reduce(function(s,o){ ingDetMes.push({desc:o.desc,monto:Math.round(o.montoARS/S.tcn)}); return s+o.montoARS/S.tcn; },0);
-            if(ji===0){ ingMesVal += ingRealUSD; ingDetMes.unshift({desc:'Acreditado Balance',monto:Math.round(ingRealUSD)}); }
-            dIngMes.push(Math.round(ingMesVal));
-            dIngDet.push(ingDetMes);
-            // Egresos
-            var egrRes=egresosMes(msji, ji);
-            dEgrMes.push(Math.round(egrRes.total));
-            dEgrDet.push(egrRes.det);
-        }
-        var canvIE = document.getElementById('chartBalIngEgr');
-        if(!canvIE) return;
-        window.chartBalIngEgr = new Chart(canvIE.getContext('2d'),{
-            type:'bar',
-            data:{labels:labelsB,datasets:[
-                {label:'Ingresos',data:dIngMes,backgroundColor:'rgba(62,207,142,.6)',borderColor:'#3ECF8E',borderWidth:1,borderRadius:3},
-                {label:'Egresos', data:dEgrMes,backgroundColor:'rgba(245,101,101,.5)',borderColor:'#F56565',borderWidth:1,borderRadius:3}
-            ]},
-            options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'nearest',intersect:true},
-            plugins:{legend:{display:false},tooltip:{enabled:false,external:function(ctx){
-                var el=document.getElementById('balIETip');
-                if(!el){ el=document.createElement('div'); el.id='balIETip';
-                    el.style.cssText='position:fixed;z-index:9999;pointer-events:none;opacity:0;transition:opacity .15s;background:rgba(15,17,23,.97);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:14px 18px;min-width:220px;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:DM Sans,sans-serif;font-size:13px;';
-                    document.body.appendChild(el);
-                }
-                var tip=ctx.tooltip;
-                if(!tip||tip.opacity===0){ el.style.opacity='0'; return; }
-                var dp=tip.dataPoints&&tip.dataPoints[0]; if(!dp) return;
-                var idx=dp.dataIndex, dsIdx=dp.datasetIndex;
-                var isIng=dsIdx===0;
-                var color=isIng?'#3ECF8E':'#F56565';
-                var label=isIng?'Ingresos':'Egresos';
-                var total=Math.round(dp.raw);
-                var dets=isIng?dIngDet[idx]:dEgrDet[idx];
-                var html='<div style="font-size:12px;font-weight:700;color:#E8EAF2;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08);">'+tip.title[0]+' · '+label+'</div>';
-                html+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#8B90A8;">Total</span><span style="font-family:DM Mono,monospace;font-weight:700;color:'+color+';">U$S '+total.toLocaleString('es-AR')+'</span></div>';
-                if(dets&&dets.length){
-                    html+='<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:8px;">';
-                    dets.forEach(function(d){
-                        var name=d.desc+(d.cuota?' <span style="color:#565C7A;">(c.'+d.cuota+'/'+d.totalCuotas+')</span>':'');
-                        html+='<div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:4px;">';
-                        html+='<span style="color:#6B7094;font-size:12px;">'+name+'</span>';
-                        html+='<span style="font-family:DM Mono,monospace;font-size:12px;color:#8B90A8;white-space:nowrap;">U$S '+d.monto.toLocaleString('es-AR')+'</span>';
-                        html+='</div>';
-                    });
+            var tip=ctx.tooltip;
+            if(!tip||tip.opacity===0){ el.style.opacity='0'; return; }
+            var dsColors=['#3ECF8E','#4C8EF5','#F56565','#F5A623','#3ECF8E'];
+            var html='<div style="font-size:12px;font-weight:700;color:#E8EAF2;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.08);">'+( tip.title&&tip.title[0]?tip.title[0]:'' )+'</div>';
+            tip.dataPoints.forEach(function(dp){
+                var dsIdx=dp.datasetIndex, idx=dp.dataIndex;
+                var v=Math.round(Math.abs(dp.raw));
+                if(v===0) return;
+                var lbl=['Acreditado','Proyectado','Deudas Balance','Pagos Obra','Neto acumulado'][dsIdx]||dp.dataset.label;
+                var prefix = (dsIdx===4 && dp.raw<0) ? '−' : (dsIdx>=2&&dsIdx<=3?'−':'');
+                html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
+                var tipColor = dsIdx===4?(dp.raw<0?'#F56565':'#3ECF8E'):dsColors[dsIdx];
+                html+='<span style="width:9px;height:9px;border-radius:2px;background:'+tipColor+';flex-shrink:0;display:inline-block;"></span>';
+                html+='<span style="color:#8B90A8;flex:1;">'+lbl+'</span>';
+                html+='<span style="font-family:DM Mono,monospace;font-weight:600;color:'+(dsIdx===4?(dp.raw<0?'#F56565':'#3ECF8E'):'#E8EAF2')+'">'+prefix+'U$S '+v.toLocaleString('es-AR')+'</span>';
+                html+='</div>';
+                var dets=[];
+                if(dsIdx===1&&dBP_det[idx]) dets=dBP_det[idx];
+                if(dsIdx===2&&dBD_det[idx]) dets=dBD_det[idx];
+                if(dsIdx===3&&dEgr_det[idx]) dets=dEgr_det[idx];
+                dets.forEach(function(d){
+                    var name=dsIdx===2
+                        ? d.desc+' <span style="color:#565C7A;">(c.'+d.cuota+'/'+d.total+')</span>'
+                        : dsIdx===3&&d.cuota
+                            ? d.desc+' <span style="color:#565C7A;">(c.'+d.cuota+'/'+d.totalCuotas+')</span>'
+                            : d.desc;
+                    html+='<div style="display:flex;align-items:baseline;gap:6px;padding:2px 0 2px 17px;">';
+                    html+='<span style="color:#565C7A;flex-shrink:0;">·</span>';
+                    html+='<span style="color:#6B7094;flex:1;">'+name+'</span>';
+                    html+='<span style="font-family:DM Mono,monospace;font-size:12px;color:#8B90A8;">U$S '+d.monto.toLocaleString('es-AR')+'</span>';
                     html+='</div>';
-                }
-                el.innerHTML=html; el.style.opacity='1';
-                var rect=ctx.chart.canvas.getBoundingClientRect();
-                var tx=rect.left+tip.caretX+16, ty=rect.top+tip.caretY-el.offsetHeight/2;
-                if(tx+el.offsetWidth>window.innerWidth-10) tx=rect.left+tip.caretX-el.offsetWidth-16;
-                if(ty<10) ty=10;
-                el.style.left=tx+'px'; el.style.top=ty+'px';
-            }}},
-            scales:{
-                x:{ticks:{color:'#565C7A',font:{size:9},maxRotation:45,autoSkip:false},grid:{color:'rgba(255,255,255,.03)'}},
-                y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){ return 'U$S '+(v>=1000?Math.round(v/1000)+'k':Math.round(v)); }},grid:{color:'rgba(255,255,255,.04)'}}
-            }}
-        });
-    }, 50);
+                });
+                if(dets.length) html+='<div style="height:6px;"></div>';
+            });
+            el.innerHTML=html; el.style.opacity='1';
+            var rect=ctx.chart.canvas.getBoundingClientRect();
+            var tx=rect.left+tip.caretX+16, ty=rect.top+tip.caretY-el.offsetHeight/2;
+            if(tx+el.offsetWidth>window.innerWidth-10) tx=rect.left+tip.caretX-el.offsetWidth-16;
+            if(ty<10) ty=10;
+            el.style.left=tx+'px'; el.style.top=ty+'px';
+        }}},
+        scales:{x:{ticks:{color:'#565C7A',font:{size:9},maxRotation:45,autoSkip:false},grid:{color:'rgba(255,255,255,.03)'}},y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){ var a=Math.abs(v); return (v<0?'-':'')+'U$S '+(a>=1000?Math.round(a/1000)+'k':Math.round(a)); }},grid:{color:'rgba(255,255,255,.04)'},afterDataLimits:function(axis){ if(axis.min>0) axis.min=0; }}}}
+    });
 }
 
 function openNewBalARS(){
@@ -3171,43 +3104,6 @@ function exportarExcel(){
     XLSX.writeFile(wb,'control-obra-'+new Date().toISOString().split('T')[0]+'.xlsx');
 }
 
-function exportarIngresosProyectados(){
-    var wb = XLSX.utils.book_new();
-    var rows = [['Descripción','Fecha inicio','Fecha hasta','Periodicidad','Moneda','Monto por ocurrencia (USD)','N° ocurrencias','Total USD','Realizado']];
-    S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){
-        var ocurr = expandirIngreso(x);
-        var nOcurr = ocurr.length;
-        var montoUSD = Math.round(x.montoARS / S.tcn);
-        var totalUSD = Math.round(x.montoARS * nOcurr / S.tcn);
-        rows.push([
-            x.desc||'',
-            x.fecha||'',
-            x.fechaHasta||'',
-            x.periodicidad||'unico',
-            'USD',
-            montoUSD,
-            nOcurr,
-            totalUSD,
-            x.realizado ? 'Sí' : 'No'
-        ]);
-    });
-    // Detalle de ocurrencias mes a mes
-    var rowsDet = [['','Descripción','Fecha','Monto USD','Realizado']];
-    S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){
-        expandirIngreso(x).forEach(function(o){
-            rowsDet.push(['', x.desc||'', o.fecha, Math.round(o.montoARS/S.tcn), o.realizado?'Sí':'No']);
-        });
-        rowsDet.push(['','','','','']);
-    });
-    var ws1 = XLSX.utils.aoa_to_sheet(rows);
-    ws1['!cols'] = [{wch:35},{wch:12},{wch:12},{wch:14},{wch:8},{wch:24},{wch:14},{wch:12},{wch:10}];
-    var ws2 = XLSX.utils.aoa_to_sheet(rowsDet);
-    ws2['!cols'] = [{wch:4},{wch:35},{wch:12},{wch:12},{wch:10}];
-    XLSX.utils.book_append_sheet(wb, ws1, 'Resumen');
-    XLSX.utils.book_append_sheet(wb, ws2, 'Detalle ocurrencias');
-    XLSX.writeFile(wb, 'ingresos-proyectados-'+new Date().toISOString().split('T')[0]+'.xlsx');
-}
-
 // ═══════════════════════════════════════
 // DRAG & DROP
 // ═══════════════════════════════════════
@@ -3236,8 +3132,8 @@ function makeDraggable(listId, arr, renderFn, dbTable){
 // NAVIGATION
 // ═══════════════════════════════════════
 var curPage = 'resumen';
-var PAGE_TITLES = {resumen:'Resumen general',pagos:'Pagos',balance:'Balance personal',notas:'Presupuesto',config:'Configuración'};
-var PAGE_ORDER  = ['resumen','pagos','balance','notas','config'];
+var PAGE_TITLES = {resumen:'Resumen general',etapas:'Etapas de obra',pagos:'Pagos',balance:'Balance personal',notas:'Presupuesto',config:'Configuración'};
+var PAGE_ORDER  = ['resumen','etapas','pagos','balance','notas','config'];
 
 function goTo(page){
     curPage=page;
@@ -3251,6 +3147,7 @@ function goTo(page){
 
 function renderCurrent(){
     if(curPage==='resumen') renderResumen();
+    else if(curPage==='etapas') renderEtapas();
     else if(curPage==='rubros') renderRubros();
     else if(curPage==='pagos') renderPagos();
     else if(curPage==='balance') renderBalance();
