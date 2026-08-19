@@ -620,6 +620,7 @@ function renderAlerts() {
 var chartMens = null;
 function renderResumen() {
     var pd=totalPagadoARS(), pe=totalPendienteARS(), cm=curMonthOff();
+    var mesesRestantes = Math.max(0, 18-cm);
     var etapasActivas = S.etapas.filter(function(e){ return !e.finalizado; });
     var avFisico = etapasActivas.length ? Math.round(etapasActivas.reduce(function(s,e){ return s+e.avance; },0)/etapasActivas.length) : 0;
     var etapaRows = S.etapas.filter(function(e){ return !e.finalizado; }).map(function(e) {
@@ -671,7 +672,7 @@ function renderResumen() {
         '<img src="Casa.jpeg" alt="Casa" style="width:100%;height:100%;object-fit:cover;object-position:center 50%;display:block;" onerror="this.parentElement.style.display=\'none\'">' +
         '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(8,10,18,.85));"></div>' +
         '<div style="position:absolute;bottom:0;left:0;right:0;padding:18px 22px;display:flex;justify-content:space-between;align-items:flex-end;">' +
-        '<div><div style="font-size:20px;font-weight:700;color:#fff;letter-spacing:.01em;">Control de Obra</div><div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:3px;">Proyecto en curso</div></div>' +
+        '<div><div style="font-size:20px;font-weight:700;color:#fff;letter-spacing:.01em;">Control de Obra</div><div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:3px;display:flex;align-items:center;gap:7px;">Proyecto en curso<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(76,142,245,.25);border:1px solid rgba(76,142,245,.4);color:#9CC2FA;font-weight:600;padding:2px 8px;border-radius:20px;font-size:11px;">'+mesesRestantes+' '+(mesesRestantes===1?'mes restante':'meses restantes')+'</span></div></div>' +
         '<div style="display:flex;gap:16px;">' +
         '<div style="text-align:right;"><div style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.05em;">Pagado</div><div style="font-size:16px;font-weight:700;font-family:DM Mono,monospace;color:#3ECF8E;">U$S '+totalPagadoUSD.toLocaleString('es-AR')+'</div></div>' +
         '<div style="text-align:right;"><div style="font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.05em;">A pagar</div><div style="font-size:16px;font-weight:700;font-family:DM Mono,monospace;color:#F5A623;">U$S '+totalAPagarUSD.toLocaleString('es-AR')+'</div></div>' +
@@ -2302,6 +2303,7 @@ async function deletePago(id){ if(!confirm('Eliminar este pago?')) return; setSa
 // ═══════════════════════════════════════
 var chartBal = null;
 function renderBalance() {
+    var cmB = curMonthOff();
     var PLABELS = {'unico':'Único','mensual':'Mensual','bimestral':'Bimestral','trimestral':'Trimestral','semestral':'Semestral','anual':'Anual'};
     var CS = 'background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;';
     var HS = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2);';
@@ -2516,7 +2518,7 @@ function renderBalance() {
 
     // Chart
     if (chartBal) chartBal.destroy();
-    var labelsB = Array.from({length:18}, function(_,i){ return mLabel(i); });
+    var labelsB = Array.from({length:18}, function(_,i){ return mLabel(i); }).slice(Math.max(0,cmB));
     var allO2 = [];
     S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){ expandirIngreso(x).forEach(function(o){ allO2.push({fecha:o.fecha,montoARS:o.montoARS,realizado:o.realizado,desc:x.desc}); }); });
 
@@ -2593,6 +2595,7 @@ function renderBalance() {
         var iPMni = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(msni); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
         var eMni = egresosMes(msni, ni).total;
         _saldo += iPMni - eMni;
+        if(ni<cmB) continue; // acumulado ya sumado; solo se grafica desde el mes en curso
         dNetoSaldo.push(Math.round(_saldo));
     }
 
@@ -2629,11 +2632,12 @@ function renderBalance() {
         if(window.chartBalIngEgr && typeof window.chartBalIngEgr.destroy === 'function') window.chartBalIngEgr.destroy();
         var dIngMes=[], dEgrMes=[], dIngDet=[], dEgrDet=[];
         for(var ji=0;ji<18;ji++){
+            if(ji<cmB) continue; // solo se grafica desde el mes en curso
             var msji=mesStr(ji);
             // Ingresos
             var ingDetMes=[];
             var ingMesVal = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(msji); }).reduce(function(s,o){ ingDetMes.push({desc:o.desc,monto:Math.round(o.montoARS/S.tcn)}); return s+o.montoARS/S.tcn; },0);
-            if(ji===0){ ingMesVal += ingRealUSD; ingDetMes.unshift({desc:'Acreditado Balance',monto:Math.round(ingRealUSD)}); }
+            if(ji===cmB){ ingMesVal += ingRealUSD; ingDetMes.unshift({desc:'Acreditado Balance',monto:Math.round(ingRealUSD)}); }
             dIngMes.push(Math.round(ingMesVal));
             dIngDet.push(ingDetMes);
             // Egresos
