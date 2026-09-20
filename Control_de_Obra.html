@@ -166,6 +166,52 @@
     ::-webkit-scrollbar-track{background:transparent;}
     ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
     @media(max-width:960px){.metrics{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}}
+
+    /* ── Balance: flujo de fondos (tabla por ítem) ── */
+    .fl-cap{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+    .fl-tw{overflow-x:auto;}
+    .fl-ends{padding:10px 16px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+    .fl-ends b{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-right:4px;}
+    .fl-pill{background:var(--red-dim);color:var(--red);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:500;white-space:nowrap;}
+    .fl-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12px;}
+    .fl-t th{font-size:10px;font-weight:600;color:var(--text3);text-align:right;padding:9px 6px;border-bottom:1px solid var(--border2);white-space:nowrap;background:var(--surface);text-transform:none;letter-spacing:0;}
+    .fl-t th.cur span{background:var(--blue);color:#fff;border-radius:4px;padding:2px 6px;}
+    .fl-t th.hoy{color:var(--blue);}
+    .fl-t th.fl-k,.fl-t td.fl-k{text-align:left;position:sticky;left:0;z-index:2;background:var(--surface);min-width:190px;max-width:190px;padding-left:16px;border-right:1px solid var(--border);}
+    .fl-t td{padding:0;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;height:44px;white-space:nowrap;}
+    .fl-t td.fl-k{font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:500;color:var(--text);white-space:normal;line-height:1.25;}
+    .fl-t td.fl-k small{display:block;font-size:10px;color:var(--text3);font-weight:400;margin-top:1px;}
+    .fl-t td.fl-m{padding:0 8px;font-size:11px;color:var(--text2);min-width:72px;}
+    .fl-t td.fl-m.fin{font-weight:600;}
+    .fl-t td.fl-m.fin.out{color:var(--red);}
+    .fl-t td.fl-m.fin.in{color:var(--green);}
+    .fl-t td.fl-c{min-width:72px;padding:0 8px;}
+    .fl-t td.fl-c b{display:block;font-weight:600;font-size:12px;line-height:1.15;}
+    .fl-t td.fl-c i{display:block;font-style:normal;font-size:9px;color:var(--text3);margin-top:2px;}
+    .fl-t td.fl-c.out.on{background:rgba(245,101,101,.10);}
+    .fl-t td.fl-c.out.on b{color:var(--red);}
+    .fl-t td.fl-c.out.last{background:rgba(245,101,101,.26);box-shadow:inset -3px 0 0 var(--red);}
+    .fl-t td.fl-c.out.last i{color:#FFB4B4;font-weight:700;}
+    .fl-t td.fl-c.in.on{background:rgba(62,207,142,.09);}
+    .fl-t td.fl-c.in.on b{color:var(--green);}
+    .fl-t td.fl-c.in.last{background:rgba(62,207,142,.24);box-shadow:inset -3px 0 0 var(--green);}
+    .fl-t td.fl-c.in.last i{color:#A9F0CF;font-weight:700;}
+    .fl-t tr.fl-sec td{height:30px;background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;text-align:left;padding-left:16px;}
+    .fl-t tr.fl-sec.in td{color:var(--green);}
+    .fl-t tr.fl-sec.out td{color:var(--red);}
+    .fl-t tr.fl-sec td.fl-k{background:var(--surface2);}
+    .fl-t tr.fl-sub td{height:36px;font-weight:700;border-top:1px solid var(--border2);}
+    .fl-t tr.fl-sub td.fl-k{font-size:11px;text-transform:uppercase;letter-spacing:.04em;}
+    .fl-t tr.fl-sub.in td.fl-v{color:var(--green);}
+    .fl-t tr.fl-sub.out td.fl-v{color:var(--red);}
+    .fl-t tr.fl-net td{height:34px;font-weight:600;}
+    .fl-t tr.fl-net td.fl-k{font-size:11px;text-transform:uppercase;letter-spacing:.04em;}
+    .fl-t tr.fl-disp td{height:44px;font-weight:700;font-size:13px;border-top:2px solid var(--border2);border-bottom:none;}
+    .fl-t tr.fl-disp td.fl-k{font-size:12px;text-transform:uppercase;letter-spacing:.04em;}
+    .fl-t td.fl-v{padding:0 8px;}
+    .fl-t td.fl-v.neg{background:var(--red-dim);color:var(--red);}
+    .fl-t td.fl-v.pos{color:var(--green);}
+    .fl-tag{display:inline-block;font-size:9px;font-weight:700;padding:0 6px;border-radius:20px;margin-left:6px;vertical-align:middle;background:var(--amber-dim);color:var(--amber);}
     </style>
 </head>
 <body>
@@ -2471,14 +2517,17 @@ function renderBalance() {
     var nAcr = S.ingresos.filter(function(x){ return x.realizado && x.moneda!=='ars'; }).length;
 
     document.getElementById('page-balance').innerHTML =
-        // Gráfico 1 — Saldo neto acumulado
-        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Saldo neto acumulado</span>' +
-        '<div style="display:flex;gap:10px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:20px;height:2px;background:#3ECF8E;margin-right:3px;vertical-align:middle;"></span>Saldo disponible</span></div>' +
-        '</div><div style="padding:14px 18px;"><div style="position:relative;width:100%;height:300px;"><canvas id="chartBal"></canvas></div></div></div>' +
-        // Gráfico 2 — Ingresos vs Egresos mensuales
-        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos vs Egresos mensuales</span>' +
-        '<div style="display:flex;gap:10px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.6);margin-right:3px;vertical-align:middle;"></span>Ingresos</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,101,101,.5);margin-right:3px;vertical-align:middle;"></span>Egresos</span></div>' +
-        '</div><div style="padding:14px 18px;"><div style="position:relative;width:100%;height:300px;"><canvas id="chartBalIngEgr"></canvas></div></div></div>' +
+        // Flujo de fondos — gráficos (entra/sale por mes + disponible al cierre)
+        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Flujo de fondos mensual</span>' +
+        '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.7);margin-right:3px;vertical-align:middle;"></span>Entra</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(245,101,101,.65);margin-right:3px;vertical-align:middle;"></span>Sale</span><span><span style="display:inline-block;width:18px;height:2px;background:#3ECF8E;margin-right:3px;vertical-align:middle;"></span>Disponible (rojo si es negativo)</span></div>' +
+        '</div><div style="padding:14px 18px 10px;">' +
+        '<div class="fl-cap">Entra vs sale por mes</div><div style="position:relative;width:100%;height:210px;"><canvas id="chartBalFlujo"></canvas></div>' +
+        '<div class="fl-cap" style="margin-top:12px;">Disponible al cierre de cada mes</div><div style="position:relative;width:100%;height:210px;"><canvas id="chartBal"></canvas></div>' +
+        '</div></div>' +
+        // Flujo de fondos — tabla por ítem
+        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Flujo por ítem · U$S</span>' +
+        '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:rgba(245,101,101,.10);margin-right:4px;vertical-align:middle;"></span>Sale</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:rgba(245,101,101,.26);box-shadow:inset -3px 0 0 #F56565;margin-right:4px;vertical-align:middle;"></span>Último pago</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:rgba(62,207,142,.09);margin-right:4px;vertical-align:middle;"></span>Entra</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:rgba(62,207,142,.24);box-shadow:inset -3px 0 0 #3ECF8E;margin-right:4px;vertical-align:middle;"></span>Último cobro</span></div>' +
+        '</div><div class="fl-ends" id="balFlujoEnds"></div><div class="fl-tw" id="balFlujoTabla"></div></div>' +
         // Dos tablas lado a lado: Acreditados | Pesos
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">' +
         // Acreditados USD
@@ -2510,183 +2559,224 @@ function renderBalance() {
         '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+THS+'text-align:left;">Descripción</th><th style="'+THS+'text-align:center;">Frecuencia</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'text-align:right;">Total U$S</th><th style="'+THS+'"></th></tr></thead><tbody>'+ingRows+'</tbody></table></div>' +
         '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--text);">U$S '+Math.round(ingProyUSD).toLocaleString('es-AR')+'</strong></span></div></div>';
 
-    // Chart
-    if (chartBal) chartBal.destroy();
-    var labelsB = Array.from({length:18}, function(_,i){ return mLabel(i); }).slice(Math.max(0,cmB));
-    var allO2 = [];
-    S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){ expandirIngreso(x).forEach(function(o){ allO2.push({fecha:o.fecha,montoARS:o.montoARS,realizado:o.realizado,desc:x.desc}); }); });
+    // ═══════════════════════════════════════════════════════════════
+    // FLUJO DE FONDOS — una sola fuente de datos para los gráficos y la tabla
+    //  · Sale  = pagos pendientes/vencidos (las cuotas se reparten por frecuencia)
+    //  · Entra = ingresos proyectados (aún no acreditados)
+    //  · Lo acreditado hoy es el punto de partida del disponible
+    // ═══════════════════════════════════════════════════════════════
+    if (chartBal) { chartBal.destroy(); chartBal = null; }
+    if (window.chartBalFlujo && typeof window.chartBalFlujo.destroy === 'function') { window.chartBalFlujo.destroy(); window.chartBalFlujo = null; }
 
-    // Pagos pendientes de obra por mes (egresos)
-    // Para cuotas: distribuir entre los meses futuros a partir de la fecha del pago
-    function egresosMes(ms, idx) {
-        var total = 0;
-        var det = [];
-        S.pagos.filter(function(p){ return p.estado !== 'pagado'; }).forEach(function(p){
-            var cot = p.cotizacion || S.tcn;
-            if(p.cuotas && p.cuotas > 1) {
-                // Cuotas: distribuir mes a mes a partir de la fecha del primer pago pendiente
-                var pagadas = p.cuotasPagadas || 0;
-                var restantes = p.cuotas - pagadas;
-                if(restantes <= 0) return;
-                // Fecha de inicio de las cuotas pendientes = fecha del pago + pagadas * frecuencia meses
-                var fechaBase = new Date(p.fecha + 'T00:00:00');
-                var _freqC = p.frecuencia || 1;
-                var fechaIniPend = new Date(fechaBase.getFullYear(), fechaBase.getMonth() + pagadas * _freqC, 1);
-                for(var q = 0; q < restantes; q++) {
-                    var fechaCuota = new Date(fechaIniPend.getFullYear(), fechaIniPend.getMonth() + q * _freqC, 1);
-                    var msCuota = fechaCuota.getFullYear() + '-' + String(fechaCuota.getMonth()+1).padStart(2,'0');
-                    if(msCuota === ms) {
-                        // Saldo de esta cuota (puede ser parcial si es la primera)
-                        var montoCuota = q === 0 && p.saldoCuotaActual != null
-                            ? (p.montoARSoriginal ? p.saldoCuotaActual / cot : p.saldoCuotaActual)
-                            : (p.montoARSoriginal ? p.montoARSoriginal / cot : p.montoUSD);
-                        total += montoCuota;
-                        det.push({desc: (p.rubro?p.rubro+' — ':'')+p.desc, monto: Math.round(montoCuota), cuota: pagadas+q+1, totalCuotas: p.cuotas});
-                    }
-                }
-            } else {
-                // Pago simple: usar su fecha
-                if(p.fecha.startsWith(ms)) {
-                    var montoUSD = p.montoARSoriginal ? p.montoARSoriginal / cot : p.montoUSD;
-                    total += montoUSD;
-                    det.push({desc: (p.rubro?p.rubro+' — ':'')+p.desc, monto: Math.round(montoUSD)});
-                }
-            }
+    var flIni = Math.max(0, cmB), flN = 18;
+    var flMs = [];
+    for (var flx = 0; flx < flN; flx++) flMs.push(mesStr(flx));
+    function flFmt(n) { return Math.round(n).toLocaleString('es-AR'); }
+    function flEsc(t) { return String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function flLbl(d) { return MO[d.getMonth()] + " '" + String(d.getFullYear()).slice(2); }
+
+    // ENTRA: ocurrencias proyectadas (no acreditadas) de cada ingreso, en U$S
+    var flEntra = [];
+    S.ingresos.filter(function(x){ return x.moneda !== 'ars'; }).forEach(function(x){
+        var occ = expandirIngreso(x); if (!occ.length) return;
+        var per = x.periodicidad || 'unico';
+        var lastF = occ[occ.length-1].fecha;
+        var it = { n: x.desc || 'Ingreso', full: x.desc || 'Ingreso', sub: (PLABELS[per] || per) + (x.nCuotas ? ' · ' + x.nCuotas + ' cuotas' : ''), tag: '', cells: {},
+                   open: (per !== 'unico' && !x.fechaHasta), endIx: flMs.indexOf(lastF.substring(0,7)),
+                   endLabel: flLbl(new Date(lastF.substring(0,7) + '-01T00:00:00')),
+                   endKey: (per !== 'unico' && !x.fechaHasta) ? 99999 : (+lastF.substring(0,4)) * 12 + (+lastF.substring(5,7)) };
+        var hayC = false;
+        occ.forEach(function(o, oi){
+            if (o.realizado) return;
+            var ix = flMs.indexOf(o.fecha.substring(0,7)); if (ix < 0) return;
+            if (!it.cells[ix]) it.cells[ix] = { v: 0, l: x.nCuotas ? 'c.' + (oi+1) + '/' + x.nCuotas : (PLABELS[per] || per).toLowerCase() };
+            it.cells[ix].v += o.montoARS / S.tcn; hayC = true;
         });
-        return {total: total, det: det};
-    }
-
-    var cumIR=0,cumIP=0,cumDeu=0,cumEgr=0;
-    var dBR=[],dBP=[],dBD=[],dEgr=[],dNeto=[];
-    var dBR_det=[],dBP_det=[],dBD_det=[],dEgr_det=[];
-    for(var i=0;i<18;i++){
-        var ms=mesStr(i);
-        var iRM=allO2.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms); }).reduce(function(s,o){ return s+o.montoARS; },0);
-        var iPM=allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms); }).reduce(function(s,o){ return s+o.montoARS; },0);
-        var dM=S.deudas.reduce(function(s,d){ var dPag=d.pagadas||0,dRest=d.cuotas-dPag; if(dRest<=0) return s; var fi=d.fechaInicio||S.startDate,fiB=new Date(fi+'T00:00:00'),sd=new Date(fiB.getFullYear(),fiB.getMonth()+dPag,1),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=dRest) return s; return s+(d.montoARS/d.cuotas); },0);
-        var egrMes = egresosMes(ms, i);
-        var eM = egrMes.total; // ya en USD
-        cumIR+=iRM/S.tcn; cumIP+=iPM/S.tcn; cumDeu+=dM/S.tcn; cumEgr+=eM;
-        dBR.push(Math.round(iRM/S.tcn));
-        dBP.push(Math.round(iPM/S.tcn));
-        dBD.push(-Math.round(dM/S.tcn));
-        dEgr.push(-Math.round(eM));
-        // Neto acumulado = (acreditado + proyectado) - deudas Balance - egresos obra
-        dNeto.push(Math.round(cumIR + cumIP - cumEgr));
-        dBR_det.push(allO2.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms); }).map(function(o){ return {desc:o.desc,monto:Math.round(o.montoARS/S.tcn)}; }));
-        dBP_det.push(allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms); }).map(function(o){ return {desc:o.desc,monto:Math.round(o.montoARS/S.tcn)}; }));
-        dBD_det.push(S.deudas.reduce(function(arr,d){ var dPag=d.pagadas||0,dRest=d.cuotas-dPag; if(dRest<=0) return arr; var fi=d.fechaInicio||S.startDate,fiB=new Date(fi+'T00:00:00'),sd=new Date(fiB.getFullYear(),fiB.getMonth()+dPag,1),td=monthDate(i); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=dRest) return arr; arr.push({desc:d.desc,monto:Math.round((d.montoARS/d.cuotas)/S.tcn),cuota:dPag+ix+1,total:d.cuotas}); return arr; },[]));
-        dEgr_det.push(egrMes.det);
-    }
-    // Nuevo gráfico: línea única de saldo neto
-    // Arranca con acreditado balance (USD + neto pesos dolarizado)
-    // Cada mes: + ingresos proyectados del mes - pagos pendientes del mes (USD + ARS dolarizado)
-    var _saldoInicial = ingRealUSD;
-    var dNetoSaldo = [];
-    var _saldo = _saldoInicial;
-    for(var ni=0;ni<18;ni++){
-        var msni=mesStr(ni);
-        var iPMni = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(msni); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-        var eMni = egresosMes(msni, ni).total;
-        _saldo += iPMni - eMni;
-        if(ni<cmB) continue; // acumulado ya sumado; solo se grafica desde el mes en curso
-        dNetoSaldo.push(Math.round(_saldo));
-    }
-
-    chartBal = new Chart(document.getElementById('chartBal').getContext('2d'),{
-        type:'line',
-        data:{labels:labelsB,datasets:[
-            {label:'Saldo neto',data:dNetoSaldo,
-             borderColor:'#3ECF8E',
-             backgroundColor:'rgba(62,207,142,.08)',
-             segment:{borderColor:function(ctx){ return ctx.p0.parsed.y<0?'#F56565':'#3ECF8E'; },
-                      backgroundColor:function(ctx){ return ctx.p0.parsed.y<0?'rgba(245,101,101,.06)':'rgba(62,207,142,.08)'; }},
-             pointBackgroundColor:dNetoSaldo.map(function(v){ return v<0?'#F56565':'#3ECF8E'; }),
-             pointBorderColor:dNetoSaldo.map(function(v){ return v<0?'#F56565':'#3ECF8E'; }),
-             pointRadius:4, borderWidth:2.5, tension:.35, fill:true, order:1}
-        ]},
-        options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-        plugins:{legend:{display:false},tooltip:{callbacks:{
-            title:function(items){ return items[0].label; },
-            label:function(item){
-                var v=Math.round(item.raw);
-                return 'Saldo: '+(v<0?'-':'')+'U$S '+Math.abs(v).toLocaleString('es-AR');
-            }
-        }}},
-        scales:{
-            x:{ticks:{color:'#565C7A',font:{size:9},maxRotation:45,autoSkip:false},grid:{color:'rgba(255,255,255,.03)'}},
-            y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){ var a=Math.abs(v); return (v<0?'-':'')+'U$S '+(a>=1000?Math.round(a/1000)+'k':Math.round(a)); }},
-               grid:{color:'rgba(255,255,255,.04)'},
-               afterDataLimits:function(axis){ var r=axis.max-axis.min; axis.min-=r*.04; axis.max+=r*.04; }}
-        }}
+        if (hayC) flEntra.push(it);
     });
 
-    // Gráfico 2 — Ingresos vs Egresos mensuales (barras agrupadas)
-    setTimeout(function(){
-        if(window.chartBalIngEgr && typeof window.chartBalIngEgr.destroy === 'function') window.chartBalIngEgr.destroy();
-        var dIngMes=[], dEgrMes=[], dIngDet=[], dEgrDet=[];
-        for(var ji=0;ji<18;ji++){
-            if(ji<cmB) continue; // solo se grafica desde el mes en curso
-            var msji=mesStr(ji);
-            // Ingresos
-            var ingDetMes=[];
-            var ingMesVal = allO2.filter(function(o){ return !o.realizado&&o.fecha.startsWith(msji); }).reduce(function(s,o){ ingDetMes.push({desc:o.desc,monto:Math.round(o.montoARS/S.tcn)}); return s+o.montoARS/S.tcn; },0);
-            if(ji===cmB){ ingMesVal += ingRealUSD; ingDetMes.unshift({desc:'Acreditado Balance',monto:Math.round(ingRealUSD)}); }
-            dIngMes.push(Math.round(ingMesVal));
-            dIngDet.push(ingDetMes);
-            // Egresos
-            var egrRes=egresosMes(msji, ji);
-            dEgrMes.push(Math.round(egrRes.total));
-            dEgrDet.push(egrRes.det);
+    // SALE: cada pago pendiente, con sus cuotas repartidas mes a mes
+    var flSale = [];
+    S.pagos.filter(function(p){ return p.estado !== 'pagado'; }).forEach(function(p){
+        var cot = p.cotizacion || S.tcn;
+        var enARS = !!p.montoARSoriginal;
+        var it = { n: p.desc || 'Pago', full: (p.rubro ? p.rubro + ' — ' : '') + (p.desc || 'Pago'), sub: p.rubro || 'Sin rubro', tag: (p.moneda === 'ars' ? '$ pesos' : ''),
+                   cells: {}, open: false, endIx: -1, endLabel: '', endKey: 0 };
+        var hayC = false;
+        if (p.cuotas && p.cuotas > 1) {
+            var pagadas = p.cuotasPagadas || 0, restantes = p.cuotas - pagadas;
+            if (restantes <= 0) return;
+            var fr = p.frecuencia || 1;
+            var fb = new Date(p.fecha + 'T00:00:00');
+            var f0 = new Date(fb.getFullYear(), fb.getMonth() + pagadas * fr, 1);
+            it.sub += ' · ' + p.cuotas + ' cuotas' + (fr > 1 ? ' c/' + fr + ' meses' : '');
+            for (var q = 0; q < restantes; q++) {
+                var fc = new Date(f0.getFullYear(), f0.getMonth() + q * fr, 1);
+                var ixc = flMs.indexOf(fc.getFullYear() + '-' + String(fc.getMonth()+1).padStart(2,'0'));
+                if (q === restantes - 1) { it.endIx = ixc; it.endLabel = flLbl(fc); it.endKey = fc.getFullYear() * 12 + fc.getMonth() + 1; }
+                if (ixc < 0) continue;
+                var mc = (q === 0 && p.saldoCuotaActual != null)
+                    ? (enARS ? p.saldoCuotaActual / cot : p.saldoCuotaActual)
+                    : (enARS ? p.montoARSoriginal / cot : p.montoUSD);
+                it.cells[ixc] = { v: mc, l: 'c.' + (pagadas + q + 1) + '/' + p.cuotas, q: pagadas + q + 1, tq: p.cuotas }; hayC = true;
+            }
+        } else {
+            var fs = new Date(p.fecha + 'T00:00:00');
+            var ixs = flMs.indexOf(p.fecha.substring(0,7));
+            it.endIx = ixs; it.endLabel = flLbl(fs); it.endKey = fs.getFullYear() * 12 + fs.getMonth() + 1;
+            if (ixs >= 0) { it.cells[ixs] = { v: (enARS ? p.montoARSoriginal / cot : p.montoUSD), l: (p.estado === 'vencido' ? 'vencido' : 'único') }; hayC = true; }
         }
-        var canvIE = document.getElementById('chartBalIngEgr');
-        if(!canvIE) return;
-        window.chartBalIngEgr = new Chart(canvIE.getContext('2d'),{
-            type:'bar',
-            data:{labels:labelsB,datasets:[
-                {label:'Ingresos',data:dIngMes,backgroundColor:'rgba(62,207,142,.6)',borderColor:'#3ECF8E',borderWidth:1,borderRadius:3},
-                {label:'Egresos', data:dEgrMes,backgroundColor:'rgba(245,101,101,.5)',borderColor:'#F56565',borderWidth:1,borderRadius:3}
+        if (hayC) flSale.push(it);
+    });
+    function flSort(a, b) { return (a.endKey - b.endKey) || a.n.localeCompare(b.n); }
+    flEntra.sort(flSort); flSale.sort(flSort);
+
+    // Totales y detalle por mes (índice 0..17 desde el inicio de la obra)
+    var flTIn = [], flTOut = [], flDetIn = [], flDetOut = [];
+    for (var flm = 0; flm < flN; flm++) { flTIn.push(0); flTOut.push(0); flDetIn.push([]); flDetOut.push([]); }
+    flEntra.forEach(function(it){ Object.keys(it.cells).forEach(function(k){ var c = it.cells[k]; flTIn[k] += c.v; flDetIn[k].push({ desc: it.full, monto: Math.round(c.v) }); }); });
+    flSale.forEach(function(it){ Object.keys(it.cells).forEach(function(k){ var c = it.cells[k]; flTOut[k] += c.v; flDetOut[k].push({ desc: it.full, monto: Math.round(c.v), cuota: c.q, totalCuotas: c.tq }); }); });
+
+    // Lo anterior al mes en curso (atrasado / sin acreditar) se arrastra al disponible, igual que antes
+    var flPrevIn = 0, flPrevOut = 0;
+    for (var flp = 0; flp < flIni && flp < flN; flp++) { flPrevIn += flTIn[flp]; flPrevOut += flTOut[flp]; }
+    var flHayPrev = (flPrevIn > 0.5 || flPrevOut > 0.5);
+    var flDisp0 = ingRealUSD;                                  // acreditado hoy
+    var flDispPrev = flDisp0 + flPrevIn - flPrevOut;
+    var flDisp = [], flRun = flDispPrev;
+    for (var fld = 0; fld < flN; fld++) { if (fld < flIni) { flDisp.push(null); continue; } flRun += flTIn[fld] - flTOut[fld]; flDisp.push(flRun); }
+
+    var flLabels = [], flDIn = [], flDOut = [], flDSaldo = [];
+    for (var flj = flIni; flj < flN; flj++) { flLabels.push(mLabel(flj)); flDIn.push(Math.round(flTIn[flj])); flDOut.push(Math.round(flTOut[flj])); flDSaldo.push(Math.round(flDisp[flj])); }
+
+    // ── Tabla por ítem ─────────────────────────────────────────────
+    var flCols = flN - flIni;
+    function flRow(it, kind) {
+        var tds = '', total = 0;
+        Object.keys(it.cells).forEach(function(k){ total += it.cells[k].v; });
+        if (flHayPrev) {
+            var pv = 0; Object.keys(it.cells).forEach(function(k){ if (+k < flIni) pv += it.cells[k].v; });
+            tds += pv > 0.5 ? '<td class="fl-c ' + kind + ' on"><b>' + flFmt(pv) + '</b><i>' + (kind === 'out' ? 'atrasado' : 'sin acreditar') + '</i></td>' : '<td class="fl-c"></td>';
+        }
+        for (var mm = flIni; mm < flN; mm++) {
+            var c = it.cells[mm];
+            if (!c) { tds += '<td class="fl-c"></td>'; continue; }
+            var isLast = !it.open && it.endIx === mm;
+            var lab = c.l || '';
+            if (isLast && /^c\./.test(lab)) lab += ' fin';
+            tds += '<td class="fl-c ' + kind + ' on' + (isLast ? ' last' : '') + '" title="' + flEsc(it.full) + ' · ' + mLabel(mm) + ': U$S ' + flFmt(c.v) + '"><b>' + flFmt(c.v) + '</b><i>' + flEsc(lab) + '</i></td>';
+        }
+        return '<tr><td class="fl-k">' + flEsc(it.n) + (it.tag ? '<span class="fl-tag">' + flEsc(it.tag) + '</span>' : '') + '<small>' + flEsc(it.sub) + '</small></td>' +
+            '<td class="fl-m' + (it.open ? '' : ' fin ' + kind) + '">' + (it.open ? 'sin fin' : it.endLabel) + '</td>' +
+            '<td class="fl-m">' + (it.open ? '—' : flFmt(total)) + '</td><td class="fl-c"></td>' + tds + '</tr>';
+    }
+    function flTotRow(label, arr, prevVal, kind) {
+        var sum = prevVal || 0; for (var a = flIni; a < flN; a++) sum += arr[a];
+        var cells = (flHayPrev ? '<td class="fl-v">' + (prevVal > 0.5 ? flFmt(prevVal) : '') + '</td>' : '');
+        for (var b = flIni; b < flN; b++) cells += '<td class="fl-v">' + (arr[b] > 0.5 ? flFmt(arr[b]) : '') + '</td>';
+        return '<tr class="fl-sub ' + kind + '"><td class="fl-k">' + label + '</td><td></td><td class="fl-v">' + flFmt(sum) + '</td><td></td>' + cells + '</tr>';
+    }
+    var flNCols = 4 + (flHayPrev ? 1 : 0) + flCols;
+    var flHead = '<thead><tr><th class="fl-k">Concepto</th><th>Termina</th><th>Total</th><th class="hoy">Hoy</th>' + (flHayPrev ? '<th>Anteriores</th>' : '') +
+        flLabels.map(function(m, i){ return '<th' + (flIni + i === cmB ? ' class="cur"><span>' + m + '</span>' : '>' + m) + '</th>'; }).join('') + '</tr></thead>';
+    var flNeto = '<tr class="fl-net"><td class="fl-k">Neto del mes</td><td></td><td></td><td></td>' +
+        (flHayPrev ? '<td class="fl-v" style="color:' + ((flPrevIn - flPrevOut) < 0 ? 'var(--red)' : 'var(--green)') + '">' + (Math.abs(flPrevIn - flPrevOut) > 0.5 ? ((flPrevIn - flPrevOut) > 0 ? '+' : '') + flFmt(flPrevIn - flPrevOut) : '') + '</td>' : '') +
+        (function(){ var h = ''; for (var n2 = flIni; n2 < flN; n2++) { var nv = flTIn[n2] - flTOut[n2]; h += '<td class="fl-v" style="color:' + (nv < 0 ? 'var(--red)' : 'var(--green)') + '">' + (Math.abs(nv) > 0.5 ? (nv > 0 ? '+' : '') + flFmt(nv) : '') + '</td>'; } return h; })() + '</tr>';
+    var flDispRow = '<tr class="fl-disp"><td class="fl-k">Disponible al cierre</td><td></td><td></td><td class="fl-v" style="color:var(--blue)">' + flFmt(flDisp0) + '</td>' +
+        (flHayPrev ? '<td class="fl-v ' + (flDispPrev < 0 ? 'neg' : 'pos') + '">' + flFmt(flDispPrev) + '</td>' : '') +
+        (function(){ var h = ''; for (var d2 = flIni; d2 < flN; d2++) h += '<td class="fl-v ' + (flDisp[d2] < 0 ? 'neg' : 'pos') + '">' + flFmt(flDisp[d2]) + '</td>'; return h; })() + '</tr>';
+    var flBody = '<tbody>' +
+        '<tr class="fl-sec in"><td class="fl-k" colspan="4">Entra</td><td colspan="' + (flNCols - 4) + '"></td></tr>' +
+        (flEntra.length ? flEntra.map(function(it){ return flRow(it, 'in'); }).join('') : '<tr><td class="fl-k" colspan="' + flNCols + '" style="color:var(--text3);font-weight:400;">Sin ingresos proyectados</td></tr>') +
+        flTotRow('Total entra', flTIn, flPrevIn, 'in') +
+        '<tr class="fl-sec out"><td class="fl-k" colspan="4">Sale</td><td colspan="' + (flNCols - 4) + '"></td></tr>' +
+        (flSale.length ? flSale.map(function(it){ return flRow(it, 'out'); }).join('') : '<tr><td class="fl-k" colspan="' + flNCols + '" style="color:var(--text3);font-weight:400;">Sin pagos pendientes</td></tr>') +
+        flTotRow('Total sale', flTOut, flPrevOut, 'out') + flNeto + flDispRow + '</tbody>';
+    var elTabla = document.getElementById('balFlujoTabla');
+    if (elTabla) elTabla.innerHTML = flCols > 0 ? '<table class="fl-t" style="min-width:' + (430 + (flCols + (flHayPrev ? 1 : 0)) * 74) + 'px;">' + flHead + flBody + '</table>' : '<div class="empty">La obra ya terminó: no quedan meses para proyectar.</div>';
+    var elEnds = document.getElementById('balFlujoEnds');
+    if (elEnds) {
+        var flFines = flSale.filter(function(it){ return !it.open; }).map(function(it){ return '<span class="fl-pill">' + flEsc(it.n) + ' → ' + it.endLabel + '</span>'; }).join('');
+        elEnds.innerHTML = flFines ? '<b>Se terminan de pagar</b>' + flFines : '';
+        if (!flFines) elEnds.style.display = 'none';
+    }
+
+    // ── Gráficos (van dentro de un setTimeout: el canvas se destruye y recrea en el mismo tick) ──
+    setTimeout(function(){
+        if (chartBal) { chartBal.destroy(); chartBal = null; }
+        if (window.chartBalFlujo && typeof window.chartBalFlujo.destroy === 'function') { window.chartBalFlujo.destroy(); window.chartBalFlujo = null; }
+        var cv1 = document.getElementById('chartBalFlujo'), cv2 = document.getElementById('chartBal');
+        if (!cv1 || !cv2 || !flLabels.length) return;
+        function flK(v) { var a = Math.abs(v); return (v < 0 ? '-' : '') + 'U$S ' + (a >= 1000 ? Math.round(a / 1000) + 'k' : Math.round(a)); }
+        function flY(extra) {
+            var o = { ticks: { color: '#8B90A8', font: { size: 10 }, callback: function(v){ return flK(v); } },
+                      grid: { color: function(c){ return c.tick.value === 0 ? 'rgba(232,234,242,.35)' : 'rgba(255,255,255,.05)'; }, lineWidth: function(c){ return c.tick.value === 0 ? 1.5 : 1; } },
+                      border: { display: false }, afterFit: function(sc){ sc.width = 64; } };
+            for (var kk in (extra || {})) o[kk] = extra[kk];
+            return o;
+        }
+        var flTip = { backgroundColor: 'rgba(15,17,23,.97)', borderColor: 'rgba(255,255,255,.14)', borderWidth: 1, padding: 12, titleColor: '#E8EAF2', bodyColor: '#C9CCDC', titleFont: { weight: '700' }, boxPadding: 4 };
+
+        // Panel 1 — Entra vs Sale por mes (tooltip con el detalle de cada ítem)
+        window.chartBalFlujo = new Chart(cv1.getContext('2d'), {
+            type: 'bar',
+            data: { labels: flLabels, datasets: [
+                { label: 'Entra', data: flDIn,  backgroundColor: 'rgba(62,207,142,.7)',  borderRadius: 4, borderSkipped: 'bottom', maxBarThickness: 22 },
+                { label: 'Sale',  data: flDOut, backgroundColor: 'rgba(245,101,101,.65)', borderRadius: 4, borderSkipped: 'bottom', maxBarThickness: 22 }
             ]},
-            options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'nearest',intersect:true},
-            plugins:{legend:{display:false},tooltip:{enabled:false,external:function(ctx){
-                var el=document.getElementById('balIETip');
-                if(!el){ el=document.createElement('div'); el.id='balIETip';
-                    el.style.cssText='position:fixed;z-index:9999;pointer-events:none;opacity:0;transition:opacity .15s;background:rgba(15,17,23,.97);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:14px 18px;min-width:220px;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:DM Sans,sans-serif;font-size:13px;';
-                    document.body.appendChild(el);
-                }
-                var tip=ctx.tooltip;
-                if(!tip||tip.opacity===0){ el.style.opacity='0'; return; }
-                var dp=tip.dataPoints&&tip.dataPoints[0]; if(!dp) return;
-                var idx=dp.dataIndex, dsIdx=dp.datasetIndex;
-                var isIng=dsIdx===0;
-                var color=isIng?'#3ECF8E':'#F56565';
-                var label=isIng?'Ingresos':'Egresos';
-                var total=Math.round(dp.raw);
-                var dets=isIng?dIngDet[idx]:dEgrDet[idx];
-                var html='<div style="font-size:12px;font-weight:700;color:#E8EAF2;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08);">'+tip.title[0]+' · '+label+'</div>';
-                html+='<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#8B90A8;">Total</span><span style="font-family:DM Mono,monospace;font-weight:700;color:'+color+';">U$S '+total.toLocaleString('es-AR')+'</span></div>';
-                if(dets&&dets.length){
-                    html+='<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:8px;">';
-                    dets.forEach(function(d){
-                        var name=d.desc+(d.cuota?' <span style="color:#565C7A;">(c.'+d.cuota+'/'+d.totalCuotas+')</span>':'');
-                        html+='<div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:4px;">';
-                        html+='<span style="color:#6B7094;font-size:12px;">'+name+'</span>';
-                        html+='<span style="font-family:DM Mono,monospace;font-size:12px;color:#8B90A8;white-space:nowrap;">U$S '+d.monto.toLocaleString('es-AR')+'</span>';
-                        html+='</div>';
-                    });
-                    html+='</div>';
-                }
-                el.innerHTML=html; el.style.opacity='1';
-                var rect=ctx.chart.canvas.getBoundingClientRect();
-                var tx=rect.left+tip.caretX+16, ty=rect.top+tip.caretY-el.offsetHeight/2;
-                if(tx+el.offsetWidth>window.innerWidth-10) tx=rect.left+tip.caretX-el.offsetWidth-16;
-                if(ty<10) ty=10;
-                el.style.left=tx+'px'; el.style.top=ty+'px';
-            }}},
-            scales:{
-                x:{ticks:{color:'#565C7A',font:{size:9},maxRotation:45,autoSkip:false},grid:{color:'rgba(255,255,255,.03)'}},
-                y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){ return 'U$S '+(v>=1000?Math.round(v/1000)+'k':Math.round(v)); }},grid:{color:'rgba(255,255,255,.04)'}}
-            }}
+            options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'nearest', intersect: true }, layout: { padding: { right: 8 } },
+                plugins: { legend: { display: false }, tooltip: { enabled: false, external: function(ctx){
+                    var el = document.getElementById('balIETip');
+                    if (!el) { el = document.createElement('div'); el.id = 'balIETip';
+                        el.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;opacity:0;transition:opacity .15s;background:rgba(15,17,23,.97);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:14px 18px;min-width:220px;max-width:380px;box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:DM Sans,sans-serif;font-size:13px;';
+                        document.body.appendChild(el);
+                    }
+                    var tip = ctx.tooltip;
+                    if (!tip || tip.opacity === 0) { el.style.opacity = '0'; return; }
+                    var dp = tip.dataPoints && tip.dataPoints[0]; if (!dp) return;
+                    var mi = flIni + dp.dataIndex, isIng = dp.datasetIndex === 0;
+                    var color = isIng ? '#3ECF8E' : '#F56565';
+                    var dets = (isIng ? flDetIn[mi] : flDetOut[mi]).slice().sort(function(a, b){ return b.monto - a.monto; });
+                    var netoM = flTIn[mi] - flTOut[mi];
+                    var html = '<div style="font-size:12px;font-weight:700;color:#E8EAF2;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08);">' + tip.title[0] + ' · ' + (isIng ? 'Entra' : 'Sale') + '</div>';
+                    html += '<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="color:#8B90A8;">Total</span><span style="font-family:DM Mono,monospace;font-weight:700;color:' + color + ';">U$S ' + Math.round(dp.raw).toLocaleString('es-AR') + '</span></div>';
+                    if (dets.length) {
+                        html += '<div style="border-top:1px solid rgba(255,255,255,.06);padding-top:8px;">';
+                        dets.forEach(function(d){
+                            var name = flEsc(d.desc) + (d.cuota ? ' <span style="color:#565C7A;">(c.' + d.cuota + '/' + d.totalCuotas + ')</span>' : '');
+                            html += '<div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:4px;"><span style="color:#6B7094;font-size:12px;">' + name + '</span><span style="font-family:DM Mono,monospace;font-size:12px;color:#8B90A8;white-space:nowrap;">U$S ' + d.monto.toLocaleString('es-AR') + '</span></div>';
+                        });
+                        html += '</div>';
+                    }
+                    html += '<div style="border-top:1px solid rgba(255,255,255,.08);margin-top:8px;padding-top:8px;font-size:12px;">' +
+                        '<div style="display:flex;justify-content:space-between;margin-bottom:3px;"><span style="color:#8B90A8;">Neto del mes</span><span style="font-family:DM Mono,monospace;color:' + (netoM < 0 ? '#F56565' : '#3ECF8E') + ';">' + (netoM < 0 ? '-' : '+') + 'U$S ' + Math.abs(Math.round(netoM)).toLocaleString('es-AR') + '</span></div>' +
+                        '<div style="display:flex;justify-content:space-between;"><span style="color:#8B90A8;">Disponible al cierre</span><span style="font-family:DM Mono,monospace;font-weight:700;color:' + (flDisp[mi] < 0 ? '#F56565' : '#E8EAF2') + ';">' + (flDisp[mi] < 0 ? '-' : '') + 'U$S ' + Math.abs(Math.round(flDisp[mi])).toLocaleString('es-AR') + '</span></div></div>';
+                    el.innerHTML = html; el.style.opacity = '1';
+                    var rect = ctx.chart.canvas.getBoundingClientRect();
+                    var tx = rect.left + tip.caretX + 16, ty = rect.top + tip.caretY - el.offsetHeight / 2;
+                    if (tx + el.offsetWidth > window.innerWidth - 10) tx = rect.left + tip.caretX - el.offsetWidth - 16;
+                    if (ty < 10) ty = 10;
+                    el.style.left = tx + 'px'; el.style.top = ty + 'px';
+                }}},
+                scales: { x: { ticks: { display: false }, grid: { display: false }, border: { color: 'rgba(255,255,255,.12)' } }, y: flY({ beginAtZero: true }) } }
+        });
+
+        // Panel 2 — Disponible al cierre de cada mes (rojo cuando pasa a negativo)
+        chartBal = new Chart(cv2.getContext('2d'), {
+            type: 'line',
+            data: { labels: flLabels, datasets: [
+                { label: 'Disponible al cierre', data: flDSaldo, borderColor: '#3ECF8E', borderWidth: 2.5, tension: .3,
+                  fill: { target: 'origin', above: 'rgba(62,207,142,.14)', below: 'rgba(245,101,101,.22)' },
+                  segment: { borderColor: function(c){ return (c.p0.parsed.y < 0 || c.p1.parsed.y < 0) ? '#F56565' : '#3ECF8E'; } },
+                  pointRadius: 4, pointBorderColor: '#181B24', pointBorderWidth: 2, pointHoverRadius: 6,
+                  pointBackgroundColor: flDSaldo.map(function(v){ return v < 0 ? '#F56565' : '#3ECF8E'; }) }
+            ]},
+            options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { display: false }, tooltip: Object.assign({}, flTip, { callbacks: {
+                    label: function(c){ var v = Math.round(c.raw); return ' Disponible:  ' + (v < 0 ? '-' : '') + 'U$S ' + Math.abs(v).toLocaleString('es-AR'); },
+                    afterBody: function(items){ var mi = flIni + items[0].dataIndex, n = Math.round(flTIn[mi] - flTOut[mi]); return ['', 'Neto del mes:  ' + (n < 0 ? '-' : '+') + 'U$S ' + Math.abs(n).toLocaleString('es-AR')]; }
+                } }) },
+                scales: { x: { offset: true, ticks: { color: '#8B90A8', font: { size: 10 }, maxRotation: 45, autoSkip: false }, grid: { display: false }, border: { color: 'rgba(255,255,255,.12)' } }, y: flY() } }
         });
     }, 50);
 }
