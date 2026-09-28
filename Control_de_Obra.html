@@ -687,8 +687,8 @@ function renderResumen() {
 
     // Acreditado en pesos, dolarizado, para los 3 recuadros de Balance en Resumen.
     // Los pagos en pesos pendientes NO se restan acá: ya se cuentan como Egreso mes a mes más abajo (evita duplicarlos).
-    var _acredPesosR = S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0);
-    var netoARSusd2 = Math.round(_acredPesosR / S.tcn);
+    // Cada ingreso en pesos se dolariza con SU cotización (misma que la columna "Ref. U$S"); TCN general solo si no tiene.
+    var netoARSusd2 = Math.round(S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS/(x.cotizacion||S.tcn); },0));
 
     // Total pagado: USD directo + ARS dolarizado con cotización del día de pago
     var _pagUSD = S.pagos.filter(function(p){ return p.estado==='pagado' && p.moneda!=='ars'; }).reduce(function(s,p){ return s+(p.montoARS/(p.cotizacion||S.tcn)); },0);
@@ -1049,8 +1049,8 @@ function renderPagos(){
 
     // Acreditado en pesos, dolarizado — disponible en todo el scope de renderPagos.
     // Los pagos en pesos pendientes (kpiPendARSpesos) NO se restan acá: ya se cuentan como Egreso mes a mes en Balance (evita duplicarlos).
-    var _acredPesosOuter = Math.round(S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0));
-    var netoARSusd = Math.round(_acredPesosOuter / S.tcn);
+    // Cada ingreso en pesos se dolariza con SU cotización (misma que la columna "Ref. U$S"); TCN general solo si no tiene.
+    var netoARSusd = Math.round(S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS/(x.cotizacion||S.tcn); },0));
 
     document.getElementById('page-pagos').innerHTML =
         // Barra superior
@@ -2360,8 +2360,8 @@ function renderBalance() {
 
     // Acreditado en pesos, dolarizado. Los pagos en pesos pendientes NO se restan acá: ya se cuentan
     // como Egreso mes a mes más abajo (restarlos también acá los duplicaba en Balance neto y en los gráficos).
-    var _acreditadoPesosBAL = S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0);
-    var netoPesosUSD = Math.round(_acreditadoPesosBAL / S.tcn);
+    // Cada ingreso en pesos se dolariza con SU cotización (misma que la columna "Ref. U$S"); TCN general solo si no tiene.
+    var netoPesosUSD = Math.round(S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS/(x.cotizacion||S.tcn); },0));
     ingRealUSD += netoPesosUSD;
 
     // Egresos totales: deudas Balance + pagos obra pendientes
