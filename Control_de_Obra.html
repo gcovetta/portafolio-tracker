@@ -211,6 +211,15 @@
     .fl-t td.fl-v{padding:0 8px;}
     .fl-t td.fl-v.neg{background:var(--red-dim);color:var(--red);}
     .fl-t td.fl-v.pos{color:var(--green);}
+    .hm-t{border-collapse:separate;border-spacing:2px;width:100%;font-size:11px;}
+    .hm-t th{font-size:10px;font-weight:600;color:var(--text3);text-align:center;padding:6px 2px;white-space:nowrap;}
+    .hm-t th.cur span{background:var(--blue);color:#fff;border-radius:4px;padding:2px 6px;}
+    .hm-t th.hm-k,.hm-t td.hm-k{text-align:left;position:sticky;left:0;z-index:2;background:var(--surface);min-width:170px;max-width:170px;padding:0 10px 0 16px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .hm-t td{height:30px;min-width:52px;border-radius:5px;text-align:center;font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:var(--text2);background:var(--surface2);}
+    .hm-t td.hm-0{background:transparent;color:var(--text3);font-weight:400;}
+    .hm-t tr.hm-sec td{height:24px;background:transparent;text-align:left;padding-left:16px;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
+    .hm-t tr.hm-sep td{height:6px;background:transparent;}
+    .hm-t tr.hm-tot td.hm-k{font-size:11px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
     .fl-tag{display:inline-block;font-size:9px;font-weight:700;padding:0 6px;border-radius:20px;margin-left:6px;vertical-align:middle;background:var(--amber-dim);color:var(--amber);}
     </style>
 </head>
@@ -2524,6 +2533,10 @@ function renderBalance() {
         '<div class="fl-cap">Entra vs sale por mes</div><div style="position:relative;width:100%;height:210px;"><canvas id="chartBalFlujo"></canvas></div>' +
         '<div class="fl-cap" style="margin-top:12px;">Disponible al cierre de cada mes</div><div style="position:relative;width:100%;height:210px;"><canvas id="chartBal"></canvas></div>' +
         '</div></div>' +
+        // Flujo de fondos — mapa de calor por ítem (prueba para comparar con la tabla)
+        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Mapa de calor por ítem · U$S</span>' +
+        '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);flex-wrap:wrap;align-items:center;"><span>Intensidad = monto</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:linear-gradient(90deg,rgba(62,207,142,.15),rgba(62,207,142,.9));margin-right:4px;vertical-align:middle;"></span>Entra</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:linear-gradient(90deg,rgba(245,101,101,.15),rgba(245,101,101,.9));margin-right:4px;vertical-align:middle;"></span>Sale</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:var(--surface2);box-shadow:inset -3px 0 0 #E8EAF2;margin-right:4px;vertical-align:middle;"></span>Último mes</span></div>' +
+        '</div><div class="fl-tw" id="balHeat" style="padding:6px 0 10px;"></div></div>' +
         // Flujo de fondos — tabla por ítem
         '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Flujo por ítem · U$S</span>' +
         '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:rgba(245,101,101,.10);margin-right:4px;vertical-align:middle;"></span>Sale</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:rgba(245,101,101,.26);box-shadow:inset -3px 0 0 #F56565;margin-right:4px;vertical-align:middle;"></span>Último pago</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:rgba(62,207,142,.09);margin-right:4px;vertical-align:middle;"></span>Entra</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:rgba(62,207,142,.24);box-shadow:inset -3px 0 0 #3ECF8E;margin-right:4px;vertical-align:middle;"></span>Último cobro</span></div>' +
@@ -2699,6 +2712,43 @@ function renderBalance() {
         var flFines = flSale.filter(function(it){ return !it.open; }).map(function(it){ return '<span class="fl-pill">' + flEsc(it.n) + ' → ' + it.endLabel + '</span>'; }).join('');
         elEnds.innerHTML = flFines ? '<b>Se terminan de pagar</b>' + flFines : '';
         if (!flFines) elEnds.style.display = 'none';
+    }
+
+    // ── Mapa de calor por ítem (mismos datos que la tabla) ─────────
+    var elHeat = document.getElementById('balHeat');
+    if (elHeat) {
+        var hmMax = 1, hmNetMax = 1;
+        flEntra.concat(flSale).forEach(function(it){ Object.keys(it.cells).forEach(function(k){ if (+k >= flIni && it.cells[k].v > hmMax) hmMax = it.cells[k].v; }); });
+        for (var hmn = flIni; hmn < flN; hmn++) { var hmnv = Math.abs(flTIn[hmn] - flTOut[hmn]); if (hmnv > hmNetMax) hmNetMax = hmnv; }
+        function hmK(v) { var a = Math.abs(v), t = a >= 1000 ? (a / 1000).toFixed(a >= 10000 ? 0 : 1).replace('.', ',') + 'k' : String(Math.round(a)); return (v < 0 ? '-' : '') + t; }
+        function hmCell(v, max, rgb, last, title) {
+            if (!v || Math.abs(v) < 0.5) return '<td class="hm-0">·</td>';
+            var al = 0.14 + 0.76 * Math.sqrt(Math.min(Math.abs(v) / max, 1));
+            var st = 'background:rgba(' + rgb + ',' + al.toFixed(2) + ');color:' + (al > 0.55 ? '#0F1117' : 'var(--text)') + ';' + (last ? 'box-shadow:inset -3px 0 0 #E8EAF2;' : '');
+            return '<td style="' + st + '" title="' + flEsc(title) + '">' + hmK(v) + '</td>';
+        }
+        function hmRow(it, rgb) {
+            var h = '<tr><td class="hm-k" title="' + flEsc(it.full) + (it.open ? ' · sin fin' : ' · termina ' + it.endLabel) + '">' + flEsc(it.n) + '</td>';
+            for (var hm = flIni; hm < flN; hm++) { var c = it.cells[hm]; h += hmCell(c ? c.v : 0, hmMax, rgb, !it.open && it.endIx === hm, it.full + ' · ' + mLabel(hm) + (c ? ': U$S ' + flFmt(c.v) : '')); }
+            return h + '</tr>';
+        }
+        var hmCols = flN - flIni, hmSpan = hmCols + 1;
+        var hmHead = '<thead><tr><th class="hm-k"></th>' + flLabels.map(function(m, i){ return '<th' + (flIni + i === cmB ? ' class="cur"><span>' + m + '</span>' : '>' + m) + '</th>'; }).join('') + '</tr></thead>';
+        var hmNet = '<tr class="hm-tot"><td class="hm-k">Neto del mes</td>';
+        var hmDisp = '<tr class="hm-tot"><td class="hm-k">Disponible</td>';
+        for (var hmj = flIni; hmj < flN; hmj++) {
+            var hnv = flTIn[hmj] - flTOut[hmj];
+            hmNet += hmCell(hnv, hmNetMax, hnv < 0 ? '245,101,101' : '62,207,142', false, mLabel(hmj) + ' · neto U$S ' + flFmt(hnv));
+            var hdv = flDisp[hmj];
+            hmDisp += '<td style="background:transparent;color:' + (hdv < 0 ? 'var(--red)' : 'var(--text2)') + ';">' + hmK(hdv) + '</td>';
+        }
+        var hmBody = '<tbody>' +
+            '<tr class="hm-sec"><td colspan="' + hmSpan + '" style="color:var(--green);">Entra</td></tr>' +
+            (flEntra.length ? flEntra.map(function(it){ return hmRow(it, '62,207,142'); }).join('') : '<tr><td class="hm-k" style="color:var(--text3);">Sin ingresos proyectados</td></tr>') +
+            '<tr class="hm-sec"><td colspan="' + hmSpan + '" style="color:var(--red);">Sale</td></tr>' +
+            (flSale.length ? flSale.map(function(it){ return hmRow(it, '245,101,101'); }).join('') : '<tr><td class="hm-k" style="color:var(--text3);">Sin pagos pendientes</td></tr>') +
+            '<tr class="hm-sep"><td colspan="' + hmSpan + '"></td></tr>' + hmNet + '</tr>' + hmDisp + '</tr></tbody>';
+        elHeat.innerHTML = hmCols > 0 ? '<table class="hm-t" style="min-width:' + (190 + hmCols * 56) + 'px;">' + hmHead + hmBody + '</table>' : '';
     }
 
     // ── Gráficos (van dentro de un setTimeout: el canvas se destruye y recrea en el mismo tick) ──
