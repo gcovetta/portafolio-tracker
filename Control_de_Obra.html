@@ -1876,9 +1876,9 @@ function renderBalance() {
         '<div class="fl-cap" style="margin-top:12px;">Disponible al cierre de cada mes</div><div style="position:relative;width:100%;height:210px;"><canvas id="chartBal"></canvas></div>' +
         '</div></div>' +
         // Flujo de fondos — mapa de calor por ítem (prueba para comparar con la tabla)
-        '<div id="secMapa" style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Mapa de calor por ítem · U$S</span>' +
+        '<div id="secMapa" class="pg-card'+((window._pgOpen && window._pgOpen.mapaShow)?'':' pg-shut')+'" style="'+CS+'margin-bottom:14px;"><div onclick="pgShut(this,\'mapa\')" style="'+HS+'cursor:pointer;"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);"><span class="pg-chev" style="display:inline-block;margin-right:6px;transition:transform .15s;">▾</span>Mapa de calor por ítem · U$S</span>' +
         '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);flex-wrap:wrap;align-items:center;"><span>Intensidad = monto</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:linear-gradient(90deg,rgba(62,207,142,.15),rgba(62,207,142,.9));margin-right:4px;vertical-align:middle;"></span>Entra</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:linear-gradient(90deg,rgba(245,101,101,.15),rgba(245,101,101,.9));margin-right:4px;vertical-align:middle;"></span>Sale</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:var(--surface2);box-shadow:inset -3px 0 0 #E8EAF2;margin-right:4px;vertical-align:middle;"></span>Último mes</span></div>' +
-        '</div><div class="fl-tw" id="balHeat" style="padding:6px 0 10px;"></div></div>' +
+        '</div><div class="pg-body"><div class="fl-tw" id="balHeat" style="padding:6px 0 10px;"></div></div></div>' +
         '';
     // Ingresos acreditados + en pesos: compactos, apilados al lado de "Gasto mensual" en el Resumen
     var ingHtml =
@@ -2332,7 +2332,7 @@ var PAGE_ORDER  = ['resumen','config'];
 function qGo(id){
     if (id === 'top') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     var el = document.getElementById(id); if (!el) return;
-    var card = el.querySelector('.pg-card.pg-shut'); if (card) { var hdr = card.firstElementChild; if (hdr && hdr.onclick) hdr.onclick(); }
+    var card = el.classList.contains('pg-shut') ? el : el.querySelector('.pg-card.pg-shut'); if (card) { var hdr = card.firstElementChild; if (hdr && hdr.onclick) hdr.onclick(); }
     if (el.tagName === 'DETAILS') el.open = true;
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
