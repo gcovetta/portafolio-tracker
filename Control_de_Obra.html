@@ -1185,97 +1185,6 @@ function renderPagos(){
             );
         })() +
 
-        // ── Separador Balance ───────────────────────────────────────
-        (function(){
-            var _allO = []; S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){ expandirIngreso(x).forEach(function(o){ _allO.push(o); }); });
-            var _acrUSD  = _allO.filter(function(o){ return o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0) + netoARSusd;
-            var _proyUSD = _allO.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-            var _deuUSD  = S.deudas.reduce(function(s,d){ return s+(d.montoARS*(d.cuotas-d.pagadas)/d.cuotas); },0)/S.tcn;
-            var _pagPendUSD = 0;
-            S.pagos.filter(function(p){ return p.estado!=='pagado'; }).forEach(function(p){
-                var cot=p.cotizacion||S.tcn;
-                if(p.cuotas&&p.cuotas>1){
-                    var rest=p.cuotas-(p.cuotasPagadas||0);
-                    if(rest<=0) return;
-                    var saldo=p.saldoCuotaActual!=null?(p.montoARSoriginal?p.saldoCuotaActual/cot:p.saldoCuotaActual):(p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD);
-                    _pagPendUSD += saldo + (rest-1)*(p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD);
-                } else {
-                    _pagPendUSD += p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD;
-                }
-            });
-            var _neto = _acrUSD+_proyUSD-_pagPendUSD;
-            var _isPos = _neto>=0;
-            // Función local de egresos por mes (replica _egresosMesKPI de Balance)
-            function _egrMesPag(ms){
-                var total=0;
-                S.pagos.filter(function(p){ return p.estado!=='pagado'; }).forEach(function(p){
-                    var cot=p.cotizacion||S.tcn;
-                    if(p.cuotas&&p.cuotas>1){
-                        var pagadas=p.cuotasPagadas||0, restantes=p.cuotas-pagadas;
-                        if(restantes<=0) return;
-                        var fechaBase=new Date(p.fecha+'T00:00:00');
-                        var _freq=p.frecuencia||1;
-                        var fechaIniPend=new Date(fechaBase.getFullYear(),fechaBase.getMonth()+pagadas*_freq,1);
-                        for(var q=0;q<restantes;q++){
-                            var fc=new Date(fechaIniPend.getFullYear(),fechaIniPend.getMonth()+q*_freq,1);
-                            var msc=fc.getFullYear()+'-'+String(fc.getMonth()+1).padStart(2,'0');
-                            if(msc===ms){
-                                var mc=q===0&&p.saldoCuotaActual!=null?(p.montoARSoriginal?p.saldoCuotaActual/cot:p.saldoCuotaActual):(p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD);
-                                total+=mc;
-                            }
-                        }
-                    } else {
-                        if(p.fecha.startsWith(ms)) total+=p.montoARSoriginal?p.montoARSoriginal/cot:p.montoUSD;
-                    }
-                });
-                return total;
-            }
-            // Meses cubiertos — solo pagos obra por mes
-            var _sal=_acrUSD, _mc=0;
-            for(var i=0;i<18;i++){
-                var ms=mesStr(i);
-                var eM=_egrMesPag(ms);
-                if(_sal>=eM){ _sal-=eM; _mc++; } else break;
-            }
-            // Mes en que neto pasa a negativo
-            var _mesQ=-1, _mesQL='', _cIR=_acrUSD, _cIP=0, _cD=0, _cE=0;
-            for(var i2=0;i2<18;i2++){
-                var ms2=mesStr(i2);
-                _cIR+=_allO.filter(function(o){ return o.realizado&&o.fecha.startsWith(ms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-                _cIP+=_allO.filter(function(o){ return !o.realizado&&o.fecha.startsWith(ms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-                _cD+=S.deudas.reduce(function(s,d){ var dPag=d.pagadas||0,dRest=d.cuotas-dPag; if(dRest<=0) return s; var fi=d.fechaInicio||S.startDate,fiB=new Date(fi+'T00:00:00'),sd=new Date(fiB.getFullYear(),fiB.getMonth()+dPag,1),td=monthDate(i2); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=dRest) return s; return s+(d.montoARS/d.cuotas/S.tcn); },0);
-                _cE+=_egrMesPag(ms2);
-                if(_cIR+_cIP-_cE<0&&_mesQ===-1){ _mesQ=i2+1; _mesQL=mLabel(i2); }
-            }
-            return (
-            '<div style="display:flex;align-items:center;gap:10px;margin:10px 0 8px;">' +
-            '<div style="flex:1;height:1px;background:var(--border);"></div>' +
-            '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);">Balance</span>' +
-            '<div style="flex:1;height:1px;background:var(--border);"></div>' +
-            '</div>' +
-            '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;">' +
-            // Meses cubiertos
-            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);">' +
-            '<div style="width:36px;height:36px;border-radius:8px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="13" rx="2" stroke="#3ECF8E" stroke-width="1.5"/><path d="M6 2v4M14 2v4M2 8h16" stroke="#3ECF8E" stroke-width="1.5" stroke-linecap="round"/></svg></div>' +
-            '<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:2px;">Meses cubiertos</div>' +
-            '<div style="font-size:20px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">'+(_mc>=18?'18+':_mc)+'<span style="font-size:11px;font-weight:500;color:var(--text3);margin-left:3px;">meses</span></div>' +
-            '<div style="font-size:10px;color:var(--text3);margin-top:1px;">con acreditado</div></div></div>' +
-            // Neto pasa a negativo
-            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;border-right:1px solid var(--border);background:'+(_mesQ===-1?'var(--green-dim)':'var(--red-dim)')+';border-color:'+(_mesQ===-1?'rgba(62,207,142,.25)':'rgba(245,101,101,.25)')+'">' +
-            '<div style="width:36px;height:36px;border-radius:8px;background:'+(_mesQ===-1?'rgba(62,207,142,.15)':'rgba(245,101,101,.15)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 3v7l4 2" stroke="'+(_mesQ===-1?'#3ECF8E':'#F56565')+'" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="10" r="8" stroke="'+(_mesQ===-1?'#3ECF8E':'#F56565')+'" stroke-width="1.5"/></svg></div>' +
-            '<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:'+(_mesQ===-1?'var(--green)':'var(--red)')+';margin-bottom:2px;">Neto negativo</div>' +
-            (_mesQ===-1?'<div style="font-size:18px;font-weight:700;font-family:DM Mono,monospace;color:var(--green);">Nunca</div>':'<div style="font-size:18px;font-weight:700;font-family:DM Mono,monospace;color:var(--red);">'+_mesQL+'<span style="font-size:10px;color:var(--red);opacity:.7;margin-left:5px;">mes '+_mesQ+'/18</span></div>') +
-            '</div></div>' +
-            // Balance neto
-            '<div style="padding:13px 15px;display:flex;align-items:center;gap:11px;background:'+(_isPos?'var(--green-dim)':'var(--red-dim)')+';border-color:'+(_isPos?'rgba(62,207,142,.3)':'rgba(245,101,101,.3)')+'">' +
-            '<div style="width:36px;height:36px;border-radius:8px;background:'+(_isPos?'rgba(62,207,142,.15)':'rgba(245,101,101,.15)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="16" height="16" viewBox="0 0 20 20" fill="'+(_isPos?'#3ECF8E':'#F56565')+'"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg></div>' +
-            '<div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:'+(_isPos?'var(--green)':'var(--red)')+';margin-bottom:2px;">Balance neto</div>' +
-            '<div style="font-size:18px;font-weight:700;font-family:DM Mono,monospace;color:'+(_isPos?'var(--green)':'var(--red)')+';">U$S '+Math.round(_neto).toLocaleString('es-AR')+'</div>' +
-            '<div style="font-size:10px;color:var(--text3);margin-top:1px;">acred.+proy.−deudas−pagos</div></div></div>' +
-            '</div>'
-            );
-        })() +
-
         // Leyenda compartida
         '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);margin-bottom:10px;">' +
         '<span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:rgba(62,207,142,.7);margin-right:4px;vertical-align:middle;"></span>Pagado</span>' +
@@ -2506,10 +2415,6 @@ function renderBalance() {
         '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Mapa de calor por ítem · U$S</span>' +
         '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);flex-wrap:wrap;align-items:center;"><span>Intensidad = monto</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:linear-gradient(90deg,rgba(62,207,142,.15),rgba(62,207,142,.9));margin-right:4px;vertical-align:middle;"></span>Entra</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:linear-gradient(90deg,rgba(245,101,101,.15),rgba(245,101,101,.9));margin-right:4px;vertical-align:middle;"></span>Sale</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:var(--surface2);box-shadow:inset -3px 0 0 #E8EAF2;margin-right:4px;vertical-align:middle;"></span>Último mes</span></div>' +
         '</div><div class="fl-tw" id="balHeat" style="padding:6px 0 10px;"></div></div>' +
-        // Flujo de fondos — tabla por ítem
-        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Flujo por ítem · U$S</span>' +
-        '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:rgba(245,101,101,.10);margin-right:4px;vertical-align:middle;"></span>Sale</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:rgba(245,101,101,.26);box-shadow:inset -3px 0 0 #F56565;margin-right:4px;vertical-align:middle;"></span>Último pago</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:rgba(62,207,142,.09);margin-right:4px;vertical-align:middle;"></span>Entra</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:rgba(62,207,142,.24);box-shadow:inset -3px 0 0 #3ECF8E;margin-right:4px;vertical-align:middle;"></span>Último cobro</span></div>' +
-        '</div><div class="fl-ends" id="balFlujoEnds"></div><div class="fl-tw" id="balFlujoTabla"></div></div>' +
         // Dos tablas lado a lado: Acreditados | Pesos
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">' +
         // Acreditados USD
@@ -2631,59 +2536,7 @@ function renderBalance() {
     var flLabels = [], flDIn = [], flDOut = [], flDSaldo = [];
     for (var flj = flIni; flj < flN; flj++) { flLabels.push(mLabel(flj)); flDIn.push(Math.round(flTIn[flj])); flDOut.push(Math.round(flTOut[flj])); flDSaldo.push(Math.round(flDisp[flj])); }
 
-    // ── Tabla por ítem ─────────────────────────────────────────────
-    var flCols = flN - flIni;
-    function flRow(it, kind) {
-        var tds = '', total = 0;
-        Object.keys(it.cells).forEach(function(k){ total += it.cells[k].v; });
-        if (flHayPrev) {
-            var pv = 0; Object.keys(it.cells).forEach(function(k){ if (+k < flIni) pv += it.cells[k].v; });
-            tds += pv > 0.5 ? '<td class="fl-c ' + kind + ' on"><b>' + flFmt(pv) + '</b><i>' + (kind === 'out' ? 'atrasado' : 'sin acreditar') + '</i></td>' : '<td class="fl-c"></td>';
-        }
-        for (var mm = flIni; mm < flN; mm++) {
-            var c = it.cells[mm];
-            if (!c) { tds += '<td class="fl-c"></td>'; continue; }
-            var isLast = !it.open && it.endIx === mm;
-            var lab = c.l || '';
-            if (isLast && /^c\./.test(lab)) lab += ' fin';
-            tds += '<td class="fl-c ' + kind + ' on' + (isLast ? ' last' : '') + '" title="' + flEsc(it.full) + ' · ' + mLabel(mm) + ': U$S ' + flFmt(c.v) + '"><b>' + flFmt(c.v) + '</b><i>' + flEsc(lab) + '</i></td>';
-        }
-        return '<tr><td class="fl-k">' + flEsc(it.n) + (it.tag ? '<span class="fl-tag">' + flEsc(it.tag) + '</span>' : '') + '<small>' + flEsc(it.sub) + '</small></td>' +
-            '<td class="fl-m' + (it.open ? '' : ' fin ' + kind) + '">' + (it.open ? 'sin fin' : it.endLabel) + '</td>' +
-            '<td class="fl-m">' + (it.open ? '—' : flFmt(total)) + '</td><td class="fl-c"></td>' + tds + '</tr>';
-    }
-    function flTotRow(label, arr, prevVal, kind) {
-        var sum = prevVal || 0; for (var a = flIni; a < flN; a++) sum += arr[a];
-        var cells = (flHayPrev ? '<td class="fl-v">' + (prevVal > 0.5 ? flFmt(prevVal) : '') + '</td>' : '');
-        for (var b = flIni; b < flN; b++) cells += '<td class="fl-v">' + (arr[b] > 0.5 ? flFmt(arr[b]) : '') + '</td>';
-        return '<tr class="fl-sub ' + kind + '"><td class="fl-k">' + label + '</td><td></td><td class="fl-v">' + flFmt(sum) + '</td><td></td>' + cells + '</tr>';
-    }
-    var flNCols = 4 + (flHayPrev ? 1 : 0) + flCols;
-    var flHead = '<thead><tr><th class="fl-k">Concepto</th><th>Termina</th><th>Total</th><th class="hoy">Hoy</th>' + (flHayPrev ? '<th>Anteriores</th>' : '') +
-        flLabels.map(function(m, i){ return '<th' + (flIni + i === cmB ? ' class="cur"><span>' + m + '</span>' : '>' + m) + '</th>'; }).join('') + '</tr></thead>';
-    var flNeto = '<tr class="fl-net"><td class="fl-k">Neto del mes</td><td></td><td></td><td></td>' +
-        (flHayPrev ? '<td class="fl-v" style="color:' + ((flPrevIn - flPrevOut) < 0 ? 'var(--red)' : 'var(--green)') + '">' + (Math.abs(flPrevIn - flPrevOut) > 0.5 ? ((flPrevIn - flPrevOut) > 0 ? '+' : '') + flFmt(flPrevIn - flPrevOut) : '') + '</td>' : '') +
-        (function(){ var h = ''; for (var n2 = flIni; n2 < flN; n2++) { var nv = flTIn[n2] - flTOut[n2]; h += '<td class="fl-v" style="color:' + (nv < 0 ? 'var(--red)' : 'var(--green)') + '">' + (Math.abs(nv) > 0.5 ? (nv > 0 ? '+' : '') + flFmt(nv) : '') + '</td>'; } return h; })() + '</tr>';
-    var flDispRow = '<tr class="fl-disp"><td class="fl-k">Disponible al cierre</td><td></td><td></td><td class="fl-v" style="color:var(--blue)">' + flFmt(flDisp0) + '</td>' +
-        (flHayPrev ? '<td class="fl-v ' + (flDispPrev < 0 ? 'neg' : 'pos') + '">' + flFmt(flDispPrev) + '</td>' : '') +
-        (function(){ var h = ''; for (var d2 = flIni; d2 < flN; d2++) h += '<td class="fl-v ' + (flDisp[d2] < 0 ? 'neg' : 'pos') + '">' + flFmt(flDisp[d2]) + '</td>'; return h; })() + '</tr>';
-    var flBody = '<tbody>' +
-        '<tr class="fl-sec in"><td class="fl-k" colspan="4">Entra</td><td colspan="' + (flNCols - 4) + '"></td></tr>' +
-        (flEntra.length ? flEntra.map(function(it){ return flRow(it, 'in'); }).join('') : '<tr><td class="fl-k" colspan="' + flNCols + '" style="color:var(--text3);font-weight:400;">Sin ingresos proyectados</td></tr>') +
-        flTotRow('Total entra', flTIn, flPrevIn, 'in') +
-        '<tr class="fl-sec out"><td class="fl-k" colspan="4">Sale</td><td colspan="' + (flNCols - 4) + '"></td></tr>' +
-        (flSale.length ? flSale.map(function(it){ return flRow(it, 'out'); }).join('') : '<tr><td class="fl-k" colspan="' + flNCols + '" style="color:var(--text3);font-weight:400;">Sin pagos pendientes</td></tr>') +
-        flTotRow('Total sale', flTOut, flPrevOut, 'out') + flNeto + flDispRow + '</tbody>';
-    var elTabla = document.getElementById('balFlujoTabla');
-    if (elTabla) elTabla.innerHTML = flCols > 0 ? '<table class="fl-t" style="min-width:' + (430 + (flCols + (flHayPrev ? 1 : 0)) * 74) + 'px;">' + flHead + flBody + '</table>' : '<div class="empty">La obra ya terminó: no quedan meses para proyectar.</div>';
-    var elEnds = document.getElementById('balFlujoEnds');
-    if (elEnds) {
-        var flFines = flSale.filter(function(it){ return !it.open; }).map(function(it){ return '<span class="fl-pill">' + flEsc(it.n) + ' → ' + it.endLabel + '</span>'; }).join('');
-        elEnds.innerHTML = flFines ? '<b>Se terminan de pagar</b>' + flFines : '';
-        if (!flFines) elEnds.style.display = 'none';
-    }
-
-    // ── Mapa de calor por ítem (mismos datos que la tabla) ─────────
+    // ── Mapa de calor por ítem ─────────
     var elHeat = document.getElementById('balHeat');
     if (elHeat) {
         var hmMax = 1;
@@ -2696,7 +2549,7 @@ function renderBalance() {
             return '<td style="' + st + '" title="' + flEsc(title) + '">' + hmK(v) + '</td>';
         }
         function hmRow(it, rgb) {
-            var h = '<tr><td class="hm-k" title="' + flEsc(it.full) + (it.open ? ' · sin fin' : ' · termina ' + it.endLabel) + '">' + flEsc(it.n) + '</td>';
+            var h = '<tr><td class="hm-k" title="' + flEsc(it.full) + (it.open ? ' · sin fin' : ' · termina ' + it.endLabel) + '">' + flEsc(it.n) + (it.tag ? '<span class="fl-tag">' + flEsc(it.tag) + '</span>' : '') + '</td>';
             if (flHayPrev) {
                 var hpv = 0; Object.keys(it.cells).forEach(function(k){ if (+k < flIni) hpv += it.cells[k].v; });
                 h += hmCell(hpv, hmMax, rgb, false, it.full + ' · ' + (rgb === '62,207,142' ? 'sin acreditar' : 'atrasado') + ': U$S ' + flFmt(hpv)).replace('<td style="', '<td style="outline:1px dashed var(--amber);outline-offset:-1px;');
