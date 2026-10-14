@@ -984,7 +984,9 @@ function renderPagos(){
     // 2. Filtro MO: rubro que contenga "mano" (case-insensitive)
     var _pagosMO  = S.pagos.filter(function(p){ var r=(p.rubro||'').toLowerCase().trim(); return p.moneda!=='ars' && (r.indexOf('mano')>=0||r==='mo'); });
     // 3. Filtro Mat: rubro que contenga "material" (case-insensitive)
-    var _pagosMat = S.pagos.filter(function(p){ var r=(p.rubro||'').toLowerCase().trim(); return p.moneda!=='ars' && r.indexOf('material')>=0; });
+    // Materiales: USD + pesos unificados en U$S (los pagos en $ se guardan con monto_usd=0 → se convierten con su cotización guardada)
+    var _pagosMat = S.pagos.filter(function(p){ var r=(p.rubro||'').toLowerCase().trim(); return r.indexOf('material')>=0; })
+        .map(function(p){ return p.montoARSoriginal ? Object.assign({}, p, { montoUSD: p.montoARSoriginal / (p.cotizacion || S.tcn) }) : p; });
 
     // Versiones ARS: incluyen TODOS los pagos (USD + ARS)
     var _allRubrosARS = [];
@@ -1198,18 +1200,15 @@ function renderPagos(){
         '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosMO"></canvas></div></div></div>' +
         // Gráfico 2: Materiales
         '<div class="card" style="margin-bottom:0;">' +
-        '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Materiales</h3></div>' +
+        '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Materiales <span style="font-size:10px;color:var(--text3);font-weight:400;">U$S · incluye pagos en $</span></h3></div>' +
         '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosMat"></canvas></div></div></div>' +
         '</div>' +
 
-        // 2 gráficos en pesos
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;align-items:start;">' +
+        // Gráfico en pesos por rubro
+        '<div style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:16px;align-items:start;">' +
         '<div class="card" style="margin-bottom:0;">' +
         '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Por rubro <span style="font-size:10px;color:var(--amber);font-weight:400;">$</span></h3></div>' +
         '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosRubroARS"></canvas></div></div></div>' +
-        '<div class="card" style="margin-bottom:0;">' +
-        '<div class="card-hdr" style="padding:10px 14px;"><h3 style="font-size:12px;">Materiales <span style="font-size:10px;color:var(--amber);font-weight:400;">$</span></h3></div>' +
-        '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosMatARS"></canvas></div></div></div>' +
         '</div>' +
 
         // Dos tablas lado a lado
@@ -1494,7 +1493,6 @@ function renderPagos(){
     safeDestroy(window.chartPagosMO); window.chartPagosMO=null;
     safeDestroy(window.chartPagosMat);window.chartPagosMat=null;
     safeDestroy(window.chartPagosRubroARS); window.chartPagosRubroARS=null;
-    safeDestroy(window.chartPagosMatARS);   window.chartPagosMatARS=null;
 
     // Render después de que el DOM esté listo
     setTimeout(function(){
@@ -1596,20 +1594,9 @@ function renderPagos(){
             var res=_calcPagPendARS(_pagosMO_ARS.filter(function(p){return (p.rubro||'Sin rubro').trim()===r && p.moneda==='ars';}));
             _moPagARS.push(res.pag); _moPendARS.push(res.pend);
         });
-        var _matPagARS=[], _matPendARS=[];
-        _descsMat_ARS.forEach(function(r){
-            // Pagado/Pendiente ARS: solo pagos moneda=ars
-            var resARS = _calcPagPendARS(_pagosMat_ARS.filter(function(p){ return (p.rubro||'Sin rubro').trim()===r && p.moneda==='ars'; }));
-            // Pendiente USD del mismo rubro convertido a pesos
-            var rubroIdx = _descsMat.indexOf(r);
-            var pendUSDenARS = rubroIdx >= 0 ? (_matPend[rubroIdx] || 0) * S.tcn : 0;
-            _matPagARS.push(resARS.pag);
-            _matPendARS.push(resARS.pend + Math.round(pendUSDenARS));
-        });
         var _rubColsARS = _allRubrosARS.map(function(_,i){ return _rubroPalette[i%_rubroPalette.length]; });
 
         window.chartPagosRubroARS = buildChartARS(document.getElementById('chartPagosRubroARS'), _allRubrosARS, _rubPagARS, _rubPendARS, _rubColsARS, 'Sin pagos registrados');
-        window.chartPagosMatARS   = buildChartARS(document.getElementById('chartPagosMatARS'),   _descsMat_ARS, _matPagARS, _matPendARS, '#3ECF8E',   'Sin pagos de Materiales');
     }, 50);
 
     // ── Tabla pagos en pesos ──────────────────────────────────────
