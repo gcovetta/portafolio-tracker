@@ -744,6 +744,8 @@ function renderResumen() {
         '</div>' +
         '<div id="calcResult" style="overflow-x:auto;"></div>' +
         '</div></details>' +
+        // Ingresos proyectados al final (se completa en renderBalance)
+        '<div id="resumenIngProy"></div>' +
         // Pagados al final (se completa en renderPagos)
         '<div id="resumenPagados"></div>';
     if (chartMens) chartMens.destroy();
@@ -2241,11 +2243,15 @@ function renderBalance() {
         '<th style="'+THS+'"></th>' +
         '</tr></thead><tbody>'+arsRows+'</tbody></table></div>' +
         '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--amber);">$ '+Math.round(totalARS).toLocaleString('es-AR')+'</strong></span></div></div>' +
-        '</div>' +
-        // Ingresos proyectados — abajo, más compacta
-        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos proyectados</span><div style="display:flex;gap:6px;"><button class="btn btn-excel btn-sm" onclick="exportarIngresosProyectados()">Excel</button><button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div></div>' +
-        '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+THS+'text-align:left;">Descripción</th><th style="'+THS+'text-align:center;">Frecuencia</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'text-align:right;">Total U$S</th><th style="'+THS+'"></th></tr></thead><tbody>'+ingRows+'</tbody></table></div>' +
-        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--text);">U$S '+Math.round(ingProyUSD).toLocaleString('es-AR')+'</strong></span></div></div>';
+        '</div>';
+    // Ingresos proyectados — al final del Resumen (arriba de Pagados), plegada por defecto
+    var ipShut = !(window._pgOpen && window._pgOpen.ipShow);
+    var ingProyHtml =
+        '<div class="pg-card'+(ipShut?' pg-shut':'')+'" style="'+CS+'margin-bottom:14px;"><div onclick="pgShut(this,\'ip\')" style="'+HS+'cursor:pointer;"><div style="display:flex;align-items:center;gap:8px;"><span class="pg-chev" style="display:inline-block;font-size:11px;color:var(--text2);transition:transform .15s;">▾</span><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos proyectados</span><span style="font-size:11px;font-family:DM Mono,monospace;font-weight:600;color:var(--text);">U$S '+Math.round(ingProyUSD).toLocaleString('es-AR')+'</span></div><div style="display:flex;gap:6px;" onclick="event.stopPropagation()"><button class="btn btn-excel btn-sm" onclick="exportarIngresosProyectados()">Excel</button><button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div></div>' +
+        '<div class="pg-body"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+THS+'text-align:left;">Descripción</th><th style="'+THS+'text-align:center;">Frecuencia</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'text-align:right;">Total U$S</th><th style="'+THS+'"></th></tr></thead><tbody>'+ingRows+'</tbody></table></div>' +
+        '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--text);">U$S '+Math.round(ingProyUSD).toLocaleString('es-AR')+'</strong></span></div></div></div>';
+    var elIngProy = document.getElementById('resumenIngProy');
+    if (elIngProy) elIngProy.innerHTML = ingProyHtml; else balTarget.innerHTML += ingProyHtml;
 
     // ═══════════════════════════════════════════════════════════════
     // FLUJO DE FONDOS — una sola fuente de datos para los gráficos y la tabla
