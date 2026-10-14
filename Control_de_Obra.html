@@ -62,18 +62,17 @@
     .main{margin-left:0;flex:1;transition:margin-left .25s cubic-bezier(.4,0,.2,1);padding-left:44px;}
     .main.sb-open{margin-left:228px;padding-left:0;}
     .topbar{height:54px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 26px;position:sticky;top:0;z-index:50;}
-    .topbar h2{font-size:15px;font-weight:500;}
+    .topbar h2{font-size:15px;font-weight:500;white-space:nowrap;}
+    .qnav{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;margin:0 14px;scrollbar-width:none;}
+    .qnav::-webkit-scrollbar{display:none;}
+    .qnav button{background:none;border:none;color:var(--text2);font-size:12px;font-weight:500;padding:5px 9px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit;}
+    .qnav button:hover{background:var(--surface2);color:var(--text);}
+    #resumenBalance,#secMapa,#resumenPagos,#pagosUnif,#secCalc,#resumenIngProy,#resumenPagados{scroll-margin-top:66px;}
     .topbar .actions{display:flex;gap:8px;}
     .content{padding:26px;}
     .alerts-banner{margin-bottom:16px;display:flex;flex-direction:column;gap:7px;}
     .alert-item{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:var(--radius-sm);font-size:13px;}
     .alert-item.danger{background:var(--red-glow);color:var(--red);border:1px solid rgba(245,101,101,.25);}
-    .alert-item.warning{background:var(--amber-glow);color:var(--amber);border:1px solid rgba(245,166,35,.25);}
-    .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-    .metric-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 17px;box-shadow:var(--shadow);}
-    .metric-card .ml{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;}
-    .metric-card .mv{font-size:20px;font-weight:600;letter-spacing:-.5px;font-family:'DM Mono',monospace;}
-    .metric-card .ms{font-size:11px;color:var(--text3);margin-top:3px;}
     .c-blue{color:var(--blue)}.c-green{color:var(--green)}.c-amber{color:var(--amber)}.c-red{color:var(--red)}
     .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;}
     .card-hdr{padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
@@ -95,37 +94,7 @@
     .badge.pendiente::before{background:var(--amber);}
     .badge.vencido{background:var(--red-dim);color:var(--red);}
     .badge.vencido::before{background:var(--red);}
-    .drag-list{display:flex;flex-direction:column;gap:5px;}
-    .drag-item{display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:grab;transition:all .15s;user-select:none;}
-    .drag-item:hover{border-color:var(--border2);}
-    .drag-item.dragging{opacity:.35;border-style:dashed;cursor:grabbing;}
-    .drag-item.drag-over{border-color:var(--blue);background:var(--blue-dim);}
-    .drag-handle{display:flex;flex-direction:column;gap:2.5px;padding:2px 3px;flex-shrink:0;color:var(--text3);}
-    .drag-handle span{display:block;width:13px;height:2px;background:currentColor;border-radius:1px;}
-    .di-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
-    .di-info{flex:1;min-width:0;}
-    .di-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .di-sub{font-size:11px;color:var(--text3);margin-top:1px;}
-    .di-actions{display:flex;gap:4px;flex-shrink:0;align-items:center;}
-    .etapa-status{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:500;}
-    .etapa-status.pendiente{background:var(--surface3);color:var(--text3);}
-    .etapa-status.en-curso{background:var(--blue-dim);color:var(--blue);}
-    .etapa-status.completada{background:var(--green-dim);color:var(--green);}
-    .etapa-status.atrasada{background:var(--red-dim);color:var(--red);}
-    .etapa-prog-wrap{display:flex;align-items:center;gap:8px;margin-top:6px;}
-    .etapa-prog-track{flex:1;height:7px;background:var(--surface3);border-radius:4px;overflow:hidden;}
-    .etapa-prog-fill{height:100%;border-radius:4px;transition:width .4s;}
-    .etapa-tl-mini{display:grid;grid-template-columns:repeat(18,1fr);gap:2px;margin-top:6px;}
-    .etm-cell{height:6px;border-radius:2px;}
-    .gantt-row{display:grid;grid-template-columns:148px 1fr;align-items:center;gap:6px;margin-bottom:3px;}
-    .gantt-label{font-size:11px;color:var(--text2);text-align:right;padding-right:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .gantt-track{display:grid;grid-template-columns:repeat(18,1fr);gap:2px;}
-    .gantt-cell{height:18px;border-radius:3px;}
-    .months-strip{display:grid;grid-template-columns:repeat(18,1fr);gap:2px;margin-bottom:4px;}
     .mc{text-align:center;padding:4px 1px;border-radius:3px;font-size:9px;font-weight:500;}
-    .mc.past{background:#1A3A5C;color:#6BAAD4;}
-    .mc.current{background:var(--blue);color:#fff;}
-    .mc.future{background:var(--surface3);color:var(--text3);}
     .amt-wrap{display:flex;border:1px solid var(--border2);border-radius:var(--radius-sm);overflow:hidden;background:var(--surface2);}
     .amt-wrap:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow);}
     .amt-wrap input{flex:1;border:none;background:transparent;color:var(--text);padding:8px 10px;font-size:13px;outline:none;font-family:'DM Sans',sans-serif;}
@@ -170,47 +139,6 @@
     /* ── Balance: flujo de fondos (tabla por ítem) ── */
     .fl-cap{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
     .fl-tw{overflow-x:auto;}
-    .fl-ends{padding:10px 16px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2);display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-    .fl-ends b{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-right:4px;}
-    .fl-pill{background:var(--red-dim);color:var(--red);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:500;white-space:nowrap;}
-    .fl-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12px;}
-    .fl-t th{font-size:10px;font-weight:600;color:var(--text3);text-align:right;padding:9px 6px;border-bottom:1px solid var(--border2);white-space:nowrap;background:var(--surface);text-transform:none;letter-spacing:0;}
-    .fl-t th.cur span{background:var(--blue);color:#fff;border-radius:4px;padding:2px 6px;}
-    .fl-t th.hoy{color:var(--blue);}
-    .fl-t th.fl-k,.fl-t td.fl-k{text-align:left;position:sticky;left:0;z-index:2;background:var(--surface);min-width:190px;max-width:190px;padding-left:16px;border-right:1px solid var(--border);}
-    .fl-t td{padding:0;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;height:44px;white-space:nowrap;}
-    .fl-t td.fl-k{font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:500;color:var(--text);white-space:normal;line-height:1.25;}
-    .fl-t td.fl-k small{display:block;font-size:10px;color:var(--text3);font-weight:400;margin-top:1px;}
-    .fl-t td.fl-m{padding:0 8px;font-size:11px;color:var(--text2);min-width:72px;}
-    .fl-t td.fl-m.fin{font-weight:600;}
-    .fl-t td.fl-m.fin.out{color:var(--red);}
-    .fl-t td.fl-m.fin.in{color:var(--green);}
-    .fl-t td.fl-c{min-width:72px;padding:0 8px;}
-    .fl-t td.fl-c b{display:block;font-weight:600;font-size:12px;line-height:1.15;}
-    .fl-t td.fl-c i{display:block;font-style:normal;font-size:9px;color:var(--text3);margin-top:2px;}
-    .fl-t td.fl-c.out.on{background:rgba(245,101,101,.10);}
-    .fl-t td.fl-c.out.on b{color:var(--red);}
-    .fl-t td.fl-c.out.last{background:rgba(245,101,101,.26);box-shadow:inset -3px 0 0 var(--red);}
-    .fl-t td.fl-c.out.last i{color:#FFB4B4;font-weight:700;}
-    .fl-t td.fl-c.in.on{background:rgba(62,207,142,.09);}
-    .fl-t td.fl-c.in.on b{color:var(--green);}
-    .fl-t td.fl-c.in.last{background:rgba(62,207,142,.24);box-shadow:inset -3px 0 0 var(--green);}
-    .fl-t td.fl-c.in.last i{color:#A9F0CF;font-weight:700;}
-    .fl-t tr.fl-sec td{height:30px;background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;text-align:left;padding-left:16px;}
-    .fl-t tr.fl-sec.in td{color:var(--green);}
-    .fl-t tr.fl-sec.out td{color:var(--red);}
-    .fl-t tr.fl-sec td.fl-k{background:var(--surface2);}
-    .fl-t tr.fl-sub td{height:36px;font-weight:700;border-top:1px solid var(--border2);}
-    .fl-t tr.fl-sub td.fl-k{font-size:11px;text-transform:uppercase;letter-spacing:.04em;}
-    .fl-t tr.fl-sub.in td.fl-v{color:var(--green);}
-    .fl-t tr.fl-sub.out td.fl-v{color:var(--red);}
-    .fl-t tr.fl-net td{height:34px;font-weight:600;}
-    .fl-t tr.fl-net td.fl-k{font-size:11px;text-transform:uppercase;letter-spacing:.04em;}
-    .fl-t tr.fl-disp td{height:44px;font-weight:700;font-size:13px;border-top:2px solid var(--border2);border-bottom:none;}
-    .fl-t tr.fl-disp td.fl-k{font-size:12px;text-transform:uppercase;letter-spacing:.04em;}
-    .fl-t td.fl-v{padding:0 8px;}
-    .fl-t td.fl-v.neg{background:var(--red-dim);color:var(--red);}
-    .fl-t td.fl-v.pos{color:var(--green);}
     .hm-t{border-collapse:separate;border-spacing:2px;width:100%;font-size:11px;}
     .hm-t th{font-size:10px;font-weight:600;color:var(--text3);text-align:center;padding:6px 2px;white-space:nowrap;}
     .hm-t th.cur span{background:var(--blue);color:#fff;border-radius:4px;padding:2px 6px;}
@@ -278,6 +206,16 @@
     <div class="main">
         <div class="topbar">
             <h2 id="topbarTitle">Resumen general</h2>
+            <nav class="qnav" id="qnav" aria-label="Accesos rápidos">
+                <button onclick="qGo('top')">Inicio</button>
+                <button onclick="qGo('resumenBalance')">Flujo</button>
+                <button onclick="qGo('secMapa')">Mapa de calor</button>
+                <button onclick="qGo('resumenPagos')">Pagos</button>
+                <button onclick="qGo('pagosUnif')">Pendientes</button>
+                <button onclick="qGo('secCalc')">Calculadora</button>
+                <button onclick="qGo('resumenIngProy')">Ing. proyectados</button>
+                <button onclick="qGo('resumenPagados')">Pagados</button>
+            </nav>
             <div class="actions" id="topbarActions"><button class="btn btn-excel btn-sm" onclick="exportarExcel()">Excel</button></div>
         </div>
         <div class="content">
@@ -508,7 +446,6 @@ var S = {
 function fmtUSD(ars) { return 'U$S ' + Math.round(ars / S.tcn).toLocaleString('es-AR'); }
 function fmtMain(ars) { return fmtUSD(ars); }
 function pct(a, b) { return b > 0 ? Math.min(Math.round(a / b * 100), 999) : 0; }
-function getRubro(id) { return S.rubros.find(function(r){ return r.id === id; }); }
 function monthDate(off) { var d = new Date(S.startDate); return new Date(d.getFullYear(), d.getMonth() + off, 1); }
 function curMonthOff() { var s = new Date(S.startDate), n = new Date(); return (n.getFullYear()-s.getFullYear())*12+(n.getMonth()-s.getMonth()); }
 function mLabel(off) { var d = monthDate(off); return MO[d.getMonth()]+" '"+String(d.getFullYear()).slice(2); }
@@ -538,9 +475,6 @@ function expandirIngreso(x) {
     }
     return ocurrencias;
 }
-function montoTotalIngreso(x) { return expandirIngreso(x).reduce(function(s,o){ return s+o.montoARS; }, 0); }
-function totalDeudasARS() { return S.deudas.reduce(function(s,d){ return s+(d.montoARS*(d.cuotas-d.pagadas)/d.cuotas); }, 0); }
-function totalAjustesARS() { return S.ajustes.reduce(function(s,a){ return s+a.montoARS; }, 0); }
 
 function setSaveStatus(state, txt) {
     var dot = document.getElementById('saveDot');
@@ -636,26 +570,9 @@ function renderAlerts() {
 // ═══════════════════════════════════════
 var chartMens = null;
 function renderResumen() {
-    var pd=totalPagadoARS(), pe=totalPendienteARS(), cm=curMonthOff();
+    var cm=curMonthOff();
     var mesesRestantes = Math.max(0, 18-cm);
     var mesesPasados = Math.max(0, Math.min(18, cm));
-    var etapasActivas = S.etapas.filter(function(e){ return !e.finalizado; });
-    var avFisico = etapasActivas.length ? Math.round(etapasActivas.reduce(function(s,e){ return s+e.avance; },0)/etapasActivas.length) : 0;
-    var etapaRows = S.etapas.filter(function(e){ return !e.finalizado; }).map(function(e) {
-        var en=cm>=e.mesIni-1&&cm<e.mesFin, past=cm>=e.mesFin;
-        var cls=past&&e.avance<100?'atrasada':past?'completada':en?'en-curso':'pendiente';
-        var lbl={atrasada:'Atrasada',completada:'Completada','en-curso':'En curso',pendiente:'Pendiente'}[cls];
-        return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
-            '<span style="width:8px;height:8px;border-radius:2px;background:'+e.color+';flex-shrink:0;display:inline-block;"></span>' +
-            '<span style="flex:1;font-size:12px;color:var(--text2);">'+e.nombre+'</span>' +
-            '<div style="width:80px;height:5px;background:var(--surface3);border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+e.avance+'%;background:'+e.color+';border-radius:3px;"></div></div>' +
-            '<span style="font-size:11px;font-family:DM Mono,monospace;color:var(--text3);width:26px;text-align:right;">'+e.avance+'%</span>' +
-            '<span class="etapa-status '+cls+'" style="min-width:66px;text-align:center;">'+lbl+'</span></div>';
-    }).join('');
-    var mStrip = Array.from({length:18}, function(_,i) {
-        var cl = i<cm?'past':i===cm?'current':'future';
-        return '<div class="mc '+cl+'">'+mLabel(i)+'</div>';
-    }).join('');
 
     // Acreditado en pesos, dolarizado, para los 3 recuadros de Balance en Resumen.
     // Los pagos en pesos pendientes NO se restan acá: ya se cuentan como Egreso mes a mes más abajo (evita duplicarlos).
@@ -668,7 +585,6 @@ function renderResumen() {
     var totalPagadoUSD = Math.round(_pagUSD + _pagARSusd);
 
     var _pendUSD = S.pagos.filter(function(p){ return p.estado!=='pagado' && p.moneda!=='ars'; }).reduce(function(s,p){
-        var cot=p.cotizacion||S.tcn;
         if(p.cuotas&&p.cuotas>1){ var r=Math.max(0,p.cuotas-(p.cuotasPagadas||0)); var sc=p.saldoCuotaActual!=null?p.saldoCuotaActual:p.montoUSD; return s+(r>0?(r-1)*p.montoUSD+sc:0); }
         return s+p.montoUSD;
     },0);
@@ -734,7 +650,7 @@ function renderResumen() {
         '<div id="resumenPagos"></div>' +
 
         // Calculadora colapsable al final
-        '<details class="card" style="margin-bottom:16px;">' +
+        '<details id="secCalc" class="card" style="margin-bottom:16px;">' +
         '<summary style="padding:10px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;list-style:none;-webkit-appearance:none;">' +
         '<div style="display:flex;align-items:center;gap:10px;">' +
         '<span style="font-size:13px;font-weight:600;">Calculadora de costo total</span>' +
@@ -866,22 +782,6 @@ function cuotasBar(p) {
         '</span>' +
         '</div>';
 }
-function arsCellHTML(p, color, esPendiente) {
-    if (!p.montoARSoriginal) return '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;color:var(--text3);font-size:11px;">—</td>';
-    var montoPesos;
-    if(esPendiente && p.cuotas && p.cuotas > 1){
-        var rest = Math.max(0, p.cuotas - (p.cuotasPagadas||0));
-        // Cuota actual puede tener saldo parcial, el resto son cuotas completas
-        var saldoCuota = p.saldoCuotaActual != null ? p.saldoCuotaActual : p.montoARSoriginal;
-        montoPesos = rest > 0 ? (rest - 1) * p.montoARSoriginal + saldoCuota : 0;
-    } else {
-        montoPesos = p.montoARSoriginal;
-    }
-    return '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;">' +
-        '<div style="font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:' + (color||'var(--green)') + ';">$' + Math.round(montoPesos).toLocaleString('es-AR') + '</div>' +
-        '<div style="font-size:10px;color:var(--text3);margin-top:1px;">cot. $' + Math.round(p.cotizacion).toLocaleString('es-AR') + '</div>' +
-        '</td>';
-}
 function buildPagoRows(lista) {
     return lista.map(function(p){
         var e=S.etapas.find(function(x){ return x.id===p.etapaId; });
@@ -903,87 +803,16 @@ function renderPagos(){
     var busqueda = function(p){ return !pagoSearch||(p.desc||'').toLowerCase().includes(pagoSearch.toLowerCase())||((S.etapas.find(function(e){return e.id===p.etapaId;})||{nombre:''}).nombre).toLowerCase().includes(pagoSearch.toLowerCase()); };
 
     var pagados   = S.pagos.filter(function(p){ return p.moneda!=='ars' && p.estado==='pagado'   && busqueda(p); }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
-    var pendientes= S.pagos.filter(function(p){ return p.moneda!=='ars' && p.estado!=='pagado'   && busqueda(p); }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
     var filtrados = pagoFilter==='pagado' ? pagados : pagoFilter==='pendiente'||pagoFilter==='vencido' ? S.pagos.filter(function(p){ return p.estado===pagoFilter && busqueda(p); }) : null;
 
     // Totales considerando cuotas (monto x cuotas totales)
-    function _totalConCuotas(lista){
-        return lista.reduce(function(s,p){
-            var factor = (p.cuotas&&p.cuotas>1) ? p.cuotas : 1;
-            return s + p.montoUSD * factor;
-        }, 0);
-    }
-    function _totalARSConCuotas(lista){
-        return lista.reduce(function(s,p){
-            var factor = (p.cuotas&&p.cuotas>1) ? p.cuotas : 1;
-            return s + (p.montoARSoriginal ? p.montoARSoriginal*factor : p.montoUSD*factor*S.tcn);
-        }, 0);
-    }
-    var totalPag      = pagados.reduce(function(s,p){ return s+p.montoARS; },0);
-    var totalPend     = pendientes.reduce(function(s,p){ return s+p.montoARS; },0);
-    var totalPagUSD   = _totalConCuotas(pagados);
     // Pendientes: solo lo que FALTA pagar (cuotas restantes, no el total)
-    var totalPendUSD  = pendientes.reduce(function(s,p){
-        var cot = p.cotizacion||S.tcn;
-        if(p.cuotas&&p.cuotas>1){
-            var restantes = Math.max(0, p.cuotas - (p.cuotasPagadas||0));
-            if(p.montoARSoriginal){
-                var saldoCuotaARS = p.saldoCuotaActual!=null ? p.saldoCuotaActual : p.montoARSoriginal;
-                var saldoARS = restantes>0 ? (restantes-1)*p.montoARSoriginal + saldoCuotaARS : 0;
-                return s + saldoARS/cot;
-            } else {
-                var saldoCuotaUSD = p.saldoCuotaActual!=null ? p.saldoCuotaActual : p.montoUSD;
-                return s + (restantes>0 ? (restantes-1)*p.montoUSD + saldoCuotaUSD : 0);
-            }
-        }
-        return s + (p.montoARSoriginal ? p.montoARSoriginal/cot : p.montoUSD);
-    }, 0);
-    var totalPagARS   = _totalARSConCuotas(pagados);
-    var totalPendARS  = pendientes.reduce(function(s,p){
-
-        if(p.montoARSoriginal){
-            if(p.cuotas&&p.cuotas>1){
-                var restantes = Math.max(0, p.cuotas - (p.cuotasPagadas||0));
-                var saldoCuota = p.saldoCuotaActual!=null ? p.saldoCuotaActual : p.montoARSoriginal;
-                return s + (restantes>0 ? (restantes-1)*p.montoARSoriginal + saldoCuota : 0);
-            }
-            return s + p.montoARSoriginal;
-        }
-        return s;
-    }, 0);
-    var hayPagARS     = pagados.some(function(p){ return p.montoARSoriginal; });
-    var hayPendARS    = pendientes.some(function(p){ return p.montoARSoriginal; });
 
     // Totales reales de la tabla Pagos en Pesos (usados en KPIs)
-    var _pagosARS_kpi    = S.pagos.filter(function(p){ return p.moneda==='ars'; });
-    var _pagARS_pag_kpi  = _pagosARS_kpi.filter(function(p){ return p.estado==='pagado'; });
-    var _pagARS_pend_kpi = _pagosARS_kpi.filter(function(p){ return p.estado!=='pagado'; });
-    var kpiPagARSpesos   = _pagARS_pag_kpi.reduce(function(s,p){ return s+(p.montoARSoriginal||p.montoARS); },0);
-    var kpiPendARSpesos  = _pagARS_pend_kpi.reduce(function(s,p){
-        var montoCuota = p.montoARSoriginal||p.montoARS;
-        if(p.cuotas&&p.cuotas>1){
-            var r=Math.max(0,p.cuotas-(p.cuotasPagadas||0));
-            var saldoCuota = p.saldoCuotaActual!=null ? p.saldoCuotaActual : montoCuota;
-            return s + (r>0 ? (r-1)*montoCuota + saldoCuota : 0);
-        }
-        return s+(p.saldoCuotaActual!=null ? p.saldoCuotaActual : montoCuota);
-    },0);
-    var kpiPagARSusd  = _pagARS_pag_kpi.reduce(function(s,p){
-        var cot=p.cotizacion||S.tcn, monto=p.montoARSoriginal||p.montoARS;
-        return s+Math.round(monto/cot);
-    },0);
-    var kpiPendARSusd = _pagARS_pend_kpi.reduce(function(s,p){
-        var cot=p.cotizacion||S.tcn, monto=p.montoARSoriginal||p.montoARS;
-        var cuotas=p.cuotas||1, rest=cuotas>1?Math.max(0,p.cuotas-(p.cuotasPagadas||0)):1;
-        var usdCuota=Math.round(monto/cot);
-        var saldoCuotaUSD=p.saldoCuotaActual!=null?p.saldoCuotaActual/cot:usdCuota;
-        return s+(cuotas>1?Math.round(rest>0?(rest-1)*usdCuota+saldoCuotaUSD:0):Math.round(p.saldoCuotaActual!=null?p.saldoCuotaActual/cot:usdCuota));
-    },0);
 
     // --- Datos gráficos por rubro ---
     // Paleta de colores por rubro
     var _rubroPalette = ['#4C8EF5','#3ECF8E','#A78BFA','#F5A623','#F56565','#38BDF8','#FB923C','#A3E635','#E879F9','#34D399'];
-    function _sumusd(pagos, fn){ return Math.round(pagos.filter(fn).reduce(function(s,p){return s+p.montoUSD;},0)); }
 
     // 1. Todos los rubros excepto MO y Materiales (que tienen gráfico propio)
     var _allRubros = [];
@@ -1012,9 +841,7 @@ function renderPagos(){
     });
     _allRubrosARS.sort();
     var _pagosMO_ARS  = S.pagos.filter(function(p){ var r=(p.rubro||'').toLowerCase().trim(); return r.indexOf('mano')>=0||r==='mo'; });
-    var _pagosMat_ARS = S.pagos.filter(function(p){ var r=(p.rubro||'').toLowerCase().trim(); return r.indexOf('material')>=0; });
     var _descsMO_ARS  = _rubrosOf(_pagosMO_ARS);
-    var _descsMat_ARS = _rubrosOf(_pagosMat_ARS);
 
     // Grupos por RUBRO para MO y Mat (no por desc)
     function _rubrosOf(pagos){ var d=[]; pagos.forEach(function(p){ var v=(p.rubro||'Sin rubro').trim(); if(d.indexOf(v)<0) d.push(v); }); return d; }
@@ -1034,10 +861,7 @@ function renderPagos(){
         return;
     }
 
-    var rowsPag  = buildPagoRows(pagados);
-    var rowsPend = buildPagoRows(pendientes);
 
-    var THS = 'padding:8px 11px;font-size:10px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.4px;';
 
     // Acreditado en pesos, dolarizado — disponible en todo el scope de renderPagos.
     // Los pagos en pesos pendientes (kpiPendARSpesos) NO se restan acá: ya se cuentan como Egreso mes a mes en Balance (evita duplicarlos).
@@ -1280,7 +1104,6 @@ function renderPagos(){
         var res = _calcPagPend(lista);
         _rubPag.push(res.pag); _rubPend.push(res.pend);
     });
-    var _rubCols = _allRubros.map(function(_,i){ return _rubroPalette[i%_rubroPalette.length]; });
 
     // ── Data MO por rubro ─────────────────────────────────────────
     var _moPag=[], _moPend=[];
@@ -1326,7 +1149,6 @@ function renderPagos(){
             return rows;
         });
     }
-    var _detRubro = _buildDetail(_allRubros, S.pagos,    function(p){ return (p.rubro||'Sin rubro').trim(); });
     var _detMO    = _buildDetail(_descsMO,   _pagosMO,   function(p){ return (p.rubro||'Sin rubro').trim(); });
     var _detMat   = _buildDetail(_descsMat,  _pagosMat,  function(p){ return (p.rubro||'Sin rubro').trim(); });
 
@@ -1354,66 +1176,6 @@ function renderPagos(){
         window.chartPagosMat= buildChart(document.getElementById('chartPagosMat'),   _descsMat,  _matPag,  _matPend,  '#3ECF8E', 'Sin pagos de Materiales',    _detMat);
 
         // ── Gráficos ARS ──────────────────────────────────────────────
-        function buildChartARS(ctx, labels, pagData, pendData, colors, emptyMsg) {
-            if(!ctx) return null;
-            if(!labels.length){
-                ctx.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:12px;">'+(emptyMsg||'Sin datos')+'</div>';
-                return null;
-            }
-            var bgPag = Array.isArray(colors) ? colors.map(function(c){return c+'99';}) : colors+'99';
-            var pctPlugin = {
-                id:'pctLabelARS',
-                afterDatasetsDraw: function(chart){
-                    var ctx2=chart.ctx; ctx2.save();
-                    var ds=chart.data.datasets;
-                    chart.data.labels.forEach(function(_,i){
-                        var pag=ds[0].data[i]||0, pend=ds[1].data[i]||0, tot=pag+pend;
-                        if(!tot) return;
-                        var pct=Math.round(pag/tot*100);
-                        var meta0=chart.getDatasetMeta(0), meta1=chart.getDatasetMeta(1);
-                        var bar0=meta0.data[i], bar1=meta1.data[i];
-                        var topY=Math.min(pag>0?bar0.y:Infinity, pend>0?bar1.y:Infinity);
-                        if(topY===Infinity) return;
-                        ctx2.fillStyle=pct===100?'#3ECF8E':pct===0?'#F56565':'#E8EAF2';
-                        ctx2.font='bold 10px DM Sans,sans-serif';
-                        ctx2.textAlign='center';
-                        ctx2.fillText(pct+'%', bar0.x, topY-6);
-                    });
-                    ctx2.restore();
-                }
-            };
-            return new Chart(ctx.getContext('2d'), {
-                type:'bar',
-                data:{ labels:labels, datasets:[
-                    {label:'Pagado $',    data:pagData,  backgroundColor:bgPag, borderColor:colors, borderWidth:2, borderRadius:4, borderSkipped:false},
-                    {label:'Pendiente $', data:pendData, backgroundColor:'rgba(245,166,35,.35)', borderColor:'#F5A623', borderWidth:2, borderRadius:4, borderSkipped:false}
-                ]},
-                options:{
-                    responsive:true, maintainAspectRatio:false,
-                    layout:{ padding:{ top:18 } },
-                    plugins:{
-                        legend:{display:false},
-                        tooltip:{callbacks:{
-                            label:function(){ return null; },
-                            afterBody:function(items){
-                                if(!items.length) return [];
-                                var idx=items[0].dataIndex;
-                                var pag=items[0].chart.data.datasets[0].data[idx]||0;
-                                var pend=items[0].chart.data.datasets[1].data[idx]||0;
-                                var tot=pag+pend, pct=tot>0?Math.round(pag/tot*100):0;
-                                var fmt=function(v){ return v>=1000000?'$'+(v/1000000).toFixed(1)+'M':v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+Math.round(v); };
-                                return ['✓ Pagado:    '+fmt(pag),'⏳ Pendiente: '+fmt(pend),'Completado: '+pct+'%'];
-                            }
-                        }}
-                    },
-                    scales:{
-                        x:{ticks:{color:'#565C7A',font:{size:10},maxRotation:40,autoSkip:false}, grid:{color:'rgba(255,255,255,.03)'}},
-                        y:{ticks:{color:'#565C7A',font:{size:9},callback:function(v){ var a=Math.abs(v); return a>=1000000?'$'+(a/1000000).toFixed(1)+'M':a>=1000?'$'+(a/1000).toFixed(0)+'k':'$'+Math.round(a); }}, grid:{color:'rgba(255,255,255,.04)'}}
-                    }
-                },
-                plugins:[pctPlugin]
-            });
-        }
 
         // Función _calcPagPendARS: igual que _calcPagPend pero en pesos
         function _calcPagPendARS(lista) {
@@ -1593,7 +1355,6 @@ function calcCuotaDesdeTotal(){
     var total = parseFloat(document.getElementById('mMontoTotal').value)||0;
     var cuotas = parseInt(document.getElementById('mCuotas').value)||1;
     var el = document.getElementById('mCuotaCalc');
-    var moneda = document.getElementById('ppMoneda') ? document.getElementById('mMontoTag').textContent : 'USD';
     var tag = document.getElementById('mMontoTotalTag');
     if(tag) tag.textContent = document.getElementById('mMontoTag').textContent;
     if(total > 0 && cuotas > 0){
@@ -1894,14 +1655,6 @@ async function savePagoParcial(){
     updateSidebar();
 }
 // Busca la deuda en Balance que corresponde a un pago
-function _findDeudaForPago(p){
-    var descA = (p.rubro ? p.rubro+' — ' : '') + (p.desc||'');
-    var descB = (p.desc||'') + (p.rubro ? ' ('+p.rubro+')' : '');
-    return S.deudas.find(function(d){
-        return d.desc===descA || d.desc===descB ||
-               (p.desc && d.desc.indexOf(p.desc)>=0 && (!p.cuotas||d.cuotas===p.cuotas));
-    });
-}
 function openNewPagoARS(){
     S.editPagoId=null;
     document.getElementById('mPagoARSTitle').textContent='Nuevo pago en pesos';
@@ -1966,12 +1719,6 @@ async function savePagoARS(){
         :await sb.from('obra_pagos').insert(payload);
     if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
     setSaveStatus('ok','Guardado'); closeModal('modalPagoARS'); await loadAllData(); renderResumen(); updateSidebar();
-}
-async function marcarPagadoARS(id){
-    setSaveStatus('saving');
-    var res=await sb.from('obra_pagos').update({estado:'pagado'}).eq('id',id);
-    if(res.error){ setSaveStatus('error'); return; }
-    setSaveStatus('ok','Guardado'); await loadAllData(); renderResumen(); updateSidebar();
 }
 async function marcarPagado(id){
     var p = S.pagos.find(function(x){ return x.id===id; });
@@ -2049,7 +1796,6 @@ function renderBalance() {
     var allOcurr = []; S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){ expandirIngreso(x).forEach(function(o){ allOcurr.push(o); }); });
     var ingRealUSD = allOcurr.filter(function(o){ return o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
     var ingProyUSD = allOcurr.filter(function(o){ return !o.realizado; }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-    var ingReal = ingRealUSD * S.tcn; // para compatibilidad con fmtUSD abajo
 
     // Acreditado en pesos, dolarizado. Los pagos en pesos pendientes NO se restan acá: ya se cuentan
     // como Egreso mes a mes más abajo (restarlos también acá los duplicaba en Balance neto y en los gráficos).
@@ -2058,76 +1804,8 @@ function renderBalance() {
     ingRealUSD += netoPesosUSD;
 
     // Egresos totales: deudas Balance + pagos obra pendientes
-    var deuUSD = totalDeudasARS() / S.tcn;
 
     // Pagos obra pendientes totales en USD (misma función que el gráfico)
-    function _egresosMesKPI(ms) {
-        var total = 0;
-        S.pagos.filter(function(p){ return p.estado !== 'pagado'; }).forEach(function(p){
-            var cot = p.cotizacion || S.tcn;
-            if(p.cuotas && p.cuotas > 1) {
-                var pagadas = p.cuotasPagadas || 0, restantes = p.cuotas - pagadas;
-                if(restantes <= 0) return;
-                var fechaBase = new Date(p.fecha+'T00:00:00');
-                var _freq2=p.frecuencia||1;
-                var fechaIniPend = new Date(fechaBase.getFullYear(), fechaBase.getMonth()+pagadas*_freq2, 1);
-                for(var q=0; q<restantes; q++){
-                    var fc = new Date(fechaIniPend.getFullYear(), fechaIniPend.getMonth()+q*_freq2, 1);
-                    var msc = fc.getFullYear()+'-'+String(fc.getMonth()+1).padStart(2,'0');
-                    if(msc === ms){
-                        var mc = q===0 && p.saldoCuotaActual!=null
-                            ? (p.montoARSoriginal ? p.saldoCuotaActual/cot : p.saldoCuotaActual)
-                            : (p.montoARSoriginal ? p.montoARSoriginal/cot : p.montoUSD);
-                        total += mc;
-                    }
-                }
-            } else {
-                if(p.fecha.startsWith(ms)){
-                    total += p.montoARSoriginal ? p.montoARSoriginal/cot : p.montoUSD;
-                }
-            }
-        });
-        return total;
-    }
-    var pagosPendUSD = 0;
-    for(var qi0=0;qi0<18;qi0++){ pagosPendUSD += _egresosMesKPI(mesStr(qi0)); }
-
-
-    // Balance neto total = acreditado + proyectado - deudas - pagos obra
-    var netoUSD = ingRealUSD + ingProyUSD - pagosPendUSD;
-    var isPos = netoUSD >= 0;
-    // Ingresos acreditados en pesos
-    var acreditadoPesos = S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS; },0);
-    // Deudas en pesos: pagos ARS pendientes (monto total restante)
-    var deudasPesos = S.pagos.filter(function(p){ return p.moneda==='ars' && p.estado!=='pagado'; }).reduce(function(s,p){
-        var montoCuota = p.montoARSoriginal||p.montoARS;
-        if(p.cuotas&&p.cuotas>1){
-            var rest=Math.max(0,p.cuotas-(p.cuotasPagadas||0));
-            var saldoCuota=p.saldoCuotaActual!=null?p.saldoCuotaActual:montoCuota;
-            return s+(rest>0?(rest-1)*montoCuota+saldoCuota:0);
-        }
-        return s+(p.saldoCuotaActual!=null?p.saldoCuotaActual:montoCuota);
-    },0);
-
-    // Meses cubiertos con acreditado vs pagos obra por mes
-    var _saldoUSD = ingRealUSD, _mesesCub = 0;
-    for(var qi=0;qi<18;qi++){
-        var qms=mesStr(qi);
-        var eMesUSD = _egresosMesKPI(qms);
-        if(_saldoUSD >= eMesUSD){ _saldoUSD -= eMesUSD; _mesesCub++; } else break;
-    }
-
-    // Mes en que neto acumulado (acreditado+proyectado-deudas-pagos) pasa a negativo
-    var _mesQ=-1, _mesQL='', _cumIR=0, _cumIP=0, _cumDeu=0, _cumEgr=0;
-    for(var qi2=0;qi2<18;qi2++){
-        var qms2=mesStr(qi2);
-        _cumIR += allOcurr.filter(function(o){ return o.realizado&&o.fecha.startsWith(qms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-        _cumIP += allOcurr.filter(function(o){ return !o.realizado&&o.fecha.startsWith(qms2); }).reduce(function(s,o){ return s+o.montoARS/S.tcn; },0);
-        _cumDeu += S.deudas.reduce(function(s,d){ var dPag=d.pagadas||0,dRest=d.cuotas-dPag; if(dRest<=0) return s; var fi=d.fechaInicio||S.startDate,fiB=new Date(fi+'T00:00:00'),sd=new Date(fiB.getFullYear(),fiB.getMonth()+dPag,1),td=monthDate(qi2); var ix=(td.getFullYear()-sd.getFullYear())*12+(td.getMonth()-sd.getMonth()); if(ix<0||ix>=dRest) return s; return s+(d.montoARS/d.cuotas/S.tcn); },0);
-        _cumEgr += _egresosMesKPI(qms2);
-        if(_cumIR+_cumIP-_cumEgr<0 && _mesQ===-1){ _mesQ=qi2+1; _mesQL=mLabel(qi2); }
-    }
-
     // filas ingresos proyectados
     var ingRows = S.ingresos.filter(function(x){ return !x.realizado && x.moneda!=='ars'; }).map(function(x){
         var per=x.periodicidad||'unico', occ=expandirIngreso(x).length;
@@ -2184,29 +1862,7 @@ function renderBalance() {
         }).join('') || '<tr><td colspan="5" style="padding:14px;text-align:center;color:var(--text3);">Sin ingresos acreditados todavia</td></tr>';
 
     // filas deudas
-    var deuRows = S.deudas.map(function(x){
-        var sal=x.montoARS*(x.cuotas-x.pagadas)/x.cuotas, pp=Math.round(x.pagadas/x.cuotas*100);
-        var esProy = !!x.proyectado;
-        var rowStyle = esProy ? 'background:repeating-linear-gradient(135deg,transparent,transparent 5px,rgba(167,139,250,.05) 5px,rgba(167,139,250,.05) 10px);opacity:.85;' : '';
-        var bdStyle  = esProy ? '1px dashed rgba(167,139,250,.4)' : '1px solid var(--border)';
-        var TD = 'padding:9px 14px;border-bottom:'+bdStyle+';';
-        return '<tr style="'+rowStyle+'">' +
-            '<td style="'+TD+'"><div style="display:flex;align-items:flex-start;gap:7px;">' +
-            (esProy?'<span style="flex-shrink:0;margin-top:2px;font-size:10px;padding:1px 6px;border-radius:20px;background:var(--purple-dim);color:var(--purple);border:1px dashed rgba(167,139,250,.5);font-weight:600;white-space:nowrap;">proyectado</span>':'') +
-            '<div><div style="font-size:13px;font-weight:500;">'+x.desc+'</div>' +
-            '<div style="font-size:11px;color:var(--text3);">'+x.pagadas+'/'+x.cuotas+' cuotas · inicio '+(x.fechaInicio||'—')+'</div>' +
-            '<div style="height:3px;background:var(--surface3);border-radius:2px;overflow:hidden;margin-top:5px;width:120px;"><div style="height:100%;width:'+pp+'%;background:'+(pp===100?'var(--green)':esProy?'var(--purple)':'var(--red)')+';border-radius:2px;"></div></div>' +
-            '</div></div></td>' +
-            '<td style="'+TD+'text-align:center;font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+pp+'%</td>' +
-            '<td style="'+TD+'text-align:right;font-family:DM Mono,monospace;font-size:13px;font-weight:600;color:'+(esProy?'var(--purple)':'var(--red)')+';">'+fmtUSD(sal)+'</td>' +
-            '<td style="'+TD+'text-align:right;"><div style="display:flex;gap:4px;justify-content:flex-end;">' +
-            '<button class="btn btn-sm btn-green" onclick="pagarCuota('+x.id+')" title="Pagar cuota">✓</button>' +
-            '<button class="btn btn-sm" onclick="openEditBal(\'deuda\','+x.id+')">✎</button>' +
-            '<button class="btn btn-sm btn-danger" onclick="deleteBal(\'deuda\','+x.id+')">✕</button>' +
-            '</div></td></tr>';
-    }).join('') || '<tr><td colspan="4" style="padding:14px;text-align:center;color:var(--text3);">Sin deudas</td></tr>';
 
-    var totalAcr = S.ingresos.filter(function(x){ return x.realizado && x.moneda!=='ars'; }).reduce(function(s,x){ return s+x.montoARS; },0);
     var nAcr = S.ingresos.filter(function(x){ return x.realizado && x.moneda!=='ars'; }).length;
 
     var balTarget = document.getElementById('resumenBalance');
@@ -2220,7 +1876,7 @@ function renderBalance() {
         '<div class="fl-cap" style="margin-top:12px;">Disponible al cierre de cada mes</div><div style="position:relative;width:100%;height:210px;"><canvas id="chartBal"></canvas></div>' +
         '</div></div>' +
         // Flujo de fondos — mapa de calor por ítem (prueba para comparar con la tabla)
-        '<div style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Mapa de calor por ítem · U$S</span>' +
+        '<div id="secMapa" style="'+CS+'margin-bottom:14px;"><div style="'+HS+'"><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Mapa de calor por ítem · U$S</span>' +
         '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);flex-wrap:wrap;align-items:center;"><span>Intensidad = monto</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:linear-gradient(90deg,rgba(62,207,142,.15),rgba(62,207,142,.9));margin-right:4px;vertical-align:middle;"></span>Entra</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:linear-gradient(90deg,rgba(245,101,101,.15),rgba(245,101,101,.9));margin-right:4px;vertical-align:middle;"></span>Sale</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:var(--surface2);box-shadow:inset -3px 0 0 #E8EAF2;margin-right:4px;vertical-align:middle;"></span>Último mes</span></div>' +
         '</div><div class="fl-tw" id="balHeat" style="padding:6px 0 10px;"></div></div>' +
         '';
@@ -2511,7 +2167,6 @@ async function saveBalARS(){
     setSaveStatus('ok','Guardado'); closeModal('modalBalARS'); await loadAllData(); renderResumen(); updateSidebar();
 }
 async function toggleRealizado(id){ var x=S.ingresos.find(function(i){ return i.id===id; }); if(!x) return; x.realizado=!x.realizado; setSaveStatus('saving'); var res=await sb.from('obra_ingresos').update({realizado:x.realizado}).eq('id',id); setSaveStatus(res.error?'error':'ok',res.error?'Error':'Guardado'); renderResumen(); }
-async function pagarCuota(id){ var d=S.deudas.find(function(x){ return x.id===id; }); if(!d||d.pagadas>=d.cuotas){ alert('Todas las cuotas ya pagadas.'); return; } d.pagadas++; setSaveStatus('saving'); var res=await sb.from('obra_deudas').update({pagadas:d.pagadas}).eq('id',id); setSaveStatus(res.error?'error':'ok',res.error?'Error':'Guardado'); renderResumen(); }
 
 function openNewBal(type){ S.editBalType=type; S.editBalId=null; document.getElementById('mBalTitle').textContent={ingreso:'Nuevo ingreso',deuda:'Nueva deuda',ajuste:'Nueva resta'}[type]; document.getElementById('mBalBody').innerHTML=buildBalFields(type,null); openModal('modalBalance'); }
 function openEditBal(type,id){ S.editBalType=type; S.editBalId=id; var arr=type==='ingreso'?S.ingresos:type==='deuda'?S.deudas:S.ajustes; var item=arr.find(function(x){ return x.id===id; }); document.getElementById('mBalTitle').textContent={ingreso:'Editar ingreso',deuda:'Editar deuda',ajuste:'Editar ajuste'}[type]; document.getElementById('mBalBody').innerHTML=buildBalFields(type,item); if(item){ document.getElementById('bMonto').value=Math.round(item.montoUSD); if(type==='ingreso'){ document.getElementById('bFecha').value=item.fecha; document.getElementById('bDesc').value=item.desc; var rc=document.getElementById('bRealizado'); if(rc) rc.checked=!!item.realizado; var rp=document.getElementById('bPeriod'); if(rp){ rp.value=item.periodicidad||'unico'; toggleModoIngreso(); } var rfh=document.getElementById('bFechaHasta'); if(rfh) rfh.value=item.fechaHasta||''; var rnc=document.getElementById('bNCuotas'); if(rnc) rnc.value=item.nCuotas||''; } else if(type==='ajuste'){ document.getElementById('bFecha').value=item.fecha; document.getElementById('bDesc').value=item.desc; } else { document.getElementById('bDesc').value=item.desc; document.getElementById('bCuotas').value=item.cuotas; document.getElementById('bPagadas').value=item.pagadas; var fd=document.getElementById('bFechaDeuda'); if(fd) fd.value=item.fechaInicio||new Date().toISOString().split('T')[0]; var fp=document.getElementById('bProyectado'); if(fp) fp.checked=!!item.proyectado; } } openModal('modalBalance'); }
@@ -2539,7 +2194,6 @@ function buildBalFields(type,item){
         '<label for="bProyectado" style="font-size:13px;cursor:pointer;user-select:none;">Es un gasto <strong style="color:var(--purple)">proyectado</strong> (aún no confirmado) — se muestra con línea punteada</label>' +
         '</div>';
 }
-function toggleFechaHasta(){ toggleModoIngreso(); }
 function toggleModoIngreso(){
     var p=document.getElementById('bPeriod');
     var fgFH=document.getElementById('fgFechaHasta');
@@ -2666,26 +2320,6 @@ function exportarIngresosProyectados(){
 // ═══════════════════════════════════════
 // DRAG & DROP
 // ═══════════════════════════════════════
-function makeDraggable(listId, arr, renderFn, dbTable){
-    var list=document.getElementById(listId); if(!list) return;
-    var dragSrc=null;
-    list.querySelectorAll('.drag-item').forEach(function(el){
-        el.setAttribute('draggable','true');
-        el.addEventListener('dragstart',function(e){ dragSrc=el; el.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
-        el.addEventListener('dragend',function(){ el.classList.remove('dragging'); list.querySelectorAll('.drag-item').forEach(function(x){ x.classList.remove('drag-over'); }); });
-        el.addEventListener('dragover',function(e){ e.preventDefault(); if(el!==dragSrc) el.classList.add('drag-over'); });
-        el.addEventListener('dragleave',function(){ el.classList.remove('drag-over'); });
-        el.addEventListener('drop',function(e){
-            e.preventDefault(); el.classList.remove('drag-over');
-            if(dragSrc&&el!==dragSrc){
-                var si=parseInt(dragSrc.dataset.idx), ti=parseInt(el.dataset.idx);
-                var moved=arr.splice(si,1)[0]; arr.splice(ti,0,moved);
-                renderFn();
-                if(dbTable){ setSaveStatus('saving'); Promise.all(arr.map(function(item,idx){ return sb.from(dbTable).update({orden:idx}).eq('id',item.id); })).then(function(){ setSaveStatus('ok','Guardado'); }); }
-            }
-        });
-    });
-}
 
 // ═══════════════════════════════════════
 // NAVIGATION
@@ -2694,8 +2328,17 @@ var curPage = 'resumen';
 var PAGE_TITLES = {resumen:'Resumen general',config:'Configuración'};
 var PAGE_ORDER  = ['resumen','config'];
 
+// Accesos rápidos: salto suave a cada sección del Resumen (las plegadas se abren al llegar)
+function qGo(id){
+    if (id === 'top') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    var el = document.getElementById(id); if (!el) return;
+    var card = el.querySelector('.pg-card.pg-shut'); if (card) { var hdr = card.firstElementChild; if (hdr && hdr.onclick) hdr.onclick(); }
+    if (el.tagName === 'DETAILS') el.open = true;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 function goTo(page){
     curPage=page;
+    var qn = document.getElementById('qnav'); if (qn) qn.style.display = page === 'resumen' ? '' : 'none';
     document.querySelectorAll('.nav-item').forEach(function(b,i){ b.classList.toggle('active',PAGE_ORDER[i]===page); });
     document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
     document.getElementById('page-'+page).classList.add('active');
@@ -2706,7 +2349,6 @@ function goTo(page){
 
 function renderCurrent(){
     if(curPage==='resumen') renderResumen();
-    else if(curPage==='rubros') renderRubros();
     else if(curPage==='config') renderConfig();
     renderAlerts();
     updateSidebar();
