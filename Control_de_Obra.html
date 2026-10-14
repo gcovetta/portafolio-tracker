@@ -220,6 +220,9 @@
     .hm-t tr.hm-sec td{height:24px;background:transparent;text-align:left;padding-left:16px;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
     .hm-t tr.hm-sep td{height:6px;background:transparent;}
     .hm-t tr.hm-tot td.hm-k{font-size:11px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
+    .pg-card:not(.pg-open) tr.pg-more{display:none;}
+    .pg-toggle{width:100%;padding:8px;border:none;border-top:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;}
+    .pg-toggle:hover{color:var(--text);}
     .fl-tag{display:inline-block;font-size:9px;font-weight:700;padding:0 6px;border-radius:20px;margin-left:6px;vertical-align:middle;background:var(--amber-dim);color:var(--amber);}
     </style>
 </head>
@@ -1015,7 +1018,7 @@ function renderPagos(){
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">' +
             '<div class="filter-bar"><input type="text" placeholder="Buscar..." style="width:170px;" oninput="pagoSearch=this.value;renderPagos()" value="'+pagoSearch+'">' +
             '<select onchange="pagoFilter=this.value;renderPagos()"><option value="todos">Todos</option><option value="pagado" '+(pagoFilter==='pagado'?'selected':'')+'>Pagados</option><option value="pendiente" '+(pagoFilter==='pendiente'?'selected':'')+'>Pendientes</option><option value="vencido" '+(pagoFilter==='vencido'?'selected':'')+'>Vencidos</option></select></div>' +
-            '<div style="display:flex;gap:8px;"><button class="btn btn-excel" onclick="exportarExcel()">Excel</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>' +
+            '<div style="display:flex;gap:8px;"><button class="btn btn-excel" onclick="exportarExcel()">Excel</button><button class="btn" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,166,35,.3);" onclick="openNewPagoARS()">+ Nuevo en $</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>' +
             '<div class="card"><div class="table-wrap">'+(listaFilt.length?'<table><thead><tr><th>Fecha</th><th>Etapa</th><th>Descripción</th><th style="text-align:right">Monto</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'+rowsFilt+'</tbody></table>':'<div class="empty">Sin pagos</div>')+'</div></div>';
         return;
     }
@@ -1035,7 +1038,7 @@ function renderPagos(){
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">' +
         '<div class="filter-bar"><input type="text" placeholder="Buscar..." style="width:170px;" oninput="pagoSearch=this.value;renderPagos()" value="'+pagoSearch+'">' +
         '<select onchange="pagoFilter=this.value;renderPagos()"><option value="todos" selected>Todos</option><option value="pagado">Pagados</option><option value="pendiente">Pendientes</option><option value="vencido">Vencidos</option></select></div>' +
-        '<div style="display:flex;gap:8px;"><button class="btn btn-excel" onclick="exportarExcel()">Excel</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>' +
+        '<div style="display:flex;gap:8px;"><button class="btn btn-excel" onclick="exportarExcel()">Excel</button><button class="btn" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,166,35,.3);" onclick="openNewPagoARS()">+ Nuevo en $</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>' +
 
         // KPI cards — grupo USD | separador | grupo ARS
         (function(){
@@ -1211,94 +1214,8 @@ function renderPagos(){
         '<div class="card-body" style="padding:10px 14px;"><div style="position:relative;width:100%;height:190px;"><canvas id="chartPagosRubroARS"></canvas></div></div></div>' +
         '</div>' +
 
-        // Dos tablas lado a lado
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">' +
-
-        // Tabla PAGADOS
-        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">' +
-        '<div style="padding:11px 14px;background:var(--green-dim);border-bottom:1px solid rgba(62,207,142,.2);display:flex;align-items:center;justify-content:space-between;">' +
-        '<div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;"></span><span style="font-size:12px;font-weight:700;color:var(--green);">Pagados</span></div>' +
-        '<span style="font-size:11px;font-family:DM Mono,monospace;font-weight:600;color:var(--green);">'+fmtMain(totalPag)+'</span></div>' +
-        '<div style="overflow-x:auto;">' +
-        (pagados.length ?
-            '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>' +
-            '<th style="'+THS+'text-align:left;">Fecha</th><th style="'+THS+'text-align:left;">Etapa / Desc</th><th style="'+THS+'text-align:right;">U$S</th><th style="'+THS+'text-align:right;">Total U$S</th><th style="'+THS+'text-align:right;">Pesos</th><th style="'+THS+'"></th>' +
-            '</tr></thead><tbody>'+
-            pagados.map(function(p){
-                var e=S.etapas.find(function(x){return x.id===p.etapaId;});
-                return '<tr><td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>' +
-                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div>'+cuotasBar(p)+'</div></td>' +
-                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:var(--green);">U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+'</td>' +
-                    (p.cuotas&&p.cuotas>1?'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;"><div style="font-family:DM Mono,monospace;font-size:12px;font-weight:700;color:var(--green);">U$S '+Math.round(p.montoUSD*p.cuotas).toLocaleString('es-AR')+'</div><div style="font-size:10px;color:var(--text3);margin-top:1px;">'+p.cuotas+' cuotas</div></td>':'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;color:var(--text3);font-size:11px;">—</td>') +
-                    arsCellHTML(p, 'var(--green)') +
-                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;gap:3px;">' +
-                    '<button class="btn btn-sm" onclick="openEditPago('+p.id+')">✎</button>' +
-                    '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>' +
-                    '</div></td></tr>';
-            }).join('') +
-            '</tbody></table>' +
-            '<div style="padding:10px 14px;background:var(--green-dim);border-top:2px solid rgba(62,207,142,.2);display:flex;align-items:center;justify-content:flex-end;gap:24px;flex-wrap:wrap;">' +
-            '<span style="font-size:11px;color:var(--text3);">Total U$S <strong style="font-family:DM Mono,monospace;font-size:13px;color:var(--green);">U$S '+Math.round(totalPagUSD).toLocaleString('es-AR')+'</strong></span>' +
-            (hayPagARS?'<span style="font-size:11px;color:var(--text3);">Total $ <strong style="font-family:DM Mono,monospace;font-size:13px;color:var(--green);">$'+Math.round(totalPagARS).toLocaleString('es-AR')+'</strong></span>':'') +
-            '</div>'
-        : '<div class="empty" style="padding:2rem;">Sin pagos realizados</div>') +
-        '</div></div>' +
-
-        // Tabla PENDIENTES
-        '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">' +
-        '<div style="padding:11px 14px;background:var(--amber-dim);border-bottom:1px solid rgba(245,166,35,.2);display:flex;align-items:center;justify-content:space-between;">' +
-        '<div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block;"></span><span style="font-size:12px;font-weight:700;color:var(--amber);">Pendientes / Vencidos</span></div>' +
-        '<span style="font-size:11px;font-family:DM Mono,monospace;font-weight:600;color:var(--amber);">'+fmtMain(totalPend)+'</span></div>' +
-        '<div style="overflow-x:auto;">' +
-        (pendientes.length ?
-            '<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>' +
-            '<th style="'+THS+'text-align:left;">Fecha</th><th style="'+THS+'text-align:left;">Etapa / Desc</th><th style="'+THS+'text-align:right;">U$S</th><th style="'+THS+'text-align:right;">Total U$S</th><th style="'+THS+'text-align:right;">Pesos</th><th style="'+THS+'">Estado</th><th style="'+THS+'"></th>' +
-            '</tr></thead><tbody>'+
-            pendientes.map(function(p){
-                var e=S.etapas.find(function(x){return x.id===p.etapaId;});
-                var pColor = p.estado==='vencido'?'var(--red)':'var(--amber)';
-                return '<tr><td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>' +
-                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div>'+cuotasBar(p)+'</div></td>' +
-                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:'+pColor+';">U$S '+Math.round(p.montoUSD).toLocaleString('es-AR')+'</td>' +
-                    (p.cuotas&&p.cuotas>1?(function(){
-                        var _pag=p.cuotasPagadas||0, _rest=p.cuotas-_pag;
-                        var _cot = p.cotizacion||S.tcn;
-                        if(p.montoARSoriginal){
-                            // Pago en pesos: calcular todo en ARS y convertir al final
-                            var _totARS = p.montoARSoriginal * p.cuotas;
-                            var _saldoCuotaARS = p.saldoCuotaActual!=null ? p.saldoCuotaActual : p.montoARSoriginal;
-                            var _saldoARS = _rest>0 ? (_rest-1)*p.montoARSoriginal + _saldoCuotaARS : 0;
-                            var _tot = Math.round(_totARS/_cot);
-                            var _saldo = Math.round(_saldoARS/_cot);
-                        } else {
-                            // Pago en USD: calcular en USD directo
-                            var _tot = Math.round(p.montoUSD*p.cuotas);
-                            var _saldoCuotaUSD = p.saldoCuotaActual!=null ? p.saldoCuotaActual : p.montoUSD;
-                            var _saldo = Math.round(_rest>0 ? (_rest-1)*p.montoUSD+_saldoCuotaUSD : 0);
-                        }
-                        return '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;">' +
-                            '<div style="font-family:DM Mono,monospace;font-size:12px;font-weight:700;color:'+pColor+';">U$S '+_saldo.toLocaleString('es-AR')+'</div>' +
-                            '<div style="font-size:10px;color:var(--text3);margin-top:1px;">'+_rest+' de '+p.cuotas+' cuotas · total U$S '+_tot.toLocaleString('es-AR')+'</div>' +
-                            '</td>';
-                    })():'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;color:var(--text3);font-size:11px;">—</td>') +
-                    arsCellHTML(p, pColor, true) +
-                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><span class="badge '+p.estado+'">'+p.estado+'</span></td>' +
-                    '<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;gap:3px;">' +
-                    '<button class="btn btn-sm btn-green" onclick="marcarPagado('+p.id+')" title="Marcar pagado">✓</button>' +
-                    '<button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);" onclick="openPagoParcial('+p.id+')" title="Pago parcial">$−</button>' +
-                    '<button class="btn btn-sm" onclick="openEditPago('+p.id+')">✎</button>' +
-                    '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>' +
-                    '</div></td></tr>';
-            }).join('') +
-            '</tbody></table>' +
-            '<div style="padding:10px 14px;background:var(--amber-dim);border-top:2px solid rgba(245,166,35,.2);display:flex;align-items:center;justify-content:flex-end;gap:24px;flex-wrap:wrap;">' +
-            '<span style="font-size:11px;color:var(--text3);">Total U$S <strong style="font-family:DM Mono,monospace;font-size:13px;color:var(--amber);">U$S '+Math.round(totalPendUSD).toLocaleString('es-AR')+'</strong></span>' +
-            (hayPendARS?'<span style="font-size:11px;color:var(--text3);">Total $ <strong style="font-family:DM Mono,monospace;font-size:13px;color:var(--amber);">$'+Math.round(totalPendARS).toLocaleString('es-AR')+'</strong></span>':'') +
-            '</div>'
-        : '<div class="empty" style="padding:2rem;">Sin pagos pendientes</div>') +
-        '</div></div>' +
-
-        '</div>'; // fin grid 2 col
+        // Tablas unificadas USD + pesos (se completan al final de renderPagos)
+        '<div id="pagosUnif"></div>';
 
     // ── Build chart ──────────────────────────────────────────────
     function buildChart(ctx, labels, pagData, pendData, colors, emptyMsg, detailData) {
@@ -1599,140 +1516,104 @@ function renderPagos(){
         window.chartPagosRubroARS = buildChartARS(document.getElementById('chartPagosRubroARS'), _allRubrosARS, _rubPagARS, _rubPendARS, _rubColsARS, 'Sin pagos registrados');
     }, 50);
 
-    // ── Tabla pagos en pesos ──────────────────────────────────────
-    var pagosARS = S.pagos.filter(function(p){ return p.moneda==='ars'; }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
-    var pagARS_pag  = pagosARS.filter(function(p){ return p.estado==='pagado'; });
-    var pagARS_pend = pagosARS.filter(function(p){ return p.estado!=='pagado'; });
-    var totPagARSpesos  = pagARS_pag.reduce(function(s,p){ return s+(p.montoARSoriginal||p.montoARS); },0);
-    var totPendARSpesos = pagARS_pend.reduce(function(s,p){
-        var montoCuota = p.montoARSoriginal||p.montoARS;
-        if(p.cuotas&&p.cuotas>1){
-            var r=Math.max(0,p.cuotas-(p.cuotasPagadas||0));
-            var saldoCuota = p.saldoCuotaActual!=null ? p.saldoCuotaActual : montoCuota;
-            return s + (r>0 ? (r-1)*montoCuota + saldoCuota : 0);
-        }
-        return s+(p.saldoCuotaActual!=null ? p.saldoCuotaActual : montoCuota);
-    },0);
-    // Totales USD de las tablas ARS (suma de columna U$S para pagados, Total U$S para pendientes)
-    var totPagARSusd = pagARS_pag.reduce(function(s,p){
-        var cot = p.cotizacion||S.tcn;
-        var monto = p.montoARSoriginal||p.montoARS;
-        return s + Math.round(monto/cot);
-    },0);
-    var totPendARSusd = pagARS_pend.reduce(function(s,p){
-        var cot = p.cotizacion||S.tcn;
-        var monto = p.montoARSoriginal||p.montoARS;
-        var cuotas = p.cuotas||1;
-        var rest = cuotas>1 ? Math.max(0,p.cuotas-(p.cuotasPagadas||0)) : 1;
-        var usdCuota = Math.round(monto/cot);
-        var saldoCuotaUSD = p.saldoCuotaActual!=null ? p.saldoCuotaActual/cot : usdCuota;
-        var usdTotal = cuotas>1
-            ? Math.round(rest>0 ? (rest-1)*usdCuota + saldoCuotaUSD : 0)
-            : Math.round(p.saldoCuotaActual!=null ? p.saldoCuotaActual/cot : usdCuota);
-        return s + usdTotal;
-    },0);
-    var THS2 = 'padding:8px 11px;font-size:10px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.4px;';
-    function rowARS(p, isPend){
-        var col = isPend ? (p.estado==='vencido'?'var(--red)':'var(--amber)') : 'var(--green)';
-        var montoCuota = p.montoARSoriginal||p.montoARS;
-        var cuotas = p.cuotas||1;
-        var cuotasPag = p.cuotasPagadas||0;
-        var cuotasInfo = cuotas>1
-            ? '<div style="font-size:10px;color:var(--text3);margin-top:2px;">'+cuotasPag+'/'+cuotas+' cuotas · total $ '+Math.round(montoCuota*cuotas).toLocaleString('es-AR')+'</div>'
-            : '';
-        var saldoInfo = '';
-        if(isPend && cuotas>1){
-            var rest = Math.max(0, cuotas-cuotasPag);
-            // Si hay pago parcial en la cuota actual, usar saldoCuotaActual
-            var saldoCuotaActual = p.saldoCuotaActual!=null ? p.saldoCuotaActual : montoCuota;
-            var saldoTotal = rest > 0 ? (rest-1)*montoCuota + saldoCuotaActual : 0;
-            var parcialStr = p.saldoCuotaActual!=null ? ' <span style="color:var(--purple);">· parcial: $ '+Math.round(saldoCuotaActual).toLocaleString('es-AR')+' de $ '+Math.round(montoCuota).toLocaleString('es-AR')+'</span>' : '';
-            saldoInfo = '<div style="font-size:10px;color:var(--text3);margin-top:1px;">'+rest+' pend. · saldo $ '+Math.round(saldoTotal).toLocaleString('es-AR')+parcialStr+'</div>';
-        } else if(isPend && cuotas===1){
-            // Pago simple: saldoCuotaActual refleja el parcial
-            var saldoSimple = p.saldoCuotaActual!=null ? p.saldoCuotaActual : montoCuota;
-            if(p.saldoCuotaActual!=null){
-                saldoInfo = '<div style="font-size:10px;color:var(--purple);margin-top:1px;">saldo $ '+Math.round(saldoSimple).toLocaleString('es-AR')+'</div>';
-            }
-        }
-        var acciones = isPend
-            ? '<button class="btn btn-sm btn-green" onclick="marcarPagado('+p.id+')" title="Marcar pagado / cuota">✓</button>'
-            + '<button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);" onclick="openPagoParcial('+p.id+')" title="Pago parcial">$−</button>'
-            + '<button class="btn btn-sm" onclick="openEditPagoARS('+p.id+')">✎</button>'
-            + '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>'
-            : '<button class="btn btn-sm" onclick="openEditPagoARS('+p.id+')">✎</button>'
-            + '<button class="btn btn-sm btn-danger" onclick="deletePago('+p.id+')">✕</button>';
-        var cotUsada = p.cotizacion || S.tcn;
-        var usdCuota = Math.round(montoCuota / cotUsada);
-        var usdCell = '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;">'
-            +'<div style="font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:var(--blue);">U$S '+usdCuota.toLocaleString('es-AR')+'</div>'
-            +'<div style="font-size:10px;color:var(--text3);margin-top:1px;">cot. $'+Math.round(cotUsada).toLocaleString('es-AR')+'</div>'
-            +'</td>';
-        // Total USD pendiente (cuotas restantes)
-        var usdTotalCell = '';
-        if(isPend){
-            var rest = cuotas>1 ? Math.max(0, cuotas-(p.cuotasPagadas||0)) : 1;
-            var saldoCuotaUSD = p.saldoCuotaActual!=null ? p.saldoCuotaActual/cotUsada : usdCuota;
-            var usdTotal = cuotas>1
-                ? Math.round((rest>0 ? (rest-1)*usdCuota + saldoCuotaUSD : 0))
-                : Math.round((p.saldoCuotaActual!=null ? p.saldoCuotaActual/cotUsada : usdCuota));
-            usdTotalCell = '<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;">'
-                +'<div style="font-family:DM Mono,monospace;font-size:12px;font-weight:700;color:var(--amber);">U$S '+usdTotal.toLocaleString('es-AR')+'</div>'
-                +(cuotas>1?'<div style="font-size:10px;color:var(--text3);margin-top:1px;">'+rest+' cuotas pend.</div>':'')
-                +'</td>';
-        }
-        return '<tr>'
-            +'<td style="padding:8px 11px;border-bottom:1px solid var(--border);font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+p.fecha+'</td>'
-            +'<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="font-size:12px;font-weight:500;color:var(--blue);">'+(p.rubro||'—')+'</div><div style="font-size:11px;color:var(--text3);">'+(p.desc||'')+'</div></td>'
-            +'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:'+col+';">$ '+Math.round(montoCuota).toLocaleString('es-AR')+cuotasInfo+'</td>'
-            + usdCell
-            + usdTotalCell
-            +(isPend?'<td style="padding:8px 11px;border-bottom:1px solid var(--border);text-align:right;font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">'+saldoInfo+'</td>':'')
-            +(isPend?'<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><span class="badge '+p.estado+'">'+p.estado+'</span></td>':'')
-            +'<td style="padding:8px 11px;border-bottom:1px solid var(--border);"><div style="display:flex;gap:3px;">'+acciones+'</div></td>'
-            +'</tr>';
+    // ── Tablas unificadas: Pagados | Pendientes / Vencidos (USD + pesos) ──
+    var pgTD = 'padding:8px 11px;border-bottom:1px solid var(--border);';
+    var pgTH = 'padding:8px 11px;font-size:10px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.4px;';
+    var pgN = 7;
+    if (!window._pgOpen) window._pgOpen = { pag: false, pend: false };
+    function pgEsARS(p){ return p.moneda === 'ars'; }
+    function pgCot(p){ return p.cotizacion || S.tcn; }
+    function pgTag(p, conUSD){
+        if (pgEsARS(p)) return '<span class="fl-tag">$ pesos</span>';
+        return conUSD ? '<span class="fl-tag" style="background:var(--blue-dim);color:var(--blue);">U$S</span>' : '';
     }
-    var htmlARS =
-        '<div style="margin-top:22px;">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
-        +'<div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block;"></span><span style="font-size:13px;font-weight:600;">Pagos en Pesos</span><span style="font-size:11px;color:var(--text3);">'+pagosARS.length+' registro'+(pagosARS.length!==1?'s':'')+'</span></div>'
-        +'<button class="btn btn-sm" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,166,35,.3);" onclick="openNewPagoARS()">+ Nuevo en $</button>'
-        +'</div>'
-        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">'
-        // Pagados ARS
-        +'<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">'
-        +'<div style="padding:11px 14px;background:var(--green-dim);border-bottom:1px solid rgba(62,207,142,.2);display:flex;justify-content:space-between;align-items:center;">'
-        +'<div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;"></span><span style="font-size:12px;font-weight:700;color:var(--green);">Pagados</span></div>'
-        +'<span style="font-size:11px;font-family:DM Mono,monospace;font-weight:600;color:var(--green);">$ '+Math.round(totPagARSpesos).toLocaleString('es-AR')+'</span></div>'
-        +'<div style="overflow-x:auto;">'
-        +(pagARS_pag.length
-            ?'<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>'
-            +'<th style="'+THS2+'text-align:left;">Fecha</th><th style="'+THS2+'text-align:left;">Rubro / Desc</th><th style="'+THS2+'text-align:right;">$ por cuota</th><th style="'+THS2+'text-align:right;">U$S</th><th style="'+THS2+'"></th>'
-            +'</tr></thead><tbody>'+pagARS_pag.map(function(p){return rowARS(p,false);}).join('')+'</tbody></table>'
-            +'<div style="padding:10px 14px;background:var(--green-dim);border-top:2px solid rgba(62,207,142,.2);display:flex;justify-content:flex-end;gap:20px;">'
-            +'<span style="font-size:11px;color:var(--text3);">Total $ <strong style="font-family:DM Mono,monospace;font-size:13px;color:var(--green);">$ '+Math.round(totPagARSpesos).toLocaleString('es-AR')+'</strong></span>'
-            +'<span style="font-size:11px;color:var(--text3);">Total U$S <strong style="font-family:DM Mono,monospace;font-size:13px;color:var(--green);">U$S '+Math.round(totPagARSusd).toLocaleString('es-AR')+'</strong></span>'
-            +'</div>'
-            :'<div class="empty" style="padding:2rem;">Sin pagos realizados</div>')
-        +'</div></div>'
-        // Pendientes ARS
-        +'<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">'
-        +'<div style="padding:11px 14px;background:var(--amber-dim);border-bottom:1px solid rgba(245,166,35,.2);display:flex;justify-content:space-between;align-items:center;">'
-        +'<div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block;"></span><span style="font-size:12px;font-weight:700;color:var(--amber);">Pendientes / Vencidos</span></div>'
-        +'<span style="font-size:11px;font-family:DM Mono,monospace;font-weight:600;color:var(--amber);">$ '+Math.round(totPendARSpesos).toLocaleString('es-AR')+'</span></div>'
-        +'<div style="overflow-x:auto;">'
-        +(pagARS_pend.length
-            ?'<table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>'
-            +'<th style="'+THS2+'text-align:left;">Fecha</th><th style="'+THS2+'text-align:left;">Rubro / Desc</th><th style="'+THS2+'text-align:right;">$ por cuota</th><th style="'+THS2+'text-align:right;">U$S</th><th style="'+THS2+'text-align:right;">Total U$S</th><th style="'+THS2+'text-align:right;">Saldo</th><th style="'+THS2+'">Estado</th><th style="'+THS2+'"></th>'
-            +'</tr></thead><tbody>'+pagARS_pend.map(function(p){return rowARS(p,true);}).join('')+'</tbody></table>'
-            +'<div style="padding:10px 14px;background:var(--amber-dim);border-top:2px solid rgba(245,166,35,.2);display:flex;justify-content:flex-end;gap:20px;">'
-            +'<span style="font-size:11px;color:var(--text3);">Total $ <strong style="font-family:DM Mono,monospace;font-size:13px;color:var(--amber);">$ '+Math.round(totPendARSpesos).toLocaleString('es-AR')+'</strong></span>'
-            +'<span style="font-size:11px;color:var(--text3);">Total U$S <strong style="font-family:DM Mono,monospace;font-size:13px;color:var(--amber);">U$S '+Math.round(totPendARSusd).toLocaleString('es-AR')+'</strong></span>'
-            +'</div>'
-            :'<div class="empty" style="padding:2rem;">Sin pagos pendientes</div>')
-        +'</div></div>'
-        +'</div></div>';
-    document.getElementById('resumenPagos').innerHTML += htmlARS;
+    function pgConcepto(p, conUSD){
+        var cuo = '';
+        if (pgEsARS(p) && p.cuotas > 1) cuo = '<div style="font-size:10px;color:var(--text3);margin-top:2px;">' + (p.cuotasPagadas||0) + '/' + p.cuotas + ' cuotas</div>';
+        else if (!pgEsARS(p)) cuo = cuotasBar(p);
+        return '<td style="' + pgTD + '"><div style="font-size:12px;font-weight:500;color:var(--blue);">' + (p.rubro||'—') + pgTag(p, conUSD) + '</div><div style="font-size:11px;color:var(--text3);">' + (p.desc||'') + '</div>' + cuo + '</td>';
+    }
+    function pgMonto(p, color){
+        var main = p.montoARSoriginal && pgEsARS(p) ? '$ ' + Math.round(p.montoARSoriginal).toLocaleString('es-AR') : 'U$S ' + Math.round(p.montoUSD||0).toLocaleString('es-AR');
+        var sub = p.montoARSoriginal ? (pgEsARS(p) ? '' : '$ ' + Math.round(p.montoARSoriginal).toLocaleString('es-AR') + ' · ') + 'cot. $' + Math.round(pgCot(p)).toLocaleString('es-AR') : '';
+        if (p.cuotas > 1) sub = (sub ? sub + ' · ' : '') + 'por cuota';
+        return '<td style="' + pgTD + 'text-align:right;"><div style="font-family:DM Mono,monospace;font-size:12px;font-weight:600;color:' + color + ';">' + main + '</div>' + (sub ? '<div style="font-size:10px;color:var(--text3);margin-top:1px;">' + sub + '</div>' : '') + '</td>';
+    }
+    // U$S por cuota: los pagos en $ se guardan con monto_usd = 0 → se convierten con su cotización guardada
+    function pgUSDcuota(p){ return pgEsARS(p) && p.montoARSoriginal ? p.montoARSoriginal / pgCot(p) : (p.montoUSD||0); }
+    function pgPagUSD(p){ return pgUSDcuota(p) * (p.cuotas > 1 ? p.cuotas : 1); }
+    function pgPagARS(p){ return p.montoARSoriginal ? p.montoARSoriginal * (p.cuotas > 1 ? p.cuotas : 1) : 0; }
+    function pgSaldoARS(p){
+        if (!p.montoARSoriginal) return 0;
+        if (p.cuotas > 1) { var r = Math.max(0, p.cuotas - (p.cuotasPagadas||0)); var sc = p.saldoCuotaActual != null ? p.saldoCuotaActual : p.montoARSoriginal; return r > 0 ? (r-1) * p.montoARSoriginal + sc : 0; }
+        return p.saldoCuotaActual != null && pgEsARS(p) ? p.saldoCuotaActual : p.montoARSoriginal;
+    }
+    function pgSaldoUSD(p){
+        if (p.montoARSoriginal) return pgSaldoARS(p) / pgCot(p);
+        if (p.cuotas > 1) { var r = Math.max(0, p.cuotas - (p.cuotasPagadas||0)); var sc = p.saldoCuotaActual != null ? p.saldoCuotaActual : p.montoUSD; return r > 0 ? (r-1) * p.montoUSD + sc : 0; }
+        return p.montoUSD||0;
+    }
+    function pgEdit(p){ return pgEsARS(p) ? 'openEditPagoARS(' + p.id + ')' : 'openEditPago(' + p.id + ')'; }
+    function pgRowPag(p, i){
+        var ars = pgPagARS(p);
+        return '<tr' + (i >= pgN ? ' class="pg-more"' : '') + '><td style="' + pgTD + 'font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">' + p.fecha + '</td>' +
+            pgConcepto(p, false) + pgMonto(p, 'var(--green)') +
+            '<td style="' + pgTD + 'text-align:right;"><div style="font-family:DM Mono,monospace;font-size:12px;font-weight:700;color:var(--green);">U$S ' + Math.round(pgPagUSD(p)).toLocaleString('es-AR') + '</div>' +
+            (p.cuotas > 1 ? '<div style="font-size:10px;color:var(--text3);margin-top:1px;">' + p.cuotas + ' cuotas' + (ars ? ' · $ ' + Math.round(ars).toLocaleString('es-AR') : '') + '</div>' : '') + '</td>' +
+            '<td style="' + pgTD + '"><div style="display:flex;gap:3px;"><button class="btn btn-sm" onclick="' + pgEdit(p) + '">✎</button><button class="btn btn-sm btn-danger" onclick="deletePago(' + p.id + ')">✕</button></div></td></tr>';
+    }
+    function pgRowPend(p, i){
+        var col = p.estado === 'vencido' ? 'var(--red)' : 'var(--amber)';
+        var sub = [];
+        if (p.cuotas > 1) sub.push(Math.max(0, p.cuotas - (p.cuotasPagadas||0)) + ' de ' + p.cuotas + ' cuotas');
+        if (p.montoARSoriginal) sub.push('$ ' + Math.round(pgSaldoARS(p)).toLocaleString('es-AR'));
+        if (p.saldoCuotaActual != null) sub.push('<span style="color:var(--purple);">parcial</span>');
+        return '<tr' + (i >= pgN ? ' class="pg-more"' : '') + '><td style="' + pgTD + 'font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">' + p.fecha + '</td>' +
+            pgConcepto(p, true) + pgMonto(p, col) +
+            '<td style="' + pgTD + 'text-align:right;"><div style="font-family:DM Mono,monospace;font-size:12px;font-weight:700;color:' + col + ';">U$S ' + Math.round(pgSaldoUSD(p)).toLocaleString('es-AR') + '</div>' +
+            (sub.length ? '<div style="font-size:10px;color:var(--text3);margin-top:1px;">' + sub.join(' · ') + '</div>' : '') + '</td>' +
+            '<td style="' + pgTD + '"><span class="badge ' + p.estado + '">' + p.estado + '</span></td>' +
+            '<td style="' + pgTD + '"><div style="display:flex;gap:3px;">' +
+            '<button class="btn btn-sm btn-green" onclick="marcarPagado(' + p.id + ')" title="Marcar pagado">✓</button>' +
+            '<button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);" onclick="openPagoParcial(' + p.id + ')" title="Pago parcial">$−</button>' +
+            '<button class="btn btn-sm" onclick="' + pgEdit(p) + '">✎</button><button class="btn btn-sm btn-danger" onclick="deletePago(' + p.id + ')">✕</button></div></td></tr>';
+    }
+    var pgPagados = S.pagos.filter(function(p){ return p.estado === 'pagado' && busqueda(p); }).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); });
+    var pgPend    = S.pagos.filter(function(p){ return p.estado !== 'pagado' && busqueda(p); }).sort(function(a,b){ return a.fecha.localeCompare(b.fecha); });
+    var pgTotPagUSD  = pgPagados.reduce(function(s,p){ return s + pgPagUSD(p); }, 0);
+    var pgTotPagARS  = pgPagados.reduce(function(s,p){ return s + pgPagARS(p); }, 0);
+    var pgTotPendUSD = pgPend.reduce(function(s,p){ return s + pgSaldoUSD(p); }, 0);
+    var pgTotPendARS = pgPend.reduce(function(s,p){ return s + pgSaldoARS(p); }, 0);
+    function pgCard(key, titulo, rgb, varCol, lista, head, rowFn, totUSD, totARS, vacio){
+        var open = window._pgOpen[key];
+        var extra = lista.length - pgN;
+        return '<div class="pg-card' + (open ? ' pg-open' : '') + '" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;">' +
+            '<div style="padding:11px 14px;background:rgba(' + rgb + ',.12);border-bottom:1px solid rgba(' + rgb + ',.2);display:flex;align-items:center;justify-content:space-between;">' +
+            '<div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:' + varCol + ';display:inline-block;"></span><span style="font-size:12px;font-weight:700;color:' + varCol + ';">' + titulo + '</span><span style="font-size:11px;color:var(--text3);">' + lista.length + ' registro' + (lista.length !== 1 ? 's' : '') + '</span></div>' +
+            '<span style="font-size:11px;font-family:DM Mono,monospace;font-weight:600;color:' + varCol + ';">U$S ' + Math.round(totUSD).toLocaleString('es-AR') + '</span></div>' +
+            (lista.length ?
+                '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>' + head + '</tr></thead><tbody>' + lista.map(rowFn).join('') + '</tbody></table></div>' +
+                (extra > 0 ? '<button class="pg-toggle" data-k="' + key + '" data-n="' + lista.length + '" onclick="pgToggle(this)">' + (open ? 'Ver menos ▴' : 'Ver todos (' + lista.length + ') ▾') + '</button>' : '') +
+                '<div style="padding:10px 14px;background:rgba(' + rgb + ',.12);border-top:2px solid rgba(' + rgb + ',.2);display:flex;justify-content:flex-end;gap:24px;flex-wrap:wrap;">' +
+                '<span style="font-size:11px;color:var(--text3);">Total U$S <strong style="font-family:DM Mono,monospace;font-size:13px;color:' + varCol + ';">U$S ' + Math.round(totUSD).toLocaleString('es-AR') + '</strong></span>' +
+                (totARS > 0.5 ? '<span style="font-size:11px;color:var(--text3);">Total $ <strong style="font-family:DM Mono,monospace;font-size:13px;color:' + varCol + ';">$ ' + Math.round(totARS).toLocaleString('es-AR') + '</strong></span>' : '') +
+                '</div>'
+            : '<div class="empty" style="padding:2rem;">' + vacio + '</div>') +
+            '</div>';
+    }
+    var pgHeadPag  = '<th style="' + pgTH + 'text-align:left;">Fecha</th><th style="' + pgTH + 'text-align:left;">Rubro / Desc</th><th style="' + pgTH + 'text-align:right;">Monto</th><th style="' + pgTH + 'text-align:right;">U$S</th><th style="' + pgTH + '"></th>';
+    var pgHeadPend = '<th style="' + pgTH + 'text-align:left;">Fecha</th><th style="' + pgTH + 'text-align:left;">Rubro / Desc</th><th style="' + pgTH + 'text-align:right;">Monto</th><th style="' + pgTH + 'text-align:right;">Saldo U$S</th><th style="' + pgTH + '">Estado</th><th style="' + pgTH + '"></th>';
+    var elUnif = document.getElementById('pagosUnif');
+    if (elUnif) elUnif.innerHTML =
+        pgCard('pag', 'Pagados', '62,207,142', 'var(--green)', pgPagados, pgHeadPag, pgRowPag, pgTotPagUSD, pgTotPagARS, 'Sin pagos realizados') +
+        pgCard('pend', 'Pendientes / Vencidos', '245,166,35', 'var(--amber)', pgPend, pgHeadPend, pgRowPend, pgTotPendUSD, pgTotPendARS, 'Sin pagos pendientes');
+}
+// Mostrar / ocultar las filas colapsadas de las tablas de pagos
+function pgToggle(btn){
+    var c = btn.closest('.pg-card'), o = c.classList.toggle('pg-open');
+    window._pgOpen = window._pgOpen || {};
+    window._pgOpen[btn.getAttribute('data-k')] = o;
+    btn.textContent = o ? 'Ver menos ▴' : 'Ver todos (' + btn.getAttribute('data-n') + ') ▾';
 }
 // Moneda activa en modal pago
 var mPagoMoneda = 'USD';
