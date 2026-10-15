@@ -42,7 +42,7 @@ jobs:
       # GitHub desactiva los workflows programados si el repo pasa 60 días
       # sin commits. Si el último commit tiene más de 45 días, dejamos uno
       # automático para que el keepalive nunca se apague solo.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Heartbeat del repo (solo si hace falta)
         run: |
           ultimo=$(git log -1 --format=%ct)
