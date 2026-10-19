@@ -400,6 +400,18 @@ function fmtUSD(ars) { return 'U$S ' + Math.round(ars / S.tcn).toLocaleString('e
 function fmtMain(ars) { return fmtUSD(ars); }
 function pct(a, b) { return b > 0 ? Math.min(Math.round(a / b * 100), 999) : 0; }
 var OBRA_MESES = 18;   // plazo de obra: todo menos la deuda movible tiene que caer acá
+// Un plan en cuotas ya cancelado queda como fila "pagado" además de las filas que se generaron
+// al pagar cada cuota ("— cuota x/N") o cada parcial ("(parcial)"). Esa fila madre no se suma
+// como pagada si tiene filas hijas: si no, el total pagado cuenta una cuota de más.
+function esMadreCubierta(p) {
+    if (p.estado !== 'pagado' || !(p.cuotas > 1)) return false;
+    var base = p.desc || 'Pago', parc = (p.rubro ? p.rubro + ' — ' : '') + base + ' (parcial)';
+    return S.pagos.some(function(q){
+        if (q.id === p.id || q.estado !== 'pagado') return false;
+        var d = q.desc || '';
+        return (d.indexOf(base + ' — cuota ') === 0 && /\/(\d+)$/.test(d) && +d.match(/\/(\d+)$/)[1] === p.cuotas) || d === parc;
+    });
+}
 function esMovible(p) { return /omar/i.test((p.desc||'') + ' ' + (p.rubro||'')); }
 function pagoUltimoOff(p) {   // offset (desde el inicio) de la última cuota pendiente
     var s = startD(), fb = new Date(p.fecha + 'T00:00:00'), k = 0;
@@ -554,8 +566,8 @@ function renderResumen() {
     var netoARSusd2 = Math.round(S.ingresos.filter(function(x){ return x.moneda==='ars' && x.realizado; }).reduce(function(s,x){ return s+x.montoARS/(x.cotizacion||S.tcn); },0));
 
     // Total pagado: USD directo + ARS dolarizado con cotización del día de pago
-    var _pagUSD = S.pagos.filter(function(p){ return p.estado==='pagado' && p.moneda!=='ars'; }).reduce(function(s,p){ return s+(p.montoARS/(p.cotizacion||S.tcn)); },0);
-    var _pagARSusd = S.pagos.filter(function(p){ return p.estado==='pagado' && p.moneda==='ars'; }).reduce(function(s,p){ var cot=p.cotizacion||S.tcn, monto=p.montoARSoriginal||p.montoARS; return s+monto/cot; },0);
+    var _pagUSD = S.pagos.filter(function(p){ return p.estado==='pagado' && p.moneda!=='ars' && !esMadreCubierta(p); }).reduce(function(s,p){ return s+(p.montoARS/(p.cotizacion||S.tcn)); },0);
+    var _pagARSusd = S.pagos.filter(function(p){ return p.estado==='pagado' && p.moneda==='ars' && !esMadreCubierta(p); }).reduce(function(s,p){ var cot=p.cotizacion||S.tcn, monto=p.montoARSoriginal||p.montoARS; return s+monto/cot; },0);
     var totalPagadoUSD = Math.round(_pagUSD + _pagARSusd);
 
     var _pendUSD = S.pagos.filter(function(p){ return p.estado!=='pagado' && p.moneda!=='ars'; }).reduce(function(s,p){
@@ -647,7 +659,7 @@ function renderResumen() {
     var labels = Array.from({length:18}, function(_,i){ return mLabel(i); });
     var data = labels.map(function(_,i){
         var ms = mesStr(i);
-        return S.pagos.filter(function(p){ return p.estado==='pagado'&&p.fecha.startsWith(ms); }).reduce(function(s,p){
+        return S.pagos.filter(function(p){ return p.estado==='pagado'&&p.fecha.startsWith(ms)&&!esMadreCubierta(p); }).reduce(function(s,p){
             var cot = p.cotizacion || S.tcn;
             var usd = p.montoARSoriginal ? p.montoARSoriginal / cot : p.montoARS / cot;
             return s + usd;
