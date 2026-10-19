@@ -365,6 +365,15 @@
     </div>
 </div>
 
+<!-- MODAL MATERIALES ESTIMADOS (desglose / confirmar) -->
+<div class="modal-overlay" id="modalEst">
+    <div class="modal">
+        <div class="modal-hdr"><h3 id="mEstTitle">Materiales estimados</h3><button class="btn btn-sm" onclick="closeModal('modalEst')">✕</button></div>
+        <div class="modal-body" id="mEstBody"></div>
+        <div class="modal-ftr"><button class="btn" onclick="closeModal('modalEst')">Cancelar</button><button class="btn btn-primary" id="mEstSave">Guardar</button></div>
+    </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════
 // CREDENCIALES SUPABASE
@@ -475,7 +484,7 @@ async function loadAllData() {
         S.calc.total      = cfg.data.calc_tot != null ? String(cfg.data.calc_tot) : '';
         S.calc.m2         = cfg.data.calc_m2  != null ? String(cfg.data.calc_m2)  : '';
     }
-    S.pagos    = (pagos.data||[]).map(function(p){ var tieneARS=p.monto_ars!=null&&p.monto_ars>0; return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, rubro:p.rubro||'', desc:p.descripcion, montoUSD:p.monto_usd, montoARS:tieneARS?p.monto_ars:(p.monto_usd*S.tcn), montoARSoriginal:tieneARS?p.monto_ars:null, cotizacion:p.cotizacion||null, estado:p.estado, cuotas:p.cuotas||null, cuotasPagadas:p.cuotas_pagadas||0, saldoCuotaActual:p.saldo_cuota_actual!=null?p.saldo_cuota_actual:null, moneda:p.moneda||'usd', frecuencia:p.frecuencia||1}; });
+    S.pagos    = (pagos.data||[]).map(function(p){ var tieneARS=p.monto_ars!=null&&p.monto_ars>0; return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, rubro:p.rubro||'', desc:p.descripcion, montoUSD:p.monto_usd, montoARS:tieneARS?p.monto_ars:(p.monto_usd*S.tcn), montoARSoriginal:tieneARS?p.monto_ars:null, cotizacion:p.cotizacion||null, estado:p.estado, cuotas:p.cuotas||null, cuotasPagadas:p.cuotas_pagadas||0, saldoCuotaActual:p.saldo_cuota_actual!=null?p.saldo_cuota_actual:null, moneda:p.moneda||'usd', frecuencia:p.frecuencia||1, esEstimado:!!p.es_estimado, montoEstimado:p.monto_estimado!=null?+p.monto_estimado:null}; });
     S.etapas   = (etapas.data||[]).map(function(e){
         var fi=e.fecha_ini||'', ff=e.fecha_fin||'';
         var dias=e.dias||0;
@@ -1168,7 +1177,7 @@ function renderPagos(){
         var cuo = '';
         if (pgEsARS(p) && p.cuotas > 1) cuo = '<div style="font-size:10px;color:var(--text3);margin-top:2px;">' + (p.cuotasPagadas||0) + '/' + p.cuotas + ' cuotas</div>';
         else if (!pgEsARS(p)) cuo = cuotasBar(p);
-        return '<td style="' + pgTD + '"><div style="font-size:12px;font-weight:500;color:var(--blue);">' + (p.rubro||'—') + pgTag(p, conUSD) + '</div><div style="font-size:11px;color:var(--text3);">' + (p.desc||'') + '</div>' + cuo + '</td>';
+        return '<td style="' + pgTD + '"><div style="font-size:12px;font-weight:500;color:var(--blue);">' + (p.rubro||'—') + pgTag(p, conUSD) + (p.esEstimado ? '<span class="fl-tag" style="background:var(--purple-dim);color:var(--purple);">estimado</span>' : '') + '</div><div style="font-size:11px;color:var(--text3);">' + (p.desc||'') + '</div>' + cuo + '</td>';
     }
     function pgMonto(p, color){
         var main = p.montoARSoriginal && pgEsARS(p) ? '$ ' + Math.round(p.montoARSoriginal).toLocaleString('es-AR') : 'U$S ' + Math.round(p.montoUSD||0).toLocaleString('es-AR');
@@ -1245,7 +1254,7 @@ function renderPagos(){
     var elPagFin = document.getElementById('resumenPagados');
     var pgHtmlPag = pgCard('pag', 'Pagados', '62,207,142', 'var(--green)', pgPagados, pgHeadPag, pgRowPag, pgTotPagUSD, pgTotPagARS, 'Sin pagos realizados', true);
     var pgHtmlPend = pgCard('pend', 'Pendientes / Vencidos', '245,166,35', 'var(--amber)', pgPend, pgHeadPend, pgRowPend, pgTotPendUSD, pgTotPendARS, 'Sin pagos pendientes');
-    if (elUnif) elUnif.innerHTML = pgHtmlPend + (elPagFin ? '' : pgHtmlPag);
+    if (elUnif) elUnif.innerHTML = estPanelHtml() + pgHtmlPend + (elPagFin ? '' : pgHtmlPag);
     if (elPagFin) elPagFin.innerHTML = pgHtmlPag;
 }
 // Plegar / desplegar una tabla de pagos completa (Pagados nace plegada)
@@ -1824,6 +1833,7 @@ function renderBalance() {
         '<div style="display:flex;gap:12px;font-size:11px;color:var(--text3);flex-wrap:wrap;align-items:center;"><span>Intensidad = monto</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:linear-gradient(90deg,rgba(62,207,142,.15),rgba(62,207,142,.9));margin-right:4px;vertical-align:middle;"></span>Entra</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:linear-gradient(90deg,rgba(245,101,101,.15),rgba(245,101,101,.9));margin-right:4px;vertical-align:middle;"></span>Sale</span><span><span style="display:inline-block;width:22px;height:12px;border-radius:3px;background:var(--surface2);box-shadow:inset -3px 0 0 #E8EAF2;margin-right:4px;vertical-align:middle;"></span>Último mes</span></div>' +
         '</div><div class="pg-body"><div class="fl-tw" id="balHeat" style="padding:6px 0 10px;"></div></div></div>' +
         '';
+    balTarget.insertAdjacentHTML('afterbegin', omCardHtml());
     // Ingresos acreditados + en pesos: compactos, apilados al lado de "Gasto mensual" en el Resumen
     var ingHtml =
         '<div class="ing-compact" style="display:flex;flex-direction:column;gap:10px;">' +
@@ -2290,6 +2300,283 @@ function goTo(page){
     document.getElementById('topbarTitle').textContent=PAGE_TITLES[page];
     document.getElementById('topbarActions').innerHTML=page==='resumen'?'<button class="btn btn-excel btn-sm" onclick="exportarExcel()">Excel</button>':'';
     renderCurrent();
+}
+
+// ═══════════════════════════════════════
+// MATERIALES ESTIMADOS — desglose y confirmación
+//  · Cada ítem es un pago pendiente con es_estimado=true y monto_estimado (total en $)
+//  · Confirmar = cargar el valor real → es_estimado=false (monto_estimado queda para el desvío)
+//  · Requiere: obra_pagos.es_estimado (boolean) y obra_pagos.monto_estimado (numeric)
+// ═══════════════════════════════════════
+var EST_DEFAULT = [
+    { n: 'Gas',                      ars: 13000000, prio: 1 },
+    { n: 'Materiales techo (chapa)', ars: 26000000, prio: 2 },
+    { n: 'Piso y revestimientos',    ars: 46000000, prio: 3 },
+    { n: 'Griferías y sanitarios',   ars: 33000000, prio: 3 },
+    { n: 'Caldera (piso radiante)',  ars: 21000000, prio: 3 },
+    { n: 'Termotanques',             ars: 5000000,  prio: 3 }
+];
+function estFmtARS(v) { return '$ ' + Math.round(v || 0).toLocaleString('es-AR'); }
+function estBucket() {
+    return S.pagos.find(function(p){ return p.estado !== 'pagado' && !p.esEstimado && p.montoEstimado == null && /^estimado$/i.test((p.desc||'').trim()) && /material/i.test(p.rubro||''); }) || null;
+}
+function estRealARS(p) {
+    var n = p.cuotas > 1 ? p.cuotas : 1;
+    return p.montoARSoriginal ? p.montoARSoriginal * n : (p.montoUSD || 0) * n * S.tcn;
+}
+function estPanelHtml() {
+    var items = S.pagos.filter(function(p){ return p.montoEstimado != null; }).sort(function(a,b){ return (a.esEstimado===b.esEstimado ? a.fecha.localeCompare(b.fecha) : (a.esEstimado ? 1 : -1)); });
+    var bk = estBucket();
+    if (!items.length && !bk) return '';
+    var TD = 'padding:8px 12px;border-bottom:1px solid var(--border);';
+    var TH = 'padding:7px 12px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap;';
+    var queda = 0, estConf = 0, realConf = 0;
+    var rows = items.map(function(p){
+        var cot = p.cotizacion || S.tcn;
+        if (p.esEstimado) {
+            queda += p.montoEstimado;
+            var fuera = p.fecha.substring(0,7) > mesStr(17);
+            return '<tr><td style="' + TD + '"><div style="font-size:13px;font-weight:500;">' + flEscG(p.desc) + '</div><div style="font-size:10px;color:var(--purple);">estimado' + (fuera ? ' · <span style="color:var(--red);" title="El flujo llega hasta ' + mLabel(17) + '">fuera del flujo</span>' : '') + '</div></td>' +
+                '<td style="' + TD + '"><input type="month" value="' + p.fecha.substring(0,7) + '" onchange="estSetMes(' + p.id + ',this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:3px 6px;"></td>' +
+                '<td style="' + TD + 'text-align:right;font-family:DM Mono,monospace;font-size:12px;">' + estFmtARS(p.montoEstimado) + '<div style="font-size:10px;color:var(--text3);">≈ U$S ' + Math.round(p.montoEstimado / cot).toLocaleString('es-AR') + '</div></td>' +
+                '<td style="' + TD + 'text-align:right;color:var(--text3);">—</td><td style="' + TD + 'text-align:right;color:var(--text3);">—</td>' +
+                '<td style="' + TD + 'text-align:right;"><button class="btn btn-sm btn-green" onclick="estOpenConfirmar(' + p.id + ')">Confirmar</button></td></tr>';
+        }
+        var real = estRealARS(p), dv = p.montoEstimado ? (real - p.montoEstimado) / p.montoEstimado * 100 : 0;
+        estConf += p.montoEstimado; realConf += real;
+        var dc = dv > 0.5 ? 'var(--red)' : (dv < -0.5 ? 'var(--green)' : 'var(--text3)');
+        return '<tr><td style="' + TD + '"><div style="font-size:13px;font-weight:500;">' + flEscG(p.desc) + '</div><div style="font-size:10px;color:var(--green);">confirmado' + (p.estado === 'pagado' ? ' · pagado' : '') + '</div></td>' +
+            '<td style="' + TD + 'font-family:DM Mono,monospace;font-size:11px;color:var(--text3);">' + p.fecha + (p.cuotas > 1 ? '<div>' + p.cuotas + ' cuotas</div>' : '') + '</td>' +
+            '<td style="' + TD + 'text-align:right;font-family:DM Mono,monospace;font-size:12px;color:var(--text3);">' + estFmtARS(p.montoEstimado) + '</td>' +
+            '<td style="' + TD + 'text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:600;">' + estFmtARS(real) + '</td>' +
+            '<td style="' + TD + 'text-align:right;font-family:DM Mono,monospace;font-size:12px;font-weight:700;color:' + dc + ';">' + (dv > 0 ? '+' : '') + dv.toFixed(1).replace('.', ',') + '%</td>' +
+            '<td style="' + TD + '"></td></tr>';
+    }).join('');
+    if (bk) {
+        var bkARS = bk.montoARSoriginal || (bk.montoUSD * S.tcn);
+        rows += '<tr><td style="' + TD + '" colspan="2"><div style="font-size:13px;font-weight:500;">' + (items.length ? 'Sin desglosar' : 'Estimado global') + '</div><div style="font-size:10px;color:var(--text3);">' + bk.fecha + (bk.fecha.substring(0,7) > mesStr(17) ? ' · <span style="color:var(--red);">fuera del flujo (llega hasta ' + mLabel(17) + ')</span>' : ' · un solo pago en el flujo') + '</div></td>' +
+            '<td style="' + TD + 'text-align:right;font-family:DM Mono,monospace;font-size:12px;">' + estFmtARS(bkARS) + '</td><td style="' + TD + '"></td><td style="' + TD + '"></td>' +
+            '<td style="' + TD + 'text-align:right;"><button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);" onclick="estOpenDesglose()">Desglosar</button></td></tr>';
+        queda += bkARS;
+    }
+    var dvTot = estConf ? (realConf - estConf) / estConf * 100 : null;
+    return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;">' +
+        '<div style="padding:11px 14px;background:rgba(167,139,250,.12);border-bottom:1px solid rgba(167,139,250,.2);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">' +
+        '<div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--purple);display:inline-block;"></span><span style="font-size:12px;font-weight:700;color:var(--purple);">Materiales estimados</span></div>' +
+        '<div style="display:flex;gap:16px;font-size:11px;color:var(--text3);flex-wrap:wrap;"><span>Queda estimado <strong style="font-family:DM Mono,monospace;color:var(--purple);">' + estFmtARS(queda) + '</strong></span>' +
+        (dvTot != null ? '<span>Desvío confirmados <strong style="font-family:DM Mono,monospace;color:' + (dvTot > 0.5 ? 'var(--red)' : 'var(--green)') + ';">' + (dvTot > 0 ? '+' : '') + dvTot.toFixed(1).replace('.', ',') + '%</strong></span>' : '') + '</div></div>' +
+        '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>' +
+        '<th style="' + TH + 'text-align:left;">Ítem</th><th style="' + TH + 'text-align:left;">Mes</th><th style="' + TH + 'text-align:right;">Estimado</th><th style="' + TH + 'text-align:right;">Real</th><th style="' + TH + 'text-align:right;">Desvío</th><th style="' + TH + '"></th>' +
+        '</tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+}
+function flEscG(t) { return String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function estFechaMes(ym, dia) { return ym + '-' + String(Math.min(dia || 10, 28)).padStart(2, '0'); }
+async function estSetMes(id, ym) {
+    var p = S.pagos.find(function(x){ return x.id === id; }); if (!p || !ym) return;
+    setSaveStatus('saving');
+    var r = await sb.from('obra_pagos').update({ fecha: estFechaMes(ym, +p.fecha.substring(8,10)) }).eq('id', id);
+    if (r.error) { setSaveStatus('error'); alert('Error: ' + r.error.message); return; }
+    setSaveStatus('ok', 'Guardado'); await loadAllData(); renderResumen(); renderAlerts(); updateSidebar();
+}
+function estOpenDesglose() {
+    var bk = estBucket(); if (!bk) return;
+    var bkARS = bk.montoARSoriginal || (bk.montoUSD * S.tcn);
+    var hoy = new Date(), dia = +bk.fecha.substring(8,10) || 10;
+    function ymPlus(k) { var d = new Date(hoy.getFullYear(), hoy.getMonth() + k, 1); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
+    var html = '<div style="font-size:12px;color:var(--text3);margin-bottom:12px;">Cada ítem pasa a ser un pago pendiente <strong style="color:var(--purple);">estimado</strong> en su mes, así el flujo lo ve cuando realmente sale. El total se descuenta del estimado global (' + estFmtARS(bkARS) + ', cot. $' + Math.round(bk.cotizacion || S.tcn).toLocaleString('es-AR') + '). El flujo llega hasta <strong>' + mLabel(17) + '</strong>: un mes posterior no se ve en el flujo.</div>';
+    EST_DEFAULT.forEach(function(it, i){
+        var ym = it.prio === 1 ? ymPlus(1) : it.prio === 2 ? ymPlus(2) : bk.fecha.substring(0,7);
+        html += '<div class="form-row" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr);margin-bottom:8px;">' +
+            '<div class="fg"><label>Ítem</label><input type="text" id="eN' + i + '" style="min-width:0;width:100%;box-sizing:border-box;" value="' + flEscG(it.n) + '"></div>' +
+            '<div class="fg"><label>Monto $</label><input type="number" id="eA' + i + '" style="min-width:0;width:100%;box-sizing:border-box;" value="' + it.ars + '" oninput="estSumaDesglose()"></div>' +
+            '<div class="fg"><label>Mes</label><input type="month" id="eM' + i + '" style="min-width:0;width:100%;box-sizing:border-box;" value="' + ym + '"></div></div>';
+    });
+    html += '<div id="eSum" style="margin-top:10px;font-size:12px;"></div>';
+    document.getElementById('mEstTitle').textContent = 'Desglosar materiales estimados';
+    document.getElementById('mEstBody').innerHTML = html;
+    document.getElementById('mEstSave').onclick = function(){ estSaveDesglose(bk.id, bkARS, dia); };
+    window._estBkARS = bkARS;
+    estSumaDesglose();
+    openModal('modalEst');
+}
+function estSumaDesglose() {
+    var s = 0; EST_DEFAULT.forEach(function(it, i){ s += parseFloat((document.getElementById('eA' + i) || {}).value) || 0; });
+    var r = (window._estBkARS || 0) - s, el = document.getElementById('eSum'); if (!el) return;
+    el.innerHTML = 'Total desglosado <strong style="font-family:DM Mono,monospace;">' + estFmtARS(s) + '</strong> · ' +
+        (Math.abs(r) < 1 ? '<span style="color:var(--green);">coincide con el estimado global</span>' : r > 0 ? '<span style="color:var(--amber);">queda ' + estFmtARS(r) + ' sin desglosar</span>' : '<span style="color:var(--red);">supera el global por ' + estFmtARS(-r) + ' (el global se elimina)</span>');
+}
+async function estSaveDesglose(bkId, bkARS, dia) {
+    var bk = S.pagos.find(function(x){ return x.id === bkId; }); if (!bk) return;
+    var cot = bk.cotizacion || S.tcn, rows = [], suma = 0;
+    for (var ei = 0; ei < EST_DEFAULT.length; ei++) {
+        var n = (document.getElementById('eN' + ei).value || '').trim(), a = parseFloat(document.getElementById('eA' + ei).value) || 0, ym = document.getElementById('eM' + ei).value;
+        if (!n || !a) continue;
+        if (!ym) { alert('Falta el mes de ' + n); return; }
+        suma += a;
+        rows.push({ fecha: estFechaMes(ym, dia), rubro: bk.rubro || 'Materiales', descripcion: n, monto_usd: a / cot, monto_ars: a, cotizacion: cot,
+                    estado: 'pendiente', cuotas: null, cuotas_pagadas: null, frecuencia: 1, moneda: bk.moneda || 'usd', es_estimado: true, monto_estimado: a });
+    }
+    if (!rows.length) return;
+    setSaveStatus('saving');
+    var r = await sb.from('obra_pagos').insert(rows);
+    if (r.error) { setSaveStatus('error'); alert('Error: ' + r.error.message + (/es_estimado|monto_estimado/.test(r.error.message) ? '\n\nFalta correr el SQL que agrega es_estimado y monto_estimado a obra_pagos.' : '')); return; }
+    var resto = bkARS - suma;
+    var r2 = resto < 1 ? await sb.from('obra_pagos').delete().eq('id', bkId)
+                       : await sb.from('obra_pagos').update({ monto_ars: resto, monto_usd: resto / cot }).eq('id', bkId);
+    if (r2.error) { setSaveStatus('error'); alert('Se crearon los ítems pero no se pudo ajustar el estimado global: ' + r2.error.message); }
+    else setSaveStatus('ok', 'Guardado');
+    closeModal('modalEst'); await loadAllData(); renderResumen(); renderAlerts(); updateSidebar();
+}
+function estOpenConfirmar(id) {
+    var p = S.pagos.find(function(x){ return x.id === id; }); if (!p) return;
+    document.getElementById('mEstTitle').textContent = 'Confirmar · ' + (p.desc || '');
+    document.getElementById('mEstBody').innerHTML =
+        '<div style="font-size:12px;color:var(--text3);margin-bottom:12px;">Estimado: <strong style="font-family:DM Mono,monospace;color:var(--purple);">' + estFmtARS(p.montoEstimado) + '</strong>. Cargá el valor real total; si va en cuotas, se divide solo.</div>' +
+        '<div class="form-row"><div class="fg"><label>Monto real total</label><input type="number" id="ecMonto" value="' + Math.round(p.montoEstimado) + '" oninput="estDesvioPrev(' + id + ')"></div>' +
+        '<div class="fg"><label>Moneda</label><select id="ecMon" onchange="estDesvioPrev(' + id + ')"><option value="ARS">$ pesos</option><option value="USD">U$S</option></select></div></div>' +
+        '<div class="form-row"><div class="fg"><label>Cotización $</label><input type="number" id="ecCot" value="' + Math.round(S.tcn) + '" oninput="estDesvioPrev(' + id + ')"></div>' +
+        '<div class="fg"><label>Fecha (1er pago)</label><input type="date" id="ecFecha" value="' + p.fecha + '"></div></div>' +
+        '<div class="form-row"><div class="fg"><label>Cuotas</label><input type="number" id="ecCuotas" min="1" value="1"></div>' +
+        '<div class="fg"><label>Cada cuántos meses</label><input type="number" id="ecFrec" min="1" value="1"></div></div>' +
+        '<div id="ecDv" style="font-size:12px;margin-top:4px;"></div>';
+    document.getElementById('mEstSave').onclick = function(){ estSaveConfirmar(id); };
+    openModal('modalEst'); estDesvioPrev(id);
+}
+function estDesvioPrev(id) {
+    var p = S.pagos.find(function(x){ return x.id === id; }), el = document.getElementById('ecDv'); if (!p || !el) return;
+    var v = parseFloat(document.getElementById('ecMonto').value) || 0, cot = parseFloat(document.getElementById('ecCot').value) || S.tcn;
+    var ars = document.getElementById('ecMon').value === 'USD' ? v * cot : v;
+    var dv = p.montoEstimado ? (ars - p.montoEstimado) / p.montoEstimado * 100 : 0;
+    el.innerHTML = 'Desvío vs estimado: <strong style="font-family:DM Mono,monospace;color:' + (dv > 0.5 ? 'var(--red)' : 'var(--green)') + ';">' + (dv > 0 ? '+' : '') + dv.toFixed(1).replace('.', ',') + '%</strong> (' + (ars >= p.montoEstimado ? '+' : '−') + estFmtARS(Math.abs(ars - p.montoEstimado)).replace('$ ', '$ ') + ')';
+}
+async function estSaveConfirmar(id) {
+    var v = parseFloat(document.getElementById('ecMonto').value) || 0, mon = document.getElementById('ecMon').value;
+    var cot = parseFloat(document.getElementById('ecCot').value) || 0, fecha = document.getElementById('ecFecha').value;
+    var cu = Math.max(1, parseInt(document.getElementById('ecCuotas').value) || 1), fr = Math.max(1, parseInt(document.getElementById('ecFrec').value) || 1);
+    if (!v || !fecha) { alert('Completá monto y fecha.'); return; }
+    if (mon === 'ARS' && !cot) { alert('Ingresá la cotización.'); return; }
+    var porCuota = v / cu;
+    var payload = { es_estimado: false, fecha: fecha, cuotas: cu > 1 ? cu : null, cuotas_pagadas: cu > 1 ? 0 : null, frecuencia: cu > 1 ? fr : 1, saldo_cuota_actual: null };
+    if (mon === 'ARS') { payload.monto_ars = porCuota; payload.cotizacion = cot; payload.monto_usd = porCuota / cot; }
+    else { payload.monto_ars = null; payload.cotizacion = null; payload.monto_usd = porCuota; }
+    setSaveStatus('saving');
+    var r = await sb.from('obra_pagos').update(payload).eq('id', id);
+    if (r.error) { setSaveStatus('error'); alert('Error: ' + r.error.message); return; }
+    setSaveStatus('ok', 'Guardado'); closeModal('modalEst'); await loadAllData(); renderResumen(); renderAlerts(); updateSidebar();
+}
+
+// ═══════════════════════════════════════
+// DEUDA MOVIBLE (Omar · Terreno) — mejor mes según el disponible
+//  Replica el cálculo de "Flujo de fondos" de renderBalance (mismo horizonte de 18 meses,
+//  mismo punto de partida = acreditado) y prueba el pago en cada mes.
+// ═══════════════════════════════════════
+var OM_COLCHON = 10000;   // mismo umbral que el mapa de calor (verde ≥ 10k)
+function omCeldas(p, ms) {
+    var out = {}, cot = p.cotizacion || S.tcn, enARS = !!p.montoARSoriginal;
+    if (p.cuotas && p.cuotas > 1) {
+        var pag = p.cuotasPagadas || 0, rest = p.cuotas - pag; if (rest <= 0) return out;
+        var fr = p.frecuencia || 1, fb = new Date(p.fecha + 'T00:00:00'), f0 = new Date(fb.getFullYear(), fb.getMonth() + pag * fr, 1);
+        for (var q = 0; q < rest; q++) {
+            var fc = new Date(f0.getFullYear(), f0.getMonth() + q * fr, 1);
+            var ix = ms.indexOf(fc.getFullYear() + '-' + String(fc.getMonth()+1).padStart(2,'0')); if (ix < 0) continue;
+            out[ix] = (out[ix] || 0) + ((q === 0 && p.saldoCuotaActual != null) ? (enARS ? p.saldoCuotaActual / cot : p.saldoCuotaActual) : (enARS ? p.montoARSoriginal / cot : p.montoUSD));
+        }
+    } else {
+        var ixs = ms.indexOf(p.fecha.substring(0,7));
+        if (ixs >= 0) out[ixs] = (enARS ? p.montoARSoriginal / cot : p.montoUSD);
+    }
+    return out;
+}
+function omBase(excluirId) {
+    var N = 18, ini = Math.max(0, curMonthOff()), ms = [], tin = [], tout = [];
+    for (var i = 0; i < N; i++) { ms.push(mesStr(i)); tin.push(0); tout.push(0); }
+    var real = 0;
+    S.ingresos.filter(function(x){ return x.moneda !== 'ars'; }).forEach(function(x){
+        expandirIngreso(x).forEach(function(o){
+            if (o.realizado) { real += o.montoARS / S.tcn; return; }
+            var ix = ms.indexOf(o.fecha.substring(0,7)); if (ix >= 0) tin[ix] += o.montoARS / S.tcn;
+        });
+    });
+    real += Math.round(S.ingresos.filter(function(x){ return x.moneda === 'ars' && x.realizado; }).reduce(function(s,x){ return s + x.montoARS / (x.cotizacion || S.tcn); }, 0));
+    S.pagos.filter(function(p){ return p.estado !== 'pagado' && p.id !== excluirId; }).forEach(function(p){
+        var c = omCeldas(p, ms); Object.keys(c).forEach(function(k){ tout[k] += c[k]; });
+    });
+    return { N: N, ini: ini, ms: ms, tin: tin, tout: tout, disp0: real };
+}
+function omMinimo(b, extra) {
+    var run = b.disp0, min = Infinity, minIx = -1;
+    for (var i = 0; i < b.N; i++) {
+        run += b.tin[i] - b.tout[i] - (extra[i] || 0);
+        if (i >= b.ini && run < min) { min = run; minIx = i; }
+    }
+    return { min: min, ix: minIx };
+}
+function omFechaEn(p, ix) {   // fecha para que la próxima cuota pendiente caiga en el mes ix
+    var pag = (p.cuotas > 1 ? (p.cuotasPagadas || 0) * (p.frecuencia || 1) : 0);
+    var d = monthDate(ix - pag), dia = Math.min(+p.fecha.substring(8,10) || 1, 28);
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(dia).padStart(2,'0');
+}
+function omCardHtml() {
+    var pend = S.pagos.filter(function(p){ return p.estado !== 'pagado' && !p.esEstimado; });
+    if (!pend.length) return '';
+    if (window._omSelId == null || !pend.some(function(p){ return p.id === window._omSelId; })) {
+        var om = pend.find(function(p){ return /omar/i.test((p.desc||'') + ' ' + (p.rubro||'')); });
+        window._omSelId = om ? om.id : pend[0].id; window._omMes = null;
+    }
+    var p = pend.find(function(x){ return x.id === window._omSelId; });
+    var b = omBase(p.id), ms = b.ms;
+    var actual = omMinimo(b, omCeldas(p, ms));
+    var curIx = ms.indexOf(p.fecha.substring(0,7));
+    var cands = [], sug = null, mejor = null;
+    for (var m = b.ini; m < b.N; m++) {
+        var q = Object.assign({}, p, { fecha: omFechaEn(p, m) });
+        var r = omMinimo(b, omCeldas(q, ms)); r.m = m; cands.push(r);
+        if (sug == null && r.min >= OM_COLCHON) sug = r;
+        if (!mejor || r.min > mejor.min) mejor = r;
+    }
+    if (!cands.length) return '';
+    var rec = sug || mejor;
+    var sel = window._omMes != null ? cands.find(function(c){ return c.m === window._omMes; }) : rec;
+    if (!sel) sel = rec;
+    function col(v) { return v < 0 ? ['245,101,101', 'var(--red)'] : (v < OM_COLCHON ? ['245,166,35', 'var(--amber)'] : ['62,207,142', 'var(--green)']); }
+    function k(v) { var a = Math.abs(v); return (v < 0 ? '-' : '') + (a >= 1000 ? Math.round(a / 1000) + 'k' : Math.round(a)); }
+    var strip = cands.map(function(c){
+        var cc = col(c.min), on = c.m === sel.m, here = c.m === curIx;
+        return '<button onclick="omPick(' + c.m + ')" title="Pagando en ' + mLabel(c.m) + ': mínimo U$S ' + Math.round(c.min).toLocaleString('es-AR') + ' en ' + mLabel(c.ix) + '" style="flex:1 0 46px;min-width:46px;padding:5px 2px;border-radius:6px;cursor:pointer;font-family:DM Mono,monospace;font-size:10px;line-height:1.35;' +
+            'background:rgba(' + cc[0] + ',' + (on ? '.38' : '.14') + ');color:' + cc[1] + ';border:1px solid ' + (on ? cc[1] : 'transparent') + ';' + (here ? 'box-shadow:inset 0 -2px 0 #E8EAF2;' : '') + '">' +
+            '<div style="color:var(--text2);font-family:DM Sans,sans-serif;">' + mLabel(c.m) + '</div>' + k(c.min) + (c === rec ? '<div style="font-size:9px;">★</div>' : '') + '</button>';
+    }).join('');
+    var opts = pend.map(function(x){ return '<option value="' + x.id + '"' + (x.id === p.id ? ' selected' : '') + '>' + flEscG((x.rubro ? x.rubro + ' — ' : '') + (x.desc || 'Pago')) + '</option>'; }).join('');
+    var montoTxt = 'U$S ' + Math.round((p.montoARSoriginal ? p.montoARSoriginal / (p.cotizacion || S.tcn) : p.montoUSD) * (p.cuotas > 1 ? Math.max(0, p.cuotas - (p.cuotasPagadas||0)) : 1)).toLocaleString('es-AR');
+    var actTxt = curIx < 0
+        ? '<span style="color:var(--text3);">hoy está fuera del horizonte (' + p.fecha + ')</span>'
+        : 'hoy en <strong>' + mLabel(curIx) + '</strong> → mínimo <strong style="color:' + col(actual.min)[1] + ';">U$S ' + Math.round(actual.min).toLocaleString('es-AR') + '</strong> en ' + mLabel(actual.ix);
+    var recTxt = sug
+        ? 'Primer mes que no baja de U$S ' + OM_COLCHON.toLocaleString('es-AR') + ': <strong style="color:var(--green);">' + mLabel(sug.m) + '</strong>'
+        : '<span style="color:var(--amber);">Ningún mes mantiene U$S ' + OM_COLCHON.toLocaleString('es-AR') + '; el menos malo es <strong>' + mLabel(mejor.m) + '</strong></span>';
+    return '<div id="omCard" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2);">' +
+        '<span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Cuándo pagar · deuda movible</span>' +
+        '<select onchange="omSel(this.value)" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:3px 6px;max-width:260px;">' + opts + '</select></div>' +
+        '<div style="padding:12px 14px;">' +
+        '<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--text2);margin-bottom:10px;"><span>' + montoTxt + ' · ' + actTxt + '</span><span>' + recTxt + '</span></div>' +
+        '<div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;">' + strip + '</div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;">' +
+        '<span style="font-size:11px;color:var(--text3);">Cada casilla = disponible mínimo de toda la obra si se paga ese mes. ★ sugerido · subrayado = mes actual. Elegido: <strong style="color:var(--text);">' + mLabel(sel.m) + '</strong> (mínimo U$S ' + Math.round(sel.min).toLocaleString('es-AR') + ' en ' + mLabel(sel.ix) + ')</span>' +
+        (sel.m !== curIx ? '<button class="btn btn-sm btn-green" onclick="omAplicar(' + p.id + ',' + sel.m + ')">Mover a ' + mLabel(sel.m) + '</button>' : '<span style="font-size:11px;color:var(--text3);">ya está en ese mes</span>') +
+        '</div></div></div>';
+}
+function omPick(m) { window._omMes = m; var el = document.getElementById('omCard'); if (el) el.outerHTML = omCardHtml(); }
+function omSel(id) { window._omSelId = +id; window._omMes = null; var el = document.getElementById('omCard'); if (el) el.outerHTML = omCardHtml(); }
+async function omAplicar(id, m) {
+    var p = S.pagos.find(function(x){ return x.id === id; }); if (!p) return;
+    var f = omFechaEn(p, m);
+    if (!confirm('Mover "' + (p.desc || 'pago') + '" a ' + mLabel(m) + ' (' + f + ')?')) return;
+    setSaveStatus('saving');
+    var r = await sb.from('obra_pagos').update({ fecha: f }).eq('id', id);
+    if (r.error) { setSaveStatus('error'); alert('Error: ' + r.error.message); return; }
+    window._omMes = null;
+    setSaveStatus('ok', 'Guardado'); await loadAllData(); renderResumen(); renderAlerts(); updateSidebar();
 }
 
 function renderCurrent(){
