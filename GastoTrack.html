@@ -148,6 +148,12 @@ tfoot td{background:#121920;font-weight:600}
 .switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:var(--surface2);border-radius:10px;cursor:pointer}
 .switch-row input{width:20px;height:20px;accent-color:var(--teal)}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+.opt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:12px 14px;border-radius:10px;border:1px solid var(--line2);background:var(--surface2);cursor:pointer;width:100%}
+.opt b{font-weight:700}
+.opt span{font-size:12px;color:var(--muted)}
+.opt:hover,.opt:focus-visible{border-color:var(--teal);outline:none}
+.opt.danger b{color:var(--red)}
+.opt.danger:hover,.opt.danger:focus-visible{border-color:var(--red)}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#3a1d1b;border:1px solid #5a2a27;color:#ffd6d2;padding:10px 16px;border-radius:10px;font-size:13px;z-index:60;display:none;max-width:90vw}
 .toast.ok{background:#12302b;border-color:#1f4a45;color:#bff5ec}
 .toast.show{display:block}
@@ -271,6 +277,17 @@ tfoot td{background:#121920;font-weight:600}
     </div>
   </form>
 </div>
+
+<!-- MODAL ELIMINAR GASTO MENSUAL -->
+<div class="modal-bg" id="delBg">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="delTitle">
+    <h3 id="delTitle">Eliminar gasto mensual</h3>
+    <p id="delText" style="color:var(--muted);font-size:13px"></p>
+    <button type="button" class="opt" data-act="delMonth" id="delMonthBtn"><b>Solo este mes</b><span id="delMonthSub"></span></button>
+    <button type="button" class="opt danger" data-act="delForever"><b>Para siempre</b><span>Se borra de este mes y de los siguientes, y deja de repetirse. Los meses anteriores quedan en el historial.</span></button>
+    <div class="modal-actions"><button type="button" class="ghost-btn" data-act="delCancel">Cancelar</button></div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -353,10 +370,16 @@ function vencInfo(e){
 const now=new Date();
 let curY=now.getFullYear(), curM=now.getMonth();
 let DB={gastos:[],ingresos:[],extrapagos:[]};
-let loaded=false, filter='todos', query='', editingId=null;
+let loaded=false, filter='todos', query='', editingId=null, delId=null;
 const injecting=new Set();
 
-const rowsOf=(t,y,m)=>DB[t].filter(r=>r.year===y&&r.month===m);
+// Un gasto con los dos montos en 0 es una "baja": queda guardado para que la app
+// no lo vuelva a copiar desde el mes anterior, pero no se muestra ni suma.
+const isBaja=r=>!(r.monto_ars>0)&&!(r.monto_usd>0);
+const allRows=(t,y,m)=>DB[t].filter(r=>r.year===y&&r.month===m);
+const rowsOf=(t,y,m)=>allRows(t,y,m).filter(r=>t!=='gastos'||!isBaja(r));
+const ordOf=r=>r.year*12+r.month;
+const chainOf=r=>String(r.source_id||r.id);   // identifica la "serie" de un gasto mensual
 const normGasto=r=>({...r,monto_ars:Number(r.monto_ars)||0,monto_usd:Number(r.monto_usd)||0});
 const norm=r=>({...r,monto:Number(r.monto)||0});
 
@@ -399,12 +422,20 @@ async function injectRecurring(y,m){
   if(!loaded)return;
   const key=y+'_'+m;if(injecting.has(key))return;
   let py=y,pm=m-1;if(pm<0){pm=11;py--;}
-  const prev=rowsOf('gastos',py,pm).filter(e=>e.repeat);
+  const prev=allRows('gastos',py,pm).filter(e=>e.repeat);
   if(!prev.length)return;
-  const cur=rowsOf('gastos',y,m);
-  const nuevos=prev.filter(e=>{const sid=e.source_id||e.id;return !cur.some(c=>c.source_id===sid||c.id===sid);})
-    .map(e=>({year:y,month:m,nombre:e.nombre,monto_ars:e.monto_ars||0,monto_usd:e.monto_usd||0,categoria:e.categoria,
-      vencimiento:shiftDateToMonth(e.vencimiento,y,m),notas:e.notas||null,repeat:true,pagado:false,source_id:e.source_id||e.id}));
+  const cur=allRows('gastos',y,m);   // incluye bajas: un mes dado de baja no se vuelve a completar
+  const target=y*12+m;
+  const nuevos=prev.filter(e=>{const sid=chainOf(e);return !cur.some(c=>chainOf(c)===sid||String(c.id)===sid);})
+    .map(e=>{
+      // Si el mes anterior se salteó ("solo este mes"), copia del último mes con monto
+      const src=isBaja(e)
+        ?DB.gastos.filter(r=>chainOf(r)===chainOf(e)&&ordOf(r)<target&&!isBaja(r)).sort((a,b)=>ordOf(b)-ordOf(a))[0]
+        :e;
+      if(!src)return null;
+      return {year:y,month:m,nombre:src.nombre,monto_ars:src.monto_ars||0,monto_usd:src.monto_usd||0,categoria:src.categoria,
+        vencimiento:shiftDateToMonth(src.vencimiento,y,m),notas:src.notas||null,repeat:true,pagado:false,source_id:e.source_id||e.id};
+    }).filter(Boolean);
   if(!nuevos.length)return;
   injecting.add(key);
   try{
@@ -566,21 +597,52 @@ async function goto(y,m){
 function step(d){let m=curM+d,y=curY;if(m>11){m=0;y++;}if(m<0){m=11;y--;}goto(y,m);}
 
 async function patchRow(table,id,patch){
-  const row=DB[table].find(r=>String(r.id)===String(id));if(!row)return;
+  const row=DB[table].find(r=>String(r.id)===String(id));if(!row)return false;
   const before={};Object.keys(patch).forEach(k=>before[k]=row[k]);
   Object.assign(row,patch);render();
-  try{await track(api('PATCH',table,'id=eq.'+encodeURIComponent(id),patch));}
-  catch(e){Object.assign(row,before);render();}
+  try{await track(api('PATCH',table,'id=eq.'+encodeURIComponent(id),patch));return true;}
+  catch(e){Object.assign(row,before);render();return false;}
 }
 async function deleteRow(table,id){
-  const idx=DB[table].findIndex(r=>String(r.id)===String(id));if(idx<0)return;
+  const idx=DB[table].findIndex(r=>String(r.id)===String(id));if(idx<0)return false;
   const [row]=DB[table].splice(idx,1);render();
-  try{await track(api('DELETE',table,'id=eq.'+encodeURIComponent(id)));}
-  catch(e){DB[table].splice(idx,0,row);render();}
+  try{await track(api('DELETE',table,'id=eq.'+encodeURIComponent(id)));return true;}
+  catch(e){DB[table].splice(idx,0,row);render();return false;}
 }
 async function insertRow(table,row,normFn){
   const saved=await track(api('POST',table,'',row));
   DB[table].push(...saved.map(normFn));render();
+}
+
+// Eliminar gasto: si es mensual pregunta "solo este mes" o "para siempre"
+function askDelete(id){
+  const r=DB.gastos.find(x=>String(x.id)===String(id));if(!r)return;
+  if(!r.repeat){
+    if(confirm('¿Eliminar "'+r.nombre+'" de '+MONTHS[curM]+'?'))deleteRow('gastos',id);
+    return;
+  }
+  delId=id;
+  document.getElementById('delText').textContent='"'+r.nombre+'" se repite todos los meses. ¿Qué querés eliminar?';
+  document.getElementById('delMonthSub').textContent='Se saltea '+MONTHS[curM]+' '+curY+'. El mes que viene vuelve a aparecer.';
+  document.getElementById('delBg').classList.add('open');
+  setTimeout(()=>document.getElementById('delMonthBtn').focus(),30);
+}
+function closeDel(){document.getElementById('delBg').classList.remove('open');delId=null;}
+
+async function deleteThisMonth(id){
+  const r=DB.gastos.find(x=>String(x.id)===String(id));if(!r)return;
+  // Queda como baja (montos en 0) para que este mes no se vuelva a completar solo
+  if(await patchRow('gastos',id,{monto_ars:0,monto_usd:0,pagado:false}))
+    toast('"'+r.nombre+'" eliminado de '+MONTHS[r.month]+'.',true);
+}
+async function deleteForever(id){
+  const r=DB.gastos.find(x=>String(x.id)===String(id));if(!r)return;
+  const sid=chainOf(r),o=ordOf(r);
+  const futuros=DB.gastos.filter(x=>chainOf(x)===sid&&ordOf(x)>o);
+  // Este mes queda como baja que corta la serie; los meses siguientes se borran
+  if(!await patchRow('gastos',id,{monto_ars:0,monto_usd:0,pagado:false,repeat:false}))return;
+  const res=await Promise.all(futuros.map(x=>deleteRow('gastos',x.id)));
+  if(res.every(Boolean))toast('"'+r.nombre+'" eliminado para siempre. Los meses anteriores quedan en el historial.',true);
 }
 
 // Edición inline de montos
@@ -660,13 +722,21 @@ document.addEventListener('click',ev=>{
     case 'next':step(1);break;
     case 'today':goto(now.getFullYear(),now.getMonth());break;
     case 'toggle':{const r=DB.gastos.find(x=>String(x.id)===String(id));if(r)patchRow('gastos',id,{pagado:!r.pagado});break;}
-    case 'del':{const r=DB.gastos.find(x=>String(x.id)===String(id));if(r&&confirm('¿Eliminar "'+r.nombre+'" de '+MONTHS[curM]+'?'))deleteRow('gastos',id);break;}
+    case 'del':askDelete(id);break;
+    case 'delMonth':{const d=delId;closeDel();if(d)deleteThisMonth(d);break;}
+    case 'delForever':{const d=delId;closeDel();if(d)deleteForever(d);break;}
+    case 'delCancel':closeDel();break;
     case 'delIng':if(confirm('¿Eliminar este ingreso?'))deleteRow('ingresos',id);break;
     case 'delExtra':deleteRow('extrapagos',id);break;
   }
 });
 document.getElementById('modalBg').addEventListener('click',ev=>{if(ev.target.id==='modalBg')closeModal();});
-document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&document.getElementById('modalBg').classList.contains('open'))closeModal();});
+document.getElementById('delBg').addEventListener('click',ev=>{if(ev.target.id==='delBg')closeDel();});
+document.addEventListener('keydown',ev=>{
+  if(ev.key!=='Escape')return;
+  if(document.getElementById('delBg').classList.contains('open'))closeDel();
+  else if(document.getElementById('modalBg').classList.contains('open'))closeModal();
+});
 document.getElementById('gastoForm').addEventListener('submit',submitModal);
 document.getElementById('search').addEventListener('input',ev=>{query=ev.target.value.trim();renderTable();});
 document.getElementById('ingForm').addEventListener('submit',async ev=>{
