@@ -6,7 +6,6 @@
     <title>Control de Obra · 18 meses</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <style>
     :root {
@@ -156,7 +155,7 @@
                 <button onclick="qGo('resumenIngProy')">Ing. proyectados</button>
                 <button onclick="qGo('resumenPagados')">Pagados</button>
             </nav>
-            <div class="actions" id="topbarActions"><button class="btn btn-excel btn-sm" onclick="exportarExcel()">Excel</button></div>
+            <div class="actions" id="topbarActions"></div>
             <div class="tb-tools">
                 <label class="tb-tcn" title="Tipo de cambio (todos los montos en U$S)">TC $<input type="number" id="tcnInput" value="1200" min="1" step="50" oninput="updateTCN(this.value)"></label>
                 <span class="tb-save" title="Estado de guardado"><span class="save-dot" id="saveDot"></span><span id="saveText">Conectado</span></span>
@@ -831,7 +830,7 @@ function renderPagos(){
             '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">' +
             '<div class="filter-bar"><input type="text" placeholder="Buscar..." style="width:170px;" oninput="pagoSearch=this.value;renderPagos()" value="'+pagoSearch+'">' +
             '<select onchange="pagoFilter=this.value;renderPagos()"><option value="todos">Todos</option><option value="pagado" '+(pagoFilter==='pagado'?'selected':'')+'>Pagados</option><option value="pendiente" '+(pagoFilter==='pendiente'?'selected':'')+'>Pendientes</option><option value="vencido" '+(pagoFilter==='vencido'?'selected':'')+'>Vencidos</option></select></div>' +
-            '<div style="display:flex;gap:8px;"><button class="btn btn-excel" onclick="exportarExcel()">Excel</button><button class="btn" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,166,35,.3);" onclick="openNewPagoARS()">+ Nuevo en $</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>' +
+            '<div style="display:flex;gap:8px;"><button class="btn" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,166,35,.3);" onclick="openNewPagoARS()">+ Nuevo en $</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>' +
             '<div class="card"><div class="table-wrap">'+(listaFilt.length?'<table><thead><tr><th>Fecha</th><th>Etapa</th><th>Descripción</th><th style="text-align:right">Monto</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>'+rowsFilt+'</tbody></table>':'<div class="empty">Sin pagos</div>')+'</div></div>';
         return;
     }
@@ -848,7 +847,7 @@ function renderPagos(){
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">' +
         '<div class="filter-bar"><input type="text" placeholder="Buscar..." style="width:170px;" oninput="pagoSearch=this.value;renderPagos()" value="'+pagoSearch+'">' +
         '<select onchange="pagoFilter=this.value;renderPagos()"><option value="todos" selected>Todos</option><option value="pagado">Pagados</option><option value="pendiente">Pendientes</option><option value="vencido">Vencidos</option></select></div>' +
-        '<div style="display:flex;gap:8px;"><button class="btn btn-excel" onclick="exportarExcel()">Excel</button><button class="btn" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,166,35,.3);" onclick="openNewPagoARS()">+ Nuevo en $</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>' +
+        '<div style="display:flex;gap:8px;"><button class="btn" style="background:var(--amber-dim);color:var(--amber);border-color:rgba(245,166,35,.3);" onclick="openNewPagoARS()">+ Nuevo en $</button><button class="btn btn-primary" onclick="openNewPago()">+ Nuevo pago</button></div></div>' +
 
         // KPI cards — un solo grupo dolarizado (USD + pesos convertidos con su cotización guardada)
         (function(){
@@ -1867,7 +1866,7 @@ function renderBalance() {
     // Ingresos proyectados — al final del Resumen (arriba de Pagados), plegada por defecto
     var ipShut = !(window._pgOpen && window._pgOpen.ipShow);
     var ingProyHtml =
-        '<div class="pg-card'+(ipShut?' pg-shut':'')+'" style="'+CS+'margin-bottom:14px;"><div onclick="pgShut(this,\'ip\')" style="'+HS+'cursor:pointer;"><div style="display:flex;align-items:center;gap:8px;"><span class="pg-chev" style="display:inline-block;font-size:11px;color:var(--text2);transition:transform .15s;">▾</span><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos proyectados</span><span style="font-size:11px;font-family:DM Mono,monospace;font-weight:600;color:var(--text);">U$S '+Math.round(ingProyUSD).toLocaleString('es-AR')+'</span></div><div style="display:flex;gap:6px;" onclick="event.stopPropagation()"><button class="btn btn-excel btn-sm" onclick="exportarIngresosProyectados()">Excel</button><button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div></div>' +
+        '<div class="pg-card'+(ipShut?' pg-shut':'')+'" style="'+CS+'margin-bottom:14px;"><div onclick="pgShut(this,\'ip\')" style="'+HS+'cursor:pointer;"><div style="display:flex;align-items:center;gap:8px;"><span class="pg-chev" style="display:inline-block;font-size:11px;color:var(--text2);transition:transform .15s;">▾</span><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Ingresos proyectados</span><span style="font-size:11px;font-family:DM Mono,monospace;font-weight:600;color:var(--text);">U$S '+Math.round(ingProyUSD).toLocaleString('es-AR')+'</span></div><div style="display:flex;gap:6px;" onclick="event.stopPropagation()"><button class="btn btn-sm btn-green" onclick="openNewBal(\'ingreso\')">+ Nuevo</button></div></div>' +
         '<div class="pg-body"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="'+THS+'text-align:left;">Descripción</th><th style="'+THS+'text-align:center;">Frecuencia</th><th style="'+THS+'text-align:right;">Monto</th><th style="'+THS+'text-align:right;">Total U$S</th><th style="'+THS+'"></th></tr></thead><tbody>'+ingRows+'</tbody></table></div>' +
         '<div style="padding:7px 14px;background:var(--surface2);border-top:1px solid var(--border);text-align:right;"><span style="font-size:11px;color:var(--text3);">Total <strong style="font-family:DM Mono,monospace;color:var(--text);">U$S '+Math.round(ingProyUSD).toLocaleString('es-AR')+'</strong></span></div></div></div>';
     var elIngProy = document.getElementById('resumenIngProy');
@@ -2216,63 +2215,13 @@ function renderConfig(){
         '<div class="card" style="margin-top:14px;"><div class="card-hdr"><h3>Colchón mínimo</h3></div><div class="card-body"><div style="font-size:12px;color:var(--text3);margin-bottom:8px;">Disponible por debajo de este monto se marca en naranja y dispara la alerta.</div><div style="display:flex;align-items:center;gap:8px;"><span style="color:var(--text2);">U$S</span><input type="number" id="cfgColchon" value="'+S.colchon+'" min="0" step="1000" style="width:120px;"><button class="btn btn-primary" onclick="saveColchon()">Guardar</button></div></div></div>' +
         '<div class="card" style="margin-top:14px;"><div class="card-hdr"><h3>Tipo de cambio</h3></div><div class="card-body"><div style="display:flex;align-items:center;gap:8px;margin-top:4px;"><span style="color:var(--text2);">$</span><input type="number" id="cfgTCN" value="'+S.tcn+'" min="1" step="50" style="width:120px;"><span style="color:var(--text2);">/ USD</span><button class="btn btn-primary" onclick="saveTCNcfg()">Aplicar</button></div></div></div>' +
         '</div><div>' +
-        '<div class="card"><div class="card-hdr"><h3>Exportar Excel</h3></div><div class="card-body"><button class="btn btn-excel" onclick="exportarExcel()">Exportar Excel completo</button></div></div>' +
-        '<div class="card" style="margin-top:14px;"><div class="card-hdr"><h3>Estadísticas</h3></div><div class="card-body">' +
+        '<div class="card"><div class="card-hdr"><h3>Estadísticas</h3></div><div class="card-body">' +
         [['Etapas',S.etapas.length],['Pagos',S.pagos.length],['Ingresos',S.ingresos.length],['Deudas',S.deudas.length],['Mes actual',Math.max(0,Math.min(18,curMonthOff()+1))+' / 18'],['TCN','$'+S.tcn.toLocaleString('es-AR')+'/USD']].map(function(x){ return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--text2);">'+x[0]+'</span><span style="font-family:DM Mono,monospace;font-weight:500;">'+x[1]+'</span></div>'; }).join('') +
         '</div></div></div></div>';
 }
 async function saveConfigDB(){ S.startDate=document.getElementById('cfgStart').value; setSaveStatus('saving'); var res=await sb.from('obra_config').update({start_date:S.startDate}).eq('id','main'); setSaveStatus(res.error?'error':'ok',res.error?'Error':'Guardado'); updateSidebar(); goTo('resumen'); }
 async function saveColchon(){ var v=Math.max(0,parseFloat(document.getElementById('cfgColchon').value)||0); setSaveStatus('saving'); var res=await sb.from('obra_config').update({colchon_usd:v}).eq('id','main'); if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message+(/colchon_usd/.test(res.error.message)?'\n\nFalta correr el SQL que agrega colchon_usd a obra_config.':'')); return; } S.colchon=v; setSaveStatus('ok','Guardado'); renderAlerts(); }
 async function saveTCNcfg(){ var v=parseFloat(document.getElementById('cfgTCN').value)||1200; document.getElementById('tcnInput').value=v; updateTCN(v); }
-
-// ═══════════════════════════════════════
-// EXCEL
-// ═══════════════════════════════════════
-function exportarExcel(){
-    var tp=totalPresARS(),pd=totalPagadoARS(),pe=totalPendienteARS(),sl=tp-pd-pe;
-    var wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['CONTROL DE OBRA'],['TCN: $'+S.tcn+'/USD'],[''],['Concepto','USD'],['Presupuesto',Math.round(tp/S.tcn)],['Pagado',Math.round(pd/S.tcn)],['Comprometido',Math.round(pe/S.tcn)],['Disponible',Math.round(sl/S.tcn)],['Avance %',pct(pd,tp)+'%']]),'Resumen');
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['ETAPAS'],['Etapa','Fecha inicio','Fecha fin','Avance %','Estado']].concat(S.etapas.map(function(e){ return [e.nombre,e.fechaIni||'',e.fechaFin||'',e.avance+'%',e.finalizado?'Finalizada':'Activa']; }))),'Etapas');
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['PAGOS'],['Fecha','Etapa','Descripcion','Monto USD','Estado']].concat([].concat(S.pagos).sort(function(a,b){ return b.fecha.localeCompare(a.fecha); }).map(function(p){ var e=S.etapas.find(function(x){return x.id===p.etapaId;}); return [p.fecha,e?e.nombre:'—',p.desc||'',Math.round(p.montoUSD),p.estado]; }))),'Pagos');
-    XLSX.writeFile(wb,'control-obra-'+new Date().toISOString().split('T')[0]+'.xlsx');
-}
-
-function exportarIngresosProyectados(){
-    var wb = XLSX.utils.book_new();
-    var rows = [['Descripción','Fecha inicio','Fecha hasta','Periodicidad','Moneda','Monto por ocurrencia (USD)','N° ocurrencias','Total USD','Realizado']];
-    S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){
-        var ocurr = expandirIngreso(x);
-        var nOcurr = ocurr.length;
-        var montoUSD = Math.round(x.montoARS / S.tcn);
-        var totalUSD = Math.round(x.montoARS * nOcurr / S.tcn);
-        rows.push([
-            x.desc||'',
-            x.fecha||'',
-            x.fechaHasta||'',
-            x.periodicidad||'unico',
-            'USD',
-            montoUSD,
-            nOcurr,
-            totalUSD,
-            x.realizado ? 'Sí' : 'No'
-        ]);
-    });
-    // Detalle de ocurrencias mes a mes
-    var rowsDet = [['','Descripción','Fecha','Monto USD','Realizado']];
-    S.ingresos.filter(function(x){ return x.moneda!=='ars'; }).forEach(function(x){
-        expandirIngreso(x).forEach(function(o){
-            rowsDet.push(['', x.desc||'', o.fecha, Math.round(o.montoARS/S.tcn), o.realizado?'Sí':'No']);
-        });
-        rowsDet.push(['','','','','']);
-    });
-    var ws1 = XLSX.utils.aoa_to_sheet(rows);
-    ws1['!cols'] = [{wch:35},{wch:12},{wch:12},{wch:14},{wch:8},{wch:24},{wch:14},{wch:12},{wch:10}];
-    var ws2 = XLSX.utils.aoa_to_sheet(rowsDet);
-    ws2['!cols'] = [{wch:4},{wch:35},{wch:12},{wch:12},{wch:10}];
-    XLSX.utils.book_append_sheet(wb, ws1, 'Resumen');
-    XLSX.utils.book_append_sheet(wb, ws2, 'Detalle ocurrencias');
-    XLSX.writeFile(wb, 'ingresos-proyectados-'+new Date().toISOString().split('T')[0]+'.xlsx');
-}
 
 // ═══════════════════════════════════════
 // DRAG & DROP
@@ -2301,7 +2250,7 @@ function goTo(page){
     document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
     document.getElementById('page-'+page).classList.add('active');
     document.getElementById('topbarTitle').textContent=PAGE_TITLES[page];
-    document.getElementById('topbarActions').innerHTML=page==='resumen'?'<button class="btn btn-excel btn-sm" onclick="exportarExcel()">Excel</button>':'';
+    document.getElementById('topbarActions').innerHTML='';
     renderCurrent();
 }
 
