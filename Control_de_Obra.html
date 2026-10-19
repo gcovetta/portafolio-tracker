@@ -51,6 +51,7 @@
     .content{padding:26px;}
     .alerts-banner{margin-bottom:16px;display:flex;flex-direction:column;gap:7px;}
     .alert-item{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:var(--radius-sm);font-size:13px;}
+    .alert-item.warn{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,166,35,.25);}
     .alert-item.danger{background:var(--red-glow);color:var(--red);border:1px solid rgba(245,101,101,.25);}
     .c-blue{color:var(--blue)}.c-green{color:var(--green)}.c-amber{color:var(--amber)}.c-red{color:var(--red)}
     .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;}
@@ -387,7 +388,7 @@ var sb = null;
 // ═══════════════════════════════════════
 var MO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 var S = {
-    startDate: '2026-04-01', tcn: 1200,
+    startDate: '2026-04-01', tcn: 1200, colchon: 10000,
     rubros: [], pagos: [], etapas: [], ingresos: [], deudas: [], ajustes: [],
     editPagoId: null, editEtapaId: null, editBalType: null, editBalId: null,
     calc: { manoObra: '', materiales: '', otrosCostos: '', m2: '' }
@@ -399,8 +400,21 @@ var S = {
 function fmtUSD(ars) { return 'U$S ' + Math.round(ars / S.tcn).toLocaleString('es-AR'); }
 function fmtMain(ars) { return fmtUSD(ars); }
 function pct(a, b) { return b > 0 ? Math.min(Math.round(a / b * 100), 999) : 0; }
-function monthDate(off) { var d = new Date(S.startDate); return new Date(d.getFullYear(), d.getMonth() + off, 1); }
-function curMonthOff() { var s = new Date(S.startDate), n = new Date(); return (n.getFullYear()-s.getFullYear())*12+(n.getMonth()-s.getMonth()); }
+var OBRA_MESES = 18;   // plazo de obra: todo menos la deuda movible tiene que caer acá
+function esMovible(p) { return /omar/i.test((p.desc||'') + ' ' + (p.rubro||'')); }
+function pagoUltimoOff(p) {   // offset (desde el inicio) de la última cuota pendiente
+    var s = startD(), fb = new Date(p.fecha + 'T00:00:00'), k = 0;
+    if (p.cuotas && p.cuotas > 1) k = (p.cuotas - 1) * (p.frecuencia || 1);
+    return (fb.getFullYear() - s.getFullYear()) * 12 + (fb.getMonth() - s.getMonth()) + k;
+}
+function flujoMeses() {
+    var n = OBRA_MESES;
+    S.pagos.forEach(function(p){ if (p.estado !== 'pagado') n = Math.max(n, pagoUltimoOff(p) + 1); });
+    return Math.min(n, 60);
+}
+function startD() { return new Date(String(S.startDate).substring(0,10) + 'T00:00:00'); }   // local: new Date('AAAA-MM-DD') es UTC y en AR cae en el mes anterior
+function monthDate(off) { var d = startD(); return new Date(d.getFullYear(), d.getMonth() + off, 1); }
+function curMonthOff() { var s = startD(), n = new Date(); return (n.getFullYear()-s.getFullYear())*12+(n.getMonth()-s.getMonth()); }
 function mLabel(off) { var d = monthDate(off); return MO[d.getMonth()]+" '"+String(d.getFullYear()).slice(2); }
 function mesStr(off) { var d = monthDate(off); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function totalPresARS() { return S.rubros.reduce(function(s,r){ return s+r.presupARS; }, 0); }
@@ -409,7 +423,7 @@ function totalPendienteARS() { return S.pagos.filter(function(p){ return p.estad
 function expandirIngreso(x) {
     var step = {'unico':0,'mensual':1,'bimestral':2,'trimestral':3,'semestral':6,'anual':12}[x.periodicidad||'unico']||0;
     var ocurrencias = [];
-    var proyEnd = new Date(S.startDate); proyEnd.setMonth(proyEnd.getMonth()+18);
+    var proyEnd = startD(); proyEnd.setMonth(proyEnd.getMonth()+OBRA_MESES);
     var fechaHasta = x.fechaHasta ? new Date(x.fechaHasta+'T00:00:00') : proyEnd;
     if (fechaHasta > proyEnd) fechaHasta = proyEnd;
     var d = new Date(x.fecha+'T00:00:00');
@@ -477,6 +491,7 @@ async function loadAllData() {
     if (cfg.data) {
         S.startDate = cfg.data.start_date;
         S.tcn = parseFloat(cfg.data.tcn) || 1200;
+        S.colchon = cfg.data.colchon_usd != null ? (+cfg.data.colchon_usd || 0) : 10000;
         var inp = document.getElementById('tcnInput');
         if (inp) inp.value = S.tcn;
         S.calc.manoObra   = cfg.data.calc_mo  != null ? String(cfg.data.calc_mo)  : '';
@@ -515,6 +530,13 @@ function renderAlerts() {
     var items = [];
     var v = S.pagos.filter(function(p){ return p.estado==='vencido'; }).length;
     if (v) items.push('<div class="alert-item danger"><strong>'+v+' pago'+(v>1?'s':'')+' vencido'+(v>1?'s':'')+' sin registrar</strong></div>');
+    try {
+        var ab = omBase(-1), run = ab.disp0, crit = null;
+        for (var ai = 0; ai < ab.N; ai++) { run += ab.tin[ai] - ab.tout[ai]; if (ai >= ab.ini && run < S.colchon && crit == null) crit = { ix: ai, v: run }; }
+        if (crit) items.push('<div class="alert-item ' + (crit.v < 0 ? 'danger' : 'warn') + '" style="cursor:pointer;" onclick="qGo(\'secMapa\')"><strong>' + mLabel(crit.ix) + ':</strong> el disponible baja a U$S ' + Math.round(crit.v).toLocaleString('es-AR') + (crit.v < 0 ? '' : ' (colchón U$S ' + S.colchon.toLocaleString('es-AR') + ')') + '</div>');
+        var fuera = S.pagos.filter(function(p){ return p.estado !== 'pagado' && !esMovible(p) && pagoUltimoOff(p) >= OBRA_MESES; });
+        if (fuera.length) items.push('<div class="alert-item warn"><strong>' + fuera.length + ' pago' + (fuera.length > 1 ? 's terminan' : ' termina') + ' después de ' + mLabel(OBRA_MESES - 1) + ' (fin de obra):</strong> ' + fuera.map(function(p){ return flEscG(p.desc || p.rubro || 'Pago'); }).join(', ') + '</div>');
+    } catch (eA) { console.warn('alertas flujo', eA); }
     document.getElementById('alertsBanner').innerHTML = items.join('');
 }
 
@@ -1407,28 +1429,7 @@ async function savePago(){
         : await sb.from('obra_pagos').insert(payload);
     if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message); return; }
 
-    // Si es pendiente/vencido y es nuevo → agregar como deuda en Balance
-    if(!S.editPagoId && (estado==='pendiente'||estado==='vencido')){
-        var _cuotas  = Math.max(1, parseInt(document.getElementById('mCuotas').value)||1);
-        var _pagadas = Math.min(_cuotas, Math.max(0, parseInt(document.getElementById('mCuotasPagadas').value)||0));
-        // montoUSD ya fue calculado arriba (sea ARS o USD el input)
-        var _montoDeudaUSD = montoUSD;
-        if(!_montoDeudaUSD || _montoDeudaUSD <= 0){
-            console.warn('montoUSD inválido para deuda:', _montoDeudaUSD, 'raw:', rawInput, 'moneda:', mPagoMoneda);
-        } else {
-            // monto_usd en Balance = valor de 1 cuota (Balance maneja cuotas internamente)
-            // El saldo total = monto_usd * (cuotas - pagadas)
-            var deudaPayload = {
-                descripcion: (rubro ? rubro+' — ' : '') + desc,
-                monto_usd: _montoDeudaUSD * _cuotas, // total de la deuda
-                cuotas: _cuotas,
-                pagadas: _pagadas,
-                fecha_inicio: fecha
-            };
-            var resD = await sb.from('obra_deudas').insert(deudaPayload);
-            if(resD.error) console.warn('No se pudo crear deuda automática:', resD.error.message);
-        }
-    }
+    // (Ya no se crea una deuda en obra_deudas por cada pendiente: Balance no las usa desde que las deudas pasaron a Pagos)
 
     setSaveStatus('ok','Guardado'); closeModal('modalPago'); await loadAllData(); renderResumen(); renderAlerts(); updateSidebar();
 }
@@ -1881,7 +1882,7 @@ function renderBalance() {
     if (chartBal) { chartBal.destroy(); chartBal = null; }
     if (window.chartBalFlujo && typeof window.chartBalFlujo.destroy === 'function') { window.chartBalFlujo.destroy(); window.chartBalFlujo = null; }
 
-    var flIni = Math.max(0, cmB), flN = 18;
+    var flIni = Math.max(0, cmB), flN = flujoMeses();
     var flMs = [];
     for (var flx = 0; flx < flN; flx++) flMs.push(mesStr(flx));
     function flFmt(n) { return Math.round(n).toLocaleString('es-AR'); }
@@ -1986,7 +1987,7 @@ function renderBalance() {
         var hmCols = flN - flIni + (flHayPrev ? 1 : 0), hmSpan = hmCols + 1;
         var hmHead = '<thead><tr><th class="hm-k"></th>' + (flHayPrev ? '<th style="color:var(--amber);">Anteriores</th>' : '') + flLabels.map(function(m, i){ return '<th' + (flIni + i === cmB ? ' class="cur"><span>' + m + '</span>' : '>' + m) + '</th>'; }).join('') + '</tr></thead>';
         function hmDispCell(v, lbl) {
-            var c = v < 0 ? ['245,101,101', 'var(--red)'] : (v < 10000 ? ['245,166,35', 'var(--amber)'] : ['62,207,142', 'var(--green)']);
+            var c = v < 0 ? ['245,101,101', 'var(--red)'] : (v < S.colchon ? ['245,166,35', 'var(--amber)'] : ['62,207,142', 'var(--green)']);
             return '<td style="background:rgba(' + c[0] + ',.22);color:' + c[1] + ';" title="' + lbl + ' · disponible U$S ' + flFmt(v) + '">' + hmK(v) + '</td>';
         }
         var hmDisp = '<tr class="hm-tot"><td class="hm-k">Disponible</td>' + (flHayPrev ? hmDispCell(flDispPrev, 'Anteriores') : '');
@@ -2212,6 +2213,7 @@ function renderConfig(){
     document.getElementById('page-config').innerHTML =
         '<div class="grid2"><div>' +
         '<div class="card"><div class="card-hdr"><h3>Datos de la obra</h3></div><div class="card-body"><div class="form-row full"><div class="fg"><label>Fecha de inicio</label><input type="date" id="cfgStart" value="'+S.startDate+'"></div></div><button class="btn btn-primary" style="margin-top:4px;" onclick="saveConfigDB()">Guardar</button></div></div>' +
+        '<div class="card" style="margin-top:14px;"><div class="card-hdr"><h3>Colchón mínimo</h3></div><div class="card-body"><div style="font-size:12px;color:var(--text3);margin-bottom:8px;">Disponible por debajo de este monto se marca en naranja y dispara la alerta.</div><div style="display:flex;align-items:center;gap:8px;"><span style="color:var(--text2);">U$S</span><input type="number" id="cfgColchon" value="'+S.colchon+'" min="0" step="1000" style="width:120px;"><button class="btn btn-primary" onclick="saveColchon()">Guardar</button></div></div></div>' +
         '<div class="card" style="margin-top:14px;"><div class="card-hdr"><h3>Tipo de cambio</h3></div><div class="card-body"><div style="display:flex;align-items:center;gap:8px;margin-top:4px;"><span style="color:var(--text2);">$</span><input type="number" id="cfgTCN" value="'+S.tcn+'" min="1" step="50" style="width:120px;"><span style="color:var(--text2);">/ USD</span><button class="btn btn-primary" onclick="saveTCNcfg()">Aplicar</button></div></div></div>' +
         '</div><div>' +
         '<div class="card"><div class="card-hdr"><h3>Exportar Excel</h3></div><div class="card-body"><button class="btn btn-excel" onclick="exportarExcel()">Exportar Excel completo</button></div></div>' +
@@ -2220,6 +2222,7 @@ function renderConfig(){
         '</div></div></div></div>';
 }
 async function saveConfigDB(){ S.startDate=document.getElementById('cfgStart').value; setSaveStatus('saving'); var res=await sb.from('obra_config').update({start_date:S.startDate}).eq('id','main'); setSaveStatus(res.error?'error':'ok',res.error?'Error':'Guardado'); updateSidebar(); goTo('resumen'); }
+async function saveColchon(){ var v=Math.max(0,parseFloat(document.getElementById('cfgColchon').value)||0); setSaveStatus('saving'); var res=await sb.from('obra_config').update({colchon_usd:v}).eq('id','main'); if(res.error){ setSaveStatus('error'); alert('Error: '+res.error.message+(/colchon_usd/.test(res.error.message)?'\n\nFalta correr el SQL que agrega colchon_usd a obra_config.':'')); return; } S.colchon=v; setSaveStatus('ok','Guardado'); renderAlerts(); }
 async function saveTCNcfg(){ var v=parseFloat(document.getElementById('cfgTCN').value)||1200; document.getElementById('tcnInput').value=v; updateTCN(v); }
 
 // ═══════════════════════════════════════
@@ -2335,8 +2338,8 @@ function estPanelHtml() {
         var cot = p.cotizacion || S.tcn;
         if (p.esEstimado) {
             queda += p.montoEstimado;
-            var fuera = p.fecha.substring(0,7) > mesStr(17);
-            return '<tr><td style="' + TD + '"><div style="font-size:13px;font-weight:500;">' + flEscG(p.desc) + '</div><div style="font-size:10px;color:var(--purple);">estimado' + (fuera ? ' · <span style="color:var(--red);" title="El flujo llega hasta ' + mLabel(17) + '">fuera del flujo</span>' : '') + '</div></td>' +
+            var fuera = p.fecha.substring(0,7) > mesStr(OBRA_MESES - 1);
+            return '<tr><td style="' + TD + '"><div style="font-size:13px;font-weight:500;">' + flEscG(p.desc) + '</div><div style="font-size:10px;color:var(--purple);">estimado' + (fuera ? ' · <span style="color:var(--red);">después del fin de obra (' + mLabel(OBRA_MESES - 1) + ')</span>' : '') + '</div></td>' +
                 '<td style="' + TD + '"><input type="month" value="' + p.fecha.substring(0,7) + '" onchange="estSetMes(' + p.id + ',this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:3px 6px;"></td>' +
                 '<td style="' + TD + 'text-align:right;font-family:DM Mono,monospace;font-size:12px;">' + estFmtARS(p.montoEstimado) + '<div style="font-size:10px;color:var(--text3);">≈ U$S ' + Math.round(p.montoEstimado / cot).toLocaleString('es-AR') + '</div></td>' +
                 '<td style="' + TD + 'text-align:right;color:var(--text3);">—</td><td style="' + TD + 'text-align:right;color:var(--text3);">—</td>' +
@@ -2354,7 +2357,7 @@ function estPanelHtml() {
     }).join('');
     if (bk) {
         var bkARS = bk.montoARSoriginal || (bk.montoUSD * S.tcn);
-        rows += '<tr><td style="' + TD + '" colspan="2"><div style="font-size:13px;font-weight:500;">' + (items.length ? 'Sin desglosar' : 'Estimado global') + '</div><div style="font-size:10px;color:var(--text3);">' + bk.fecha + (bk.fecha.substring(0,7) > mesStr(17) ? ' · <span style="color:var(--red);">fuera del flujo (llega hasta ' + mLabel(17) + ')</span>' : ' · un solo pago en el flujo') + '</div></td>' +
+        rows += '<tr><td style="' + TD + '" colspan="2"><div style="font-size:13px;font-weight:500;">' + (items.length ? 'Sin desglosar' : 'Estimado global') + '</div><div style="font-size:10px;color:var(--text3);">' + bk.fecha + (bk.fecha.substring(0,7) > mesStr(OBRA_MESES - 1) ? ' · <span style="color:var(--red);">después del fin de obra (' + mLabel(OBRA_MESES - 1) + ')</span>' : ' · un solo pago en el flujo') + '</div></td>' +
             '<td style="' + TD + 'text-align:right;font-family:DM Mono,monospace;font-size:12px;">' + estFmtARS(bkARS) + '</td><td style="' + TD + '"></td><td style="' + TD + '"></td>' +
             '<td style="' + TD + 'text-align:right;"><button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);" onclick="estOpenDesglose()">Desglosar</button></td></tr>';
         queda += bkARS;
@@ -2383,7 +2386,7 @@ function estOpenDesglose() {
     var bkARS = bk.montoARSoriginal || (bk.montoUSD * S.tcn);
     var hoy = new Date(), dia = +bk.fecha.substring(8,10) || 10;
     function ymPlus(k) { var d = new Date(hoy.getFullYear(), hoy.getMonth() + k, 1); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
-    var html = '<div style="font-size:12px;color:var(--text3);margin-bottom:12px;">Cada ítem pasa a ser un pago pendiente <strong style="color:var(--purple);">estimado</strong> en su mes, así el flujo lo ve cuando realmente sale. El total se descuenta del estimado global (' + estFmtARS(bkARS) + ', cot. $' + Math.round(bk.cotizacion || S.tcn).toLocaleString('es-AR') + '). El flujo llega hasta <strong>' + mLabel(17) + '</strong>: un mes posterior no se ve en el flujo.</div>';
+    var html = '<div style="font-size:12px;color:var(--text3);margin-bottom:12px;">Cada ítem pasa a ser un pago pendiente <strong style="color:var(--purple);">estimado</strong> en su mes, así el flujo lo ve cuando realmente sale. El total se descuenta del estimado global (' + estFmtARS(bkARS) + ', cot. $' + Math.round(bk.cotizacion || S.tcn).toLocaleString('es-AR') + '). La obra termina en <strong>' + mLabel(OBRA_MESES - 1) + '</strong>: todo tiene que caer hasta ese mes.</div>';
     EST_DEFAULT.forEach(function(it, i){
         var ym = it.prio === 1 ? ymPlus(1) : it.prio === 2 ? ymPlus(2) : bk.fecha.substring(0,7);
         html += '<div class="form-row" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr);margin-bottom:8px;">' +
@@ -2470,7 +2473,6 @@ async function estSaveConfirmar(id) {
 //  Replica el cálculo de "Flujo de fondos" de renderBalance (mismo horizonte de 18 meses,
 //  mismo punto de partida = acreditado) y prueba el pago en cada mes.
 // ═══════════════════════════════════════
-var OM_COLCHON = 10000;   // mismo umbral que el mapa de calor (verde ≥ 10k)
 function omCeldas(p, ms) {
     var out = {}, cot = p.cotizacion || S.tcn, enARS = !!p.montoARSoriginal;
     if (p.cuotas && p.cuotas > 1) {
@@ -2487,8 +2489,8 @@ function omCeldas(p, ms) {
     }
     return out;
 }
-function omBase(excluirId) {
-    var N = 18, ini = Math.max(0, curMonthOff()), ms = [], tin = [], tout = [];
+function omBase(excluirId, nMin) {
+    var N = Math.max(flujoMeses(), nMin || 0), ini = Math.max(0, curMonthOff()), ms = [], tin = [], tout = [];
     for (var i = 0; i < N; i++) { ms.push(mesStr(i)); tin.push(0); tout.push(0); }
     var real = 0;
     S.ingresos.filter(function(x){ return x.moneda !== 'ars'; }).forEach(function(x){
@@ -2524,26 +2526,26 @@ function omCardHtml() {
         window._omSelId = om ? om.id : pend[0].id; window._omMes = null;
     }
     var p = pend.find(function(x){ return x.id === window._omSelId; });
-    var b = omBase(p.id), ms = b.ms;
+    var b = omBase(p.id, esMovible(p) ? OBRA_MESES + 6 : 0), ms = b.ms;
     var actual = omMinimo(b, omCeldas(p, ms));
     var curIx = ms.indexOf(p.fecha.substring(0,7));
     var cands = [], sug = null, mejor = null;
     for (var m = b.ini; m < b.N; m++) {
         var q = Object.assign({}, p, { fecha: omFechaEn(p, m) });
         var r = omMinimo(b, omCeldas(q, ms)); r.m = m; cands.push(r);
-        if (sug == null && r.min >= OM_COLCHON) sug = r;
+        if (sug == null && r.min >= S.colchon) sug = r;
         if (!mejor || r.min > mejor.min) mejor = r;
     }
     if (!cands.length) return '';
     var rec = sug || mejor;
     var sel = window._omMes != null ? cands.find(function(c){ return c.m === window._omMes; }) : rec;
     if (!sel) sel = rec;
-    function col(v) { return v < 0 ? ['245,101,101', 'var(--red)'] : (v < OM_COLCHON ? ['245,166,35', 'var(--amber)'] : ['62,207,142', 'var(--green)']); }
+    function col(v) { return v < 0 ? ['245,101,101', 'var(--red)'] : (v < S.colchon ? ['245,166,35', 'var(--amber)'] : ['62,207,142', 'var(--green)']); }
     function k(v) { var a = Math.abs(v); return (v < 0 ? '-' : '') + (a >= 1000 ? Math.round(a / 1000) + 'k' : Math.round(a)); }
     var strip = cands.map(function(c){
         var cc = col(c.min), on = c.m === sel.m, here = c.m === curIx;
-        return '<button onclick="omPick(' + c.m + ')" title="Pagando en ' + mLabel(c.m) + ': mínimo U$S ' + Math.round(c.min).toLocaleString('es-AR') + ' en ' + mLabel(c.ix) + '" style="flex:1 0 46px;min-width:46px;padding:5px 2px;border-radius:6px;cursor:pointer;font-family:DM Mono,monospace;font-size:10px;line-height:1.35;' +
-            'background:rgba(' + cc[0] + ',' + (on ? '.38' : '.14') + ');color:' + cc[1] + ';border:1px solid ' + (on ? cc[1] : 'transparent') + ';' + (here ? 'box-shadow:inset 0 -2px 0 #E8EAF2;' : '') + '">' +
+        return '<button onclick="omPick(' + c.m + ')" title="' + (c.m >= OBRA_MESES ? 'Después del fin de obra · ' : '') + 'Pagando en ' + mLabel(c.m) + ': mínimo U$S ' + Math.round(c.min).toLocaleString('es-AR') + ' en ' + mLabel(c.ix) + '" style="flex:1 0 46px;min-width:46px;padding:5px 2px;border-radius:6px;cursor:pointer;font-family:DM Mono,monospace;font-size:10px;line-height:1.35;' +
+            'background:rgba(' + cc[0] + ',' + (on ? '.38' : '.14') + ');color:' + cc[1] + ';border:1px solid ' + (on ? cc[1] : 'transparent') + ';' + (here ? 'box-shadow:inset 0 -2px 0 #E8EAF2;' : '') + (c.m >= OBRA_MESES && !on ? 'border:1px dashed var(--border);' : '') + '">' +
             '<div style="color:var(--text2);font-family:DM Sans,sans-serif;">' + mLabel(c.m) + '</div>' + k(c.min) + (c === rec ? '<div style="font-size:9px;">★</div>' : '') + '</button>';
     }).join('');
     var opts = pend.map(function(x){ return '<option value="' + x.id + '"' + (x.id === p.id ? ' selected' : '') + '>' + flEscG((x.rubro ? x.rubro + ' — ' : '') + (x.desc || 'Pago')) + '</option>'; }).join('');
@@ -2552,8 +2554,8 @@ function omCardHtml() {
         ? '<span style="color:var(--text3);">hoy está fuera del horizonte (' + p.fecha + ')</span>'
         : 'hoy en <strong>' + mLabel(curIx) + '</strong> → mínimo <strong style="color:' + col(actual.min)[1] + ';">U$S ' + Math.round(actual.min).toLocaleString('es-AR') + '</strong> en ' + mLabel(actual.ix);
     var recTxt = sug
-        ? 'Primer mes que no baja de U$S ' + OM_COLCHON.toLocaleString('es-AR') + ': <strong style="color:var(--green);">' + mLabel(sug.m) + '</strong>'
-        : '<span style="color:var(--amber);">Ningún mes mantiene U$S ' + OM_COLCHON.toLocaleString('es-AR') + '; el menos malo es <strong>' + mLabel(mejor.m) + '</strong></span>';
+        ? 'Primer mes que no baja de U$S ' + S.colchon.toLocaleString('es-AR') + ': <strong style="color:var(--green);">' + mLabel(sug.m) + '</strong>'
+        : '<span style="color:var(--amber);">Ningún mes mantiene U$S ' + S.colchon.toLocaleString('es-AR') + '; el menos malo es <strong>' + mLabel(mejor.m) + '</strong></span>';
     return '<div id="omCard" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2);">' +
         '<span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text2);">Cuándo pagar · deuda movible</span>' +
@@ -2562,7 +2564,7 @@ function omCardHtml() {
         '<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--text2);margin-bottom:10px;"><span>' + montoTxt + ' · ' + actTxt + '</span><span>' + recTxt + '</span></div>' +
         '<div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;">' + strip + '</div>' +
         '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;">' +
-        '<span style="font-size:11px;color:var(--text3);">Cada casilla = disponible mínimo de toda la obra si se paga ese mes. ★ sugerido · subrayado = mes actual. Elegido: <strong style="color:var(--text);">' + mLabel(sel.m) + '</strong> (mínimo U$S ' + Math.round(sel.min).toLocaleString('es-AR') + ' en ' + mLabel(sel.ix) + ')</span>' +
+        '<span style="font-size:11px;color:var(--text3);">Cada casilla = disponible mínimo de toda la obra si se paga ese mes. ★ sugerido · subrayado = mes actual · punteado = después del fin de obra (' + mLabel(OBRA_MESES - 1) + '). Elegido: <strong style="color:var(--text);">' + mLabel(sel.m) + '</strong> (mínimo U$S ' + Math.round(sel.min).toLocaleString('es-AR') + ' en ' + mLabel(sel.ix) + ')</span>' +
         (sel.m !== curIx ? '<button class="btn btn-sm btn-green" onclick="omAplicar(' + p.id + ',' + sel.m + ')">Mover a ' + mLabel(sel.m) + '</button>' : '<span style="font-size:11px;color:var(--text3);">ya está en ese mes</span>') +
         '</div></div></div>';
 }
@@ -2590,7 +2592,7 @@ function updateSidebar(){
     var tp=totalPresARS(), pd=totalPagadoARS(), p2=pct(pd,tp);
     var prog=document.getElementById('sbProg'); if(prog) prog.style.width=p2+'%';
     var pct2=document.getElementById('sbProgPct'); if(pct2) pct2.textContent=p2+'%';
-    var s=new Date(S.startDate), e=new Date(s.getFullYear(),s.getMonth()+18,1);
+    var s=startD(), e=new Date(s.getFullYear(),s.getMonth()+OBRA_MESES-1,1);
     var fb=document.getElementById('sbFechas'); if(fb) fb.textContent=MO[s.getMonth()]+' '+s.getFullYear()+' - '+MO[e.getMonth()]+' '+e.getFullYear();
 }
 
