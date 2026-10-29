@@ -276,6 +276,10 @@
                 </div>
                 <div class="fg"><label>Estado</label><select id="mEstado" onchange="onEstadoChange()"><option value="pagado">Pagado</option><option value="pendiente">Pendiente</option><option value="vencido">Vencido</option></select></div>
             </div>
+            <div id="fgEstimado" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:9px 12px;background:var(--surface2);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                <input type="checkbox" id="mEsEstimado" style="width:16px;height:16px;accent-color:var(--purple);cursor:pointer;flex-shrink:0;">
+                <label for="mEsEstimado" style="font-size:13px;cursor:pointer;user-select:none;">Es un monto <strong style="color:var(--purple)">estimado</strong> (aparece en Materiales estimados)</label>
+            </div>
             <!-- Fila cotización ARS (oculta por defecto) -->
             <div id="fgCotizacion" class="form-row" style="display:none;">
                 <div class="fg">
@@ -1360,6 +1364,7 @@ function calcCuotaDesdeTotal(){
 function openNewPago(){
     S.editPagoId=null;
     document.getElementById('mPagoTitle').textContent='Registrar pago';
+    document.getElementById('mEsEstimado').checked = false;
     document.getElementById('mFecha').value=new Date().toISOString().split('T')[0];
     document.getElementById('mDesc').value='';
     document.getElementById('mMonto').value='';
@@ -1380,6 +1385,7 @@ function openEditPago(id){
     S.editPagoId=id;
     var p=S.pagos.find(function(x){ return x.id===id; });
     document.getElementById('mPagoTitle').textContent='Editar pago';
+    document.getElementById('mEsEstimado').checked = !!p.esEstimado;
     document.getElementById('mFecha').value=p.fecha;
     document.getElementById('mDesc').value=p.desc||'';
     document.getElementById('mEstado').value=p.estado;
@@ -1435,6 +1441,11 @@ async function savePago(){
     var cuotasPagVal = cuotasVal ? (parseInt(document.getElementById('mCuotasPagadas').value)||0) : null;
     var frecuenciaVal = cuotasVal ? (parseInt(document.getElementById('mFrecuencia').value)||1) : 1;
     var payload={fecha:fecha, rubro:rubro, descripcion:desc, monto_usd:montoUSD, monto_ars:montoARSGuardar, cotizacion:cotizacionGuardar, estado:estado, cuotas:cuotasVal, cuotas_pagadas:cuotasPagVal, frecuencia:frecuenciaVal};
+    // Marca de estimado: tildada → aparece en Materiales estimados; destildada → pago normal
+    var _pe = S.editPagoId ? S.pagos.find(function(x){ return x.id === S.editPagoId; }) : null;
+    var _esEst = document.getElementById('mEsEstimado').checked;
+    if (_esEst) { payload.es_estimado = true; payload.monto_estimado = (montoARSGuardar != null ? montoARSGuardar : montoUSD * S.tcn) * (cuotasVal || 1); }
+    else if (_pe && (_pe.esEstimado || _pe.montoEstimado != null)) { payload.es_estimado = false; payload.monto_estimado = null; }
     var res = S.editPagoId
         ? await sb.from('obra_pagos').update(payload).eq('id',S.editPagoId)
         : await sb.from('obra_pagos').insert(payload);
@@ -2304,7 +2315,7 @@ function estPanelHtml() {
                 '<td style="' + TD + '"><input type="month" value="' + p.fecha.substring(0,7) + '" onchange="estSetMes(' + p.id + ',this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:3px 6px;"></td>' +
                 '<td style="' + TD + 'text-align:right;font-family:DM Mono,monospace;font-size:12px;">' + estFmtARS(p.montoEstimado) + '<div style="font-size:10px;color:var(--text3);">≈ U$S ' + Math.round(p.montoEstimado / cot).toLocaleString('es-AR') + '</div></td>' +
                 '<td style="' + TD + 'text-align:right;color:var(--text3);">—</td><td style="' + TD + 'text-align:right;color:var(--text3);">—</td>' +
-                '<td style="' + TD + 'text-align:right;"><button class="btn btn-sm btn-green" onclick="estOpenConfirmar(' + p.id + ')">Confirmar</button></td></tr>';
+                '<td style="' + TD + 'text-align:right;white-space:nowrap;"><button class="btn btn-sm" onclick="estOpenEditar(' + p.id + ')" title="Editar estimado">✎</button> <button class="btn btn-sm btn-green" onclick="estOpenConfirmar(' + p.id + ')">Confirmar</button></td></tr>';
         }
         var real = estRealARS(p), dv = p.montoEstimado ? (real - p.montoEstimado) / p.montoEstimado * 100 : 0;
         estConf += p.montoEstimado; realConf += real;
@@ -2320,7 +2331,7 @@ function estPanelHtml() {
         var bkARS = bk.montoARSoriginal || (bk.montoUSD * S.tcn);
         rows += '<tr><td style="' + TD + '" colspan="2"><div style="font-size:13px;font-weight:500;">' + (items.length ? 'Sin desglosar' : 'Estimado global') + '</div><div style="font-size:10px;color:var(--text3);">' + bk.fecha + (bk.fecha.substring(0,7) > mesStr(OBRA_MESES - 1) ? ' · <span style="color:var(--red);">después del fin de obra (' + mLabel(OBRA_MESES - 1) + ')</span>' : ' · un solo pago en el flujo') + '</div></td>' +
             '<td style="' + TD + 'text-align:right;font-family:DM Mono,monospace;font-size:12px;">' + estFmtARS(bkARS) + '</td><td style="' + TD + '"></td><td style="' + TD + '"></td>' +
-            '<td style="' + TD + 'text-align:right;"><button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);" onclick="estOpenDesglose()">Desglosar</button></td></tr>';
+            '<td style="' + TD + 'text-align:right;"><button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border-color:rgba(167,139,250,.3);" onclick="estOpenDesglose()">Desglosar</button> <button class="btn btn-sm" onclick="estOpenEditar(' + bk.id + ')" title="Editar estimado global">✎</button></td></tr>';
         queda += bkARS;
     }
     var dvTot = estConf ? (realConf - estConf) / estConf * 100 : null;
@@ -2390,6 +2401,33 @@ async function estSaveDesglose(bkId, bkARS, dia) {
     if (r2.error) { setSaveStatus('error'); alert('Se crearon los ítems pero no se pudo ajustar el estimado global: ' + r2.error.message); }
     else setSaveStatus('ok', 'Guardado');
     closeModal('modalEst'); await loadAllData(); renderResumen(); renderAlerts(); updateSidebar();
+}
+function estOpenEditar(id) {
+    var p = S.pagos.find(function(x){ return x.id === id; }); if (!p) return;
+    var esItem = p.montoEstimado != null;
+    var ars = esItem ? p.montoEstimado : (p.montoARSoriginal || p.montoUSD * S.tcn);
+    var cot = p.cotizacion || S.tcn;
+    document.getElementById('mEstTitle').textContent = 'Editar estimado · ' + (p.desc || '');
+    document.getElementById('mEstBody').innerHTML =
+        '<div class="form-row full"><div class="fg"><label>Ítem</label><input type="text" id="eeN" value="' + flEscG(p.desc) + '"></div></div>' +
+        '<div class="form-row"><div class="fg"><label>Monto estimado $</label><input type="number" id="eeA" value="' + Math.round(ars) + '"></div>' +
+        '<div class="fg"><label>Mes</label><input type="month" id="eeM" value="' + p.fecha.substring(0,7) + '"></div></div>' +
+        '<div class="form-row"><div class="fg"><label>Cotización $ (para pasarlo a U$S)</label><input type="number" id="eeC" value="' + Math.round(cot) + '"></div><div class="fg"></div></div>' +
+        '<div style="font-size:12px;color:var(--text3);">Para cargar el precio real usá <strong>Confirmar</strong>; esto solo cambia el estimado.</div>';
+    document.getElementById('mEstSave').onclick = function(){ estSaveEditar(id, esItem); };
+    openModal('modalEst');
+}
+async function estSaveEditar(id, esItem) {
+    var p = S.pagos.find(function(x){ return x.id === id; }); if (!p) return;
+    var n = (document.getElementById('eeN').value || '').trim(), a = parseFloat(document.getElementById('eeA').value) || 0;
+    var ym = document.getElementById('eeM').value, cot = parseFloat(document.getElementById('eeC').value) || 0;
+    if (!n || !a || !ym || !cot) { alert('Completá ítem, monto, mes y cotización.'); return; }
+    var payload = { descripcion: n, monto_ars: a, cotizacion: cot, monto_usd: a / cot, fecha: estFechaMes(ym, +p.fecha.substring(8,10)) };
+    if (esItem) payload.monto_estimado = a;
+    setSaveStatus('saving');
+    var r = await sb.from('obra_pagos').update(payload).eq('id', id);
+    if (r.error) { setSaveStatus('error'); alert('Error: ' + r.error.message + (/monto_estimado/.test(r.error.message) ? '\n\nFalta correr el SQL que agrega es_estimado y monto_estimado a obra_pagos.' : '')); return; }
+    setSaveStatus('ok', 'Guardado'); closeModal('modalEst'); await loadAllData(); renderResumen(); renderAlerts(); updateSidebar();
 }
 function estOpenConfirmar(id) {
     var p = S.pagos.find(function(x){ return x.id === id; }); if (!p) return;
