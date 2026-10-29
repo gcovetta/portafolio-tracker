@@ -1291,7 +1291,7 @@ function renderPagos(){
     var elPagFin = document.getElementById('resumenPagados');
     var pgHtmlPag = pgCard('pag', 'Pagados', '62,207,142', 'var(--green)', pgPagados, pgHeadPag, pgRowPag, pgTotPagUSD, pgTotPagARS, 'Sin pagos realizados', true);
     var pgHtmlPend = pgCard('pend', 'Pendientes / Vencidos', '245,166,35', 'var(--amber)', pgPend, pgHeadPend, pgRowPend, pgTotPendUSD, pgTotPendARS, 'Sin pagos pendientes');
-    if (elUnif) elUnif.innerHTML = estPanelHtml() + pgHtmlPend + (elPagFin ? '' : pgHtmlPag);
+    if (elUnif) elUnif.innerHTML = pgHtmlPend + (elPagFin ? '' : pgHtmlPag);
     if (elPagFin) elPagFin.innerHTML = pgHtmlPag;
 }
 // Plegar / desplegar una tabla de pagos completa (Pagados nace plegada)
