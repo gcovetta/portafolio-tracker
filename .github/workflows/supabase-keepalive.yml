@@ -1,17 +1,23 @@
 # Mantiene activo el proyecto Supabase de GastoTrack.
 # Supabase (plan free) pausa el proyecto tras ~7 días sin actividad;
-# este workflow hace una consulta cada 3 días para que nunca llegue a eso.
+# este workflow hace una consulta TODOS LOS DÍAS (un día que GitHub se
+# saltee o falle no alcanza para que se pause). El script de Apps Script
+# de Gmail también hace un ping diario, como respaldo independiente.
 #
 # Ubicación en el repo:  .github/workflows/supabase-keepalive.yml
 # Secrets necesarios (Settings → Secrets and variables → Actions):
 #   SUPABASE_URL       → https://gwjzhvrviztsizgusmou.supabase.co
 #   SUPABASE_ANON_KEY  → la anon key (la misma del HTML)
+#
+# Si falla, GitHub te manda un mail. Si el error dice que está pausado,
+# restauralo desde supabase.com/dashboard (botón "Restore project").
 
 name: Supabase keepalive
 
 on:
   schedule:
-    - cron: '17 12 */3 * *'   # cada 3 días, 12:17 UTC (09:17 en Argentina)
+    - cron: '17 12 * * *'     # todos los días, 12:17 UTC (09:17 en Argentina)
+    - cron: '43 23 * * *'     # y otra vez 20:43 en Argentina, por si GitHub se saltea una
   workflow_dispatch:           # permite correrlo a mano desde la pestaña Actions
 
 permissions:
@@ -26,24 +32,29 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          set -e
-          for intento in 1 2 3; do
-            code=$(curl -s -o resp.json -w '%{http_code}' \
+          # Sin "set -e": si curl falla (DNS, timeout) igual reintenta.
+          code=000
+          for intento in 1 2 3 4 5; do
+            code=$(curl -sS -o resp.json -w '%{http_code}' --max-time 30 \
               "$SUPABASE_URL/rest/v1/gastos?select=id&limit=1" \
               -H "apikey: $SUPABASE_ANON_KEY" \
-              -H "Authorization: Bearer $SUPABASE_ANON_KEY")
-            echo "Intento $intento → HTTP $code"
+              -H "Authorization: Bearer $SUPABASE_ANON_KEY") || true
+            echo "Intento $intento → HTTP ${code:-000}"
             if [ "$code" = "200" ]; then echo "Supabase activo ✔"; exit 0; fi
-            sleep 20
+            sleep $(( intento * 30 ))
           done
-          echo "Supabase no respondió 200:"; cat resp.json
+          echo "::error::Supabase no respondió 200 tras 5 intentos (último: ${code:-000}). Si está pausado, restauralo en supabase.com/dashboard."
+          cat resp.json 2>/dev/null || true
           exit 1
 
       # GitHub desactiva los workflows programados si el repo pasa 60 días
       # sin commits. Si el último commit tiene más de 45 días, dejamos uno
       # automático para que el keepalive nunca se apague solo.
+      # Corre siempre, aunque el ping haya fallado.
       - uses: actions/checkout@v5
+        if: always()
       - name: Heartbeat del repo (solo si hace falta)
+        if: always()
         run: |
           ultimo=$(git log -1 --format=%ct)
           dias=$(( ( $(date +%s) - ultimo ) / 86400 ))
