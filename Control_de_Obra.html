@@ -161,6 +161,7 @@
                 <label class="tb-tcn" title="Tipo de cambio (todos los montos en U$S)">TC $<input type="number" id="tcnInput" value="1200" min="1" step="50" oninput="updateTCN(this.value)"></label>
                 <span class="tb-save" title="Estado de guardado"><span class="save-dot" id="saveDot"></span><span id="saveText">Conectado</span></span>
                 <button class="btn btn-sm" id="tbCfg" onclick="goTo(curPage === 'config' ? 'resumen' : 'config')" title="Configuración">⚙</button>
+                <button class="btn btn-sm" id="tbUndo" onclick="deshacerBorrado()" style="display:none;" title="Deshacer el último borrado">↶ Deshacer</button>
             </div>
         </div>
         <div class="content">
@@ -467,6 +468,57 @@ function setSaveStatus(state, txt) {
     dot.className = 'save-dot' + (state==='saving'?' saving':state==='error'?' error':'');
     lbl.textContent = txt || (state==='saving'?'Guardando...':state==='error'?'Error al guardar':'Guardado');
 }
+
+// ═══════════════════════════════════════
+// DESHACER BORRADOS
+// Antes de borrar se guarda la fila completa (últimos 30, en este navegador).
+// Deshacer la vuelve a insertar tal cual, con el mismo id.
+// ═══════════════════════════════════════
+var UNDO_KEY = 'obraUndoBorrados';
+function _undoLeer(){ try { return JSON.parse(localStorage.getItem(UNDO_KEY) || '[]'); } catch(e) { return window._undoMem || []; } }
+function _undoGuardar(arr){ arr = arr.slice(-30); window._undoMem = arr; try { localStorage.setItem(UNDO_KEY, JSON.stringify(arr)); } catch(e) {} actualizarBotonUndo(); }
+function actualizarBotonUndo(){
+    var b = document.getElementById('tbUndo'); if (!b) return;
+    var arr = _undoLeer();
+    b.style.display = arr.length ? '' : 'none';
+    if (arr.length) b.title = 'Deshacer: ' + arr[arr.length-1].etiqueta + (arr.length > 1 ? ' (' + arr.length + ' borrados guardados)' : '');
+}
+function toastUndo(msg, conBoton){
+    var t = document.getElementById('undoToast');
+    if (!t) { t = document.createElement('div'); t.id = 'undoToast'; t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:9000;background:#242840;border:1px solid #3A3F5C;color:#E8EAF2;border-radius:10px;padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 24px rgba(0,0,0,.4);'; document.body.appendChild(t); }
+    t.innerHTML = '<span>' + msg + '</span>' + (conBoton ? '<button class="btn btn-sm" style="color:#4C8EF5;font-weight:700;" onclick="deshacerBorrado()">Deshacer</button>' : '');
+    t.style.display = 'flex';
+    clearTimeout(window._undoToastT);
+    window._undoToastT = setTimeout(function(){ t.style.display = 'none'; }, conBoton ? 12000 : 4000);
+}
+// Borra una fila guardando antes una copia completa para poder deshacer
+async function borrarConUndo(table, id, etiqueta){
+    var orig = await sb.from(table).select('*').eq('id', id).single();
+    var res = await sb.from(table).delete().eq('id', id);
+    if (!res.error && orig && orig.data) {
+        var arr = _undoLeer();
+        arr.push({ table: table, fila: orig.data, etiqueta: etiqueta || 'registro', ts: Date.now() });
+        _undoGuardar(arr);
+        toastUndo('Eliminado: ' + (etiqueta || 'registro'), true);
+    }
+    return res;
+}
+async function deshacerBorrado(){
+    var arr = _undoLeer(); if (!arr.length) return;
+    var u = arr[arr.length-1];
+    setSaveStatus('saving');
+    var r = await sb.from(u.table).insert(u.fila);
+    if (r.error) { // si la base no acepta el id original, se reinserta con id nuevo
+        var sinId = Object.assign({}, u.fila); delete sinId.id;
+        r = await sb.from(u.table).insert(sinId);
+    }
+    if (r.error) { setSaveStatus('error', 'Error al deshacer'); alert('No se pudo deshacer: ' + r.error.message); return; }
+    arr.pop(); _undoGuardar(arr);
+    setSaveStatus('ok', 'Restaurado');
+    toastUndo('Restaurado: ' + u.etiqueta, false);
+    await loadAllData(); renderResumen(); renderAlerts(); updateSidebar();
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(actualizarBotonUndo, 0); });
 
 function updateTCN(v) {
     S.tcn = parseFloat(v) || 1200;
@@ -1856,7 +1908,7 @@ async function marcarPagado(id){
     }
     await loadAllData(); renderResumen(); renderAlerts(); updateSidebar();
 }
-async function deletePago(id){ if(!confirm('Eliminar este pago?')) return; setSaveStatus('saving'); var res=await sb.from('obra_pagos').delete().eq('id',id); if(res.error){ setSaveStatus('error'); return; } setSaveStatus('ok','Guardado'); await loadAllData(); renderResumen(); renderAlerts(); updateSidebar(); }
+async function deletePago(id){ if(!confirm('Eliminar este pago?')) return; setSaveStatus('saving'); var _pU=S.pagos.find(function(x){ return x.id===id; }); var res=await borrarConUndo('obra_pagos', id, 'pago ' + (_pU ? (_pU.desc||'') : '')); if(res.error){ setSaveStatus('error'); return; } setSaveStatus('ok','Guardado'); await loadAllData(); renderResumen(); renderAlerts(); updateSidebar(); }
 
 // ═══════════════════════════════════════
 // PAGE: BALANCE
@@ -2323,7 +2375,8 @@ async function deleteBal(type,id){
     if(!confirm('Eliminar?')) return;
     setSaveStatus('saving');
     var table=type==='ingreso'?'obra_ingresos':type==='deuda'?'obra_deudas':'obra_ajustes';
-    var res=await sb.from(table).delete().eq('id',id);
+    var _lst=type==='ingreso'?S.ingresos:type==='deuda'?S.deudas:S.ajustes, _bU=_lst.find(function(x){ return x.id===id; });
+    var res=await borrarConUndo(table, id, type + ' ' + (_bU ? (_bU.desc||'') : ''));
     if(res.error){ setSaveStatus('error'); return; }
     setSaveStatus('ok','Guardado'); await loadAllData(); renderResumen(); updateSidebar();
 }
