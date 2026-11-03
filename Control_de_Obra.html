@@ -152,6 +152,7 @@
                 <button onclick="qGo('resumenPagos')">Pagos</button>
                 <button onclick="qGo('pagosUnif')">Pendientes</button>
                 <button onclick="qGo('secCalc')">Calculadora</button>
+                <button onclick="qGo('secCalcMes')">Cuentas</button>
                 <button onclick="qGo('resumenIngProy')">Ing. proyectados</button>
                 <button onclick="qGo('resumenPagados')">Pagados</button>
             </nav>
@@ -394,7 +395,8 @@ var S = {
     startDate: '2026-04-01', tcn: 1200, colchon: 10000,
     rubros: [], pagos: [], etapas: [], ingresos: [], deudas: [], ajustes: [],
     editPagoId: null, editEtapaId: null, editBalType: null, editBalId: null,
-    calc: { manoObra: '', materiales: '', otrosCostos: '', m2: '' }
+    calc: { manoObra: '', materiales: '', otrosCostos: '', m2: '' },
+    calcMes: { moneda: 'ars', tengo: '', items: [] }
 };
 
 // ═══════════════════════════════════════
@@ -513,6 +515,7 @@ async function loadAllData() {
         S.calc.materiales = cfg.data.calc_mat != null ? String(cfg.data.calc_mat) : '';
         S.calc.total      = cfg.data.calc_tot != null ? String(cfg.data.calc_tot) : '';
         S.calc.m2         = cfg.data.calc_m2  != null ? String(cfg.data.calc_m2)  : '';
+        if (cfg.data.calc_mes) { var _cm = cfg.data.calc_mes; S.calcMes = { moneda: _cm.moneda||'ars', tengo: _cm.tengo!=null?String(_cm.tengo):'', items: Array.isArray(_cm.items)?_cm.items:[] }; }
     }
     S.pagos    = (pagos.data||[]).map(function(p){ var tieneARS=p.monto_ars!=null&&p.monto_ars>0; return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, rubro:p.rubro||'', desc:p.descripcion, montoUSD:p.monto_usd, montoARS:tieneARS?p.monto_ars:(p.monto_usd*S.tcn), montoARSoriginal:tieneARS?p.monto_ars:null, cotizacion:p.cotizacion||null, estado:p.estado, cuotas:p.cuotas||null, cuotasPagadas:p.cuotas_pagadas||0, saldoCuotaActual:p.saldo_cuota_actual!=null?p.saldo_cuota_actual:null, moneda:p.moneda||'usd', frecuencia:p.frecuencia||1, esEstimado:!!p.es_estimado, montoEstimado:p.monto_estimado!=null?+p.monto_estimado:null}; });
     S.etapas   = (etapas.data||[]).map(function(e){
@@ -655,6 +658,8 @@ function renderResumen() {
         '</div>' +
         '<div id="calcResult" style="overflow-x:auto;"></div>' +
         '</div></details>' +
+        // Cuentas del mes: anotador libre, NO se suma a ningún total
+        '<div id="secCalcMes" class="card" style="margin-bottom:16px;"></div>' +
         // Ingresos proyectados al final (se completa en renderBalance)
         '<div id="resumenIngProy"></div>' +
         // Pagados al final (se completa en renderPagos)
@@ -678,6 +683,7 @@ function renderResumen() {
     });
     // Restaurar resultado calculadora si había valores guardados
     setTimeout(calcCostoM2, 0);
+    renderCalcMes();
     renderBalance();
     renderPagos();
 }
@@ -744,6 +750,61 @@ async function saveCalc() {
         calc_m2:  S.calc.m2         !== '' ? parseFloat(S.calc.m2)         : null
     };
     await sb.from('obra_config').update(payload).eq('id','main');
+}
+// ═══════════════════════════════════════
+// CUENTAS DEL MES (anotador libre, no afecta ningún total)
+// Se guarda en obra_config.calc_mes (jsonb)
+// ═══════════════════════════════════════
+function _cmEsc(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function _cmFmt(n){ var m=S.calcMes.moneda==='usd'?'U$S ':'$ '; return (n<0?'-':'')+m+Math.round(Math.abs(n)).toLocaleString('es-AR'); }
+function renderCalcMes(){
+    var el=document.getElementById('secCalcMes'); if(!el) return;
+    var cmS=S.calcMes, tag=cmS.moneda==='usd'?'U$S':'$';
+    var btnSt=function(on){ return 'height:24px;padding:0 10px;font-size:11px;border-radius:6px;cursor:pointer;border:1px solid var(--border);'+(on?'background:var(--accent,#4C8EF5);color:#fff;border-color:transparent;':'background:var(--surface2);color:var(--text2);'); };
+    var filas=cmS.items.map(function(it,cmi){
+        return '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">' +
+            '<input type="text" placeholder="Descripción" value="'+_cmEsc(it.d)+'" style="flex:2;min-width:0;height:28px;font-size:12px;" oninput="S.calcMes.items['+cmi+'].d=this.value;scheduleCalcMesSave()">' +
+            '<div class="amt-wrap" style="flex:1;min-width:110px;"><input type="number" placeholder="0" value="'+(it.m!=null&&it.m!==''?it.m:'')+'" style="height:28px;font-size:12px;" oninput="S.calcMes.items['+cmi+'].m=this.value;calcMesTotales();scheduleCalcMesSave()"><span class="amt-tag" style="font-size:10px;">'+tag+'</span></div>' +
+            '<button class="btn btn-sm" title="Quitar" style="height:28px;padding:0 9px;" onclick="calcMesDel('+cmi+')">✕</button>' +
+            '</div>';
+    }).join('');
+    el.innerHTML =
+        '<div style="padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);">' +
+        '<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:13px;font-weight:600;">Cuentas del mes</span><span style="font-size:11px;color:var(--text3);">anotador · no se suma a nada</span></div>' +
+        '<div style="display:flex;gap:4px;"><button style="'+btnSt(cmS.moneda==='ars')+'" onclick="calcMesMoneda(\'ars\')">$</button><button style="'+btnSt(cmS.moneda==='usd')+'" onclick="calcMesMoneda(\'usd\')">U$S</button></div>' +
+        '</div>' +
+        '<div class="card-body" style="padding-top:10px;">' +
+        (filas || '<div style="font-size:12px;color:var(--text3);margin-bottom:8px;">Sin ítems todavía.</div>') +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px;">' +
+        '<button class="btn btn-sm" onclick="calcMesAdd()">+ Agregar ítem</button>' +
+        '<button class="btn btn-sm" style="color:var(--text3);" onclick="calcMesLimpiar()">Vaciar</button>' +
+        '</div>' +
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);align-items:flex-end;">' +
+        '<div style="flex:1;min-width:120px;"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Total</div><div id="cmTotal" style="font-size:16px;font-weight:700;font-family:DM Mono,monospace;"></div></div>' +
+        '<div class="fg" style="flex:1;min-width:140px;margin:0;"><label style="font-size:10px;">Tengo</label><div class="amt-wrap"><input type="number" id="cmTengo" placeholder="0" value="'+_cmEsc(cmS.tengo)+'" style="height:30px;font-size:13px;" oninput="S.calcMes.tengo=this.value;calcMesTotales();scheduleCalcMesSave()"><span class="amt-tag" style="font-size:10px;">'+tag+'</span></div></div>' +
+        '<div style="flex:1;min-width:120px;text-align:right;"><div id="cmFaltaLbl" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Me falta</div><div id="cmFalta" style="font-size:18px;font-weight:700;font-family:DM Mono,monospace;"></div></div>' +
+        '</div></div>';
+    calcMesTotales();
+}
+function calcMesTotales(){
+    var tot=S.calcMes.items.reduce(function(a,it){ return a+(parseFloat(it.m)||0); },0);
+    var tengo=parseFloat(S.calcMes.tengo)||0, falta=tot-tengo;
+    var eT=document.getElementById('cmTotal'), eF=document.getElementById('cmFalta'), eL=document.getElementById('cmFaltaLbl');
+    if(eT) eT.textContent=_cmFmt(tot);
+    if(eF){ eF.textContent=_cmFmt(Math.abs(falta)); eF.style.color=falta>0?'var(--red,#F26B6B)':'var(--green,#3ECF8E)'; }
+    if(eL) eL.textContent=falta>0?'Me falta':'Me sobra';
+}
+function calcMesAdd(){ S.calcMes.items.push({d:'',m:''}); renderCalcMes(); scheduleCalcMesSave(); var ins=document.querySelectorAll('#secCalcMes input[type=text]'); if(ins.length) ins[ins.length-1].focus(); }
+function calcMesDel(i){ S.calcMes.items.splice(i,1); renderCalcMes(); scheduleCalcMesSave(); }
+function calcMesMoneda(m){ S.calcMes.moneda=m; renderCalcMes(); scheduleCalcMesSave(); }
+function calcMesLimpiar(){ if(!S.calcMes.items.length && !S.calcMes.tengo) return; if(!confirm('¿Vaciar todas las cuentas del mes?')) return; S.calcMes.items=[]; S.calcMes.tengo=''; renderCalcMes(); scheduleCalcMesSave(); }
+var calcMesTimer=null;
+function scheduleCalcMesSave(){ clearTimeout(calcMesTimer); calcMesTimer=setTimeout(saveCalcMes, 800); }
+async function saveCalcMes(){
+    setSaveStatus('saving');
+    var payload={ moneda:S.calcMes.moneda, tengo:S.calcMes.tengo!==''?parseFloat(S.calcMes.tengo):null, items:S.calcMes.items.map(function(it){ return {d:it.d||'', m:it.m!==''&&it.m!=null?parseFloat(it.m):null}; }) };
+    var r=await sb.from('obra_config').update({calc_mes:payload}).eq('id','main');
+    setSaveStatus(r.error?'error':'ok', r.error?'Error cuentas':'Guardado');
 }
 // PAGE: PAGOS
 // ═══════════════════════════════════════
