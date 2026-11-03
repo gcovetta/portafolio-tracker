@@ -791,7 +791,7 @@ function renderCalcMes(){
         '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);align-items:flex-end;">' +
         '<div style="flex:1;min-width:120px;"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Ingresos</div><div id="cmIng" style="font-size:16px;font-weight:700;font-family:DM Mono,monospace;color:var(--green,#3ECF8E);"></div></div>' +
         '<div style="flex:1;min-width:120px;"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Pagos</div><div id="cmPag" style="font-size:16px;font-weight:700;font-family:DM Mono,monospace;color:var(--red,#F26B6B);"></div></div>' +
-        '<div style="flex:1;min-width:120px;text-align:right;"><div id="cmNetoLbl" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Neto</div><div id="cmNeto" style="font-size:18px;font-weight:700;font-family:DM Mono,monospace;"></div></div>' +
+        '<div style="flex:1;min-width:120px;text-align:right;"><div id="cmNetoLbl" style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Neto</div><div id="cmNeto" style="font-size:18px;font-weight:700;font-family:DM Mono,monospace;"></div><div id="cmNetoAlt" style="font-size:12px;font-family:DM Mono,monospace;color:var(--text3);margin-top:3px;"></div></div>' +
         '</div></div>';
     calcMesTotales();
 }
@@ -816,6 +816,13 @@ function calcMesTotales(){
     if(eP) eP.textContent=_cmFmt(-pag);
     if(eN){ eN.textContent=(neto>0?'+':'')+_cmFmt(neto); eN.style.color=neto<0?'var(--red,#F26B6B)':'var(--green,#3ECF8E)'; }
     if(eL) eL.textContent=neto<0?'Neto · me falta':'Neto · me sobra';
+    // equivalente en la otra moneda al TC de la barra
+    var eA=document.getElementById('cmNetoAlt'), tcA=S.tcn||1200;
+    if(eA){
+        var alt=S.calcMes.moneda==='usd' ? neto*tcA : neto/tcA, altM=S.calcMes.moneda==='usd'?'$ ':'U$S ';
+        eA.textContent='≈ '+(alt>0?'+':alt<0?'-':'')+altM+Math.round(Math.abs(alt)).toLocaleString('es-AR')+' · TC '+Math.round(tcA).toLocaleString('es-AR');
+        eA.style.color=neto<0?'var(--red,#F26B6B)':'var(--green,#3ECF8E)';
+    }
 }
 function calcMesAdd(tipo){
     S.calcMes.items.push({d:'',m:'',t:tipo==='i'?'i':'p'}); renderCalcMes(); scheduleCalcMesSave();
