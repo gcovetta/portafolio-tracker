@@ -765,8 +765,8 @@ function renderCalcMes(){
         var ing=it.t==='i', col=ing?'var(--green,#3ECF8E)':'var(--red,#F26B6B)';
         return '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">' +
             '<button title="'+(ing?'Ingreso (clic para pasar a pago)':'Pago (clic para pasar a ingreso)')+'" onclick="calcMesTipo('+cmi+')" style="width:28px;height:28px;flex-shrink:0;border-radius:6px;cursor:pointer;font-weight:700;font-size:15px;border:1px solid '+col+';background:transparent;color:'+col+';">'+(ing?'+':'−')+'</button>' +
-            '<input type="text" placeholder="'+(ing?'Ingreso / saldo':'Pago')+'" value="'+_cmEsc(it.d)+'" style="flex:2;min-width:0;height:28px;font-size:12px;" oninput="S.calcMes.items['+cmi+'].d=this.value;scheduleCalcMesSave()">' +
-            '<div class="amt-wrap" style="flex:1;min-width:110px;"><input type="number" placeholder="0" value="'+(it.m!=null&&it.m!==''?it.m:'')+'" style="height:28px;font-size:12px;color:'+col+';" oninput="S.calcMes.items['+cmi+'].m=this.value;calcMesTotales();scheduleCalcMesSave()"><span class="amt-tag" style="font-size:10px;">'+tag+'</span></div>' +
+            '<input type="text" class="cm-desc" placeholder="'+(ing?'Ingreso / saldo':'Pago')+'" value="'+_cmEsc(it.d)+'" style="flex:2;min-width:0;height:28px;font-size:12px;" oninput="S.calcMes.items['+cmi+'].d=this.value;scheduleCalcMesSave()">' +
+            '<div class="amt-wrap" style="flex:1;min-width:110px;"><input type="text" inputmode="numeric" class="cm-monto" placeholder="0" value="'+_cmMil(it.m)+'" style="height:28px;font-size:12px;color:'+col+';" oninput="_cmMontoInput(this,'+cmi+')"><span class="amt-tag" style="font-size:10px;">'+tag+'</span></div>' +
             '<button class="btn btn-sm" title="Quitar" style="height:28px;padding:0 9px;" onclick="calcMesDel('+cmi+')">✕</button>' +
             '</div>';
     };
@@ -795,6 +795,18 @@ function renderCalcMes(){
         '</div></div>';
     calcMesTotales();
 }
+function _cmMil(v){ var d=String(v==null?'':v).replace(/\D/g,''); return d===''?'':parseInt(d,10).toLocaleString('es-AR'); }
+function _cmMontoInput(inp, i){
+    var pos=inp.selectionStart||0, dDer=inp.value.slice(pos).replace(/\D/g,'').length;
+    var dig=inp.value.replace(/\D/g,'').replace(/^0+(?=\d)/,'');
+    inp.value=_cmMil(dig);
+    // dejar el cursor detrás del mismo dígito
+    var cnt=0, np=inp.value.length;
+    for(var k=inp.value.length;k>=0;k--){ if(cnt===dDer){ np=k; break; } if(k>0 && /\d/.test(inp.value[k-1])) cnt++; }
+    try{ inp.setSelectionRange(np,np); }catch(e){}
+    S.calcMes.items[i].m = dig===''?'':parseInt(dig,10);
+    calcMesTotales(); scheduleCalcMesSave();
+}
 function calcMesTotales(){
     var ing=0, pag=0;
     S.calcMes.items.forEach(function(it){ var v=parseFloat(it.m)||0; if(it.t==='i') ing+=v; else pag+=v; });
@@ -811,7 +823,7 @@ function calcMesAdd(tipo){
     var cmIdx=S.calcMes.items.length-1, cmOrd=[];
     S.calcMes.items.forEach(function(it,k){ if(it.t==='i') cmOrd.push(k); });
     S.calcMes.items.forEach(function(it,k){ if(it.t!=='i') cmOrd.push(k); });
-    var cmIns=document.querySelectorAll('#secCalcMes input[type=text]'), cmPos=cmOrd.indexOf(cmIdx);
+    var cmIns=document.querySelectorAll('#secCalcMes input.cm-desc'), cmPos=cmOrd.indexOf(cmIdx);
     if(cmIns[cmPos]) cmIns[cmPos].focus();
 }
 function calcMesDel(i){ S.calcMes.items.splice(i,1); renderCalcMes(); scheduleCalcMesSave(); }
