@@ -567,7 +567,7 @@ async function loadAllData() {
         S.calc.materiales = cfg.data.calc_mat != null ? String(cfg.data.calc_mat) : '';
         S.calc.total      = cfg.data.calc_tot != null ? String(cfg.data.calc_tot) : '';
         S.calc.m2         = cfg.data.calc_m2  != null ? String(cfg.data.calc_m2)  : '';
-        if (cfg.data.calc_mes) { var _cm = cfg.data.calc_mes; var _cmIt = (Array.isArray(_cm.items)?_cm.items:[]).map(function(it){ return {d:it.d||'', m:it.m, t:it.t==='i'?'i':'p'}; }); if (_cm.tengo!=null && _cm.tengo!=='' && !_cmIt.some(function(it){ return it.t==='i'; })) _cmIt.push({d:'Tengo', m:_cm.tengo, t:'i'}); S.calcMes = { moneda: _cm.moneda||'ars', items: _cmIt }; }
+        if (cfg.data.calc_mes) { var _cm = cfg.data.calc_mes; var _cmIt = (Array.isArray(_cm.items)?_cm.items:[]).map(function(it){ return {d:it.d||'', m:_cmNum(it.m), t:it.t==='i'?'i':'p'}; }); if (_cm.tengo!=null && _cm.tengo!=='' && !_cmIt.some(function(it){ return it.t==='i'; })) _cmIt.push({d:'Tengo', m:_cmNum(_cm.tengo), t:'i'}); S.calcMes = { moneda: _cm.moneda||'ars', items: _cmIt }; }
     }
     S.pagos    = (pagos.data||[]).map(function(p){ var tieneARS=p.monto_ars!=null&&p.monto_ars>0; return {id:p.id, fecha:p.fecha, etapaId:p.etapa_id, rubro:p.rubro||'', desc:p.descripcion, montoUSD:p.monto_usd, montoARS:tieneARS?p.monto_ars:(p.monto_usd*S.tcn), montoARSoriginal:tieneARS?p.monto_ars:null, cotizacion:p.cotizacion||null, estado:p.estado, cuotas:p.cuotas||null, cuotasPagadas:p.cuotas_pagadas||0, saldoCuotaActual:p.saldo_cuota_actual!=null?p.saldo_cuota_actual:null, moneda:p.moneda||'usd', frecuencia:p.frecuencia||1, esEstimado:!!p.es_estimado, montoEstimado:p.monto_estimado!=null?+p.monto_estimado:null}; });
     S.etapas   = (etapas.data||[]).map(function(e){
@@ -847,6 +847,7 @@ function renderCalcMes(){
         '</div></div>';
     calcMesTotales();
 }
+function _cmNum(v){ var d=String(v==null?'':v).replace(/\D/g,''); return d===''?null:parseInt(d,10); }
 function _cmMil(v){ var d=String(v==null?'':v).replace(/\D/g,''); return d===''?'':parseInt(d,10).toLocaleString('es-AR'); }
 function _cmMontoInput(inp, i){
     var pos=inp.selectionStart||0, dDer=inp.value.slice(pos).replace(/\D/g,'').length;
@@ -861,7 +862,7 @@ function _cmMontoInput(inp, i){
 }
 function calcMesTotales(){
     var ing=0, pag=0;
-    S.calcMes.items.forEach(function(it){ var v=parseFloat(it.m)||0; if(it.t==='i') ing+=v; else pag+=v; });
+    S.calcMes.items.forEach(function(it){ var v=_cmNum(it.m)||0; if(it.t==='i') ing+=v; else pag+=v; });
     var neto=ing-pag;
     var eI=document.getElementById('cmIng'), eP=document.getElementById('cmPag'), eN=document.getElementById('cmNeto'), eL=document.getElementById('cmNetoLbl');
     if(eI) eI.textContent=_cmFmt(ing);
@@ -893,7 +894,7 @@ var calcMesTimer=null;
 function scheduleCalcMesSave(){ clearTimeout(calcMesTimer); calcMesTimer=setTimeout(saveCalcMes, 800); }
 async function saveCalcMes(){
     setSaveStatus('saving');
-    var payload={ moneda:S.calcMes.moneda, items:S.calcMes.items.map(function(it){ return {d:it.d||'', m:it.m!==''&&it.m!=null?parseFloat(it.m):null, t:it.t==='i'?'i':'p'}; }) };
+    var payload={ moneda:S.calcMes.moneda, items:S.calcMes.items.map(function(it){ return {d:it.d||'', m:_cmNum(it.m), t:it.t==='i'?'i':'p'}; }) };
     var r=await sb.from('obra_config').update({calc_mes:payload}).eq('id','main');
     setSaveStatus(r.error?'error':'ok', r.error?'Error cuentas':'Guardado');
 }
