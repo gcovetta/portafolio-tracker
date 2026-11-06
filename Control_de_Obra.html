@@ -158,6 +158,7 @@
             </nav>
             <div class="actions" id="topbarActions"></div>
             <div class="tb-tools">
+                <span id="appVersion" title="Versión publicada" style="font-size:10px;font-family:DM Mono,monospace;color:var(--text3);padding:2px 7px;border:1px solid var(--border);border-radius:20px;white-space:nowrap;"></span>
                 <label class="tb-tcn" title="Tipo de cambio (todos los montos en U$S)">TC $<input type="number" id="tcnInput" value="1200" min="1" step="50" oninput="updateTCN(this.value)"></label>
                 <span class="tb-save" title="Estado de guardado"><span class="save-dot" id="saveDot"></span><span id="saveText">Conectado</span></span>
                 <button class="btn btn-sm" id="tbCfg" onclick="goTo(curPage === 'config' ? 'resumen' : 'config')" title="Configuración">⚙</button>
@@ -392,6 +393,9 @@ var sb = null;
 // STATE
 // ═══════════════════════════════════════
 var MO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+// Versión visible: subir en cada cambio publicado
+var APP_VERSION = 'v1.1 · 06/11 12:00';
+document.addEventListener('DOMContentLoaded', function(){ var v=document.getElementById('appVersion'); if(v) v.textContent=APP_VERSION; });
 var S = {
     startDate: '2026-04-01', tcn: 1200, colchon: 10000,
     rubros: [], pagos: [], etapas: [], ingresos: [], deudas: [], ajustes: [],
